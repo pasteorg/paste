@@ -5,7 +5,7 @@ application acts differently with different URLs.  The forwarded
 URLs must be relative to this container.
 
 The forwarder is available through
-``environ['wsgikit.recursive.forward'](path, extra_environ=None)``,
+``environ['paste.recursive.forward'](path, extra_environ=None)``,
 the second argument is a dictionary of values to be added to the
 request, overwriting any keys.  The forward will call start_response;
 thus you must *not* call it after you have sent any output to the
@@ -14,7 +14,7 @@ stack.  You may need to use exceptions to guarantee that this iterator
 will be passed back through the application.
 
 The includer is available through
-``environ['wsgikit.recursive.include'](path, extra_environ=None)``.
+``environ['paste.recursive.include'](path, extra_environ=None)``.
 It is like forwarder, except it completes the request and returns a
 response object.  The response object has three public attributes:
 status, headers, and body.  The status is a string, headers is a list
@@ -29,9 +29,9 @@ class RecursiveMiddleware(object):
         self.application = application
 
     def __call__(self, environ, start_response):
-        environ['wsgikit.recursive.forward'] = Forwarder(
+        environ['paste.recursive.forward'] = Forwarder(
             self.application, environ, start_response)
-        environ['wsgikit.recursive.include'] = Includer(
+        environ['paste.recursive.include'] = Includer(
             self.application, environ, start_response)
         return self.application(environ, start_response)
 
@@ -47,7 +47,7 @@ class Recursive(object):
         environ = self.original_environ.copy()
         if new_environ:
             environ.update(new_environ)
-        environ['wsgikit.recursive.previous_environ'] = self.previous_environ
+        environ['paste.recursive.previous_environ'] = self.previous_environ
         base_path = self.original_environ.get('SCRIPT_NAME')
         if path.startswith('/'):
             assert path.startswith(base_path), "You can only forward requests to resources under the path %r (not %r)" % (base_path, path)

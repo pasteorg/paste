@@ -76,12 +76,12 @@ class URLParser(object):
         self.base_python_name = base_python_name
 
     def __call__(self, environ, start_response):
-        environ['wsgikit.urlparser.base_python_name'] = self.base_python_name
+        environ['paste.urlparser.base_python_name'] = self.base_python_name
         if self.add_options:
-            if environ.has_key('wsgikit.urlparser.options'):
-                environ['wsgikit.urlparser.options'].update(self.add_options)
+            if environ.has_key('paste.urlparser.options'):
+                environ['paste.urlparser.options'].update(self.add_options)
             else:
-                environ['wsgikit.urlparser.options'] = self.add_options.copy()
+                environ['paste.urlparser.options'] = self.add_options.copy()
         if self.init_module is NoDefault:
             self.init_module = self.find_init_module(environ)
         path_info = environ.get('PATH_INFO', '')
@@ -114,9 +114,9 @@ class URLParser(object):
         if not application:
             if (self.init_module
                 and getattr(self.init_module, 'not_found_hook', None)
-                and environ.get('wsgikit.urlparser.not_found_parser') is not self):
+                and environ.get('paste.urlparser.not_found_parser') is not self):
                 not_found_hook = self.init_module.not_found_hook
-                environ['wsgikit.urlparser.not_found_parser'] = self
+                environ['paste.urlparser.not_found_parser'] = self
                 environ['PATH_INFO'] = orig_path_info
                 environ['SCRIPT_NAME'] = orig_script_name
                 return not_found_hook(environ, start_response)
@@ -153,7 +153,7 @@ class URLParser(object):
         return [body]
 
     def option(self, environ, name):
-        return environ.get('wsgikit.urlparser.options', {}).get(
+        return environ.get('paste.urlparser.options', {}).get(
             name, self.default_options.get(name))
 
     def add_slash(self, environ, start_response):
@@ -256,7 +256,7 @@ class URLParser(object):
             hex(abs(id(self))))
 
 def make_directory(environ, filename):
-    base_python_name = environ['wsgikit.urlparser.base_python_name']
+    base_python_name = environ['paste.urlparser.base_python_name']
     if base_python_name:
         base_python_name += "." + os.path.basename(filename)
     else:
@@ -271,7 +271,7 @@ def make_unknown(environ, filename):
 URLParser.register_constructor('*', make_unknown)
 
 def load_module(environ, filename):
-    base_python_name = environ['wsgikit.urlparser.base_python_name']
+    base_python_name = environ['paste.urlparser.base_python_name']
     module_name = os.path.splitext(os.path.basename(filename))[0]
     if base_python_name:
         module_name = base_python_name + '.' + module_name

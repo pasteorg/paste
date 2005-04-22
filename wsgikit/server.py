@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-A generic WSGIKit server, useable for multiple backends
+A generic Paste server, useable for multiple backends
 """
 
 help_message = """\
@@ -29,8 +29,8 @@ OPTIONS
 
 import sys
 import os
-from wsgikit import reloader
-from wsgikit import wsgilib
+from paste import reloader
+from paste import wsgilib
 
 # This way you can run this out of a checkout, and we'll fix up
 # the path...
@@ -39,22 +39,22 @@ try:
 except NameError:
     here = os.path.normpath(os.path.abspath(sys.argv[0]))
 try:
-    import wsgikit
+    import paste
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(here)))
-    import wsgikit
-wsgikit_path = os.path.normpath(
-    os.path.dirname(os.path.abspath(wsgikit.__file__)))
+    import paste
+paste_path = os.path.normpath(
+    os.path.dirname(os.path.abspath(paste.__file__)))
 
-if os.path.dirname(here) != wsgikit_path:
+if os.path.dirname(here) != paste_path:
     sys.stderr.write(
-        'Warning: server.py is running out of %s, but wsgikit is loaded '
-        'out of %s\n' % (here, wsgikit_path))
+        'Warning: server.py is running out of %s, but paste is loaded '
+        'out of %s\n' % (here, paste_path))
 
-from wsgikit.pyconfig import Config
-from wsgikit.configmiddleware import config_middleware
-from wsgikit.webkit import wsgiwebkit
-from wsgikit.util import thirdparty
+from paste.pyconfig import Config
+from paste.configmiddleware import config_middleware
+from paste.webkit import wsgiwebkit
+from paste.util import thirdparty
 
 servers = {}
 
@@ -159,7 +159,7 @@ def help():
     return help_message % {'program': program}
 
 def twisted_serve(conf, app):
-    from wsgikit.twisted_wsgi import serve_application
+    from paste.twisted_wsgi import serve_application
     serve_application(
         app, port=int(conf.get('port', 8080)))
 
@@ -167,7 +167,7 @@ servers['twisted'] = twisted_serve
 
 def scgi_serve(conf, app):
     thirdparty.add_package('scgi')
-    from wsgikit.scgiserver import serve_application
+    from paste.scgiserver import serve_application
     prefix = conf.get('scgi_prefix', '/')
     serve_application(app, prefix, port=int(conf.get('port', 4000)))
 
@@ -206,7 +206,7 @@ def cgi_serve(conf, app):
     print "#!%s" % sys.executable
     print template
     print "if __name__ == '__main__':"
-    print "    from wsgikit.cgiserver import run_with_cgi"
+    print "    from paste.cgiserver import run_with_cgi"
     print "    run_with_cgi(app)"
 
 servers['cgi'] = cgi_serve

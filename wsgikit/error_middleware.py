@@ -5,7 +5,7 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-from wsgikit.exceptions import formatter, collector, reporter
+from paste.exceptions import formatter, collector, reporter
 
 class ErrorMiddleware(object):
 
@@ -64,7 +64,7 @@ class ErrorMiddleware(object):
     def exception_handler(self, exc_info, environ):
         reported = False
         exc_data = collector.collect_exception(*exc_info)
-        conf = environ.get('wsgikit.config', {})
+        conf = environ.get('paste.config', {})
         extra_data = ''
         if conf.get('error_email'):
             rep = reporter.EmailReporter(

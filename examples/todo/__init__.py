@@ -1,5 +1,5 @@
 import os
-from wsgikit import wsgilib
+from paste import wsgilib
 
 def urlparser_hook(environ):
     if not environ.has_key('todo.base_url'):
@@ -7,7 +7,7 @@ def urlparser_hook(environ):
 
 def not_found_hook(environ, start_response):
 
-    p = environ['wsgikit.urlparser.not_found_parser']
+    p = environ['paste.urlparser.not_found_parser']
     username, rest = wsgilib.path_info_split(environ.get('PATH_INFO', ''))
     if username is None:
         return p.not_found(environ, start_response)

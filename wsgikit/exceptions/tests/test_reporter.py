@@ -1,7 +1,7 @@
 import sys
 import os
-from wsgikit.exceptions.reporter import *
-from wsgikit.exceptions import collector
+from paste.exceptions.reporter import *
+from paste.exceptions import collector
 
 def setup_file(fn, content=None):
     fn = os.path.join(os.path.dirname(__file__), 'reporter_output', fn)

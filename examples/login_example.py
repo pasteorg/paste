@@ -1,5 +1,5 @@
-from wsgikit.twisted_wsgi import serve_application
-from wsgikit import echo, login
+from paste.twisted_wsgi import serve_application
+from paste import echo, login
 
 def twisted_serve(app):
     serve_application(

@@ -1,5 +1,5 @@
 r"""\
-WSGI application
+Paste/WebKit application
 
 Does things as requested.  Takes variables:
 
@@ -19,8 +19,8 @@ message=string
 """
 
 # Special WSGI version of WebKit:
-from wsgikit.webkit.wkservlet import Page
-from wsgikit import httpexceptions
+from paste.webkit.wkservlet import Page
+from paste import httpexceptions
 
 class EchoServlet(Page):
 

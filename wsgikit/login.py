@@ -69,14 +69,14 @@ def middleware(
     should probably be overridable.
 
     Environment variables used:
-      wsgikit.login.signer:
+      paste.login.signer:
           signer, created from UsernameSigner class
-      wsgikit.login._dologin:
+      paste.login._dologin:
           user name to be logged in, either from HTTP auth
           or from form submission (XXX form not implement)
-      wsgikit.login._doredirect:
+      paste.login._doredirect:
           login page to which to redirect
-      wsgikit.login._loginredirect:
+      paste.login._loginredirect:
           set to True iff _doredirect set and login_page is
           relative, else undefined.  Used where?
     """
@@ -97,7 +97,7 @@ def middleware(
         cookies = wsgilib.get_cookies(environ)
         cookie = cookies.get(cookie_name)
         username = None
-        environ['wsgikit.login.signer'] = signer
+        environ['paste.login.signer'] = signer
         if cookie and cookie.value:
             username = signer.check_signature(
                 cookie.value, environ['wsgi.errors'])
@@ -109,17 +109,17 @@ def middleware(
             and authenticatee):
             username = authenticator().check_basic_auth(authenticatee)
             if http_and_cookie:
-                environ['wsgikit.login._dologin'] = username
+                environ['paste.login._dologin'] = username
         if username:
             environ['REMOTE_USER'] = username
 
         def login_start_response(status, headers):
-            if environ.get('wsgikit.login._dologin'):
+            if environ.get('paste.login._dologin'):
                 cookie = SimpleCookie(cookie_name,
                                       signer.make_signature(username),
                                       '/')
                 headers.append(('Set-Cookie', str(cookie)))
-                del environ['wsgikit.login._dologin']
+                del environ['paste.login._dologin']
             status_int = int(status.split(None, 1)[0].strip())
             if status_int == 401 and http_login:
                 if (http_overwrite_realm
@@ -128,21 +128,21 @@ def middleware(
             elif status_int == 401:
                 status = '200 OK'
                 if login_page.startswith('/'):
-                    assert environ.has_key('wsgikit.recursive.include'), (
+                    assert environ.has_key('paste.recursive.include'), (
                         "You must use the recursive middleware to "
                         "use a non-relative page for the login_page")
-                environ['wsgikit.login._doredirect'] = login_page
+                environ['paste.login._doredirect'] = login_page
                 return garbage_writer
             return start_response(status, headers)
 
         app_iter = application(environ, login_start_response)
         
-        if environ.get('wsgikit.login._doredirect'):
-            page_name = environ['wsgikit.login._doredirect']
-            del environ['wsgikit.login._doredirect']
+        if environ.get('paste.login._doredirect'):
+            page_name = environ['paste.login._doredirect']
+            del environ['paste.login._doredirect']
             eat_app_iter(app_iter)
             if login_page.startswith('/'):
-                app_iter = environ['wsgikit.recursive.forward'](
+                app_iter = environ['paste.recursive.forward'](
                     login_page[1:])
             else:
                 # Don't use recursive, since login page is
@@ -150,7 +150,7 @@ def middleware(
                 new_environ = environ.copy()
                 new_environ['SCRIPT_NAME'] = orig_script_name
                 new_environ['PATH_INFO'] = '/' + login_page
-                new_environ['wsgikit.login._loginredirect'] = True
+                new_environ['paste.login._loginredirect'] = True
                 app_iter = login_application(new_environ, start_response)
         return app_iter
 
@@ -190,7 +190,7 @@ class UsernameSigner(object):
         Adds a username so that the login middleware will later set
         the user to be logged in (with a cookie).
         """
-        environ['wsgikit.login._dologin'] = username
+        environ['paste.login._dologin'] = username
 
 class SimpleCookie(object):
     def __init__ (self, cookie_name, signed_val, path):

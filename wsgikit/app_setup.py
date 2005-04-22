@@ -6,11 +6,11 @@ import os
 import sys
 from cStringIO import StringIO
 import re
-from wsgikit.util.thirdparty import load_new_module
+from paste.util.thirdparty import load_new_module
 string = load_new_module('string', (2, 4))
 
-from wsgikit import pyconfig
-from wsgikit import urlparser
+from paste import pyconfig
+from paste import urlparser
 
 class InvalidCommand(Exception):
     pass
@@ -18,7 +18,7 @@ class InvalidCommand(Exception):
 def find_template_info(args):
     """
     Given command-line arguments, this finds the app template
-    (wsgikit.app_templates.<template_name>.command).  It looks for a
+    (paste.app_templates.<template_name>.command).  It looks for a
     -t or --template option (but ignores all other options), and if
     none then looks in server.conf for a template_name option.
 
@@ -78,7 +78,7 @@ def find_template_config(args):
 
 def load_template(template_name):
     base = os.path.join(os.path.dirname(__file__), 'app_templates')
-    full_name = 'wsgikit.app_templates.%s.command' % template_name
+    full_name = 'paste.app_templates.%s.command' % template_name
     errors = StringIO()
     mod = urlparser.load_module_from_name(
         None, os.path.join(base, template_name, 'command'),

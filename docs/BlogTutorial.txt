@@ -12,13 +12,12 @@ Introduction
 ============
 
 This tutorial will go through the process of creating a blog using
-WSGIKit_, SQLObject_, and `Zope Page Templates`_.  This blog will rely
-heavily on static publishing -- that is, when at all possible flat
-HTML pages will be written to disk.  For some parts (e.g., posting a
-new item) this will of course be infeasible, but for most of the site
-this should work fine.
+`Python Paste <http://pythonpaste.org>`_, SQLObject_, and `Zope Page
+Templates`_.  This blog will rely heavily on static publishing -- that
+is, when at all possible flat HTML pages will be written to disk.  For
+some parts (e.g., posting a new item) this will of course be
+infeasible, but for most of the site this should work fine.
 
-.. _WSGIKit: http://wsgikit.org
 .. _SQLObject: http://sqlobject.org
 .. _Zope Page Templates: http://www.zope.org/DevHome/Wikis/DevSite/Projects/ZPT/FrontPage
 
@@ -47,7 +46,7 @@ Setting Up The App
 
 .. run:
 
-    from wsgikit.tests.doctest_webapp import *
+    from paste.tests.doctest_webapp import *
     BASE = '/var/www/wkblog'
     import sys
     clear_dir(BASE)
@@ -57,7 +56,7 @@ Setting Up The App
 
 ::
 
-    $ export PYTHONPATH=/path/to/WSGIKit:$PYTHONPATH
+    $ export PYTHONPATH=/path/to/Paste:$PYTHONPATH
     $ BASE=/var/www/wkblog
     $ app-setup create --template=webkit_zpt $BASE
     $ cd $BASE

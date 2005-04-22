@@ -1,8 +1,8 @@
 import os
-from wsgikit import server
-from wsgikit.pyconfig import Config
-from wsgikit.configmiddleware import config_middleware
-from wsgikit.webkit import wsgiwebkit
+from paste import server
+from paste.pyconfig import Config
+from paste.configmiddleware import config_middleware
+from paste.webkit import wsgiwebkit
 
 conf = Config()
 conf.load_dict(server.default_ops, default=True)

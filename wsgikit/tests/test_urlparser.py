@@ -1,4 +1,4 @@
-from wsgikit.urlparser import *
+from paste.urlparser import *
 from fixture import fake_request
 
 

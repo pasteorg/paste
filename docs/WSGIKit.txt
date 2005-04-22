@@ -1,5 +1,5 @@
-WSGIKit
-===========
+Python Paste
+============
 
 This is a WSGI_ version of WebKit.  In addition to supporting WSGI, it
 also is a simplification and refactoring of Webware.
@@ -9,7 +9,7 @@ also is a simplification and refactoring of Webware.
 License
 -------
 
-WSGIKit is distributed under the `Python Software Foundation`__
+Paste is distributed under the `Python Software Foundation`__
 license.  This is a BSD/MIT-style license.
 
 .. __: http://www.python.org/psf/license.html
@@ -21,16 +21,16 @@ First, grab WSGIUtils, at http://www.owlfish.com/software/wsgiutils/,
 or download it directly from
 http://www.owlfish.com/software/wsgiutils/downloads/WSGI%20Utils-0.5.tar.gz
 
-You can use other servers with WSGIKit, but WSGIUtils is pretty easy
+You can use other servers with Paste, but WSGIUtils is pretty easy
 and built on SimpleHTTPServer.  Run ``python setup.py install`` to
 install it.
 
-Right now it's best NOT to install WSGIKit with ``setup.py``, but just
+Right now it's best NOT to install Paste with ``setup.py``, but just
 to run it out of the checkout.  An easy way to do that::
 
     ./scripts/app-setup create webkit_zpt /path/to/put/files
     cd /path/to/put/files
-    /path/to/wsgikit/scripts/server -v
+    /path/to/paste/scripts/server -v
 
 And it will be running a server on http://localhost:8080/
 
@@ -54,7 +54,7 @@ Some parts that aren't being brought over:
   all of them.  The environment (``request.environ()``) may look
   different than in Webware -- it matches the WSGI expectations.  It's
   certainly possible -- and hopefully clearer -- to do introspection
-  in WSGIKit, but it might not be backward compatible (but still file
+  in Paste, but it might not be backward compatible (but still file
   bugs if you find problems).
 
 Discussion
@@ -76,7 +76,7 @@ like::
     database_name = 'app_data'
 
 And so on.  There's a default configuration file in
-``wsgikit/default_config.conf`` which will also serve as
+``paste/default_config.conf`` which will also serve as
 documentation.  Your configuration overrides those values.  The
 extension is arbitrary at this point.
 
@@ -137,8 +137,8 @@ like::
 
     #!/usr/bin/env python
     # maybe import sys and modify sys.path
-    from wsgikit import cgiserver
-    from wsgikit.webkit import wsgiwebkit
+    from paste import cgiserver
+    from paste.webkit import wsgiwebkit
     app = wsgiwebkit.webkit('/path/to/app')
     cgiserver.run_with_cgi(app)
 
@@ -156,8 +156,8 @@ this server use::
 
     #!/usr/bin/env python
     # maybe import sys and modify sys.path
-    from wsgikit import twisted_wsgi
-    from wsgikit.webkit import wsgiwebkit
+    from paste import twisted_wsgi
+    from paste.webkit import wsgiwebkit
     app = wsgiwebkit.webkit('/path/to/app')
     twisted_wsgi.serve_application(app, 8080)
 
@@ -179,7 +179,7 @@ To set up this server use::
 
     #!/usr/bin/env python
     from wsgiutils import wsgiServer
-    from wsgikit.webkit import wsgiwebkit
+    from paste.webkit import wsgiwebkit
     app_root='/path/to/app'
     app = wsgiwebkit.webkit(app_root)
     server = wsgiServer.WSGIServer(('127.0.0.1', 8080), {'/': app})
@@ -194,8 +194,8 @@ is a simple way::
 
     #!/usr/bin/env python
     # maybe import sys and modify sys.path
-    from wsgikit import wsgilib
-    from wsgikit.webkit import wsgiwebkit
+    from paste import wsgilib
+    from paste.webkit import wsgiwebkit
     app = wsgiwebkit.webkit('/path/to/app')
     def run(url):
         print wsgilib.interactive(application, url)

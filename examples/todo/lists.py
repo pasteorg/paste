@@ -1,6 +1,6 @@
 from urllib import pathname2url
 from urllib2 import unquote
-from wsgikit.httpexceptions import HTTPNotFound
+from paste.httpexceptions import HTTPNotFound
 
 from SitePage import SitePage
 

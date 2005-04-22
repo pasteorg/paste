@@ -1,1 +1,1 @@
-from wsgikit.webkit.wkservlet import HTTPServlet
+from paste.webkit.wkservlet import HTTPServlet

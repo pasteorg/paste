@@ -1,7 +1,7 @@
 """
 Creates a session object; then in your application, use::
 
-    environ['wsgikit.session.factory']()
+    environ['paste.session.factory']()
 
 This will return a dictionary.  The contents of this dictionary will
 be saved to disk when the request is completed.  The session will be
@@ -35,7 +35,7 @@ class SessionMiddleware(object):
 
     def __call__(self, environ, start_response):
         session_factory = SessionFactory(environ, **self.factory_kw)
-        environ['wsgikit.session.factory'] = session_factory
+        environ['paste.session.factory'] = session_factory
 
         def session_start_response(status, headers):
             if not session_factory.created:

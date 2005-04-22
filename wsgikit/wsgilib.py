@@ -10,13 +10,13 @@ def get_cookies(environ):
     called again for the same request.
     """
     header = environ.get('HTTP_COOKIE', '')
-    if environ.has_key('wsgikit.cookies'):
-        cookies, check_header = environ['wsgikit.cookies']
+    if environ.has_key('paste.cookies'):
+        cookies, check_header = environ['paste.cookies']
         if check_header == header:
             return cookies
     cookies = SimpleCookie()
     cookies.load(header)
-    environ['wsgikit.cookies'] = (cookies, header)
+    environ['paste.cookies'] = (cookies, header)
     return cookies
 
 class add_close:
@@ -158,7 +158,7 @@ def error_response(environ, error_code, message,
         start_response(status, headers)
         return [body]
     """
-    if debug_message and environ.get('wsgikit.config', {}).get('debug'):
+    if debug_message and environ.get('paste.config', {}).get('debug'):
         message += '\n\n<!-- %s -->' % debug_message
     body = error_body_response(error_code, message)
     headers = [('content-type', 'text/html'),

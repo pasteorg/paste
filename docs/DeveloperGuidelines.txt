@@ -1,10 +1,10 @@
-+++++++++++++++++++++++
-WSGIKit Developer Guide
-+++++++++++++++++++++++
+++++++++++++++++++++++++++++
+Python Paste Developer Guide
+++++++++++++++++++++++++++++
 
-Hi.  Welcome to WSGIKit.  I hope you enjoy your stay here.
+Hi.  Welcome to Paste.  I hope you enjoy your stay here.
 
-I hope to bring together multiple efforts here, for WSGIKit to support
+I hope to bring together multiple efforts here, for Paste to support
 multiple frameworks and directions, while presenting a fairly
 integrated frontend to users.  How to do that?  That's an open
 question, and this code is in some ways an exploration.
@@ -25,7 +25,7 @@ There's some basic principles:
 
 * Entry into frameworks should be easy, but exit should also be easy.
   Heterogeneous frameworks and applications are the ambition.  But we
-  have to get some messiness into WSGIKit before we can try to resolve
+  have to get some messiness into Paste before we can try to resolve
   that messiness.
 
 * When all is said and done, users should be able to ignore much of
@@ -53,7 +53,7 @@ is going to bite your head off for committing something.
   but please feel free to use those too.  ``unittest`` is kind of
   annoying, and py.test is both more powerful and easier to write for.
   Tests should go in a ``tests/`` subdirectory.
-  ``wsgikit.tests.fixture`` contains some convenience functions for
+  ``paste.tests.fixture`` contains some convenience functions for
   testing WSGI applications and middleware.
   
 .. _py.test: http://codespeak.net/py/current/doc/test.html

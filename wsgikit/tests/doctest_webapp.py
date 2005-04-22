@@ -12,15 +12,15 @@ import re
 import cgi
 import rfc822
 from cStringIO import StringIO
-from wsgikit import server
-from wsgikit import wsgilib
-from wsgikit.util.thirdparty import add_package
+from paste import server
+from paste import wsgilib
+from paste.util.thirdparty import add_package
 add_package('PySourceColor')
 import PySourceColor
 
 
 here = os.path.abspath(__file__)
-wsgikit_parent = os.path.dirname(
+paste_parent = os.path.dirname(
     os.path.dirname(os.path.dirname(here)))
 
 def run(command):
@@ -43,13 +43,13 @@ def _make_env():
     env = os.environ.copy()
     env['PATH'] = (env.get('PATH', '')
                    + ':'
-                   + os.path.join(wsgikit_parent, 'scripts')
+                   + os.path.join(paste_parent, 'scripts')
                    + ':'
-                   + os.path.join(wsgikit_parent, 'wsgikit', '3rd-party',
+                   + os.path.join(paste_parent, 'paste', '3rd-party',
                                   'sqlobject-files', 'scripts'))
     env['PYTHONPATH'] = (env.get('PYTHONPATH', '')
                          + ':'
-                         + wsgikit_parent)
+                         + paste_parent)
     return env
 
 def clear_dir(dir):
@@ -390,8 +390,8 @@ if __name__ == '__main__':
     if sys.argv[1:] and sys.argv[1] == 'doctest':
         doctest.testmod()
         sys.exit()
-    if not wsgikit_parent in sys.path:
-        sys.path.append(wsgikit_parent)
+    if not paste_parent in sys.path:
+        sys.path.append(paste_parent)
     for fn in sys.argv[1:]:
         fn = os.path.abspath(fn)
         # @@: OK, ick; but this module gets loaded twice

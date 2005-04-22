@@ -6,10 +6,10 @@ except ImportError:
 import types
 import re
 from py.test.collect import Module, PyCollector
-from wsgikit.util import thirdparty
+from paste.util import thirdparty
 doctest = thirdparty.load_new_module('doctest', (2, 4))
-from wsgikit import wsgilib
-from wsgikit import lint
+from paste import wsgilib
+from paste import lint
 
 class NoDefault:
     pass
