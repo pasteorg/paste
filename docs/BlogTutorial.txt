@@ -44,15 +44,14 @@ Setting Up The App
 
     .. _doctest: http://python.org/doc/current/lib/module-doctest.html
 
-.. run:
+.. comment:
 
-    from paste.tests.doctest_webapp import *
-    BASE = '/var/www/wkblog'
-    import sys
-    clear_dir(BASE)
-    assert 0
-    run("app-setup create --template=webkit_zpt %s" % BASE)
-    os.chdir(BASE)
+    >>> from paste.tests.doctest_webapp import *
+    >>> BASE = '/var/www/wkblog'
+    >>> import sys
+    >>> clear_dir(BASE)
+    >>> run("app-setup create --template=webkit_zpt %s" % BASE)
+    >>> os.chdir(BASE)
 
 ::
 
@@ -180,4 +179,4 @@ Now we'll use ``sqlobject-admin`` to set up the tables:
 
 .. comment (do it)
 
-    >>> run('sqlobject-admin create -v -f server.conf -m wkblog.db')
+    >>> run('sqlobject-admin create -f server.conf -m wkblog.db')
