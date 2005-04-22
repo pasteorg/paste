@@ -1,10 +1,11 @@
 Python Paste
 ++++++++++++
 
-Python Paste is a web application framework framework.  
+Python Paste is a web application framework framework.  It uses WSGI_ 
+to create a framework-neutral set of components.  It also assists with
+application setup and deployment.
 
-Paste includes a reimplementation of `Webware for Python`_, using
-WSGI_ to create a framework-neutral foundation.
+Paste includes a reimplementation of `Webware for Python`_.
 
 .. _Webware for python: http://www.webwareforpython.org
 .. _WSGI: http://www.python.org/peps/pep-0333.html
@@ -20,15 +21,10 @@ requirements stuffed together will probably be forthcoming.
 Get Involved
 ============
 
-Discussion: 
-  webware-devel@lists.sf.net (`subscribe
-  <http://lists.sourceforge.net/lists/listinfo/webware-devel>`__,
-  `archives <http://dir.gmane.org/gmane.comp.python.webware.devel>`__)
-
-More abstract discussion about Python web programming in general:
-  web-sig@python.org (`subscribe
-  <http://mail.python.org/mailman/listinfo/web-sig>`__, `archives
-  <http://www.python.org/pipermail/web-sig/>`__)
+Discussion:
+  paste-users@pythonpaste.org (`subscribe
+  <http://pythonpaste.org/mailman/listinfo/paste-users>`__,
+  `archives <http://pythonpaste.org/archives/list/paste-users.en.html>`__)
 
 Checkins:
   webware-checkins@lists.sf.net (`subscribe
@@ -36,6 +32,16 @@ Checkins:
 
 IRC:
   ``#webware`` on `freenode <http://freenode.net>`_
+
+Bug reports: 
+  Via `Trac <http://pythonpaste.org/trac/>`_: `view bug reports
+  <http://pythonpaste.org/trac/report>`_, `submit bug
+  <http://pythonpaste.org/trac/newticket>`_.
+
+More abstract discussion about Python web programming in general:
+  web-sig@python.org (`subscribe
+  <http://mail.python.org/mailman/listinfo/web-sig>`__, `archives
+  <http://www.python.org/pipermail/web-sig/>`__)
 
 Resources
 =========
@@ -57,7 +63,7 @@ Resources
   programming*
 
 * The Webware API portion of Paste should be discussed on
-  webware-discuss@lists.sf.net
+  webware-devel@lists.sf.net
 
 * The WSGI aspect of Paste should be discussed on web-sig@python.org
 
