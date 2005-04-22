@@ -214,7 +214,7 @@ def write_data(path, data):
     
 
 def change_file(path, changes):
-    f = open(path, 'rb')
+    f = open(os.path.abspath(path), 'rb')
     lines = f.readlines()
     f.close()
     for change_type, line, text in changes:
