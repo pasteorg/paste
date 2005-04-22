@@ -1,0 +1,22 @@
+#!/bin/sh
+
+NORMAL="DeveloperGuidelines Paste servers StyleGuide web/index"
+DOCTEST_BUILD="BlogTutorial TodoTutorial"
+
+for NAME in $NORMAL ; do
+    if [ -e "$NAME.html" -a ! "$NAME.html" -ot "$NAME.txt" ] ; then
+	echo "$NAME is up to date."
+	continue
+    fi
+    echo "Building $NAME."
+    rst2html.py "$NAME.txt" > "$NAME.html"
+done
+
+for NAME in $DOCTEST_BUILD ; do
+    if [ -e "$NAME.html" -a ! "$NAME.html" -ot "$NAME.txt" ] ; then
+	echo "$NAME is up to date."
+	continue
+    fi
+    echo "Building $NAME."
+    ../paste/test/doctest_webapp.py "$NAME.txt"
+done
