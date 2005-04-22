@@ -228,7 +228,7 @@ class HTTPRequest(object):
         raise NotImplementedError
 
     def serverSideContextPath(self, path=None):
-        base = self._environ['wsgikit.config']['webkit_dir']
+        base = self._environ['paste.config']['webkit_dir']
         if path:
             return os.path.join(base, path)
         else:

@@ -1,6 +1,6 @@
 import os
-from wsgikit import app_setup
-from wsgikit import pyconfig
+from paste import app_setup
+from paste import pyconfig
 
 the_runner = app_setup.CommandRunner()
 the_runner.register(app_setup.CommandCreate)

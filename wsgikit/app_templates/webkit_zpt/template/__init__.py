@@ -1,4 +1,4 @@
-from wsgikit.util.thirdparty import add_package
+from paste.util.thirdparty import add_package
 
 add_package('ZopePageTemplates')
 add_package('Component')

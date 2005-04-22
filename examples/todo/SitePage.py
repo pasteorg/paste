@@ -1,8 +1,6 @@
-
 import os
-from wsgikit.webkit.wkservlet import Page
+from paste.webkit.wkservlet import Page
 import api
-
 
 class SitePage(Page):
 
@@ -11,7 +9,7 @@ class SitePage(Page):
     def awake(self, trans):
         super(SitePage, self).awake(trans)
         if not getattr(self, 'manager', None):
-            datadir = trans.request().environ().get('wsgikit.config',{}).get('datadir','.')
+            datadir = trans.request().environ().get('paste.config',{}).get('datadir','.')
             self.manager = api.Manager.load(root=datadir)
         self.baseURL = trans.request().environ()['todo.base_url']
         self.username = self.session().value('username', None)
@@ -44,7 +42,7 @@ class SitePage(Page):
             "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n""")
 
     def title(self):
-        return "WSGIKit ToDo list test"
+        return "Paste ToDo list test"
 
     def htBodyArgs(self):
         return ""
@@ -55,7 +53,7 @@ class SitePage(Page):
         self.writePostContent()
 
     def writePreContent(self):
-        self.write("""<h1><img src="%s/check.png" align="absmiddle" />WSGIKit ToDo
+        self.write("""<h1><img src="%s/check.png" align="absmiddle" />Paste ToDo
             List</h1><hr />""" % self.baseURL)
 
     def writeContent(self):

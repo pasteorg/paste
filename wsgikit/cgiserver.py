@@ -9,7 +9,7 @@ The CGI script is the configuration and glue for this server.
 Typically you will write a CGI script like::
 
     #!/usr/bin/env python
-    from wsgikit.cgiserver import run_with_cgi
+    from paste.cgiserver import run_with_cgi
     # Assuming app is your WSGI application object...
     from myapplication import app
     run_with_cgi(app)

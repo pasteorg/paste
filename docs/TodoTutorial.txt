@@ -11,7 +11,7 @@ To-Do: A Tutorial
 .. comment (about this document)
 
     This document is meant to be processed with
-    wsgikit/tests/doctest_webapp.py, which assembles the file and
+    paste/tests/doctest_webapp.py, which assembles the file and
     provides a degree of testing.  The pages inlined aren't current
     tested, and so must be inspected by eye after the document is
     assembled.
@@ -20,12 +20,11 @@ Introduction
 ============
 
 This is a tutorial for building a simple to-do list application using
-WSGIKit_, SQLObject_, and `Zope Page Templates`_.  You can view the
+`Python Paste <http://pythonpaste.org>`_, SQLObject_, and `Zope Page Templates`_.  You can view the
 completed application in the repository at ``examples/todo_sql`` or
 view the repository online at
-http://svn.w4py.org/WSGIKit/trunk/examples/todo_sql/
+http://svn.w4py.org/Paste/trunk/examples/todo_sql/
 
-.. _WSGIKit: http://wsgikit.org
 .. _SQLObject: http://sqlobject.org
 .. _Zope Page Templates: http://www.zope.org/DevHome/Wikis/DevSite/Projects/ZPT/FrontPage
 
@@ -43,7 +42,7 @@ Setting up the files
 
 .. comment (setup doctests)
 
-    >>> from wsgikit.tests.doctest_webapp import *
+    >>> from paste.tests.doctest_webapp import *
 
 Let's start out quickly.  We'll be installing the application in
 ``/var/www/todo_sql``:
@@ -52,7 +51,7 @@ Let's start out quickly.  We'll be installing the application in
 
     >>> BASE = '/var/www/todo_sql'
     >>> import sys
-    >>> sys.path.append('/path/to/WSGIKit')
+    >>> sys.path.append('/path/to/Paste')
     >>> clear_dir(BASE)
     >>> run("app-setup create --template=webkit_zpt %s" % BASE)
     >>> os.chdir(BASE)
@@ -72,7 +71,7 @@ Let's start out quickly.  We'll be installing the application in
 
 ::
 
-    $ export PYTHONPATH=/path/to/WSGIKit:$PYTHONPATH
+    $ export PYTHONPATH=/path/to/Paste:$PYTHONPATH
     $ BASE=/var/www/todo_sql
     $ app-setup create --template=webkit_zpt $BASE
     $ cd $BASE
@@ -147,7 +146,7 @@ nature of the files.
 
 ``web/index.py``:
     This is a simple example servlet.  Anything named ``index`` is
-    also used as the default page (like ``index.html``).  WSGIKit
+    also used as the default page (like ``index.html``).  Paste
     mostly ignores extensions when finding pages, so ``/index`` can
     refer to ``index.py``, ``index.html``, or any other page named
     ``index`` regardless of extension.
@@ -155,7 +154,7 @@ nature of the files.
 ``web/static/``:
     This contains files that don't have any dynamic content, like
     images and Javascript.  Based on deployment, these files could be
-    served up by Apache or another web server without WSGIKit being
+    served up by Apache or another web server without Paste being
     involved at all (with some CPU savings), so we keep them
     separated.
 
@@ -169,7 +168,7 @@ Running the application
 It's just the barest example application, but we can still run it and
 get some basic output.  Change into the directory and run::
 
-    $ path/to/wsgikit/scripts/wsgi-server
+    $ path/to/paste/scripts/wsgi-server
 
 This will run a server on http://localhost:8080
 
@@ -196,7 +195,7 @@ localhost:8080.
 Looking at servlets
 -------------------
 
-The idea of a servlet in WSGIKit is taken from Java, but the
+The idea of a servlet in Paste is taken from Java, but the
 similarity isn't that great.  Let's look at the ``index.py`` servlet
 we showed you:
 
@@ -574,8 +573,8 @@ And this is what we get:
 
     >>> create_file('web/__init__.py', 'v1', r"""
     ... import os
-    ... from wsgikit import wsgilib
-    ... from wsgikit.util.thirdparty import add_package
+    ... from paste import wsgilib
+    ... from paste.util.thirdparty import add_package
     ... add_package('sqlobject')
     ... import sqlobject
     ...
@@ -587,7 +586,7 @@ And this is what we get:
     ...         environ['todo_sql.base_url'] = environ['SCRIPT_NAME']
     ...     if not sql_set:
     ...         sql_set = True
-    ...         db_uri = environ['wsgikit.config']['database']
+    ...         db_uri = environ['paste.config']['database']
     ...         sqlobject.sqlhub.processConnection = sqlobject.connectionForURI(
     ...             db_uri)
     ... """)

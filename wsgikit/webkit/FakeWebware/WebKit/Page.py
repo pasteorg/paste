@@ -1,1 +1,1 @@
-from wsgikit.webkit.wkservlet import Page
+from paste.webkit.wkservlet import Page

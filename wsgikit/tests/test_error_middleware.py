@@ -1,10 +1,10 @@
 from fixture import *
-from wsgikit.error_middleware import ErrorMiddleware
-from wsgikit import lint
+from paste.error_middleware import ErrorMiddleware
+from paste import lint
 
 def do_request(app, expect_status=500):
     res = fake_request(ErrorMiddleware(lint.middleware(app)),
-                       **{'wsgikit.config': {'debug': True}})
+                       **{'paste.config': {'debug': True}})
     assert res.status_int == expect_status
     return res
 

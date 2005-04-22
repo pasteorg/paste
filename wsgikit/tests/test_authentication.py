@@ -1,5 +1,5 @@
-from wsgikit import wsgilib
-from wsgikit import login
+from paste import wsgilib
+from paste import login
 from fixture import *
 
 from_cmdline = 0

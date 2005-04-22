@@ -1,5 +1,5 @@
 +++++++++++++++++++
-WSGIKit Style Guide
+Paste Style Guide
 +++++++++++++++++++
 
 Generally you should follow the recommendations in `PEP 8`_, the

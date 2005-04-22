@@ -37,7 +37,7 @@ class Transaction(object):
 
     def session(self):
         if not self._session:
-            self._session = Session(self.request().environ()['wsgikit.session.factory']())
+            self._session = Session(self.request().environ()['paste.session.factory']())
         return self._session
 
     def setSession(self, session):
@@ -85,12 +85,12 @@ class Transaction(object):
             self.sleep()
 
     def forward(self, url):
-        assert self._environ.has_key('wsgikit.recursive.forward'), \
+        assert self._environ.has_key('paste.recursive.forward'), \
                "Forwarding is not supported (use the recursive middleware)"
         if url.startswith('/'):
             # Webware considers absolute paths to still be based off
             # of the Webware root; but recursive does not.
             url = url[1:]
-        app_iter = self._environ['wsgikit.recursive.forward'](url)
+        app_iter = self._environ['paste.recursive.forward'](url)
         raise self._servlet.ReturnIterException(app_iter)
     

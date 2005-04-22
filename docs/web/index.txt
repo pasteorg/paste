@@ -1,25 +1,20 @@
-WSGIKit
-+++++++
+Python Paste
+++++++++++++
 
-.. raw:: html
+Python Paste is a web application framework framework.  
 
-   <img
-   src="http://www.imagescape.com/software/docs/wsgikit-pycon2005/whiskey-cup.jpg" 
-   align="right" 
-   title="WSGIKit: pronounced like whisky-kit. Cures what's ailin' ya'">
-
-WSGIKit is a reimplementation of `Webware for Python`_, using WSGI_ to
-create a framework-neutral foundation.
+Paste includes a reimplementation of `Webware for Python`_, using
+WSGI_ to create a framework-neutral foundation.
 
 .. _Webware for python: http://www.webwareforpython.org
 .. _WSGI: http://www.python.org/peps/pep-0333.html
 
-To check out WSGIKit::
+To check out Paste::
 
-    $ svn co http://svn.w4py.org/WSGIKit/trunk WSGIKit
+    $ svn co http://svn.w4py.org/Paste/trunk Paste
 
 Note that it includes a script ``build-pkg`` which fetches a bunch of
-packages that make WSGIKit more useful.  A big tarball of all the
+packages that make Paste more useful.  A big tarball of all the
 requirements stuffed together will probably be forthcoming.
 
 Get Involved
@@ -45,25 +40,26 @@ IRC:
 Resources
 =========
 
-* `To-do tutorial`_, an introduction to WSGIKit installation and application
+* `To-do tutorial`_, an introduction to Paste installation and application
   design
 
-* `What is WSGIKit?
+* `What is Paste?
   <http://blog.ianbicking.org/what-is-wsgikit.html>`_: a description
-  of WSGIKit's scope.
+  of Paste's scope. (Note that Paste was known as "WSGIKit" when this 
+  was written.)
 
-* `What can WSGIKit do for you?
+* `What can Paste do for you?
   <http://blog.ianbicking.org/what-can-wsgikit-do-for-you.html>`_: a
-  description of what WSGIKit offers to Python web framework authors.
+  description of what Paste offers to Python web framework authors.
 
 * Ian Bicking presented at `PyCon 2005`_ on `WSGI Middleware and
   WSGIKit`_: *Using WSGI Middleware to build a foundation for Python web
   programming*
 
-* The Webware API portion of WSGIKit should be discussed on
+* The Webware API portion of Paste should be discussed on
   webware-discuss@lists.sf.net
 
-* The WSGI aspect of WSGIKit should be discussed on web-sig@python.org
+* The WSGI aspect of Paste should be discussed on web-sig@python.org
 
 .. _To-do tutorial: ./docs/TodoTutorial.html
 .. _PyCon 2005: http://pycon.org/dc2005

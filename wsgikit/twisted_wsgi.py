@@ -233,7 +233,7 @@ def serve_application(application, port=8080, async=False):
 if __name__ == "__main__":
     import sys
     import optparse
-    from wsgikit.webkit.wsgiwebkit import webkit
+    from paste.webkit.wsgiwebkit import webkit
     parser = optparse.OptionParser()
     parser.add_option('-p', '--port', dest='port',
                       default=8080, type='int',

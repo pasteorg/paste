@@ -1,7 +1,7 @@
-from wsgikit import wsgilib
+from paste import wsgilib
 
 def not_found_hook(environ, start_response):
-    urlparser = environ['wsgikit.urlparser.not_found_parser']
+    urlparser = environ['paste.urlparser.not_found_parser']
     first, rest = wsgilib.path_info_split(environ.get('PATH_INFO', ''))
     if not first:
         # No username

@@ -1,6 +1,6 @@
 import sys
 print "This setup.py is broken right now, it won't install a useable"
-print "WSGIKit right now.  Instead, just add this directory to your"
+print "Paste right now.  Instead, just add this directory to your"
 print "$PYTHONPATH variable.  We apologize for any inconvenience."
 print "(Also note that you may want to run build-pkg to fetch some"
 print "modules this depends on, or at least that the tutorial depends"
@@ -18,7 +18,7 @@ if sys.version < '2.2.3':
     DistributionMetadata.classifiers = None
     DistributionMetadata.download_url = None
 
-setup(name="WSGIKit",
+setup(name="Python Paste",
       version="0.1",
       description="Tools for use with a Web Server Gateway Interface stack",
       long_description="""\
@@ -46,12 +46,12 @@ functionality.
       author_email="ianb@colorstudy.com",
       url="http://webwareforpython.org",
       license="PSF",
-      packages=["wsgikit", "wsgikit.util", "wsgikit.webkit",
-                "wsgikit.exceptions",
-                "wsgikit.webkit.FakeWebware",
-                "wsgikit.webkit.FakeWebware.WebKit",
-                "wsgikit.webkit.FakeWebware.WebUtils",
-                "wsgikit.webkit.FakeWebware.MiscUtils"],
+      packages=["paste", "paste.util", "paste.webkit",
+                "paste.exceptions",
+                "paste.webkit.FakeWebware",
+                "paste.webkit.FakeWebware.WebKit",
+                "paste.webkit.FakeWebware.WebUtils",
+                "paste.webkit.FakeWebware.MiscUtils"],
       scripts=['scripts/server'],
       download_url="")
 

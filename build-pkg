@@ -11,7 +11,7 @@ if [ "$BASE" = "." ] ; then
     BASE=`pwd`
 fi
 
-THIRD="$BASE/wsgikit/3rd-party"
+THIRD="$BASE/paste/3rd-party"
 
 function get_file {
     ZIP_TYPE="$1"

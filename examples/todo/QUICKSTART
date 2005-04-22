@@ -1,33 +1,33 @@
-WSGIKit Example Application: todo
+Paste Example Application: todo
 =================================
 
 This is a simple application intended to demonstrate the basic usage of
-a WSGIKit site as well as some WSGI features such as a middleware hooks
+a Paste site as well as some WSGI features such as a middleware hooks
 that performs URL rewriting.
 
 ROADMAP lists some of the features we intend to implement in the future.
 
-Installing WSGIKit
+Installing Paste
 ------------------
 
-`docs/WSGIKit.txt`__ describes a basic user-level installation of
-WSGIKit and supported WSGI servers.
+`docs/Paste.txt`__ describes a basic user-level installation of
+Paste and supported WSGI servers.
 
-.. __: http://svn.w4py.org/WSGIKit/trunk/docs/WSGIKit.txt
+.. __: http://svn.w4py.org/Paste/trunk/docs/Paste.txt
 
 Your First Run
 --------------
 
 The commands::
 
-    cd WSGIKit/trunk
-    wsgikit/server.py --server=wsgiutils --webkit-dir=example/todo \
+    cd Paste/trunk
+    scripts/wsgi-server --server=wsgiutils --webkit-dir=example/todo \
         --port 8080 -D --data-dir='/var/www/data1'
 
-If you do not have $PYTHONPATH set up as described WSGIKit.txt then you
+If you do not have $PYTHONPATH set up as described Paste.txt then you
 can add a like such as this::
 
-    env PYTHONPATH=`pwd` wsgikit/server.py ...
+    env PYTHONPATH=`pwd` paste/server.py ...
 
 Replace 'env' with 'setenv' if you're using csh or tcsh.
 

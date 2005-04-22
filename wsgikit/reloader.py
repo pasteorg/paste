@@ -22,7 +22,7 @@ import sys
 import time
 import threading
 import atexit
-from wsgikit.util.classinstance import classinstancemethod
+from paste.util.classinstance import classinstancemethod
 
 def install(poll_interval=1, raise_keyboard_interrupt=True):
     mon = Monitor(poll_interval=poll_interval,

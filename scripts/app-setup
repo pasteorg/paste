@@ -8,11 +8,11 @@ except NameError:
     # Python 2.2
     here = sys.argv[0]
 
-relative_wsgikit = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(here))), 'wsgikit')
+relative_paste = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(here))), 'paste')
 
-if os.path.exists(relative_wsgikit):
-    sys.path.insert(0, os.path.dirname(relative_wsgikit))
+if os.path.exists(relative_paste):
+    sys.path.insert(0, os.path.dirname(relative_paste))
 
-from wsgikit import app_setup
+from paste import app_setup
 sys.exit(app_setup.run(sys.argv))

@@ -1,5 +1,5 @@
-from wsgikit.exceptions import formatter
-from wsgikit.exceptions import collector
+from paste.exceptions import formatter
+from paste.exceptions import collector
 import sys
 import os
 

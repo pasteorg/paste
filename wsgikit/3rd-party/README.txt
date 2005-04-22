@@ -1,4 +1,4 @@
-This directory contains packages useful to WSGIKit users, who may not
+This directory contains packages useful to Paste users, who may not
 feel like installing those packages.  The module util.thirdparty has
 functions for pulling these modules into the path, but also respecting
 any packages the user installed on their own.

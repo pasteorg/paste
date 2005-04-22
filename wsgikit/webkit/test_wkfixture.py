@@ -1,13 +1,15 @@
 """
-Test fixture for WSGKit/WebKit testing.
+Test fixture for Paste/WebKit testing.
+
+Maybe look at paste.tests.fixture as an alternative to this
 """
 
 from cStringIO import StringIO
-from wsgikit import recursive
-from wsgikit import session
-from wsgikit import httpexceptions
-from wsgikit import lint
-from wsgikit import wsgilib
+from paste import recursive
+from paste import session
+from paste import httpexceptions
+from paste import lint
+from paste import wsgilib
 
 _default_environ = {
     'SCRIPT_NAME': '',

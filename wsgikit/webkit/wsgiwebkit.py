@@ -8,12 +8,12 @@ Use ``some_server(webkit('/path/to/servlets/'))``
 
 import sys
 import os
-from wsgikit import urlparser
-from wsgikit import session
-from wsgikit import recursive
-from wsgikit import httpexceptions
-from wsgikit import lint
-from wsgikit import error_middleware
+from paste import urlparser
+from paste import session
+from paste import recursive
+from paste import httpexceptions
+from paste import lint
+from paste import error_middleware
 
 def webkit(directory, install_fake_webware=True, use_lint=False):
     if install_fake_webware:

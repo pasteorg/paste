@@ -1,4 +1,4 @@
-from wsgikit import wsgilib
+from paste import wsgilib
 
 def urlparser_hook(environ):
     first, rest = wsgilib.path_info_split(environ.get('PATH_INFO', ''))

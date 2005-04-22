@@ -1,5 +1,5 @@
 def not_found_hook(environ, start_response):
-    urlparser = environ['wsgikit.urlparser.not_found_parser']
+    urlparser = environ['paste.urlparser.not_found_parser']
     path = environ.get('PATH_INFO', '')
     if not path:
         return urlparser.not_found(environ, start_response)
