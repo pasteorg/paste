@@ -1,0 +1,55 @@
+WSGIKit Example Application: todo
+=================================
+
+This is a simple application intended to demonstrate the basic usage of
+a WSGIKit site as well as some WSGI features such as a middleware hooks
+that performs URL rewriting.
+
+ROADMAP lists some of the features we intend to implement in the future.
+
+Installing WSGIKit
+------------------
+
+`docs/WSGIKit.txt`__ describes a basic user-level installation of
+WSGIKit and supported WSGI servers.
+
+.. __: http://svn.w4py.org/WSGIKit/trunk/docs/WSGIKit.txt
+
+Your First Run
+--------------
+
+The commands::
+
+    cd WSGIKit/trunk
+    wsgikit/server.py --server=wsgiutils --webkit-dir=example/todo \
+        --port 8080 -D --data-dir='/var/www/data1'
+
+If you do not have $PYTHONPATH set up as described WSGIKit.txt then you
+can add a like such as this::
+
+    env PYTHONPATH=`pwd` wsgikit/server.py ...
+
+Replace 'env' with 'setenv' if you're using csh or tcsh.
+
+Then open up http://localhost:8080/
+
+Running Multiple Instances
+--------------------------
+
+Any options not defined in server.py are passed on to the application.
+In the previous example --data-dir is an optional argument that
+specifies where to put the todo list, which is a pickled instance of the
+Manager class in model.py.
+
+Simply specify an alternate --port and --data-dir to run multiple
+instances simultaneously. The todo lists are saved to disk after each
+modification to user accounts or lists and saved as state.pickle.
+
+Testing
+-------
+
+There is a simple set of tests in examples/todo/tests that you can run
+using py.test (see `PyPy doc`__ for information on how to set up py.test).
+The tests only cover the logic contained in todo/model.py
+
+.. __: http://codespeak.net/pypy/index.cgi?doc/howtopypy.html
