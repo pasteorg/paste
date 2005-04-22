@@ -27,8 +27,8 @@ Discussion:
   `archives <http://pythonpaste.org/archives/list/paste-users.en.html>`__)
 
 Checkins:
-  webware-checkins@lists.sf.net (`subscribe
-  <http://lists.sourceforge.net/lists/listinfo/webware-checkins>`__)
+  paste-checkins@pythonpaste.org (`subscribe
+  <http://pythonpaste.org/mailman/listinfo/paste-checkins>`__)
 
 IRC:
   ``#webware`` on `freenode <http://freenode.net>`_
