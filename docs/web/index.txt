@@ -36,7 +36,9 @@ IRC:
 Bug reports: 
   Via `Trac <http://pythonpaste.org/trac/>`_: `view bug reports
   <http://pythonpaste.org/trac/report>`_, `submit bug
-  <http://pythonpaste.org/trac/newticket>`_.
+  <http://pythonpaste.org/trac/newticket>`_.  Notification goes
+  to paste-bugs@pythonpaste.org  (`subscribe
+  <http://pythonpaste.org/mailman/listinfo/paste-bugs>`__)
 
 More abstract discussion about Python web programming in general:
   web-sig@python.org (`subscribe
