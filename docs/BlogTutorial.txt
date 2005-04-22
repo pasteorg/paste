@@ -47,7 +47,7 @@ Setting Up The App
 .. comment:
 
     >>> from paste.tests.doctest_webapp import *
-    >>> BASE = '/var/www/wkblog'
+    >>> BASE = '/var/www/example-builds/wkblog'
     >>> import sys
     >>> clear_dir(BASE)
     >>> run("app-setup create --template=webkit_zpt %s" % BASE)
@@ -56,7 +56,7 @@ Setting Up The App
 ::
 
     $ export PYTHONPATH=/path/to/Paste:$PYTHONPATH
-    $ BASE=/var/www/wkblog
+    $ BASE=/var/www/example-builds/wkblog
     $ app-setup create --template=webkit_zpt $BASE
     $ cd $BASE
 

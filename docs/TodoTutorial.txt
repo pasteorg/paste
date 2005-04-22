@@ -45,11 +45,11 @@ Setting up the files
     >>> from paste.tests.doctest_webapp import *
 
 Let's start out quickly.  We'll be installing the application in
-``/var/www/todo_sql``:
+``/var/www/example-builds/todo_sql``:
 
 .. comment (setup)
 
-    >>> BASE = '/var/www/todo_sql'
+    >>> BASE = '/var/www/example-builds/todo_sql'
     >>> import sys
     >>> sys.path.append('/path/to/Paste')
     >>> clear_dir(BASE)
@@ -72,7 +72,7 @@ Let's start out quickly.  We'll be installing the application in
 ::
 
     $ export PYTHONPATH=/path/to/Paste:$PYTHONPATH
-    $ BASE=/var/www/todo_sql
+    $ BASE=/var/www/example-builds/todo_sql
     $ app-setup create --template=webkit_zpt $BASE
     $ cd $BASE
     $ ls -R
@@ -479,8 +479,8 @@ Now we have to actually create the tables; we'll use the
     );
 
 
-You have to be sure ``/var/www`` is in your ``$PYTHONPATH`` so that
-your ``todo_sql/`` directory is a module that Python can load.  ``-m
+You have to be sure ``/var/www/example-builds`` is in your ``$PYTHONPATH``
+so that your ``todo_sql/`` directory is a module that Python can load.  ``-m
 todo_sql.db`` tells ``sqlobject-admin`` to load that module, look for
 SQLObject classes, and use them for its command -- in this case
 (``sqlobject-admin sql``) showing the ``CREATE`` statements.  Now lets
