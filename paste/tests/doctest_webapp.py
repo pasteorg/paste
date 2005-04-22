@@ -400,4 +400,4 @@ if __name__ == '__main__':
                          parser=LongFormDocTestParser())
         new = os.path.splitext(fn)[0] + '.html'
         assert new != fn
-        os.system('rest2html %s > %s' % (fn, new))
+        os.system('rst2html.py %s > %s' % (fn, new))
