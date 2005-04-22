@@ -82,11 +82,16 @@ rm -rf $DEST
 mv $TMP/Component-0.1 $DEST
 echo done.
 
-get_file z ZPTKit-0.1.tar.gz http://imagescape.com/software/ZPTKit/ZPTKit-0.1.tar.gz
+if [ -e $TMP/ZPTKit ] ; then
+    cd $TMP/ZPTKit
+    svn up
+else
+    svn co http://svn.w4py.org/ZPTKit/trunk $TMP/ZPTKit
+fi
 mkdir -p "$THIRD/ZPTKit-files"
 DEST="$THIRD/ZPTKit-files/ZPTKit"
 rm -rf $DEST
-mv $TMP/ZPTKit-0.1 $DEST
+mv $TMP/ZPTKit $DEST
 echo done.
 
 get_file z ZopePageTemplates-1.4.0.tar.gz http://belnet.dl.sourceforge.net/sourceforge/zpt/ZopePageTemplates-1.4.0.tgz
@@ -99,7 +104,7 @@ cd scgi-1.2
 installer scgi
 
 
-find $THIRD \( -name '*.pyc' -o -name '*.pyo' \) -exec rm {} \;
+#find $THIRD \( -name '*.pyc' -o -name '*.pyo' \) -exec rm {} \;
 
 if [ -e $TMP/SQLObject ] ; then
   cd $TMP/SQLObject
