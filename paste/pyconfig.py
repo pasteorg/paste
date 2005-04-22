@@ -15,7 +15,7 @@ or dictionary access to get values.
 
 import types
 import os
-from wsgikit.util import thirdparty
+from paste.util import thirdparty
 UserDict = thirdparty.load_new_module('UserDict', (2, 3))
 
 def load(filename):
