@@ -1,5 +1,5 @@
 import os
-from wsgikit import pyconfig
+from paste import pyconfig
 from py.test import raises
 
 def path(name):
