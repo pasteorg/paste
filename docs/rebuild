@@ -1,5 +1,10 @@
 #!/bin/sh
 
+here=`pwd`
+parent=`dirname $here`
+echo "Adding $parent to \$PYTHONPATH"
+export PYTHONPATH=$parent:$PYTHONPATH
+
 NORMAL="DeveloperGuidelines Paste servers StyleGuide web/index"
 DOCTEST_BUILD="BlogTutorial TodoTutorial"
 
@@ -18,5 +23,5 @@ for NAME in $DOCTEST_BUILD ; do
 	continue
     fi
     echo "Building $NAME."
-    ../paste/test/doctest_webapp.py "$NAME.txt"
+    python2.4 ../paste/tests/doctest_webapp.py "$NAME.txt"
 done
