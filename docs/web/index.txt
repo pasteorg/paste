@@ -1,0 +1,71 @@
+WSGIKit
++++++++
+
+.. raw:: html
+
+   <img
+   src="http://www.imagescape.com/software/docs/wsgikit-pycon2005/whiskey-cup.jpg" 
+   align="right" 
+   title="WSGIKit: pronounced like whisky-kit. Cures what's ailin' ya'">
+
+WSGIKit is a reimplementation of `Webware for Python`_, using WSGI_ to
+create a framework-neutral foundation.
+
+.. _Webware for python: http://www.webwareforpython.org
+.. _WSGI: http://www.python.org/peps/pep-0333.html
+
+To check out WSGIKit::
+
+    $ svn co http://svn.w4py.org/WSGIKit/trunk WSGIKit
+
+Note that it includes a script ``build-pkg`` which fetches a bunch of
+packages that make WSGIKit more useful.  A big tarball of all the
+requirements stuffed together will probably be forthcoming.
+
+Get Involved
+============
+
+Discussion: 
+  webware-devel@lists.sf.net (`subscribe
+  <http://lists.sourceforge.net/lists/listinfo/webware-devel>`__,
+  `archives <http://dir.gmane.org/gmane.comp.python.webware.devel>`__)
+
+More abstract discussion about Python web programming in general:
+  web-sig@python.org (`subscribe
+  <http://mail.python.org/mailman/listinfo/web-sig>`__, `archives
+  <http://www.python.org/pipermail/web-sig/>`__)
+
+Checkins:
+  webware-checkins@lists.sf.net (`subscribe
+  <http://lists.sourceforge.net/lists/listinfo/webware-checkins>`__)
+
+IRC:
+  ``#webware`` on `freenode <http://freenode.net>`_
+
+Resources
+=========
+
+* `To-do tutorial`_, an introduction to WSGIKit installation and application
+  design
+
+* `What is WSGIKit?
+  <http://blog.ianbicking.org/what-is-wsgikit.html>`_: a description
+  of WSGIKit's scope.
+
+* `What can WSGIKit do for you?
+  <http://blog.ianbicking.org/what-can-wsgikit-do-for-you.html>`_: a
+  description of what WSGIKit offers to Python web framework authors.
+
+* Ian Bicking presented at `PyCon 2005`_ on `WSGI Middleware and
+  WSGIKit`_: *Using WSGI Middleware to build a foundation for Python web
+  programming*
+
+* The Webware API portion of WSGIKit should be discussed on
+  webware-discuss@lists.sf.net
+
+* The WSGI aspect of WSGIKit should be discussed on web-sig@python.org
+
+.. _To-do tutorial: ./docs/TodoTutorial.html
+.. _PyCon 2005: http://pycon.org/dc2005
+.. _WSGI Middleware and WSGIKit: http://www.imagescape.com/software/docs/wsgikit-pycon2005/
+

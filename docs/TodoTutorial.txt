@@ -1,0 +1,973 @@
++++++++++++++++++
+To-Do: A Tutorial
++++++++++++++++++
+
+:author: Ian Bicking <ianb@colorstudy.com>
+:revision: $Rev$
+:date: $LastChangedDate$
+
+.. contents::
+
+.. comment (about this document)
+
+    This document is meant to be processed with
+    wsgikit/tests/doctest_webapp.py, which assembles the file and
+    provides a degree of testing.  The pages inlined aren't current
+    tested, and so must be inspected by eye after the document is
+    assembled.
+
+Introduction
+============
+
+This is a tutorial for building a simple to-do list application using
+WSGIKit_, SQLObject_, and `Zope Page Templates`_.  You can view the
+completed application in the repository at ``examples/todo_sql`` or
+view the repository online at
+http://svn.w4py.org/WSGIKit/trunk/examples/todo_sql/
+
+.. _WSGIKit: http://wsgikit.org
+.. _SQLObject: http://sqlobject.org
+.. _Zope Page Templates: http://www.zope.org/DevHome/Wikis/DevSite/Projects/ZPT/FrontPage
+
+Setting up the files
+====================
+
+.. note::
+
+    We're doing all this in the Python interpreter, even though you'd normally do
+    some of this in the shell.  This way the authors of this tutorial
+    can use something called doctest_, which allows this tutorial to
+    be tested Python in an automated way.
+
+    .. _doctest: http://python.org/doc/current/lib/module-doctest.html
+
+.. comment (setup doctests)
+
+    >>> from wsgikit.tests.doctest_webapp import *
+
+Let's start out quickly.  We'll be installing the application in
+``/var/www/todo_sql``:
+
+.. comment (setup)
+
+    >>> BASE = '/var/www/todo_sql'
+    >>> import sys
+    >>> sys.path.append('/path/to/WSGIKit')
+    >>> clear_dir(BASE)
+    >>> run("app-setup create --template=webkit_zpt %s" % BASE)
+    >>> os.chdir(BASE)
+    >>> ls(recurse=True)
+    __init__.py
+    server.conf
+    sitepage.py
+    templates/
+      generic_error.pt
+      index.pt
+      standard_template.pt
+    web/
+      __init__.py
+      index.py
+      static/
+        stylesheet.css
+
+::
+
+    $ export PYTHONPATH=/path/to/WSGIKit:$PYTHONPATH
+    $ BASE=/var/www/todo_sql
+    $ app-setup create --template=webkit_zpt $BASE
+    $ cd $BASE
+    $ ls -R
+    .:
+    db.py
+    __init__.py
+    server.conf
+    sitepage.py
+    templates/
+    web/
+
+    ./templates:
+    generic_error.pt
+    index.pt
+    standard_template.pt
+    
+    ./web:
+    index.py
+    __init__.py
+    static/
+
+    ./web/static:
+    stylesheet.css
+
+I want to give a quick explanation of the file structure and the
+nature of the files.
+
+``__init__.py``:
+    This is a special file that Python looks for in a "package".  It
+    needs to exist for Python to allow you to import modules from the
+    directory.  This module is also the first thing imported in our
+    application, so any setup code can go here.
+
+``server.conf``:
+    This contains the main configuration of our application.  This is
+    a python-format file, and all the variables assigned in it are
+    configuration keys.
+
+``sitepage.py``:
+    This module contains an abstract class that all our servlets
+    subclass from.  Each servlet is a class, and a page in our web
+    application; by making them all subclass from a single class
+    (``SitePage``) we can provide functionality that is global to our
+    application.
+
+``templates/``:
+    This contains all the "templates" -- there is a template for every
+    page in our application.
+
+``templates/standard_template.pt``:
+    This defines the look of our application -- changes we make here
+    affect all pages in the application.
+
+``templates/index.pt``:
+    This is a template for a single servlet (the ``index`` servlet, in
+    ``web/index.py``).
+
+``templates/generic_error.pt``:
+    This template is used when we just want to output a simple
+    message to the user, wrapped in the site look.
+
+``web/``:
+    This directory contains your servlets.  Actually, any file in this
+    directory will be served up -- ``.py`` files are expected to
+    contain servlets, and most other files are served up as
+    themselves.
+
+``web/__init__.py``:
+    Unlike the other ``.py`` files, this one is special, and can
+    contain "hooks" called during the URL parsing.
+
+``web/index.py``:
+    This is a simple example servlet.  Anything named ``index`` is
+    also used as the default page (like ``index.html``).  WSGIKit
+    mostly ignores extensions when finding pages, so ``/index`` can
+    refer to ``index.py``, ``index.html``, or any other page named
+    ``index`` regardless of extension.
+
+``web/static/``:
+    This contains files that don't have any dynamic content, like
+    images and Javascript.  Based on deployment, these files could be
+    served up by Apache or another web server without WSGIKit being
+    involved at all (with some CPU savings), so we keep them
+    separated.
+
+``web/static/stylesheet.css``:
+    A simple stylesheet for your application.
+
+
+Running the application
+-----------------------
+
+It's just the barest example application, but we can still run it and
+get some basic output.  Change into the directory and run::
+
+    $ path/to/wsgikit/scripts/wsgi-server
+
+This will run a server on http://localhost:8080
+
+.. comment (a psuedo-server for doctest)
+
+    >>> set_default_app(make_app(BASE), 'http://localhost:8080')
+    >>> show('/', 'default-frontpage')
+
+.. raw:: html
+   :file: resources/TodoTutorial/default-frontpage.html
+
+You can run the server in different ways by passing command-line
+options to ``wsgi-server``, or by editing ``server.conf``.  The
+default setup only serves connection from the local computer
+(use ``host='0.0.0.0'`` to allow connections from anywhere), and
+serves on port 8080 (use ``port = 80`` to make it the default
+server).  However, this default server (WSGIUtils) is not suggested
+for production use.  Twisted includes a better WSGI server, and there
+are a variety of ways to connect your application to Apache or
+IIS.  We'll ignore those deployment issues now, though, and just use
+localhost:8080.
+
+
+Looking at servlets
+-------------------
+
+The idea of a servlet in WSGIKit is taken from Java, but the
+similarity isn't that great.  Let's look at the ``index.py`` servlet
+we showed you:
+
+.. comment (create index.py highlighted)
+
+   >>> show_file('web/index.py', 'before_editing')
+
+.. raw:: html
+   :file: resources/TodoTutorial/web/index.py.before_editing.gen.html
+
+A few things to note:
+
+``from todo_sql.sitepage import SitePage``
+    ``todo_sql`` is the package you just created, and ``sitepage`` is
+    the ``sitepage.py`` file, and ``SitePage`` is a class.
+    ``SitePage`` is where you'll put all your global customizations, a
+    kind of mini-framework for your application.
+
+``class index(SitePage):``
+    Every servlet must have a class with the same name as the file it
+    is contained in.  This file gets created for every request, so you
+    can assign attributes (like ``self.list`` or whatever) and they'll
+    only last as long as one request.
+
+``def setup(self):``
+    The ``setup`` method is called at the beginning of every request.
+    This is where you should put together any objects that are
+    required to process the request, and possibly perform actions
+    (like in response to a form submittal).  The actual content will
+    be rendered later.
+
+``self.options.vars``
+    ``self.options`` is an object where you store data for use by your
+    template.  The template can actually access any attributes of the
+    servlet, but assigning to ``self.options`` makes it explicit that
+    the value is intended for the template.
+
+``self.request()``
+    This is how, in the servlet, you access the request object.  The
+    request object has several methods we'll look at later -- the most
+    useful being ``req.field(name, default)`` which retrieves the
+    given field.
+
+``req.environ()``
+    This is the WSGI environment.  You won't know what that is, except
+    that it's much like the environment passed to a CGI script.  It
+    contains things like ``SCRIPT_NAME``, ``REMOTE_ADDR``, etc.  It's
+    a dictionary, so we're just getting a sorted list of the keys and
+    values from that dictionary.
+
+The rest should be self-explanatory by now.  
+
+Looking at Templates
+--------------------
+
+Now let's look at the template that goes with the servlet.  Every
+template is in ``template/servlet_name.pt`` -- ``.pt`` stands for
+"Page Template".
+
+.. comment (create index.py highlighted)
+
+   >>> show_file('templates/index.pt', 'before_editing')
+
+.. raw:: html
+   :file: resources/TodoTutorial/templates/index.pt.before_editing.gen.html
+
+OK, so a bit of explanation about this...
+
+``<html metal:use-macro="here/standard_template.pt/macros/page">``
+    ``metal:use-macro`` says that this page will define slots that
+    will be inserted into the ``page`` macro in
+    ``standard_template.pt`` -- this is another way of saying that
+    ``standard_template.pt`` gives the look and layout of the page.
+    This is different than many templating systems where you include a
+    header and footer -- ``standard_template.pt`` can rearrange all
+    your slots in whatever way it chooses, and is itself a complete
+    page.  We'll talk about slots next...
+
+    Notice the ``metal:`` namespace.  METAL is the Page Template
+    "macro" system; TAL is the substitution system.  Each uses special
+    tags with the given namespace.
+
+``<metal:body fill-slot="body">``
+    We could have any text we wanted before this tag and after
+    ``<html>``, but for brevity we've left those out.  If you were
+    using a WYSIWYG tool it would *require* a valid page, so this is
+    all quite compatible with WYSIWYG tools.
+
+    ``fill-slot`` says that everything inside this tag will be
+    inserted into the ``body`` slot of ``standard_template.pt``.  
+    Notice that we call the tag ``<metal:body>`` -- by putting it in
+    the ``metal:`` namespace it will be eliminated from the final
+    page, and we don't have to specify ``metal:fill-slot``.  This is
+    because the ``<body>`` tag is actually located in
+    ``standard_template.pt``.
+
+``<tr tal:repeat="var options/vars">``
+    ``tal:repeat`` is like a Python ``for`` loop.  It means the
+    ``<tr>`` tag will be repeated, looping over ``options/vars`` (and
+    assigning to ``var``).
+
+    ``options/vars`` isn't really a proper Python expression -- TAL
+    has its own kind of shortened expressions.  A ``/`` is a kind of
+    generic accessor -- it can mean ``options.vars``,
+    ``options['vars']`` or ``options.vars()``, depending on what kind
+    of object ``options`` is.  This is a way of hiding some of the
+    complexity of accessing objects from template authors.  
+
+    Note also that each directive operates on the tag itself.  So
+    ``tal:repeat`` operates on the ``<tr>`` tag and all its contents.
+
+``<td tal:content="python: var[0]">Var Name</td>``
+    This is a substitution -- ``tal:content`` replaces the contents of
+    the tag with the given expression.  The current contents (``Var
+    Name``) are simply thrown away; they are there for documentation
+    purpose at most.  If you wanted to leave them out, you could use
+    the XHTML notation of ``<td tal:content="python: var[0]" />``
+
+    Here we need a Python expression, because ``var/0`` would be like
+    ``var['0']``, and we need to access the index zero, not ``"0"``.
+    We indicate that it's a python expression with the ``python:``
+    prefix.
+
+That's a quick introduction to Page Templates.  We'll wait to look at
+``standard_template.pt``.
+
+
+The Sample Application
+======================
+
+We'll be making a simple to-do list application.  The application will
+have multiple lists, and each list has multiple items.
+
+
+Using a database
+----------------
+
+.. note::
+
+    These SQLObject classes could be considered your "model", but
+    really your model is whatever you want it to be -- there's no
+    formal concept of a model in this tutorial.
+
+The first thing we'll set up is a database connection.  This example
+uses SQLObject_, which is a object-relational mapper -- basically it
+makes your database tables look like Python classes, and each row in
+those tables is an instance of those classes.
+
+We'll be creating two tables:
+
++-------------------------------+
+| todo_list                     |
++=============+=================+
+| id          | INT PRIMARY KEY |
++-------------+-----------------+
+| description | TEXT            |
++-------------+-----------------+
+
++---------------------------------+
+| todo_item                       |
++==============+==================+
+| id           | INT PRIMARY KEY  |
++--------------+------------------+
+| todo_list_id | INT NOT NULL     |
++--------------+------------------+
+| description  | TEXT NOT NULL    |
++--------------+------------------+
+| done         | BOOLEAN NOT NULL |
++--------------+------------------+
+
+The actual types will differ somewhat depending on what database we'll
+be using.  PostgreSQL, for instance, has a ``BOOLEAN`` data type, but
+on MySQL we'll just use ``INT``.  SQLObject, however, handles all this
+for us.  We just define the classes:
+
+.. _SQLObject: http://sqlobject.org
+
+.. comment (create db.py)
+
+    >>> create_file('db.py', 'v1', r"""
+    ... from sqlobject import *
+    ...
+    ... class TodoList(SQLObject):
+    ...
+    ...     description = StringCol(notNull=True)
+    ...     items = MultipleJoin('TodoItem')
+    ... 
+    ... class TodoItem(SQLObject):
+    ... 
+    ...     todo_list = ForeignKey('TodoList')
+    ...     description = StringCol(notNull=True)
+    ...     done = BoolCol(notNull=True, default=False)
+    ... """)
+
+.. raw:: html
+   :file: resources/TodoTutorial/db.py.v1.gen.html
+
+Some things to notice.  First, all the symbols and classes you see in
+this example were imported with ``from sqlobject import *``.
+We create two new classes -- ``TodoList`` and ``TodoItem``.  
+
+Each table is a class (that subclasses from ``SQLObject``).  We use
+the normal naming style of classes (StudlyCaps), but SQLObject
+translates this to an underscore style for the database.  
+
+Each column is an attribute of the class, using special classes to
+indicate the type (``StringCol``, ``BoolCol``, etc).  Keyword
+arguments are used to indicate things like whether ``NULL`` is allowed
+(by default it is), and if there's a default value (SQLObject doesn't
+treat NULL as a default), and you could give the size of the text
+fields (by default they are all ``TEXT`` -- in these modern days
+it's not necessary to specify the length of your fields).
+
+SQLObject knows about several databases -- PostgreSQL, MySQL, and
+SQLite are especially well supported.  It can hide much of the
+specifics of the database, including generating the ``CREATE``
+statement.  We'll use SQLite in this example, but it's pretty much
+trivial to use another backend.
+
+First, we have to add configuration to our ``server.conf`` file.
+We'll add these lines::
+
+    import os
+    database = 'sqlite:%s/data.db' % os.path.dirname(__file__)
+
+We use ``os.path.dirname(__file__)`` to put the database file in the
+same directory as ``server.conf``.  You could also use something
+like::
+
+    database = 'mysql://user:passwd@localhost/dbname'
+    # or:
+    database = 'postgresql://user:password@localhost/dbname'
+
+.. comment (change server.conf)
+
+    >>> change_file('server.conf', [('insert', 2, r"""import os
+    ... database = 'sqlite:%s/data.db' % os.path.dirname(__file__)
+    ...
+    ... """)])
+
+.. comment (put sqlobject-admin in path)
+
+Now we have to actually create the tables; we'll use the
+``sqlobject-admin`` script to help us with this.  First::
+
+.. note::
+
+   SQLObject is, among other things, a database abstraction layer.  So
+   it tries to use as many of the capabilities as it can of the
+   underlying database, but gloss over other issues.  In this case,
+   the ``todo_list_id`` column is a foreign key, but the SQL we show
+   is for SQLite, and SQLite doesn't have foreign key constraints.  On
+   PostgreSQL the ``CREATE`` statement would look different.
+
+.. comment (Run it)
+
+    >>> run('sqlobject-admin sql -f server.conf -m todo_sql.db')
+    CREATE TABLE todo_item (
+        id INTEGER PRIMARY KEY,
+        done TINYINT NOT NULL,
+        todo_list_id INT,
+        description TEXT NOT NULL
+    );
+    CREATE TABLE todo_list (
+        id INTEGER PRIMARY KEY,
+        description TEXT NOT NULL
+    );
+
+::
+
+    $ sqlobject-admin sql -f server.conf -m todo_sql.db
+    CREATE TABLE todo_item (
+        id INTEGER PRIMARY KEY,
+        done TINYINT NOT NULL,
+        todo_list_id INT,
+        description TEXT NOT NULL
+    );
+    CREATE TABLE todo_list (
+        id INTEGER PRIMARY KEY,
+        description TEXT NOT NULL
+    );
+
+
+You have to be sure ``/var/www`` is in your ``$PYTHONPATH`` so that
+your ``todo_sql/`` directory is a module that Python can load.  ``-m
+todo_sql.db`` tells ``sqlobject-admin`` to load that module, look for
+SQLObject classes, and use them for its command -- in this case
+(``sqlobject-admin sql``) showing the ``CREATE`` statements.  Now lets
+actually create the tables::
+
+    $ sqlobject-admin create -f server.conf -m todo_sql.db
+
+.. comment (do it)
+
+    >>> run('sqlobject-admin create -f server.conf -m todo_sql.db')
+
+It prints nothing on success (or use ``-v`` or even ``-vv`` to get
+more messages).
+
+Now, let's put in just a little data for later::
+
+    $ sqlobject-admin execute -f server.conf "INSERT INTO
+      todo_list (description) VALUES ('test 1')"
+
+.. comment (do it)
+
+    >>> run('''sqlobject-admin execute -f server.conf "INSERT INTO
+    ...        todo_list (description) VALUES ('test 1')" ''')
+
+
+Creating a servlet
+------------------
+
+For now, we'll reuse the ``index.py`` servlet, and put in this code:
+
+.. comment (make code)
+
+    >>> create_file('web/index.py', 'v1', r"""
+    ... from todo_sql.sitepage import SitePage
+    ... from todo_sql.db import *
+    ...
+    ... class index(SitePage):
+    ...
+    ...     def setup(self):
+    ...         self.options.title = 'List of Lists'
+    ...         self.options.lists = list(TodoList.select())
+    ... """)
+
+.. raw:: html
+   :file: resources/TodoTutorial/web/index.py.v1.gen.html
+
+There's one new item here::
+
+    self.options.list = list(TodoList.select())
+
+``TodoList.select()`` creates a select query -- it *doesn't* actually
+access the database, but it will when we first iterate over it (like
+in a ``for`` loop).  Or here, when we use ``list()`` to turn it into a
+list.  We could give arguments to ``.select()`` to add a ``WHERE``
+clause to the select statement.  Here's the servlet that goes with it:
+
+.. comment (make code)
+
+    >>> create_file('templates/index.pt', 'v1', r"""
+    ... <html metal:use-macro="here/standard_template.pt/macros/page">
+    ... <metal:body fill-slot="body">
+    ...
+    ... <ul>
+    ...  <li tal:repeat="list options/lists">
+    ...   <a tal:attributes="href python: '%s/view_list?id=%s' % (servlet.baseURL, list.id)"
+    ...    tal:content="list/description">list</a></li>
+    ... </ul>
+    ...
+    ... <p tal:condition="not: options/lists">
+    ...  There are no lists to display
+    ... </p>
+    ...
+    ... <form action="./edit_list" method="POST">
+    ...  Create a new list:<br>
+    ...  <input type="hidden" name="id" value="new">
+    ...  <input type="hidden" name="_action_" value="save">
+    ...  <input type="text" name="description">
+    ...  <input type="submit" value="Create!!!!">
+    ... </form>
+    ... </metal:body>
+    ... </html>
+    ... """)
+
+.. raw:: html
+   :file: resources/TodoTutorial/templates/index.pt.v1.gen.html
+
+And this is what we get:
+
+.. comment (show it)
+
+    >>> create_file('web/__init__.py', 'v1', r"""
+    ... import os
+    ... from wsgikit import wsgilib
+    ... from wsgikit.util.thirdparty import add_package
+    ... add_package('sqlobject')
+    ... import sqlobject
+    ...
+    ... sql_set = False
+    ...
+    ... def urlparser_hook(environ):
+    ...     global sql_set
+    ...     if not environ.has_key('todo_sql.base_url'):
+    ...         environ['todo_sql.base_url'] = environ['SCRIPT_NAME']
+    ...     if not sql_set:
+    ...         sql_set = True
+    ...         db_uri = environ['wsgikit.config']['database']
+    ...         sqlobject.sqlhub.processConnection = sqlobject.connectionForURI(
+    ...             db_uri)
+    ... """)
+    >>> change_file('__init__.py', 
+    ...             [('insert', 5, "add_package('sqlobject')\n")])
+    >>> show('/', 'v1-frontpage')
+
+.. raw:: html
+   :file: resources/TodoTutorial/v1-frontpage.html
+
+edit_list page
+--------------
+
+Now we have to create an ``edit_list`` page to create new lists.
+Here's what that looks like:
+
+.. comment (expanded)
+
+    >>> create_file('web/edit_list.py', 'v1', r"""
+    ... from todo_sql.sitepage import SitePage
+    ... from todo_sql.db import *
+    ... 
+    ... class edit_list(SitePage):
+    ... 
+    ...     def setup(self):
+    ...         self.list_id = self.request().field('id')
+    ...         if self.list_id != 'new':
+    ...             self.list = TodoList.get(int(self.list_id))
+    ...         self.options.title = 'Edit list '
+    ... 
+    ...     def actions(self):
+    ...         return ['save', 'destroy']
+    ... 
+    ...     def save(self):
+    ...         desc = self.request().field('description')
+    ...         if self.list_id == 'new':
+    ...             self.list = TodoList(description=desc)
+    ...             self.message('List created')
+    ...         else:
+    ...             self.list.description = desc
+    ...             self.message('List updated')
+    ...         self.sendRedirectAndEnd('./view_list?id=%s' % self.list.id)
+    ... 
+    ...     def destroy(self):
+    ...         desc = self.list.description
+    ...         self.list.destroySelf()
+    ...         self.message('List %s deleted' % desc)
+    ...         self.sendRedirectAndEnd('./')
+    ... """)
+
+.. raw:: html
+   :file: resources/TodoTutorial/web/edit_list.py.v1.gen.html
+
+A few things to point about out this.  First, note we are using the
+edit form as a creation form too, with the special id of ``"new"`` for
+this case.  Not that you have to do that, but I find it convenient.
+
+If there was an id passed in, we use it to fetch an instance of
+``TodoList`` with ``TodoList.get(int(self.list_id))``.
+
+Second, actions.  When there's a field named ``_action_actionName`` or
+``_action_=actionName``, that tells the servlet to call the named
+action.  (The first form is useful when you have a button where you
+can't necessarily give the action name the same value as the text of
+the button.)  As a security measure, the ``.actions()`` method returns
+a list of possible actions -- so a user couldn't change the form and
+call an arbitrary method.
+
+``.setup()`` is called regardless of the action, and
+``.defaultAction()`` is later called if no action is defined (by
+default ``defaultAction`` doesn't do anything).  In the form that
+submits to ``edit_list`` we used an action of ``save``, so that's what
+gets called.
+
+In ``.save()`` there's two kinds of actions -- one inserts a row, and
+one updates a row.  Insertion is like instance creation -- you call
+the class::
+
+    self.list = TodoList(description=desc)
+
+Updating is like attribute assignment (remember we already assigned
+``self.list`` in ``setup``)::
+
+    self.list.description = desc
+
+Next you'll see we call ``self.message(...)`` -- this stores a message
+in the user's session object.  This is useful in cases like this,
+where you want to redirect the user someplace useful, but you also
+want to give them some indication of what happened.  When they go to
+the next page, that message will be displayed at the top of the page
+(and then removed from the session).  Even if you don't redirect, this
+is an easy way of putting little messages at the top of the screen.
+
+Lastly we do a redirect -- ``self.sendRedirectAndEnd()`` aborts the
+rest of the transaction and immediately redirects the user.
+
+You can also see we have a list deletion method (``destroy``).  To
+delete a row with SQLObject you call
+``sqlobjectInstance.destroySelf()``.  Then we just redirect them back
+to the main page.
+
+Here's what happens when you create a list:
+
+.. comment (do it)
+
+    >>> show('/edit_list?_action_=save&'
+    ...      'id=new&description=another%20list', 'v1-edit')
+
+.. raw:: html
+   :file: resources/TodoTutorial/v1-edit.html
+
+view_list page
+--------------
+
+Hmm... well, that last page isn't very interesting, is it... we better
+write that ``view_list`` servlet.  Viewing a means displaying all its
+items (``TodoItem``) and allowing items to be added, removed, and
+marked done or not done.
+
+.. comment (expanded)
+
+    >>> create_file('web/view_list.py', 'v1', r"""
+    ... from todo_sql.sitepage import SitePage
+    ... from todo_sql.db import *
+    ... 
+    ... class view_list(SitePage):
+    ... 
+    ...     def setup(self):
+    ...         self.options.list = TodoList.get(int(self.request().field('id')))
+    ...         self.options.list_items = list(self.options.list.items)
+    ...         self.options.title = 'List: %s' % self.options.list.description
+    ... 
+    ...     def actions(self):
+    ...         return ['check', 'add', 'destroy']
+    ... 
+    ...     def check(self):
+    ...         field = self.request().field
+    ...         for item in self.options.list.items:
+    ...             checked = field('item_%s' % item.id, False)
+    ...             if not checked and item.done:
+    ...                 self.message('Item %s marked not done'
+    ...                              % item.description)
+    ...                 item.done = False
+    ...             if checked and not item.done:
+    ...                 self.message('Item %s marked done'
+    ...                              % item.description)
+    ...                 item.done = True
+    ...         self.sendRedirectAndEnd(
+    ...             './view_list?id=%s' % self.options.list.id)
+    ...     
+    ...     def add(self):
+    ...         desc = self.request().field('description')
+    ...         if not desc:
+    ...             self.message('You must give a description')
+    ...         else:
+    ...             TodoItem(todo_list=self.options.list,
+    ...                      description=desc)
+    ...             self.message('Item added')
+    ...         self.sendRedirectAndEnd(
+    ...             './view_list?id=%s' % self.options.list.id)
+    ...
+    ...     def destroy(self):
+    ...         id = int(self.request.field('item_id'))
+    ...         item = TodoItem.get(id)
+    ...         assert item.todo_list.id == self.options.list.id, (
+    ...             "You are trying to delete %s, which does not "
+    ...             "belong to the list %s" % (item, self.options.list))
+    ...         desc = item.description
+    ...         item.destroySelf()
+    ...         self.message("Item %s removed" % desc)
+    ...         self.sendRedirectAndEnd(
+    ...             './view_list?id=%s' % self.options.list.id)
+    ... """)
+
+.. raw:: html
+   :file: resources/TodoTutorial/web/view_list.py.v1.gen.html
+
+Hopefully this is looking familiar.  In ``setup`` we load up the
+objects, and set a title based on those options.  We also fetch the
+list's items, and define several actions -- ``check`` marks items done
+or not done, ``add`` adds new items, and ``destroy`` removes a single
+item.
+
+Next we need the template:
+
+.. comment (template)
+
+    >>> create_file('templates/view_list.pt', 'v1', r"""
+    ... <html metal:use-macro="here/standard_template.pt/macros/page">
+    ... <metal:body fill-slot="body">
+    ... 
+    ... <form action="view_list?_action_=check" method="POST">
+    ... <input type="hidden" name="id"
+    ...  tal:attributes="value options/list/id">
+    ... 
+    ... <table>
+    ... <tr>
+    ...   <th>Done?</th>
+    ...   <th>Description</th>
+    ... </tr>
+    ... 
+    ... <tr tal:repeat="item options/list_items">
+    ...  <tal:let define="name python: 'item_%s' % item.id">
+    ...  <td>
+    ...   <input type="checkbox"
+    ...    tal:attributes="name name;
+    ...                    id name;
+    ...                    checked item/done">
+    ...  </td>
+    ...  <td>
+    ...   <label tal:attributes="for name"
+    ...    tal:content="item/description">description</label>
+    ...  </td>
+    ...  <td><a tal:attributes="
+    ...         href python: 'view_list?_action_=destroy&item_id=%s'
+    ...         % item.id">[delete]</a></td>
+    ...  </tal:let>
+    ... </tr>
+    ... 
+    ... <tr tal:condition="not: options/list_items">
+    ...  <td colspan=2>No items to display</td>
+    ... </tr>
+    ... 
+    ... </table>
+    ... 
+    ... <input type="submit" value="Update item status">
+    ... </form>
+    ... 
+    ... <form action="view_list?_action_=add" method="POST">
+    ... <input type="hidden" name="id"
+    ...  tal:attributes="value options/list/id">
+    ... Add item:<br>
+    ... <input type="text" style="width: 100%" name="description"><br>
+    ... <input type="submit" value="Add">
+    ... </form>
+    ... 
+    ... <form action="edit_list?_action_=destroy" method="POST">
+    ... <input type="hidden" name="id"
+    ...  tal:attributes="value options/list/id">
+    ... <input type="submit" value="Delete this list"
+    ...  onclick="return window.confirm('Really delete this list?')">
+    ... </form>
+    ... 
+    ... </metal:body>
+    ... </html>
+    ... """)
+
+.. raw:: html
+   :file: resources/TodoTutorial/templates/view_list.pt.v1.gen.html
+
+Now we can view that list:
+
+    >>> show('/view_list?id=2', 'v1-view')
+
+.. raw:: html
+   :file: resources/TodoTutorial/v1-view.html
+
+You can play with the app, but we're pretty much done.
+
+
+Changing standard_template.pt
+-----------------------------
+
+The one thing missing is navigation, which we want to apply globally
+to our application.  To fix this, we'll be changing ``SitePage`` and
+``standard_template.pt``.
+
+``SitePage`` is the class that all our other servlets inherit from.
+By adding things to ``SitePage.awake()`` we make them available to all
+of our application.  You can also hang utility methods off this class,
+or anything else that should be globally available, or have some
+default (but overrideable) implementation.
+
+For navigation we're going to put all the lists in a sidebar.  So
+we'll have to load all the lists in ``SitePage.awake()``, then we'll
+use that data in ``standard_template.pt``.  We'll add one line to
+``SitePage.awake``, before ``self.setup()``::
+
+    self.options.lists = list(TodoList.select())
+
+We can get rid of this line in ``web/index.py`` now as well, since it
+will be redundant.
+
+.. comment (change files)
+
+    >>> change_file('sitepage.py', [
+    ... ('insert', 4, 'from todo_sql.db import *\n'),
+    ... ('insert', 20, 
+    ...  "        self.options.lists = list(TodoList.select())\n")])
+    >>> change_file('web/index.py', [
+    ... ('delete', 7, 8)])
+
+Now we'll change ``standard_template.pt`` to create navigation based
+on this:
+
+.. comment (make it)
+
+    >>> create_file('templates/standard_template.pt', 'nav', r"""
+    ... <metal:tpl define-macro="page">
+    ... <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+    ...         "http://www.w3.org/TR/REC-html40/loose.dtd">
+    ... <html lang="en-US">
+    ... <head>
+    ... <title tal:content="servlet/title">title</title>
+    ... <link rel="stylesheet" type="text/css"
+    ...       tal:attributes="href python: servlet.baseStaticURL + '/stylesheet.css'">
+    ... 
+    ... <metal:slot define-slot="extra_head"></metal:slot>
+    ... 
+    ... </head>
+    ... <body>
+    ... 
+    ... <h1 id="header"><tal:mark replace="servlet/title"/></h1>
+    ... 
+    ... <table width="100%">
+    ... <tr>
+    ... <td id="sidenav" width="20%">
+    ... <a tal:attributes="href servlet/baseURL">Home</a><br>
+    ... <tal:for repeat="list options/lists">
+    ...  <a tal:attributes="href python: '%s/view_list?id=%s' %
+    ...                     (servlet.baseURL, list.id)"
+    ...     tal:content="list/description">link</a><br>
+    ... </tal:for>
+    ... </td>
+    ... 
+    ... <td>
+    ... <span tal:replace="structure servlet/messageText">
+    ... This is where the notification messages go.
+    ... </span>
+    ... 
+    ... <div id="content">
+    ... <metal:tpl define-slot="body">
+    ... [This page has not customized its "body" slot]
+    ... </metal:tpl>
+    ... </div>
+    ... 
+    ... </td></tr></table>
+    ... 
+    ... </body>
+    ... </html>
+    ... </metal:tpl>
+    ... """)
+
+Let's look at that view page again:
+
+.. comment (show)
+
+    >>> show('/view_list?id=2', 'v2-view')
+
+.. raw:: html
+   :file: resources/TodoTutorial/v2-view.html
+
+Conclusion
+==========
+
+Now that we're finished, you might want to play with the result of the
+tutorial and extend it.  You'll find the application in
+``examples/todo_sql``.
+
+I also want to note a few aspects of what we've created:
+
+* Style is separate from logic, by way of templates (style) and
+  servlets (controller logic).  This is similar to a Controller-View
+  separation, but it is also intended to assist a separation of roles,
+  typically Programmer-Designer.
+
+* The web interface logic is separated from the domain (or business)
+  logic.  We actually don't have much domain logic in this program --
+  just the stuff in ``db.py`` -- but larger applications would have
+  more.  None of this logic needs to be specific to the web at all, or
+  the framework we are using.
+
+* These distinctions between web logic, style decisions, and domain
+  logic are represented (a bit casually) by the file layout.
+
+* All the templates are valid HTML (and could be valid XHTML if you
+  want to write them like that -- but it's not required).  They can be
+  viewed, unrendered, in a browser.  The templates can be almost
+  arbitrarily complicated, depending on how complicated your view
+  logic is -- but all the logic is kept together in a relatively small
+  number of files.  If you want to share logic across pages, METAL can
+  be used for more than just ``standard_template.pt``.
+

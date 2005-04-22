@@ -1,0 +1,121 @@
+#!/bin/sh
+# This is kind of experimental now, but it's meant to be a way to
+# get all the optional packages we use and put then in 3rd-party
+# -- see http://blog.ianbicking.org/distributing-dependencies.html
+# for an explanation of why.
+
+TMP=/tmp/tmp-build
+BASE=`dirname $0`
+
+if [ "$BASE" = "." ] ; then
+    BASE=`pwd`
+fi
+
+THIRD="$BASE/wsgikit/3rd-party"
+
+function get_file {
+    ZIP_TYPE="$1"
+    FILENAME="$2"
+    URL="$3"
+    mkdir -p $TMP
+    cd $TMP
+    if [ ! -e "$FILENAME" ] ; then
+        wget "$URL" -O "$FILENAME"
+    fi
+    DIR=`basename "$FILENAME" .tar.gz`
+    DIR=`basename "$DIR" .tar.bz2`
+    DIR=`basename "$DIR" .tgz`
+    if [ ! -e "$DIR" ] ; then
+        tar fx$ZIP_TYPE "$FILENAME"
+    fi
+    cd "$DIR"
+}
+
+function installer {
+    NAME="$1"
+    mkdir -p "$THIRD/$NAME-files"
+    echo python setup.py install -f --install-lib="$THIRD/$NAME-files" \
+      --install-scripts="$THIRD/$NAME-files/scripts" --no-compile
+    python setup.py install -f --install-lib="$THIRD/$NAME-files" \
+      --install-scripts="$THIRD/$NAME-files/scripts" --no-compile
+}    
+
+echo "Will build into $BASE; hit Enter to proceed"
+read x
+
+get_file z WSGI\ Utils-0.5.tar.gz \
+    http://www.owlfish.com/software/wsgiutils/downloads/WSGI%20Utils-0.5.tar.gz z
+installer wsgiutils
+
+#get_file z ZopeInterface-3.0.1 \
+#    http://www.zope.org/Products/ZopeInterface/3.0.1final/ZopeInterface-3.0.1.tgz
+#installer zope
+
+#for BAD in testing interface/tests interface/common/tests ; do
+#    rm -r $THIRD/zope-files/zope/$BAD
+#done
+#rm $THIRD/zope-files/zope/*.txt
+#rm $THIRD/zope-files/zope/interface/*.txt
+
+#export PYTHONPATH=$PYTHONPATH:$THIRD/zope-files
+
+#get_file j Twisted-2.0.0.tar.bz2 \
+#    http://tmrc.mit.edu/mirror/twisted/Twisted/2.0/Twisted-2.0.0.tar.bz2
+#installer twisted
+
+#export PYTHONPATH=$PYTHONPATH:$THIRD/twisted-files
+
+#get_file j TwistedWeb-0.5.0.tar.bz2 \
+#    http://tmrc.mit.edu/mirror/twisted/Web/0.5/TwistedWeb-0.5.0.tar.bz2
+#installer twisted
+
+#for BAD in web/test web/woven test trial/test internet/serialport ; do
+#    rm -r $THIRD/twisted-files/twisted/$BAD
+#done
+
+echo done.
+
+get_file z Component-0.1.tar.gz http://webwareforpython.org/downloads/Component-0.1.tar.gz
+mkdir -p "$THIRD/Component-files"
+DEST="$THIRD/Component-files/Component"
+rm -rf $DEST
+mv $TMP/Component-0.1 $DEST
+echo done.
+
+get_file z ZPTKit-0.1.tar.gz http://imagescape.com/software/ZPTKit/ZPTKit-0.1.tar.gz
+mkdir -p "$THIRD/ZPTKit-files"
+DEST="$THIRD/ZPTKit-files/ZPTKit"
+rm -rf $DEST
+mv $TMP/ZPTKit-0.1 $DEST
+echo done.
+
+get_file z ZopePageTemplates-1.4.0.tar.gz http://belnet.dl.sourceforge.net/sourceforge/zpt/ZopePageTemplates-1.4.0.tgz
+cd ZopePageTemplates
+installer ZopePageTemplates
+echo done.
+
+get_file z scgi-1.2.tar.gz http://www.mems-exchange.org/software/files/scgi/scgi-1.2.tar.gz
+cd scgi-1.2
+installer scgi
+
+
+find $THIRD \( -name '*.pyc' -o -name '*.pyo' \) -exec rm {} \;
+
+if [ -e $TMP/SQLObject ] ; then
+  cd $TMP/SQLObject
+  svn up
+else
+  svn co http://svn.colorstudy.com/trunk/SQLObject $TMP/SQLObject
+fi
+cd $TMP/SQLObject
+installer sqlobject
+mkdir -p $THIRD/sqlobject-files/scripts
+cp $TMP/SQLObject/scripts/sqlobject-admin $THIRD/sqlobject-files/scripts
+echo done.
+
+if [ ! -e $TMP/PySourceColor.py ] ; then
+    wget http://bellsouthpwp.net/m/e/mefjr75/python/PySourceColor.py \
+      -O $TMP/PySourceColor.py
+fi
+mkdir -p $THIRD/PySourceColor-files
+cp $TMP/PySourceColor.py $THIRD/PySourceColor-files/

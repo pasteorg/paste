@@ -1,0 +1,43 @@
+<metal:tpl define-macro="page">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+        "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html lang="en-US">
+<head>
+<title tal:content="servlet/title">title</title>
+<link rel="stylesheet" type="text/css"
+      tal:attributes="href python: servlet.baseStaticURL + '/stylesheet.css'">
+
+<metal:slot define-slot="extra_head"></metal:slot>
+
+</head>
+<body>
+
+<h1 id="header"><tal:mark replace="servlet/title"/></h1>
+
+<table width="100%">
+<tr>
+<td id="sidenav" width="20%">
+<a tal:attributes="href servlet/baseURL">Home</a><br>
+<tal:for repeat="list options/lists">
+ <a tal:attributes="href python: '%s/view_list?id=%s' %
+                    (servlet.baseURL, list.id)"
+    tal:content="list/description">link</a><br>
+</tal:for>
+</td>
+
+<td>
+<span tal:replace="structure servlet/messageText">
+This is where the notification messages go.
+</span>
+
+<div id="content">
+<metal:tpl define-slot="body">
+[This page has not customized its "body" slot]
+</metal:tpl>
+</div>
+
+</td></tr></table>
+
+</body>
+</html>
+</metal:tpl>

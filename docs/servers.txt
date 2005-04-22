@@ -1,0 +1,97 @@
++++++++++++++++
+WSGIKit Servers
++++++++++++++++
+
+:author: A.M. Kuchling <amk@amk.ca>
+:revision: $Rev$
+:date: $LastChangedDate: 2005-04-14 15:33:14 -0400 (Thu, 14 Apr 2005) $
+
+
+Introduction 
+============
+
+This file describes the operation of the wsgi-server script, and
+explains how to package applications so that wsgi-server can run them.
+
+Overview: wsgi-server creates a configuration, which contains both
+information about a particular application and how the application
+should be executed (e.g. as a CGI, as a standalone server).
+Configuration files are just Python code that sets variables; the
+configuration is then just a dictionary constructed from the resulting
+namespace
+
+The application is then executed based on this configuration.
+Applications can be run in different modes (CGI, standalone HTTP,
+etc.); the different modes look at various configuration parameters to
+control the results.
+
+
+Configuration 
+=============
+
+Configuration information is read from a number of sources, in the
+following order.
+
+	  1. A set of default values, contained in the code of the 
+  	     wsgikit.server module.
+	  2. From wsgi-server's command line arguments.
+	  3. From the ``default_config.conf`` file in the installed ``wsgikit`` directory.
+	  4. From the `server.conf` file in the current working directory.
+	     (You can set a `no_server_conf` config setting to skip 
+	     reading this file.)
+	  5. If the `config_file` setting is present at this point, 
+	     it should contain the path of a configuration file.
+	     This file is parsed and processed last.
+
+After going through these steps, configuration is complete.
+
+
+Servers
+--------
+
+WSGIKit can run a web application in a number of different modes: CGI,
+standalone HTTP, SCGI, and a console mode which simulates CGI.  Some
+of these modes require additional software; the ``build-pkg`` script
+will download the necessary packages for you.
+
+
+cgi
+==========
+
+Outputs a CGI script to standard output for running the application.
+
+
+console
+==========
+
+Simulates a web application from the console.
+
+
+scgi
+==========
+
+Runs a SCGI server.
+
+Configuration settings:
+
+    * ``scgi_prefix`` -- URL prefix that the SCGI server will expect.
+    * ``port`` -- port number that SCGI server will listen on
+
+
+twisted
+========
+
+Runs an HTTP server using Twisted.
+
+
+wsgiutils
+===========
+
+Runs an HTTP server using the wsgiref code and the Python stdlib.
+
+Configuration settings:
+
+    * ``host`` -- hostname that the HTTP server will bind to (default:
+      localhost).  
+    * ``port`` -- port number that HTTP server will listen on (default: 8080)
+

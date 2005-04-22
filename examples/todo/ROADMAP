@@ -1,0 +1,35 @@
+=======
+ROADMAP
+=======
+
+Items to do
+===========
+
+- add checkboxes for done/not-done states
+
+- by default, only show not-done items (with a toggle between done/not-done)
+
+- give a link/page to see the completed items
+
+- show the number of items (visually or textually) in a todo list
+
+- move items from one list to another
+
+- "share" a list, i.e. a read-only version for an unauthenticated?  user
+
+- email a list
+
+- see multiple lists at once
+
+- "subscribe" to a list for status changes or reminders
+
+- add due date, completion date and creation date to todo items
+
+- nest-able todo lists? (a todo list could be contained in another?)
+
+Bugs to fix
+===========
+
+- list names don't work with spaces in them... let's make it so they can
+
+- /<username>/<listname>/delete doesn't work (can't delete/obliterate a list)

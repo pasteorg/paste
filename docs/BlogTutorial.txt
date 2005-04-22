@@ -1,0 +1,184 @@
++++++++++++++
+Blog Tutorial
++++++++++++++
+
+:author: Ian Bicking <ianb@colorstudy.com>
+:revision: $Rev: 2321 $
+:date: $LastChangedDate: 2005-04-09 17:55:39 -0500 (Sat, 09 Apr 2005) $
+
+.. contents::
+
+Introduction
+============
+
+This tutorial will go through the process of creating a blog using
+WSGIKit_, SQLObject_, and `Zope Page Templates`_.  This blog will rely
+heavily on static publishing -- that is, when at all possible flat
+HTML pages will be written to disk.  For some parts (e.g., posting a
+new item) this will of course be infeasible, but for most of the site
+this should work fine.
+
+.. _WSGIKit: http://wsgikit.org
+.. _SQLObject: http://sqlobject.org
+.. _Zope Page Templates: http://www.zope.org/DevHome/Wikis/DevSite/Projects/ZPT/FrontPage
+
+As much as possible, this code will be accompanied by unit tests, and
+test-driven methodologies.  Doing test-driven documenting of the
+incremental process of creating test-driven software may get a little
+hairy, but wish me luck!
+
+This tutorial presupposes you are somewhat comfortable with the basic
+stack -- the `To-Do Tutorial`_ is a better place to start for a
+beginner.
+
+.. _To-Do Tutorial: TodoTutorial.html
+
+Setting Up The App
+==================
+
+.. note::
+
+    We're doing all this in the Python interpreter, even though you'd normally do
+    some of this in the shell.  This way the authors of this tutorial
+    can use something called doctest_, which allows this tutorial to
+    be tested Python in an automated way.
+
+    .. _doctest: http://python.org/doc/current/lib/module-doctest.html
+
+.. run:
+
+    from wsgikit.tests.doctest_webapp import *
+    BASE = '/var/www/wkblog'
+    import sys
+    clear_dir(BASE)
+    assert 0
+    run("app-setup create --template=webkit_zpt %s" % BASE)
+    os.chdir(BASE)
+
+::
+
+    $ export PYTHONPATH=/path/to/WSGIKit:$PYTHONPATH
+    $ BASE=/var/www/wkblog
+    $ app-setup create --template=webkit_zpt $BASE
+    $ cd $BASE
+
+The Model
+=========
+
+Since we're using SQLObject, we'll be doing the complete model in
+that.  The predecessor of this blog used flat files, custom-written
+indexes, and simple rfc822_ based files for structure.  It did not
+scale well at all.
+
+.. _rfc822: http://python.org/doc/current/lib/module-rfc822.html
+
+Here's the model:
+
+.. run:
+
+    create_file('db.py', 'v1', r"""
+    from sqlobject import *
+    try:
+        from datetime import datetime
+        now = datetime.now
+    except ImportError:
+        from mx import DateTime
+        now = DateTime.now
+    
+    class Article(SQLObject):
+        url = StringCol(notNull=True)
+        title = StringCol()
+        content = StringCol(notNull=True)
+        content_mime_type = StringCol(notNull=True)
+        author = ForeignKey('User')
+        parent = ForeignKey('Article', default=None)
+	created = DateTimeCol(notNull=True, default=now)
+        last_updated = DateTimeCol(default=None)
+        atom_id = StringCol()
+        hidden = BoolCol(notNull=True, default=False)
+        article_type = StringCol(notNull=True, default='article')
+        categories = RelatedJoin('Category')
+    
+    class Category(SQLObject):
+        name = StringCol(alternateID=True)
+        articles = RelatedJoin('Article')
+    
+    class User(SQLObject):
+        class sqlmeta:
+            table = 'user_info'
+        username = StringCol(alternateID=True)
+        email = StringCol()
+        name = StringCol()
+        password_encoded = StringCol()
+        role = StringCol(notNull=True, default='user')
+    """)
+
+.. raw:: html
+   :file: resources/BlogTutorial/db.py.v1.gen.html
+
+A few things to note:
+
+* Sadly, both datetime_ and mxDateTime_ are pseudo-standards.  Well,
+  datetime is the standard, but mxDateTime has the legacy.  So we have
+  to do this little dance to import one or the other.  (We use ``now``
+  later as a default)
+
+.. _datetime: http://python.org/doc/current/lib/module-datetime.html
+.. _mxDateTime: http://www.egenix.com/files/python/mxDateTime.html
+
+* All the columns allow ``NULL`` by default, unless we say
+  ``notNull=True``.
+
+* ``ForeignKey('User')`` is a join to another table (the ``User``
+  table, of course).  We have to use strings to refer to other class,
+  because in this case the ``User`` class hasn't even been created.
+  Generally all references between classes are by name.
+
+* ``created`` has a default.  You can give a fixed default (like
+  ``True`` or ``3``), or you can pass in a function that is called.
+  In this case, if you don't indicate ``Article(...,
+  created=something)`` then ``created`` will be the current date and
+  time.  Unless a default is explicitly given, it is an error to leave
+  a column out of the constructor.  ``NULL`` (which is ``None`` in
+  Python) is *not* considered a default.
+
+* Some column types don't relate directly to database types.  For
+  instance, though PostgreSQL has a ``BOOLEAN`` type, most databases
+  don't, so ``BoolCol`` translates to some kind of ``INT`` column on
+  those database.
+
+* ``RelatedJoin('Category')`` creates a mapping table
+  (``article_category``) and is a many-to-many join between articles
+  and categories.
+
+* ``user`` isn't a valid table name in many databases, so while the
+  class is named ``User``, the table actually is ``user_info``.  This
+  kind of extra information about a class is typically passed in
+  through the ``sqlmeta`` inner class.
+
+These classes have lots of other *behavior*, but this should be a good
+list of actual information.  We'll add more behavior later.
+
+Now we'll create the database.  First we configure it, adding these
+lines::
+
+    import os
+    database = 'sqlite:%s/data.db' % os.path.dirname(__file__)
+
+You could also use::
+
+    database = 'mysql://user:passwd@localhost/dbname'
+    database = 'postgresql://user:password@localhost/dbname'
+
+.. comment (change server.conf)
+
+    >>> change_file('server.conf', [('insert', 2, r"""import os
+    ... database = 'sqlite:%s/data.db' % os.path.dirname(__file__)
+    ...
+    ... """)])
+
+Now we'll use ``sqlobject-admin`` to set up the tables:
+
+.. comment (do it)
+
+    >>> run('sqlobject-admin create -v -f server.conf -m wkblog.db')

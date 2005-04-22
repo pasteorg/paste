@@ -1,0 +1,232 @@
+WSGIKit
+===========
+
+This is a WSGI_ version of WebKit.  In addition to supporting WSGI, it
+also is a simplification and refactoring of Webware.
+
+.. _WSGI: http://www.python.org/peps/pep-0333.html
+
+License
+-------
+
+WSGIKit is distributed under the `Python Software Foundation`__
+license.  This is a BSD/MIT-style license.
+
+.. __: http://www.python.org/psf/license.html
+
+Quick Start
+-----------
+
+First, grab WSGIUtils, at http://www.owlfish.com/software/wsgiutils/,
+or download it directly from
+http://www.owlfish.com/software/wsgiutils/downloads/WSGI%20Utils-0.5.tar.gz
+
+You can use other servers with WSGIKit, but WSGIUtils is pretty easy
+and built on SimpleHTTPServer.  Run ``python setup.py install`` to
+install it.
+
+Right now it's best NOT to install WSGIKit with ``setup.py``, but just
+to run it out of the checkout.  An easy way to do that::
+
+    ./scripts/app-setup create webkit_zpt /path/to/put/files
+    cd /path/to/put/files
+    /path/to/wsgikit/scripts/server -v
+
+And it will be running a server on http://localhost:8080/
+
+Compatibility
+-------------
+
+This system is intended to be largely compatible with current Webware
+applications.  This is only an intention; use with real-world
+applications will help us refine this compatibility.
+
+Some parts that aren't being brought over:
+
+* Configuration.  Right now configuration is a little inconsistent.
+
+* Contexts.  These were half-formed in Webware, and didn't really
+  provide much benefit.  There are much more general and useful ways
+  to deal with URLs.
+
+* URL introspection.  I tried to get some of it, but there's way too
+  many ways of refactoring the URL in Webware, and I didn't deal with
+  all of them.  The environment (``request.environ()``) may look
+  different than in Webware -- it matches the WSGI expectations.  It's
+  certainly possible -- and hopefully clearer -- to do introspection
+  in WSGIKit, but it might not be backward compatible (but still file
+  bugs if you find problems).
+
+Discussion
+----------
+
+Discussion should take place on the Webware mailing list,
+webware-discuss@lists.sf.net and webware-devel@list.sf.net
+
+Configuration
+-------------
+
+Configuration is done with normal Python files.  Global variables
+become configuration values.  So a configuration file might look
+like::
+
+    host = 'localhost'
+    port = 8080
+    webkit_dir = '/path/to/dir'
+    database_name = 'app_data'
+
+And so on.  There's a default configuration file in
+``wsgikit/default_config.conf`` which will also serve as
+documentation.  Your configuration overrides those values.  The
+extension is arbitrary at this point.
+
+Some important configuration values:
+
+``config_file``:
+    Load the given configuration file.
+
+``server``: 
+    The (string) name of the server you want to use.  Right now there
+    is ``"wsgiutils"`` and ``"twisted"``.
+
+``webkit_dir``:
+    The base directory to find Webware servlets.  (In the future other
+    frameworks will also be supported.)
+
+``debug``:
+    If true, then errors will be displayed in the browser.
+
+``reload``:
+    If true, then we'll monitor for any changed modules and restart
+    the server if those are found.
+
+``verbose``:
+    If true, talk a lot.
+
+Use
+---
+
+These are some manual ways to set up a WSGI server, but
+``scripts/server`` is the easiest.  
+
+This script takes takes options that turn into configuration
+parameters.  If there's a ``port`` configuration value you can also
+use the ``--port=X`` command-line option.  ``-`` is also replaced with
+``_``.
+
+Another option is ``-f config_file.conf`` which loads the given
+configuration file.  This might be the only option you need, if you
+put all the other settings in the configuration file.
+
+Note that ``--verbose``, ``--reload`` and ``--debug`` do not require
+an argument.
+
+Multiple Applications / Manual Setup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Right now integration of multiple applications into a single server is
+kind of an unsolved problem, but manual application setup would be the
+way to go about it...
+
+CGI
+~~~
+
+The ``cgiserver`` script is included.  It's not particularly good,
+but it's there for you.  To use it, you'll set up your own CGI script,
+like::
+
+    #!/usr/bin/env python
+    # maybe import sys and modify sys.path
+    from wsgikit import cgiserver
+    from wsgikit.webkit import wsgiwebkit
+    app = wsgiwebkit.webkit('/path/to/app')
+    cgiserver.run_with_cgi(app)
+
+Twisted
+~~~~~~~
+
+This package includes ``twisted_wsgi``, which is a WSGI adapter
+written by Peter Hunt.  The canonical location for this file is:
+http://st0rm.hopto.org:8080/wsgi/ (note -- Twisted 2.0 will include
+native WSGI support; there's been reports of bugs in the version we
+are currently shipping).
+
+This is closer to the normal Webware environment than CGI.  To set up
+this server use::
+
+    #!/usr/bin/env python
+    # maybe import sys and modify sys.path
+    from wsgikit import twisted_wsgi
+    from wsgikit.webkit import wsgiwebkit
+    app = wsgiwebkit.webkit('/path/to/app')
+    twisted_wsgi.serve_application(app, 8080)
+
+Note, the twisted server is dependent on wsgiref which can be found at
+http://cvs.eby-sarna.com/wsgiref
+
+
+Multi-threaded
+~~~~~~~~~~~~~~
+
+WSGIUtils_ includes a SimpleHTTPServer_-based multi-threaded server.
+This is an architecture very similar to Webware's AppServer.  Twisted
+may be the better approach, but who knows?
+
+.. _WSGIUtils: http://www.owlfish.com/software/wsgiutils/
+.. _SimpleHTTPServer: http://python.org/doc/current/lib/module-SimpleHTTPServer.html
+
+To set up this server use::
+
+    #!/usr/bin/env python
+    from wsgiutils import wsgiServer
+    from wsgikit.webkit import wsgiwebkit
+    app_root='/path/to/app'
+    app = wsgiwebkit.webkit(app_root)
+    server = wsgiServer.WSGIServer(('127.0.0.1', 8080), {'/': app})
+    server.serve_forever()
+
+Interactive
+~~~~~~~~~~~
+
+This allows you to test an application without running any web server.
+While you can use this several ways (e.g., for acceptance tests), this
+is a simple way::
+
+    #!/usr/bin/env python
+    # maybe import sys and modify sys.path
+    from wsgikit import wsgilib
+    from wsgikit.webkit import wsgiwebkit
+    app = wsgiwebkit.webkit('/path/to/app')
+    def run(url):
+        print wsgilib.interactive(application, url)
+    if __name__ == '__main__':
+        import sys
+        url = sys.argv[1]
+        run(url)
+
+Then you run this script with the URL you want to access; the headers
+and page will be printed out.  This can also be used at the
+interactive prompt, e.g., ``python -i interactiveapp.py``, and you can
+use pdb_ or other debugging tools with this.
+
+.. _pdb: http://python.org/doc/current/lib/module-pdb.html
+
+Comparison of architectures
+---------------------------
+
+WSGI WebKit's implementation of ``Page`` (and ``HTTPServlet``)
+implements a ``__call__`` method, which is all that is required to
+make a servlet into a WSGI application.  The __call__ method creates
+the transaction (``wktransaction.Transaction``), which in turn creates
+the request (``wkrequest.HTTPRequest``) and response
+(``wkresponse.HTTPResponse``).  Then there's a bit of back-and-forth 
+
+There are also session and application objects, which are largely
+dummy objects that provide some of the interface that was previously
+implemented by those objects.  In WSGI WebKit these features
+(forwarding and sessions) are implemented in middleware.
+
+This is in contrast to normal Webware, where the ``AppServer`` starts
+the connection, hands it off to ``Application``, which creates
+``Transaction``, ``HTTPRequest``, and ``HTTPResponse``, then finds the
+servlet and runs it with those objects.

@@ -1,0 +1,29 @@
+<metal:tpl define-macro="page">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+        "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html lang="en-US">
+<head>
+<title tal:content="servlet/title">title</title>
+<link rel="stylesheet" type="text/css"
+      tal:attributes="href python: servlet.baseStaticURL + '/stylesheet.css'">
+
+<metal:slot define-slot="extra_head"></metal:slot>
+
+</head>
+<body>
+
+<h1><tal:mark replace="servlet/title"/></h1>
+
+<span tal:replace="structure servlet/messageText">
+This is where the notification messages go.
+</span>
+
+<div id="content">
+<metal:tpl define-slot="body">
+[This page has not customized its "body" slot]
+</metal:tpl>
+</div>
+
+</body>
+</html>
+</metal:tpl>
