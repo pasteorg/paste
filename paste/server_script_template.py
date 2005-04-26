@@ -15,5 +15,5 @@ if conf.get('config_file'):
 if conf.get('sys_path'):
     server.update_sys_path(conf['sys_path'], conf['verbose'])
 
-app = wsgiwebkit.webkit(conf['webkit_dir'], use_lint=conf.get('lint'))
+app = wsgiwebkit.webkit(conf['publish_dir'], use_lint=conf.get('lint'))
 app = config_middleware(app, conf)
