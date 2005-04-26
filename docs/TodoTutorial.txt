@@ -567,9 +567,10 @@ clause to the select statement.  Here's the servlet that goes with it:
 .. raw:: html
    :file: resources/TodoTutorial/templates/index.pt.v1.gen.html
 
-And this is what we get:
+We also have to add a little magic to ``web/__init__.py`` to configure
+SQLObject (this will be improved in the future):
 
-.. comment (show it)
+.. comment (make config)
 
     >>> create_file('web/__init__.py', 'v1', r"""
     ... import os
@@ -590,6 +591,14 @@ And this is what we get:
     ...         sqlobject.sqlhub.processConnection = sqlobject.connectionForURI(
     ...             db_uri)
     ... """)
+
+.. raw:: html
+   :file: resources/TodoTutorial/web/__init__.py.v1.gen.html
+
+And this is what we get:
+
+.. comment (show it)
+
     >>> change_file('__init__.py', 
     ...             [('insert', 5, "add_package('sqlobject')\n")])
     >>> show('/', 'v1-frontpage')
