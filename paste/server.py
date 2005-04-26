@@ -245,8 +245,8 @@ def console_server(conf, app):
 servers['console'] = console_server
 
 def make_app(conf):
-    if conf.get('webkit_dir'):
-        app = wsgiwebkit.webkit(conf['webkit_dir'], use_lint=conf.get('lint'))
+    if conf.get('publish_dir'):
+        app = wsgiwebkit.webkit(conf['publish_dir'], use_lint=conf.get('lint'))
     else:
         print "You must provide --webkit-dir"
         sys.exit(2)

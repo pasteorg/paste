@@ -72,7 +72,7 @@ like::
 
     host = 'localhost'
     port = 8080
-    webkit_dir = '/path/to/dir'
+    publish_dir = '/path/to/dir'
     database_name = 'app_data'
 
 And so on.  There's a default configuration file in
@@ -89,7 +89,7 @@ Some important configuration values:
     The (string) name of the server you want to use.  Right now there
     is ``"wsgiutils"`` and ``"twisted"``.
 
-``webkit_dir``:
+``publish_dir``:
     The base directory to find Webware servlets.  (In the future other
     frameworks will also be supported.)
 
