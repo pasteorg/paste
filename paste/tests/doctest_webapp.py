@@ -112,7 +112,7 @@ def show(path_info, example_name):
               % (url, url))
     out.write('<div class="doctest-example">\n')
     proc = subprocess.Popen(
-        ['wsgi-server', '--server=console', '--no-verbose',
+        ['paste-server', '--server=console', '--no-verbose',
          '--url=' + path_info],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
