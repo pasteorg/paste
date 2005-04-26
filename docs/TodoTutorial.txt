@@ -53,7 +53,7 @@ Let's start out quickly.  We'll be installing the application in
     >>> import sys
     >>> sys.path.append('/path/to/Paste')
     >>> clear_dir(BASE)
-    >>> run("app-setup create --template=webkit_zpt %s" % BASE)
+    >>> run("paste-setup create --template=webkit_zpt %s" % BASE)
     >>> os.chdir(BASE)
     >>> ls(recurse=True)
     __init__.py
@@ -73,7 +73,7 @@ Let's start out quickly.  We'll be installing the application in
 
     $ export PYTHONPATH=/path/to/Paste:$PYTHONPATH
     $ BASE=/var/www/example-builds/todo_sql
-    $ app-setup create --template=webkit_zpt $BASE
+    $ paste-setup create --template=webkit_zpt $BASE
     $ cd $BASE
     $ ls -R
     .:
@@ -168,7 +168,7 @@ Running the application
 It's just the barest example application, but we can still run it and
 get some basic output.  Change into the directory and run::
 
-    $ path/to/paste/scripts/wsgi-server
+    $ path/to/paste/scripts/paste-server
 
 This will run a server on http://localhost:8080
 
@@ -181,7 +181,7 @@ This will run a server on http://localhost:8080
    :file: resources/TodoTutorial/default-frontpage.html
 
 You can run the server in different ways by passing command-line
-options to ``wsgi-server``, or by editing ``server.conf``.  The
+options to ``paste-server``, or by editing ``server.conf``.  The
 default setup only serves connection from the local computer
 (use ``host='0.0.0.0'`` to allow connections from anywhere), and
 serves on port 8080 (use ``port = 80`` to make it the default
