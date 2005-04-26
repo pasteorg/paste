@@ -8,6 +8,11 @@ Blog Tutorial
 
 .. contents::
 
+.. note::
+
+    This tutorial is not yet finished.  What you see is what you get,
+    and yeah that's not a whole lot.
+
 Introduction
 ============
 
