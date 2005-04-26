@@ -1,6 +1,18 @@
 Python Paste
 ++++++++++++
 
+News
+====
+
+.. raw:: html
+
+   <div class="news-box">
+   <!--#include virtual="/news/index.html" -->
+   <div>
+
+Introduction
+============
+
 Python Paste is a web application framework framework.  It uses WSGI_ 
 to create a framework-neutral set of components.  It also assists with
 application setup and deployment.
@@ -25,6 +37,12 @@ Discussion:
   paste-users@pythonpaste.org (`subscribe
   <http://pythonpaste.org/mailman/listinfo/paste-users>`__,
   `archives <http://pythonpaste.org/archives/list/paste-users.en.html>`__)
+
+Announcements:
+  paste-news@pythonpaste.org  (`subscribe
+  <http://pythonpaste.org/mailman/listinfo/paste-news>`__,
+  `archives <http://pythonpaste.org/archives/list/paste-news.en.html>`__,
+  `atom feed <http://pythonpaste.org/news/atom.xml>`_)
 
 Checkins:
   paste-checkins@pythonpaste.org (`subscribe

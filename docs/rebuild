@@ -25,3 +25,5 @@ for NAME in $DOCTEST_BUILD ; do
     echo "Building $NAME."
     python2.4 ../paste/tests/doctest_webapp.py "$NAME.txt"
 done
+
+chmod +x web/index.html
