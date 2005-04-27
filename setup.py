@@ -1,13 +1,5 @@
-import sys
-print "This setup.py is broken right now, it won't install a useable"
-print "Paste right now.  Instead, just add this directory to your"
-print "$PYTHONPATH variable.  We apologize for any inconvenience."
-print "(Also note that you may want to run build-pkg to fetch some"
-print "modules this depends on, or at least that the tutorial depends"
-print "on)"
-sys.exit()
-
 from distutils.core import setup
+from distutils import sysconfig
 import warnings
 warnings.filterwarnings("ignore", "Unknown distribution option")
 
@@ -17,6 +9,25 @@ if sys.version < '2.2.3':
     from distutils.dist import DistributionMetadata
     DistributionMetadata.classifiers = None
     DistributionMetadata.download_url = None
+
+import os
+
+BASEDIR = os.path.split(os.path.abspath(__file__))[0]
+
+def get_data_files(path, files = []):
+    l = []
+    for name in os.listdir(path):
+        if name[0] == ".":
+            continue
+        relpath = os.path.join(path, name)
+        f = os.path.join(BASEDIR, relpath)
+        if os.path.isdir(f):
+            get_data_files(relpath, files)
+        elif os.path.isfile(f):
+            l.append(f)
+    pref = sysconfig.get_python_lib()[len(sysconfig.PREFIX) + 1:] 
+    files.append((os.path.join(pref, path), l)) 
+    return files
 
 setup(name="Python Paste",
       version="0.1",
@@ -46,14 +57,18 @@ functionality.
       author_email="ianb@colorstudy.com",
       url="http://webwareforpython.org",
       license="PSF",
-      packages=["paste", "paste.util", "paste.webkit",
-                "paste.exceptions",
+      packages=["paste", "paste.exceptions",
+                "paste.util",
+                "paste.webkit",
                 "paste.webkit.FakeWebware",
                 "paste.webkit.FakeWebware.WebKit",
                 "paste.webkit.FakeWebware.WebUtils",
                 "paste.webkit.FakeWebware.MiscUtils"],
-      scripts=['scripts/server'],
-      download_url="")
+      scripts=['scripts/paste-server', 'scripts/paste-setup'],
+      download_url="",
+      data_files=get_data_files(os.path.join("paste","app_templates")) +
+          [(os.path.join(sysconfig.get_python_lib()[len(sysconfig.PREFIX) + 1:], "paste"), [os.path.join("paste", "default_config.conf")])]
+      )
 
 # Send announce to:
 #   web-sig@python.org
