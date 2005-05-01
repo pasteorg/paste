@@ -33,6 +33,7 @@ def install(poll_interval=1, raise_keyboard_interrupt=True):
 class Monitor:
 
     instances = []
+    global_extra_files = []
 
     def __init__(self, poll_interval, raise_keyboard_interrupt):
         self.module_mtimes = {}
@@ -40,7 +41,7 @@ class Monitor:
         self.keep_running = True
         self.poll_interval = poll_interval
         self.raise_keyboard_interrupt = raise_keyboard_interrupt
-        self.extra_files = []
+        self.extra_files = global_extra_files[:]
         self.instances.append(self)
 
     def atexit(self):
@@ -84,6 +85,7 @@ class Monitor:
         if self is None:
             for instance in cls.instances:
                 instance.watch_file(filename)
+            cls.global_extra_files.append(filename)
         else:
             self.extra_files.append(filename)
 
