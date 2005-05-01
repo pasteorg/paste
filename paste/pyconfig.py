@@ -17,6 +17,7 @@ import types
 import os
 from paste.util import thirdparty
 UserDict = thirdparty.load_new_module('UserDict', (2, 3))
+from paste.reloader import watch_file
 
 def load(filename):
     conf = Config()
@@ -57,27 +58,62 @@ class Config(UserDict.DictMixin):
         new.namespaces = namespaces
         return new
 
-    def load(self, filename, default=False):
+    def read_file(self, filename, namespace=None,
+                  load_self=True):
+        special_keys = ('__file__', 'load', 'include')
+        watch_file(filename)
         f = open(filename, 'rb')
         content = f.read()
         f.close()
-        namespace = {}
-        for key in self:
-            namespace[key] = self[key]
+        if not namespace:
+            namespace = {}
+        old_values = {}
+        for key in special_keys:
+            old_values[key] = namespace.get(key)
+        if load_self:
+            for key in self:
+                namespace[key] = self[key]
         orig = namespace.copy()
         namespace['__file__'] = os.path.abspath(filename)
+        namespace['load'] = self.make_loader(filename, namespace)
+        namespace['include'] = self.make_includer(filename, namespace)
         exec content in namespace
-        for name in namespace.keys():
-            if (hasattr(__builtins__, name)
-                or name.startswith('_')):
-                del namespace[name]
-                continue
-            if orig.has_key(name) and namespace[name] is orig[name]:
-                del namespace[name]
-                continue
-            if isinstance(namespace[name], types.ModuleType):
-                del namespace[name]
-                continue
+        if load_self:
+            for name in namespace.keys():
+                if (hasattr(__builtins__, name)
+                    or name.startswith('_')):
+                    del namespace[name]
+                    continue
+                if orig.has_key(name) and namespace[name] is orig[name]:
+                    del namespace[name]
+                    continue
+                if isinstance(namespace[name], types.ModuleType):
+                    del namespace[name]
+                    continue
+        for key, value in old_values.items():
+            if value is None and namespace.has_key(key):
+                del namespace[key]
+            elif value is not None:
+                namespace[key] = value
+        return namespace
+
+    def make_loader(self, relative_to, namespace):
+        def load(filename):
+            filename = os.path.join(os.path.dirname(relative_to),
+                                    filename)
+            return self.read_file(filename, namespace=namespace.copy())
+        return load
+
+    def make_includer(self, relative_to, namespace):
+        def include(filename):
+            filename = os.path.join(os.path.dirname(relative_to),
+                                    filename)
+            self.read_file(filename, namespace=namespace,
+                           load_self=False)
+        return include
+
+    def load(self, filename, default=False):
+        namespace = self.read_file(filename)
         self.load_dict(namespace, default)
 
     def load_dict(self, d, default=False):
@@ -165,4 +201,5 @@ class Config(UserDict.DictMixin):
         except ValueError:
             pass
         return value
+        
         
