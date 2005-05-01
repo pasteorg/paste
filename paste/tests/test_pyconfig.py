@@ -1,6 +1,7 @@
 import os
 from paste import pyconfig
 from py.test import raises
+from paste import reloader
 
 def path(name):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -44,3 +45,14 @@ def test_command():
     assert conf['config_file'] == 'arg2'
     raises(KeyError, "conf['h']")
     raises(KeyError, "conf['f']")
+
+def test_load():
+    conf = pyconfig.load(path('loader.conf'))
+    print conf
+    assert conf['value1'] == 'valuemore'
+    assert conf['new_value'] == 10
+    assert conf['lst'] == ['a', 'b']
+    assert conf['loaded']['value1'] == 'value a test'
+    extra = reloader.Monitor.global_extra_files
+    for fn in 'loader.conf', 'loader_loaded.conf', 'loader_included.conf':
+        assert path(fn) in extra
