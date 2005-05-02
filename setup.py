@@ -29,7 +29,7 @@ def get_data_files(path, files = []):
     files.append((os.path.join(pref, path), l)) 
     return files
 
-setup(name="Python Paste",
+setup(name="Paste",
       version="0.1",
       description="Tools for use with a Web Server Gateway Interface stack",
       long_description="""\
