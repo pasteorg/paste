@@ -12,7 +12,8 @@ Known limitations
    on some svn control files, the shutil.rmtree fails. As a
    workround, delete the paste/3rd-party/ZPTKit-files/ZPTKit directory
    when running this script after a previous install.
-""
+   (@@ ianb: should it be using svn export?)
+"""
 import os
 import sys
 import errno
