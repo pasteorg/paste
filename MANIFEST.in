@@ -1,5 +1,5 @@
-recursive-include docs/ *.txt *.html *.css
-recursive-include examples/ *.py *.txt *.cgi
+recursive-include docs *.txt *.html *.css
+recursive-include examples *.py *.txt *.cgi
 recursive-include *.py 
 recursive-include *.html
 recursive-include *.css
