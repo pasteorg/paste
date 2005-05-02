@@ -159,9 +159,7 @@ def help():
     return help_message % {'program': program}
 
 def twisted_serve(conf, app):
-    from paste.twisted_wsgi import serve_application
-    serve_application(
-        app, port=int(conf.get('port', 8080)))
+    print 'Twisted support has been temporarily removed from Paste.'
 
 servers['twisted'] = twisted_serve
 
