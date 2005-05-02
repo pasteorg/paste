@@ -1,0 +1,13 @@
+body { 
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+pre {
+    overflow: auto;
+}
+
+div.notifyMessage { 
+    border: 2px solid black;
+    background-color: #007700;
+    color: #ffffff;
+}

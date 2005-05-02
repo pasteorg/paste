@@ -1,0 +1,36 @@
+<html metal:use-macro="here/standard_template.pt/macros/page">
+<metal:js fill-slot="extra_head">
+
+<script type="text/javascript"
+ tal:attributes="src python: servlet.baseStaticURL +
+ '/command.js'"></script>
+
+<style type="text/css">
+.input {
+  color: #006600;
+}
+.output {
+  color: #000066;
+}
+</style>
+
+</metal:js>
+<metal:body fill-slot="body">
+
+<form onsubmit="return send_command()">
+
+Run:<br>
+<input type="text" style="width: 100%" id="command"><br>
+Multiline commands:<br>
+<textarea rows=4 cols=50 style="width: 100%" id="command_long"></textarea>
+
+Output:<br>
+<div id="output" style="width: 100%; border: 1px solid black;
+                        background-color: #ddddff">
+<br>
+</div>
+
+</form>
+
+</metal:body>
+</html>
