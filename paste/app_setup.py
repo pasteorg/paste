@@ -73,6 +73,10 @@ def find_template_config(args):
     if not os.path.exists(conf_fn):
         return None
     conf = pyconfig.Config()
+    default_config_fn = os.path.join(os.path.dirname(__file__),
+                                     'default_config.conf')
+    if os.path.exists(default_config_fn):
+        conf.load(default_config_fn)
     conf.load(conf_fn)
     return conf_fn, conf.get('app_template')
 
