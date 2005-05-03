@@ -1,0 +1,46 @@
+<style type="text/css">
+<!--
+	/**
+	This style sheet is linked to by both Webware's index.html
+	as well as each component's index.html.
+	*/
+
+	p {
+		padding-left: 0;
+	}
+	dl {
+		padding-left: 0;
+	}
+	ol {
+		padding-left: 0;
+	}
+	ul {
+		list-style-type: disc;
+		padding-left: 0;
+	}
+	li {
+		padding-top: 0;
+	}
+	a.BigLink {
+		font-size: larger;
+		font-weight: bold;
+	}
+	td.InfoLabel {
+		font-family: Arial, Helvetica, sans-serif;
+		background-color: #DDD;
+	}
+	td.InfoValue {
+		font-family: Arial, Helvetica, sans-serif;
+		background-color: #EEE;
+	}
+	td.InfoSummary {
+		font-family: Arial, Helvetica, sans-serif;
+		font-size: smaller;
+		background-color: #EEE;
+	}
+	td.DocList {
+		font-family: Arial, Helvetica, sans-serif;
+	}
+
+-->
+</style>
