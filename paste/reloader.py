@@ -41,7 +41,7 @@ class Monitor:
         self.keep_running = True
         self.poll_interval = poll_interval
         self.raise_keyboard_interrupt = raise_keyboard_interrupt
-        self.extra_files = global_extra_files[:]
+        self.extra_files = self.global_extra_files[:]
         self.instances.append(self)
 
     def atexit(self):
