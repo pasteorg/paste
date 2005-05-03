@@ -14,17 +14,17 @@ OPTIONS
 -h  Help
 --server=NAME
     Name is one of:
-      twisted:
+      wsgiutils:
         Runs an HTTP server.  Use --port for the port (default: 8080),
         and --host for the interface (default: all interfaces).
-      wsgiutils:
-        Runs an HTTP server.  Use --port and --host.
       cgi:
         Creates a CGI script -- outputs the script to stdout.
---webkit-dir=PATH
+--publish-dir=PATH
     Serves Webware servlets (or other applications) out of PATH
 --debug  -D
     Turn on debugging (shows errors in the browser)
+--verbose  -v
+    Be verbose
 """
 
 import sys
