@@ -276,13 +276,27 @@ class DispatchingConfig(object):
         self._pop_from(self._process_config, conf)
             
     def __getattr__(self, attr):
-        thread_configs = local.wsgi[self._local_key]
-        if thread_configs:
-            conf = thread_configs[-1]
-        elif self._process_configs:
-            conf = self._process_configs[-1]
-        else:
+        conf = self.__getconf()
+        if not conf:
             raise AttributeError(
                 "No configuration has been registered for this process "
                 "or thread")
         return getattr(conf, attr)
+
+    def __getconf(self):
+        thread_configs = local.wsgi[self._local_key]
+        if thread_configs:
+            return thread_configs[-1]
+        elif self._process_configs:
+            return self._process_configs[-1]
+        else:
+            return None
+
+    def __getitem__(self, key):
+        # I thought __getattr__ would catch this, but apparently not
+        conf = self.__getconf()
+        if not conf:
+            raise TypeError(
+                "No configuration has been registered for this process "
+                "or thread")
+        return conf[key]
