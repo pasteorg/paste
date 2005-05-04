@@ -54,6 +54,9 @@ class AbstractFormatter:
                         lines.append(self.format_sup_warning(warning))
                 if sup.info:
                     lines.extend(self.format_sup_info(sup.info))
+            if frame.supplement_exception:
+                lines.append('Exception in supplement:')
+                lines.append(self.quote_long(frame.supplement_exception))
             filename = frame.filename
             if filename and self.trim_source_paths:
                 for path, repl in self.trim_source_paths:
@@ -108,6 +111,8 @@ class AbstractFormatter:
 class TextFormatter(AbstractFormatter):
 
     def quote(self, s):
+        return s
+    def quote_long(self, s):
         return s
     def emphasize(self, s):
         return s
@@ -169,6 +174,8 @@ class HTMLFormatter(TextFormatter):
 
     def quote(self, s):
         return html_quote(s)
+    def quote_long(self, s):
+        return '<pre>%s</pre>' % self.quote(s)
     def emphasize(self, s):
         return '<b>%s</b>' % s
     def format_sup_url(self, url):
