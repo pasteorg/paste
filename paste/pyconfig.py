@@ -18,6 +18,8 @@ import os
 from paste.util import thirdparty
 UserDict = thirdparty.load_new_module('UserDict', (2, 3))
 from paste.reloader import watch_file
+from paste.util.threadinglocal import local
+import threading
 
 def load(filename):
     conf = Config()
@@ -203,3 +205,84 @@ class Config(UserDict.DictMixin):
         return value
         
         
+class DispatchingConfig(object):
+
+    """
+    This is a configuration object that can be used globally,
+    imported, have references held onto.  The configuration may differ
+    by thread (or may not).
+
+    Specific configurations are registered (and deregistered) either
+    for the process or for threads.
+    """
+
+    _constructor_lock = threading.Lock()
+
+    def __init__(self):
+        self._constructor_lock.acquire()
+        try:
+            self.dispatching_id = 0
+            while 1:
+                self._local_key = 'paste.processconfig_%i' % self.dispatching_id
+                if not local.wsgi.has_key(self._local_key):
+                    break
+                self.dispatching_id += 1
+        finally:
+            self._constructor_lock.release()
+        local.wsgi[self._local_key] = []
+        self._process_configs = []
+
+    def push_thread_config(self, conf):
+        """
+        Make ``conf`` the active configuration for this thread.
+        Thread-local configuration always overrides process-wide
+        configuration.
+
+        This should be used like:
+
+        conf = make_conf()
+        dispatching_config.push_thread_config(conf)
+        try:
+            ... do stuff ...
+        finally:
+            dispatching_config.pop_thread_config(conf)
+        """
+        local.wsgi[self._local_key].append(conf)
+
+    def pop_thread_config(self, conf=None):
+        """
+        Remove a thread-local configuration.  If ``conf`` is given,
+        it is checked against the popped configuration and an error
+        is emitted if they don't match.
+        """
+        self._pop_from(local.wsgi[self._local_key], conf)
+
+    def _pop_from(self, lst, conf):
+        popped = lst.pop()
+        if conf is not None and popped is not conf:
+            raise AssertionError(
+                "The config popped (%s) is not the same as the config "
+                "expected (%s)"
+                % (popped, conf))
+
+    def push_process_config(self, conf):
+        """
+        Like push_thread_config, but applies the configuration to
+        the entire process.
+        """
+        self._process_configs.append(conf)
+
+    def pop_process_config(self, conf=None):
+        self._pop_from(self._process_config, conf)
+            
+    def __getattr__(self, attr):
+        thread_configs = local.wsgi[self._local_key]
+        if thread_configs:
+            conf = thread_configs[-1]
+        elif self._process_configs:
+            conf = self._process_configs[-1]
+        else:
+            raise AttributeError(
+                "No configuration has been registered for this process "
+                "or thread")
+        return getattr(conf, attr)

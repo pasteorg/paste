@@ -33,3 +33,6 @@ else:
                     raise AttributeError(
                         "No variable %s defined for thread %s"
                         % (attr, g()))
+
+# All the Paste thread-local stuff goes in this dictionary:
+local.wsgi = {}

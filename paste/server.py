@@ -31,6 +31,7 @@ import sys
 import os
 from paste import reloader
 from paste import wsgilib
+from paste import CONFIG
 
 # This way you can run this out of a checkout, and we'll fix up
 # the path...
@@ -257,6 +258,9 @@ def make_app(conf):
             print 'Use publish_dir instead'
         print "You must provide publish_dir or publish_app"
         sys.exit(2)
+    # @@: we can't do this when we support making multiple applications
+    # with this function:
+    CONFIG.push_process_config(conf)
     return config_middleware(app, conf)
 
 def restart_with_reloader(conf):
