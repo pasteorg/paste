@@ -6,6 +6,7 @@ try:
 except ImportError:
     from StringIO import StringIO
 from paste.exceptions import formatter, collector, reporter
+from paste import wsgilib
 
 class ErrorMiddleware(object):
 
@@ -27,6 +28,7 @@ class ErrorMiddleware(object):
             return start_response(status, headers)
         
         try:
+            __traceback_supplement__ = Supplement, self, environ
             app_iter = self.application(environ, detect_start_response)
             return self.catching_iter(app_iter, environ)
         except:
@@ -39,6 +41,7 @@ class ErrorMiddleware(object):
             return [response]
 
     def catching_iter(self, iter, environ):
+        __traceback_supplement__ = Supplement, self, environ
         if not iter:
             raise StopIteration
         error_on_close = False
@@ -107,6 +110,7 @@ class ErrorMiddleware(object):
         return '''
         <html>
         <head>
+        <style type="text/css">%s</style>
         <title>Server Error</title>
         </head>
         <body>
@@ -114,7 +118,7 @@ class ErrorMiddleware(object):
         %s
         %s
         </body>
-        </html>''' % (exception, extra)
+        </html>''' % (css, exception, extra)
 
     def send_report(self, reporter, exc_data):
         try:
@@ -130,3 +134,51 @@ class ErrorMiddleware(object):
                 cgi.escape(str(reporter)), output.getvalue())
         else:
             return ''
+
+class Supplement(object):
+    def __init__(self, middleware, environ):
+        self.middleware = middleware
+        self.environ = environ
+        self.source_url = wsgilib.construct_url(environ)
+    def extraData(self):
+        data = {}
+        cgi_vars = data[('extra', 'CGI Variables')] = {}
+        wsgi_vars = data[('extra', 'WSGI Variables')] = {}
+        for name, value in self.environ.items():
+            if name.upper() == name:
+                cgi_vars[name] = value
+            else:
+                wsgi_vars[name] = value
+        return data
+
+css = """
+table {
+  width: 100%;
+}
+
+tr.header {
+  background-color: #006;
+  color: #fff;
+}
+
+tr.even {
+  background-color: #ddd;
+}
+
+table.variables td {
+  verticle-align: top;
+  overflow: auto;
+}
+
+a.button {
+  background-color: #bbb;
+  border: 2px outset #333;
+  color: #000;
+  text-decoration: none;
+}
+
+a.button:hover {
+  background-color: #ccc;
+}
+"""
+    
