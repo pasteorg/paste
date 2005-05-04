@@ -231,18 +231,24 @@ class HTMLFormatter(TextFormatter):
         table.append('</table>')
         return '\n'.join(table)
 
-    def make_wrappable(self, html, wrap_limit=50,
+    def make_wrappable(self, html, wrap_limit=60,
                        split_on=';?&@!$#-/\\"\''):
         # Currently using <wbr>, maybe should use &#8203;
         #   http://www.cs.tut.fi/~jkorpela/html/nobr.html
         words = html.split()
         new_words = []
         for word in words:
-            for char in split_on:
-                if char in word:
-                    word = word.replace(char, char+'<wbr>')
-                    break
-            new_words.append(word)
+            if len(word) > wrap_limit:
+                for char in split_on:
+                    if char in word:
+                        words = [
+                            self.make_wrappable(w, wrap_limit=wrap_limit,
+                                                split_on=split_on)
+                            for w in word.split(char, 1)]
+                        new_words.append('<wbr>'.join(words))
+                        break
+            else:
+                new_words.append(word)
         return ' '.join(new_words)
 
 hide_display_js = '''\
