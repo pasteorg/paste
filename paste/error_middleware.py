@@ -144,11 +144,13 @@ class Supplement(object):
         data = {}
         cgi_vars = data[('extra', 'CGI Variables')] = {}
         wsgi_vars = data[('extra', 'WSGI Variables')] = {}
+        hide_vars = ['paste.config', 'wsgi.errors', 'wsgi.input']
         for name, value in self.environ.items():
             if name.upper() == name:
                 cgi_vars[name] = value
-            else:
+            elif name not in hide_vars:
                 wsgi_vars[name] = value
+        data[('extra', 'Configuration')] = dict(self.environ['paste.config'])
         return data
 
 css = """
@@ -171,14 +173,14 @@ table.variables td {
 }
 
 a.button {
-  background-color: #bbb;
-  border: 2px outset #333;
+  background-color: #ccc;
+  border: 2px outset #aaa;
   color: #000;
   text-decoration: none;
 }
 
 a.button:hover {
-  background-color: #ccc;
+  background-color: #ddd;
 }
 """
     
