@@ -57,6 +57,12 @@ class Recursive(object):
         environ['PATH_INFO'] = path_info
         return self.activate(environ)
 
+    def __repr__(self):
+        return '<%s.%s from %s>' % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.original_environ.get('SCRIPT_NAME') or '/')
+
 class Forwarder(Recursive):
 
     def activate(self, environ):
