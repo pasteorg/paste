@@ -3,7 +3,6 @@ Formatters for the exception data that comes from ExceptionCollector.
 """
 
 import cgi
-import serial_number_generator
 
 def html_quote(s):
     return cgi.escape(s, True)
@@ -19,6 +18,14 @@ class AbstractFormatter:
 
     def format_collected_data(self, exc_data):
         general_data = {}
+        for name, value_list in exc_data.extra_data.items():
+            if isinstance(name, tuple):
+                importance, title = name
+            else:
+                importance, title = 'normal', name
+            for value in value_list:
+                general_data[(importance, name)] = self.format_extra_data(
+                    importance, title, value)
         lines = []
         show_hidden_frames = self.show_hidden_frames
         last = exc_data.frames[-1]
@@ -33,10 +40,10 @@ class AbstractFormatter:
             sup = frame.supplement
             if sup:
                 if sup.object:
-                    general_data['object'] = self.format_sup_object(
+                    general_data[('important', 'object')] = self.format_sup_object(
                         sup.object)
                 if sup.source_url:
-                    general_data['source_url'] = self.format_sup_url(
+                    general_data[('important', 'source_url')] = self.format_sup_url(
                         sup.source_url)
                 if sup.line:
                     lines.append(self.format_sup_line_pos(self.line, self.column))
@@ -63,12 +70,40 @@ class AbstractFormatter:
         exc_info = self.format_exception_info(
             exc_data.exception_type,
             exc_data.exception_value)
-        general_data = general_data.items()
-        general_data.sort(
-            lambda a, b, self=self:
-            cmp(self.general_data_order.index(a[0]),
-                self.general_data_order.index(b[0])))
-        return self.format_combine(general_data, lines, exc_info)
+        data_by_importance = {'important': [], 'normal': [],
+                              'supplemental': [], 'extra': []}
+        for (importance, name), value in general_data.items():
+            data_by_importance[importance].append(
+                (name, value))
+        for value in data_by_importance.values():
+            value.sort()
+        return self.format_combine(data_by_importance, lines, exc_info)
+
+    def pretty_string_repr(self, s):
+        """
+        Formats the string as a triple-quoted string when it contains
+        newlines.
+        """
+        if '\n' in s:
+            s = repr(s)
+            s = s[0]*3 + s[1:-1] + s[-1]*3
+            s = s.replace('\\n', '\n')
+            return s
+        else:
+            return repr(s)
+
+    def long_item_list(self, lst):
+        """
+        Returns true if the list contains items that are long, and should
+        be more nicely formatted.
+        """
+        how_many = 0
+        for item in lst:
+            if len(repr(item)) > 40:
+                how_many += 1
+                if how_many >= 3:
+                    return True
+        return False
 
 class TextFormatter(AbstractFormatter):
 
@@ -98,12 +133,37 @@ class TextFormatter(AbstractFormatter):
     def format_exception_info(self, etype, evalue):
         return self.emphasize(
             '%s: %s' % (self.quote(etype), self.quote(evalue)))
-    def format_combine(self, general_data, lines, exc_info):
-        lines[:0] = [value for name, value in general_data]
+
+    def format_combine(self, data_by_importance, lines, exc_info):
+        lines[:0] = [value for n, value in data_by_importance['important']]
         lines.append(exc_info)
+        for name in 'normal', 'supplemental', 'extra':
+            lines.extend([value for n, value in data_by_importance[name]])
         return self.format_combine_lines(lines)
+
     def format_combine_lines(self, lines):
         return '\n'.join(lines)
+
+    def format_extra_data(self, importance, title, value):
+        if isinstance(value, str):
+            s = self.pretty_string_repr(value)
+            if '\n' in s:
+                return '%s:\n%s' % (title, s)
+            else:
+                return '%s: %s' % (title, s)
+        elif isinstance(value, dict):
+            lines = [title, '-'*len(title)]
+            items = value.items()
+            items.sort()
+            for n, v in items:
+                lines.append('%s: %s' % (n, repr(v)))
+            return '\n'.join(lines)
+        elif (isinstance(value, (list, tuple))
+              and self.long_item_list(value)):
+            return '%s: [,\n    %s]' % (
+                title, '\n    '.join(map(repr, value)))
+        else:
+            return '%s: %r' % (title, value)
 
 class HTMLFormatter(TextFormatter):
 
@@ -119,6 +179,86 @@ class HTMLFormatter(TextFormatter):
         return 'File %r, line %s in <tt>%s</tt>' % (filename, lineno, name)
     def format_source(self, source_line):
         return '&nbsp;&nbsp;<tt>%s</tt>' % self.quote(source_line.strip())
+
+    def format_extra_data(self, importance, title, value):
+        if isinstance(value, str):
+            s = self.pretty_string_repr(value)
+            if '\n' in s:
+                return '%s:<br><pre>%s</pre>' % (title, self.quote(s))
+            else:
+                return '%s: <tt>%s</tt>' % (title, self.quote(s))
+        elif isinstance(value, dict):
+            return self.zebra_table(title, value)
+        elif (isinstance(value, (list, tuple))
+              and self.long_item_list(value)):
+            return '%s: <tt>[<br>\n&nbsp; &nbsp; %s]</tt>' % (
+                title, ',<br>&nbsp; &nbsp; '.join(map(self.quote, map(repr, value))))
+        else:
+            return '%s: <tt>%s</tt>' % (title, self.quote(repr(value)))
+
+    def format_combine(self, data_by_importance, lines, exc_info):
+        lines[:0] = [value for n, value in data_by_importance['important']]
+        lines.append(exc_info)
+        for name in 'normal', 'supplemental':
+            lines.extend([value for n, value in data_by_importance[name]])
+        if data_by_importance['extra']:
+            lines.append(
+                hide_display_js +
+                '<a href="#extra_data" '
+                'onclick="javascript:hide_display(\'extra_data\')" '
+                'class="button">show extra data</a><br>'
+                '<div id="extra_data" style="display: none">')
+            lines.extend([value for n, value in data_by_importance['extra']])
+            lines.append('</div>')
+        return self.format_combine_lines(lines)
+
+    def zebra_table(self, title, rows, table_class="variables"):
+        if isinstance(rows, dict):
+            rows = rows.items()
+            rows.sort()
+        table = ['<table class="%s">' % table_class,
+                 '<tr class="header"><th colspan="2">%s</th></tr>'
+                 % self.quote(title)]
+        odd = False
+        for name, value in rows:
+            odd = not odd
+            table.append(
+                '<tr class="%s"><td>%s</td>'
+                % (odd and 'odd' or 'even', self.quote(name)))
+            table.append(
+                '<td><tt>%s</tt></td></tr>'
+                % self.make_wrappable(self.quote(repr(value))))
+        table.append('</table>')
+        return '\n'.join(table)
+
+    def make_wrappable(self, html, wrap_limit=50,
+                       split_on=';?&@!$#-/\\"\''):
+        # Currently using <wbr>, maybe should use &#8203;
+        #   http://www.cs.tut.fi/~jkorpela/html/nobr.html
+        words = html.split()
+        new_words = []
+        for word in words:
+            for char in split_on:
+                if char in word:
+                    word = word.replace(char, char+'<wbr>')
+                    break
+            new_words.append(word)
+        return ' '.join(new_words)
+
+hide_display_js = '''\
+<script type="text/javascript">
+function hide_display(id) {
+  var el = document.getElementById(id);
+  if (el.style.display == "none") {
+    el.style.display = "";
+    return true;
+  } else {
+    el.style.display = "none";
+    return false;
+  }
+}
+</script>'''
+    
 
 def format_html(exc_data, **ops):
     return HTMLFormatter(**ops).format_collected_data(exc_data)

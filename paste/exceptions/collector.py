@@ -154,6 +154,16 @@ class ExceptionCollector:
     ``getInfo``:
         a function/method that takes no arguments, and returns a string
         describing any extra information
+    ``extraData``:
+        a function/method that takes no arguments, and returns a
+        dictionary.  The contents of this dictionary will not be
+        displayed in the context of the traceback, but globally for
+        the exception.  Results will be grouped by the keys in the
+        dictionaries (which also serve as titles).  The keys can also
+        be tuples of (importance, title); in this case the importance
+        should be ``important`` (shows up at top), ``normal`` (shows
+        up somewhere; unspecified), ``supplemental`` (shows up at
+        bottom), or ``extra`` (shows up hidden or not at all).
 
     These are used to create an object with attributes of the same
     names (``getInfo`` becomes a string attribute, not a method).
@@ -239,9 +249,14 @@ class ExceptionCollector:
             result['info'] = func()
         else:
             result['info'] = None
+        func = getattr(supplement, 'extraData', None)
+        if func:
+            result['extra'] = func()
+        else:
+            result['extra'] = None
         return SupplementaryData(**result)
 
-    def collectLine(self, tb):
+    def collectLine(self, tb, extra_data):
         f = tb.tb_frame
         lineno = tb.tb_lineno
         co = f.f_code
@@ -273,6 +288,9 @@ class ExceptionCollector:
             try:
                 supp = factory(*args)
                 data['supplement'] = self.collectSupplement(supp, tb)
+                if data['supplement'].extra:
+                    for key, value in data['supplement'].extra.items():
+                        extra_data.setdefault(key, []).append(value)
             except:
                 if DEBUG_EXCEPTION_FORMATTER:
                     out = StringIO()
@@ -311,12 +329,13 @@ class ExceptionCollector:
         if limit is None:
             limit = self.getLimit()
         n = 0
+        extra_data = {}
         while tb is not None and (limit is None or n < limit):
             if tb.tb_frame.f_locals.get('__exception_formatter__'):
-                # Stop recursion.
-                result.append('(Recursive formatException() stopped)\n')
+                # Stop recursion. @@: should make a fake ExceptionFrame
+                frames.append('(Recursive formatException() stopped)\n')
                 break
-            data = self.collectLine(tb)
+            data = self.collectLine(tb, extra_data)
             frame = ExceptionFrame(**data)
             frames.append(frame)
             ident_data.append(frame.modname or '?')
@@ -334,7 +353,11 @@ class ExceptionCollector:
             exception_type=str(etype),
             exception_value=str(value),
             identification_code=ident,
-            date=time.localtime())
+            date=time.localtime(),
+            extra_data=extra_data)
+        if etype is ImportError:
+            extra_data[('important', 'sys.path')] = [sys.path]
+        print "XX", extra_data
         return result
 
 limit = 200
@@ -378,6 +401,8 @@ class CollectedException(Bunch):
     identification_code = None
     # The date, as time.localtime() returns:
     date = None
+    # A dictionary of supplemental data:
+    extra_data = {}
 
 class SupplementaryData(Bunch):
     """
