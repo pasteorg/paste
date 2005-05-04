@@ -34,8 +34,13 @@ class BadCommandLine(Exception):
 
 class Config(UserDict.DictMixin):
 
-    def __init__(self):
+    def __init__(self, with_default=False):
         self.namespaces = []
+        if with_default:
+            default_config_fn = os.path.join(os.path.dirname(__file__),
+                                             'default_config.conf')
+            if os.path.exists(default_config_fn):
+                self.load(default_config_fn)
 
     def __getitem__(self, attr):
         for space in self.namespaces:
