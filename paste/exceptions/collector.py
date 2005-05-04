@@ -357,7 +357,6 @@ class ExceptionCollector:
             extra_data=extra_data)
         if etype is ImportError:
             extra_data[('important', 'sys.path')] = [sys.path]
-        print "XX", extra_data
         return result
 
 limit = 200
