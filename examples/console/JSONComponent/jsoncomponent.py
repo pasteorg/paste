@@ -36,17 +36,18 @@ class JSONServletComponent(ServletComponent):
                 raise HTTPForbidden(
                     "The method %s is not public" % method_name)
             method = getattr(self.servlet(), method_name)
-            result = method(*json_req['params'])
+            result = method(*req_data['params'])
             json_res = {'id': req_id, 'result': result, 'error': None}
             json_res = objToJson(json_res)
         except Exception, e:
             if isinstance(e, httpexceptions.HTTPException):
                 raise
             out = StringIO()
+            # @@: I should also report this error
             traceback.print_exc(file=out)
             json_res = {'id': req_id, 'result': None,
                         'error': out.getvalue()}
-            json_res = objToJon(json_res)
+            json_res = objToJson(json_res)
         self.servlet().response().write(json_res)
         self.servlet().setView(None)
 
@@ -62,6 +63,7 @@ class JSONServletComponent(ServletComponent):
                 base = base_base + '/' + base
             if not lib.startswith('/'):
                 lib = base_base + '/' + lib
+        base = 'jsolait'
         text = (r'''
         <script type="text/javascript" src="%(base)s/init.js"></script>
         <script type="text/javascript" src="%(base)s/lib/urllib.js"></script>
@@ -69,7 +71,7 @@ class JSONServletComponent(ServletComponent):
         <script type="text/javascript" src="%(base)s/lib/lang.js"></script>
         <script type="text/javascript">
         var jsonrpc = importModule('jsonrpc');
-        var servlet = jsonrpc.ServiceProxy(%(here)r, %(methods)r);
+        var servlet = new jsonrpc.ServiceProxy(%(here)r, %(methods)r);
         </script>
         '''
             % {'base': base,
