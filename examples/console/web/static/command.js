@@ -13,17 +13,28 @@ function send_command() {
   command_short.value = '';
   command_long.value = '';
   var result = servlet.run(command);
-  var output_div = document.getElementById('output');
   output_html += '<span class="input">&gt;&gt;&gt; '
     + html_quote(command) + '</span>\n';
   if (result != null) {
     output_html += '<span class="output">' 
       + html_quote(result) + '<span>\n';
   }
-  output_div.innerHTML = output_html;
+  refresh_display();
   return false;
+}
+
+function refresh_display() {
+  var output_div = document.getElementById('output');
+  output_div.innerHTML = output_html;
 }
 
 function html_quote(s) {
   return s.replace('&', '&amp;').replace('<', '&lt;');
+}
+
+function clear() {
+  alert(output_html);
+  output_html = '';
+  refresh_display();
+  return false;
 }
