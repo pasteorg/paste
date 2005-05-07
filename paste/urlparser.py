@@ -140,7 +140,12 @@ class URLParser(object):
                     environ, start_response,
                     'Tried to load %s from directory %s'
                     % (filename, self.directory))
-        return application(environ, start_response)
+        if (self.init_module
+            and getattr(self.init_module, 'urlparser_wrap', None)):
+            return self.init_module.urlparser_wrap(
+                environ, start_response, application)
+        else:
+            return application(environ, start_response)
 
     def not_found(self, environ, start_response, debug_message=None):
         status, headers, body = wsgilib.error_response(
