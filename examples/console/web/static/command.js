@@ -1,5 +1,16 @@
 output_html = ''
 
+urllib = importModule('urllib');
+
+function servlet_comm(s) {
+  urllib.sendRequest('post',
+		     '?_action_=postrun',
+		     'command=' + escape(s, true),
+		     [['Content-type', 'application/x-www-form-urlencoded']],
+		     add_response);
+}
+
+
 function send_command() {
   var command_short = document.getElementById('command');
   var command_long = document.getElementById('command_long');
@@ -12,15 +23,21 @@ function send_command() {
   }
   command_short.value = '';
   command_long.value = '';
-  var result = servlet.run(command);
   output_html += '<span class="input">&gt;&gt;&gt; '
     + html_quote(command) + '</span>\n';
+  servlet_comm(command);
+  return false;
+}
+
+function add_response(res) {
+  var result = res.responseText;
+  var command_short = document.getElementById('command');
   if (result != null) {
     output_html += '<span class="output">' 
       + html_quote(result) + '<span>\n';
   }
   refresh_display();
-  return false;
+  command_short.focus();
 }
 
 function refresh_display() {
