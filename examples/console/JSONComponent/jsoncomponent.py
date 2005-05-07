@@ -66,9 +66,8 @@ class JSONServletComponent(ServletComponent):
         text = (r'''
         <script type="text/javascript" src="%(jsolaitURL)s/init.js"></script>
         <script type="text/javascript">
-        //var jsolait = importModule("jsolait");
-        //jsolait.baseURL = "%(lib)s";
-        //jsolait.libURL = "%(jsolaitURL)s";
+        jsolait.baseURL = "%(lib)s";
+        jsolait.libURL = "%(jsolaitURL)s";
         </script>
         <script type="text/javascript" src="%(jsolaitURL)s/lib/urllib.js"></script>
         <script type="text/javascript" src="%(jsolaitURL)s/lib/jsonrpc.js"></script>
