@@ -1,3 +1,10 @@
+"""
+Requires the jsolait Javascript library:
+  http://jsolait.net/
+
+Typically unpack this library into web/jsolait
+"""
+
 from Component import Component, ServletComponent
 from json import jsonToObj, objToJson
 from paste import httpexceptions
@@ -85,12 +92,3 @@ class JSONServletComponent(ServletComponent):
 
 class JSONComponent(Component):
     _componentClass = JSONServletComponent
-
-"""
-        <script type="text/javascript" src="%(jsolaitURL)s/lib/jsolait.js"></script>
-        <script type="text/javascript">
-        //jsolait = importModule("jsolait");
-        //jsolait.baseURL = %jsolaitURLr;
-        //jsolait.libURL = %(lib)r;
-        </script>
-"""
