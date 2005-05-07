@@ -5,7 +5,8 @@ parent=`dirname $here`
 echo "Adding $parent to \$PYTHONPATH"
 export PYTHONPATH=$parent:$PYTHONPATH
 
-NORMAL="DeveloperGuidelines Paste servers StyleGuide web/index"
+NORMAL="DeveloperGuidelines Paste servers StyleGuide web/index \
+        what-is-paste"
 DOCTEST_BUILD="BlogTutorial TodoTutorial"
 
 for NAME in $NORMAL ; do
