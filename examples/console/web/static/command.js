@@ -14,12 +14,16 @@ function send_command() {
   command_long.value = '';
   var result = servlet.run(command);
   var output_div = document.getElementById('output');
-  output_html += '<br>\n' + '<span class="input">'
-    + command + '</span>';
-  if (result != nil) {
-    output_html += '<br>\n' + '<span class="output">'
-      + result + '</span>';
+  output_html += '<span class="input">&gt;&gt;&gt; '
+    + html_quote(command) + '</span>\n';
+  if (result != null) {
+    output_html += '<span class="output">' 
+      + html_quote(result) + '<span>\n';
   }
   output_div.innerHTML = output_html;
   return false;
+}
+
+function html_quote(s) {
+  return s.replace('&', '&amp;').replace('<', '&lt;');
 }
