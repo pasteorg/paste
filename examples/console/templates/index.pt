@@ -25,10 +25,9 @@ Multiline commands:<br>
 <textarea rows=4 cols=50 style="width: 100%" id="command_long"></textarea>
 
 Output:<br>
-<div id="output" style="width: 100%; border: 1px solid black;
+<pre id="output" style="width: 100%; border: 1px solid black;
                         background-color: #ddddff">
-<br>
-</div>
+</pre>
 
 </form>
 
