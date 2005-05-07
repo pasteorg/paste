@@ -7,9 +7,9 @@
 <link rel="stylesheet" type="text/css"
       tal:attributes="href python: servlet.baseStaticURL + '/stylesheet.css'">
 
-<metal:slot define-slot="extra_head"></metal:slot>
-
 <tal:insert replace="structure servlet/jsonjs" />
+
+<metal:slot define-slot="extra_head"></metal:slot>
 
 </head>
 <body>
