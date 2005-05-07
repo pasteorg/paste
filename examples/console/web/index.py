@@ -11,7 +11,6 @@ class index(SitePage):
         JSONComponent(baseConfig='console')]
 
     def awake(self, trans):
-        self.t1 = time.time()
         SitePage.awake(self, trans)
 
     def setup(self):
@@ -24,14 +23,11 @@ class index(SitePage):
         return ['postrun']
     
     def run(self, expr):
-        self.t2 = time.time()
+        # jsonrpc isn't currently used
         if not expr.endswith('\n'):
             expr += '\n'
         result = context.exec_expr(expr)
-        self.t3 = time.time()
-        timing = '%s - %s\n%s' % (
-            self.t2 - self.t1, self.t3 - self.t2, result)
-        return timing
+        return result
 
     def postrun(self):
         self.response().setHeader('content-type', 'text/plain')
@@ -39,6 +35,5 @@ class index(SitePage):
         if not expr.endswith('\n'):
             expr += '\n'
         result = context.exec_expr(expr)
-        print [expr, result]
         self.write(result)
     
