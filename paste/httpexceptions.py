@@ -15,10 +15,11 @@ class HTTPException(Exception):
     message = None
     # @@: not currently used:
     required_headers = ()
-    def __init__(self, headers=None, message=None):
+    def __init__(self, message=None, headers=None):
         self.headers = headers
         if message is not None:
             self.message = message
+        Exception.__init__(self, self.message)
 
     def html(self, environ):
         message = self.message
