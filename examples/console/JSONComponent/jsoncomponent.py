@@ -10,7 +10,7 @@ class JSONServletComponent(ServletComponent):
     _servletMethods = ['jsonaction', 'jsonjs']
 
     def __init__(self, jsolaitURL='jsolait',
-                 libURL='jsolait',
+                 libURL='',
                  baseConfig=None,
                  jsonMethods=()):
         self.baseConfig = baseConfig
@@ -53,28 +53,32 @@ class JSONServletComponent(ServletComponent):
 
     def jsonjs(self):
         env = self.servlet().request().environ()
-        base = self.jsolaitURL
+        jsolaitURL = self.jsolaitURL
         lib = self.libURL
         here = wsgilib.construct_url(env, False)
         here += '?_action_=jsonaction';
         if self.baseConfig:
-            base_base = env['%s.base_url' % self.baseConfig]
-            if not base.startswith('/'):
-                base = base_base + '/' + base
+            app_base = env['%s.base_url' % self.baseConfig]
+            if not jsolaitURL.startswith('/'):
+                jsolaitURL = app_base + '/' + jsolaitURL
             if not lib.startswith('/'):
-                lib = base_base + '/' + lib
-        base = 'jsolait'
+                lib = app_base + '/' + lib
         text = (r'''
-        <script type="text/javascript" src="%(base)s/init.js"></script>
-        <script type="text/javascript" src="%(base)s/lib/urllib.js"></script>
-        <script type="text/javascript" src="%(base)s/lib/jsonrpc.js"></script>
-        <script type="text/javascript" src="%(base)s/lib/lang.js"></script>
+        <script type="text/javascript" src="%(jsolaitURL)s/init.js"></script>
         <script type="text/javascript">
-        var jsonrpc = importModule('jsonrpc');
+        //var jsolait = importModule("jsolait");
+        //jsolait.baseURL = "%(lib)s";
+        //jsolait.libURL = "%(jsolaitURL)s";
+        </script>
+        <script type="text/javascript" src="%(jsolaitURL)s/lib/urllib.js"></script>
+        <script type="text/javascript" src="%(jsolaitURL)s/lib/jsonrpc.js"></script>
+        <script type="text/javascript" src="%(jsolaitURL)s/lib/lang.js"></script>
+        <script type="text/javascript">
+        jsonrpc = importModule("jsonrpc");
         var servlet = new jsonrpc.ServiceProxy(%(here)r, %(methods)r);
         </script>
         '''
-            % {'base': base,
+            % {'jsolaitURL': jsolaitURL,
                'lib': lib,
                'here': here,
                'methods': self.jsonMethods()})
@@ -84,10 +88,10 @@ class JSONComponent(Component):
     _componentClass = JSONServletComponent
 
 """
-        <script type="text/javascript" src="%(base)s/lib/jsolait.js"></script>
+        <script type="text/javascript" src="%(jsolaitURL)s/lib/jsolait.js"></script>
         <script type="text/javascript">
         //jsolait = importModule("jsolait");
-        //jsolait.baseURL = %(base)r;
+        //jsolait.baseURL = %jsolaitURLr;
         //jsolait.libURL = %(lib)r;
         </script>
 """
