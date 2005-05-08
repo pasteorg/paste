@@ -69,7 +69,10 @@ class Monitor:
             except AttributeError:
                 continue
         for filename in filenames:
-            mtime = os.stat(filename).st_mtime
+            try:
+                mtime = os.stat(filename).st_mtime
+            except (OSError, IOError):
+                continue
             if filename.endswith('.pyc') and os.path.exists(filename[:-1]):
                 mtime = max(os.stat(filename[:-1]).st_mtime, mtime)
             if not self.module_mtimes.has_key(filename):
