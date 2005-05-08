@@ -32,6 +32,15 @@ class NoContext:
 class BadCommandLine(Exception):
     pass
 
+config_local = local()
+
+def local_dict():
+    try:
+        return config_local.wsgi_dict
+    except AttributeError:
+        config_local.wsgi_dict = result = {}
+        return result
+
 class Config(UserDict.DictMixin):
 
     def __init__(self, with_default=False):
@@ -229,12 +238,12 @@ class DispatchingConfig(object):
             self.dispatching_id = 0
             while 1:
                 self._local_key = 'paste.processconfig_%i' % self.dispatching_id
-                if not local.wsgi.has_key(self._local_key):
+                if not local_dict().has_key(self._local_key):
                     break
                 self.dispatching_id += 1
         finally:
             self._constructor_lock.release()
-        local.wsgi[self._local_key] = []
+        local_dict()[self._local_key] = []
         self._process_configs = []
 
     def push_thread_config(self, conf):
@@ -252,7 +261,7 @@ class DispatchingConfig(object):
         finally:
             dispatching_config.pop_thread_config(conf)
         """
-        local.wsgi[self._local_key].append(conf)
+        local_dict()[self._local_key].append(conf)
 
     def pop_thread_config(self, conf=None):
         """
@@ -260,7 +269,7 @@ class DispatchingConfig(object):
         it is checked against the popped configuration and an error
         is emitted if they don't match.
         """
-        self._pop_from(local.wsgi[self._local_key], conf)
+        self._pop_from(local_dict()[self._local_key], conf)
 
     def _pop_from(self, lst, conf):
         popped = lst.pop()
@@ -289,7 +298,7 @@ class DispatchingConfig(object):
         return getattr(conf, attr)
 
     def __getconf(self):
-        thread_configs = local.wsgi[self._local_key]
+        thread_configs = local_dict()[self._local_key]
         if thread_configs:
             return thread_configs[-1]
         elif self._process_configs:
