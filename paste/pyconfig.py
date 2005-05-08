@@ -243,7 +243,6 @@ class DispatchingConfig(object):
                 self.dispatching_id += 1
         finally:
             self._constructor_lock.release()
-        local_dict()[self._local_key] = []
         self._process_configs = []
 
     def push_thread_config(self, conf):
@@ -261,7 +260,7 @@ class DispatchingConfig(object):
         finally:
             dispatching_config.pop_thread_config(conf)
         """
-        local_dict()[self._local_key].append(conf)
+        local_dict().setdefault(self._local_key, []).append(conf)
 
     def pop_thread_config(self, conf=None):
         """
