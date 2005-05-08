@@ -46,7 +46,7 @@ class AbstractFormatter:
                     general_data[('important', 'source_url')] = self.format_sup_url(
                         sup.source_url)
                 if sup.line:
-                    lines.append(self.format_sup_line_pos(self.line, self.column))
+                    lines.append(self.format_sup_line_pos(sup.line, sup.column))
                 if sup.expression:
                     lines.append(self.format_sup_expression(sup.expression))
                 if sup.warnings:
@@ -116,8 +116,8 @@ class TextFormatter(AbstractFormatter):
         return s
     def emphasize(self, s):
         return s
-    def format_sup_object(self, name):
-        return 'In object: %s' % self.quote(name)
+    def format_sup_object(self, obj):
+        return 'In object: %s' % self.quote(repr(obj))
     def format_sup_url(self, url):
         return 'URL: %s' % self.quote(url)
     def format_sup_line_pos(self, line, column):
