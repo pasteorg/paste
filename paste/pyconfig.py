@@ -15,6 +15,7 @@ or dictionary access to get values.
 
 import types
 import os
+import sys
 from paste.util import thirdparty
 UserDict = thirdparty.load_new_module('UserDict', (2, 3))
 from paste.reloader import watch_file
@@ -217,7 +218,25 @@ class Config(UserDict.DictMixin):
         except ValueError:
             pass
         return value
-        
+
+def setup_config(filename):
+    conf = Config(with_default=True)
+    conf.load(filename)
+    if conf.get('sys_path'):
+        update_sys_path(conf['sys_path'], conf['verbose'])
+    from paste import CONFIG
+    CONFIG.push_process_config(conf)
+    return conf
+
+def update_sys_path(paths, verbose):
+    if isinstance(paths, (str, unicode)):
+        paths = [paths]
+    for path in paths:
+        path = os.path.abspath(path)
+        if path not in sys.path:
+            if verbose:
+                print 'Adding %s to path' % path
+            sys.path.insert(0, path)
         
 class DispatchingConfig(object):
 
@@ -229,6 +248,10 @@ class DispatchingConfig(object):
     Specific configurations are registered (and deregistered) either
     for the process or for threads.
     """
+
+    # @@: What should happen when someone tries to add this
+    # configuration to itself?  Probably the conf should become
+    # resolved, and get rid of this delegation wrapper
 
     _constructor_lock = threading.Lock()
 
@@ -289,15 +312,15 @@ class DispatchingConfig(object):
         self._pop_from(self._process_config, conf)
             
     def __getattr__(self, attr):
-        conf = self.__getconf()
+        conf = self.current_conf()
         if not conf:
             raise AttributeError(
                 "No configuration has been registered for this process "
                 "or thread")
         return getattr(conf, attr)
 
-    def __getconf(self):
-        thread_configs = local_dict()[self._local_key]
+    def current_conf(self):
+        thread_configs = local_dict().get(self._local_key)
         if thread_configs:
             return thread_configs[-1]
         elif self._process_configs:
@@ -307,7 +330,7 @@ class DispatchingConfig(object):
 
     def __getitem__(self, key):
         # I thought __getattr__ would catch this, but apparently not
-        conf = self.__getconf()
+        conf = self.current_conf()
         if not conf:
             raise TypeError(
                 "No configuration has been registered for this process "
