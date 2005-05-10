@@ -1,3 +1,41 @@
+"""
+Error handler middleware, and paste.config reporter integration
+
+Usage::
+
+    error_caching_wsgi_app = ErrorMiddleware(wsgi_app)
+
+These configuration keys are used:
+
+``debug``:
+    show the errors in the browser
+``error_email``:
+    if present, send errors to this email address
+``error_log``:
+    if present, write errors to this file
+``show_exceptions_in_error_log``:
+    if true (the default) then write errors to wsgi.errors
+
+You can also use this outside of a web context, like::
+
+    import sys
+    import paste
+    import paste.error_middleware
+    try:
+        do stuff
+    except:
+        paste.error_middleware.exception_handler(
+            sys.exc_info(), paste.CONFIG, sys.stderr, html=False)
+
+If you want to report, but not fully catch the exception, call
+``raise`` after ``exception_handler``, which (when given no argument)
+will reraise the exception.
+
+By setting 'paste.throw_errors' to a true value, this middleware is
+disabled.  This can be useful in a testing environment where you don't
+want errors to be caught and transformed.
+"""
+
 import sys
 import traceback
 import cgi
@@ -10,18 +48,17 @@ from paste import wsgilib
 
 class ErrorMiddleware(object):
 
-    def __init__(self, application, show_exceptions=True,
-                 email_exceptions_to=[], smtp_server='localhost'):
+    def __init__(self, application):
         self.application = application
-        self.show_exceptions = show_exceptions
-        self.email_exceptions_to = email_exceptions_to
-        self.smtp_server = smtp_server
     
     def __call__(self, environ, start_response):
         # We want to be careful about not sending headers twice,
         # and the content type that the app has committed to (if there
         # is an exception in the iterator body of the response)
         started = []
+        if environ.get('paste.throw_errors'):
+            return self.application(environ, start_response)
+        environ['paste.throw_errors'] = True
 
         def detect_start_response(status, headers):
             started.append(True)
@@ -65,75 +102,9 @@ class ErrorMiddleware(object):
             yield response
 
     def exception_handler(self, exc_info, environ):
-        reported = False
-        exc_data = collector.collect_exception(*exc_info)
-        conf = environ.get('paste.config', {})
-        extra_data = ''
-        if conf.get('error_email'):
-            rep = reporter.EmailReporter(
-                to_addresses=conf['error_email'],
-                from_address=conf.get('error_email_from', 'errors@localhost'),
-                smtp_server=conf.get('smtp_server', 'localhost'),
-                subject_prefix=conf.get('error_subject_prefix', ''))
-            extra_data += self.send_report(rep, exc_data)
-            reported = True
-        if conf.get('error_log'):
-            rep = reporter.LogReporter(
-                filename=conf['error_log'])
-            extra_data += self.send_report(rep, exc_data)
-            # Well, this isn't really true, is it?
-            reported = True
-        if conf.get('show_exceptions_in_error_log', True):
-            rep = reporter.FileReporter(
-                file=environ['wsgi.errors'])
-            extra_data += self.send_report(rep, exc_data)
-            # Well, this isn't really true, is it?
-            reported = True
-        if conf.get('debug', False):
-            html = self.error_template(
-                formatter.format_html(exc_data), extra_data)
-            reported = True
-        else:
-            html = self.error_template(
-                '''
-                An error occurred.  See the error logs for more information.
-                (Turn debug on to display exception reports here)
-                ''', '')
-        if not reported:
-            stderr = environ['wsgi.errors']
-            err_report = formatter.format_text(exc_data, show_hidden_frames=True)
-            err_report += '\n' + '-'*60 + '\n'
-            stderr.write(err_report)
-        return html
-
-    def error_template(self, exception, extra):
-        return '''
-        <html>
-        <head>
-        <style type="text/css">%s</style>
-        <title>Server Error</title>
-        </head>
-        <body>
-        <h1>Server Error</h1>
-        %s
-        %s
-        </body>
-        </html>''' % (css, exception, extra)
-
-    def send_report(self, reporter, exc_data):
-        try:
-            reporter.report(exc_data)
-        except:
-            output = StringIO()
-            traceback.print_exc(file=output)
-            return """
-            <p>Additionally an error occurred while sending the %s report:
-
-            <pre>%s</pre>
-            </p>""" % (
-                cgi.escape(str(reporter)), output.getvalue())
-        else:
-            return ''
+        return handle_exception(
+            exc_info, environ['paste.config'], environ['wsgi.errors'],
+            html=True)
 
 class Supplement(object):
     def __init__(self, middleware, environ):
@@ -175,6 +146,90 @@ class Supplement(object):
         (1, 0, 1): 'CGI',
         (1, 1, 1): 'Multi thread/process CGI (?)',
         }
+    
+def handle_exception(exc_info, conf, error_stream, html=True):
+    reported = False
+    exc_data = collector.collect_exception(*exc_info)
+    extra_data = ''
+    if conf.get('error_email'):
+        rep = reporter.EmailReporter(
+            to_addresses=conf['error_email'],
+            from_address=conf.get('error_email_from', 'errors@localhost'),
+            smtp_server=conf.get('smtp_server', 'localhost'),
+            subject_prefix=conf.get('error_subject_prefix', ''))
+        rep_err = send_report(rep, exc_data, html=html)
+        if not rep_err:
+            extra_data += rep_err
+            reported = True
+    if conf.get('error_log'):
+        rep = reporter.LogReporter(
+            filename=conf['error_log'])
+        rep_err = send_report(rep, exc_data, html=html)
+        if not rep_err:
+            extra_data += rep_err
+            reported = True
+    if conf.get('show_exceptions_in_error_log', True):
+        rep = reporter.FileReporter(
+            file=error_stream)
+        rep_err = send_report(rep, exc_data, html=html)
+        if not rep_err:
+            extra_data += rep_err
+            reported = True
+    if html:
+        if conf.get('debug', False):
+            return_error = error_template(
+                formatter.format_html(exc_data), extra_data)
+            extra_data = ''
+            reported = True
+        else:
+            return_error = error_template(
+            '''
+            An error occurred.  See the error logs for more information.
+            (Turn debug on to display exception reports here)
+            ''', '')
+    else:
+        return_error = None
+    if not reported and error_stream:
+        err_report = formatter.format_text(exc_data, show_hidden_frames=True)
+        err_report += '\n' + '-'*60 + '\n'
+        error_stream.write(err_report)
+    if extra_data:
+        error_stream.write(extra_data)
+    return return_error
+
+def send_report(reporter, exc_data, html=True):
+    try:
+        reporter.report(exc_data)
+    except:
+        output = StringIO()
+        traceback.print_exc(file=output)
+        if html:
+            return """
+            <p>Additionally an error occurred while sending the %s report:
+
+            <pre>%s</pre>
+            </p>""" % (
+                cgi.escape(str(reporter)), output.getvalue())
+        else:
+            return (
+                "Additionally an error occurred while sending the "
+                "%s report:\n%s" % (str(reporter), output.getvalue()))
+    else:
+        return ''
+
+def error_template(exception, extra):
+    return '''
+    <html>
+    <head>
+    <style type="text/css">%s</style>
+    <title>Server Error</title>
+    </head>
+    <body>
+    <h1>Server Error</h1>
+    %s
+    %s
+    </body>
+    </html>''' % (css, exception, extra)
 
 css = """
 table {
@@ -206,4 +261,3 @@ a.button:hover {
   background-color: #ddd;
 }
 """
-    
