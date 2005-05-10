@@ -153,7 +153,7 @@ def update_sys_path(paths, verbose):
         if path not in sys.path:
             if verbose:
                 print 'Adding %s to path' % path
-            sys.path.append(path)
+            sys.path.insert(0, path)
             
 def help():
     program = sys.argv[0]
