@@ -1,4 +1,5 @@
 import sys
+import urllib
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -307,4 +308,126 @@ class WriterFile(object):
         
         
     
+class AppError(Exception):
+    pass
 
+class TestApp(object):
+
+    def __init__(self, app, config={}, namespace=None):
+        self.app = app
+        self.config = config
+        self.namespace = namespace
+
+    def get(self, url, params=None, headers={},
+            status=None):
+        if params:
+            if isinstance(params, dict):
+                params = urllib.urlencode(params)
+            if '?' in url:
+                url += '&'
+            else:
+                url += '?'
+            url += params
+        environ = self.config.get('test_environ', {}).copy()
+        environ['paste.throw_errors'] = True
+        for header, value in headers.items():
+            environ['HTTP_%s' % header.replace('-', '_').upper()] = value
+        app = lint.middleware(self.app)
+        if '?' in url:
+            url, environ['QUERY_STRING'] = url.split('?', 1)
+        req = TestRequest(url, environ)
+        old_stdout = sys.stdout
+        out = StringIO()
+        try:
+            sys.stdout = out
+            raw_res = wsgilib.raw_interactive(app, url, **environ)
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr.write(out.getvalue())
+        res = self.make_response(raw_res)
+        res.request = req
+        if self.namespace is not None:
+            self.namespace['res'] = res
+        self.check_status(status, res)
+        self.check_errors(res)
+
+    def check_status(self, status, res):
+        if status == '*':
+            return
+        if status is None:
+            if res.status == 200 or (
+                res.status >= 300 and res.status < 400):
+                return
+            raise AppError(
+                "Bad response: %s (not 200 OK or 3xx redirect)"
+                % res.full_status)
+        if status != res.status_int:
+            raise AppError(
+                "Bad response: %s (not %s)" % (res.full_status, status))
+
+    def check_errors(self, res):
+        if res.errors:
+            raise AppError(
+                "Application had errors logged:\n%s" % res.errors)
+        
+    def make_response(self, (status, headers, body, errors)):
+        return TestResponse(status, headers, body, errors)
+
+class TestResponse(object):
+
+    def __init__(self, status, headers, body, errors):
+        self.status = int(status.split()[0])
+        self.full_status = status
+        self.headers = headers
+        self.body = body
+        self.errors = errors
+        
+    def header(self, name, default=NoDefault):
+        """
+        Returns the named header; an error if there is not exactly one
+        matching header (unless you give a default -- always an error if
+        there is more than one header)
+        """
+        found = None
+        for cur_name, value in self.headers:
+            if cur_name.lower() == name.lower():
+                assert not found, (
+                    "Ambiguous header: %s matches %r and %r"
+                    % (name, found, value))
+                found = value
+        if found is None:
+            if default is NoDefault:
+                raise KeyError(
+                    "No header found: %r (from %s)"
+                    % (name, ', '.join([n for n, v in self.headers])))
+            else:
+                return default
+        return found
+
+    def all_headers(self, name):
+        """
+        Gets all headers, returns as a list
+        """
+        found = []
+        for cur_name, value in self.headers:
+            if cur_name.lower() == name.lower():
+                found.append(value)
+        return found
+
+    def __contains__(self, s):
+        return self.body.find(s) != -1
+
+    def __repr__(self):
+        return '<Response %s %r>' % (self.full_status, self.body[:20])
+
+    def __str__(self):
+        return 'Response: %s\n%s\n%s' % (
+            self.status,
+            '\n'.join(['%s: %s' % (n, v) for n, v in self.headers]),
+            self.body)
+
+class TestRequest(object):
+
+    def __init__(self, url, environ):
+        self.url = url
+        self.environ = environ
