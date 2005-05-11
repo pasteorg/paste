@@ -219,8 +219,13 @@ class Config(UserDict.DictMixin):
             pass
         return value
 
-def setup_config(filename):
+def setup_config(filename, add_config=None):
     conf = Config(with_default=True)
+    if add_config:
+        if isinstance(add_config, (str, unicode)):
+            conf.load(add_config)
+        else:
+            conf.load_dict(add_config)
     conf.load(filename)
     if conf.get('sys_path'):
         update_sys_path(conf['sys_path'], conf['verbose'])
