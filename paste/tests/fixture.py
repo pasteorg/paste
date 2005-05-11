@@ -1,5 +1,9 @@
 import sys
+import random
 import urllib
+import mimetypes
+import time
+import cgi
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -318,8 +322,13 @@ class TestApp(object):
         self.config = config
         self.namespace = namespace
 
+    def make_environ(self):
+        environ = self.config.get('test_environ', {}).copy()
+        environ['paste.throw_errors'] = True
+        return environ
+
     def get(self, url, params=None, headers={},
-            status=None):
+            status=None, time_request=False):
         if params:
             if isinstance(params, dict):
                 params = urllib.urlencode(params)
@@ -328,19 +337,89 @@ class TestApp(object):
             else:
                 url += '?'
             url += params
-        environ = self.config.get('test_environ', {}).copy()
-        environ['paste.throw_errors'] = True
+        environ = self.make_environ()
         for header, value in headers.items():
             environ['HTTP_%s' % header.replace('-', '_').upper()] = value
-        app = lint.middleware(self.app)
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
         req = TestRequest(url, environ)
+        return self.do_request(req, status=status,
+                               time_request=time_request)
+
+    def post(self, url, params=None, headers={}, status=None,
+             upload_files=None, time_request=False):
+        environ = self.make_environ()
+        if params and isinstance(params, dict):
+            params = urllib.urlencode(params)
+        if upload_files:
+            params = cgi.parse_qsl(params, keep_blank_values=True)
+            content_type, params = self.encode_multipart(
+                params, upload_files)
+            environ['CONTENT_TYPE'] = content_type
+        environ['CONTENT_LENGTH'] = str(len(params))
+        environ['REQUEST_METHOD'] = 'POST'
+        environ['wsgi.input'] = StringIO(params)
+        req = TestRequest(url, environ)
+        return self.do_request(req, status=status,
+                               time_request=time_request)
+            
+    def encode_multipart(self, params, files):
+        """
+        Encodes a set of parameters (typically a name/value list) and
+        a set of files (a list of (name, filename, file_body)) into a
+        typical POST body, returning the (content_type, body).
+        """
+        boundary = '----------a_BoUnDaRy%s$' % random.random()
+        lines = []
+        for key, value in params:
+            lines.append('--'+boundary)
+            lines.append('Content-Disposition: form-data; name="%s"' % key)
+            lines.append('')
+            lines.append(value)
+        for file_info in files:
+            key, filename, value = self.get_file_info(file_info)
+            lines.append('--'+boundary)
+            lines.append('Content-Disposition: form-data; name="%s"; filename="%s"'
+                         % (key, filename))
+            fcontent = mimetypes.guess_type(filename)[0]
+            lines.append('Content-Type: %s' %
+                         fcontent or 'application/octet-stream')
+            lines.append('')
+            lines.append(value)
+        lines.append('--' + boundary + '--')
+        lines.append('')
+        body = '\r\n'.join(lines)
+        content_type = 'multipart/form-data; boundary=%s' % boundary
+        return content_type, body
+
+    def get_file_info(self, file_info):
+        if len(file_info) == 2:
+            # It only has a filename
+            filename = file_info[2]
+            if self.conf.get('test_file_path'):
+                filename = os.path.join(self.conf['test_file_path'], filename)
+            f = open(filename, 'rb')
+            content = f.read()
+            f.close()
+            return (file_info[0], filename, content)
+        elif len(file_info) == 3:
+            return file_info
+        else:
+            raise ValueError(
+                "upload_files need to be a list of tuples of (fieldname, "
+                "filename, filecontent) or (fieldname, filename); "
+                "you gave: %r"
+                % repr(file_info)[:100])
+
+    def do_request(self, req, status, time_request):
+        app = lint.middleware(self.app)
         old_stdout = sys.stdout
         out = StringIO()
         try:
             sys.stdout = out
-            raw_res = wsgilib.raw_interactive(app, url, **environ)
+            start_time = time.time()
+            raw_res = wsgilib.raw_interactive(app, req.url, **req.environ)
+            end_time = time.time()
         finally:
             sys.stdout = old_stdout
             sys.stderr.write(out.getvalue())
@@ -350,6 +429,8 @@ class TestApp(object):
             self.namespace['res'] = res
         self.check_status(status, res)
         self.check_errors(res)
+        if time_request:
+            return end_time - start_time
 
     def check_status(self, status, res):
         if status == '*':
@@ -371,16 +452,18 @@ class TestApp(object):
                 "Application had errors logged:\n%s" % res.errors)
         
     def make_response(self, (status, headers, body, errors)):
-        return TestResponse(status, headers, body, errors)
+        return TestResponse(self, status, headers, body, errors)
 
 class TestResponse(object):
 
-    def __init__(self, status, headers, body, errors):
+    def __init__(self, test_app, status, headers, body, errors):
+        self.test_app = test_app
         self.status = int(status.split()[0])
         self.full_status = status
         self.headers = headers
         self.body = body
         self.errors = errors
+        self._normal_body = None
         
     def header(self, name, default=NoDefault):
         """
@@ -414,20 +497,55 @@ class TestResponse(object):
                 found.append(value)
         return found
 
+    def follow(self, **kw):
+        assert self.status >= 300 and self.status < 400, (
+            "You can only follow redirect responses (not %s)"
+            % self.full_status)
+        location = self.header('location')
+        type, rest = urllib.splittype(location)
+        host, path = urllib.splithost(rest)
+        # @@: We should test that it's not a remote redirect
+        return self.test_app.get(location, **kw)
+
+    _normal_body_regex = re.compile(r'[ \n\r\t]+')
+
+    def normal_body__get(self):
+        if self._normal_body is None:
+            self._normal_body = self._normal_body_regex.sub(
+                ' ', self.body)
+        return self._normal_body
+
+    normal_body = property(normal_body__get)
+
     def __contains__(self, s):
-        return self.body.find(s) != -1
+        return (self.body.find(s) != -1
+                or self.normal_body.find(s) != -1)
+
+    def mustcontain(self, *strings):
+        for s in strings:
+            if not s in self:
+                print >> sys.stderr, "Actual response (no %r):" % s
+                print >> sys.stderr, self
+                raise IndexError(
+                    "Body does not contain string %r" % s)
 
     def __repr__(self):
         return '<Response %s %r>' % (self.full_status, self.body[:20])
 
     def __str__(self):
+        simple_body = '\n'.join([l for l in self.body.splitlines()
+                                 if l.strip()])
         return 'Response: %s\n%s\n%s' % (
             self.status,
             '\n'.join(['%s: %s' % (n, v) for n, v in self.headers]),
-            self.body)
+            simple_body)
 
 class TestRequest(object):
 
     def __init__(self, url, environ):
         self.url = url
         self.environ = environ
+        if environ.get('QUERY_STRING'):
+            self.full_url = url + '?' + environ['QUERY_STRING']
+        else:
+            self.full_url = url
