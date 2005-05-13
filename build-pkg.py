@@ -123,7 +123,7 @@ os.chdir(THIRD)
 shutil.copytree(TMP + "/ZPTKit", DEST)
 
 get_file("gz", "ZopePageTemplates-1.4.0.tar.gz", 
-        "http://belnet.dl.sourceforge.net/sourceforge/zpt/ZopePageTemplates-1.4.0.tgz")
+         "http://easynews.dl.sourceforge.net/sourceforge/zpt/ZopePageTemplates-1.4.0.tgz")
 os.chdir("ZopePageTemplates")
 installer("ZopePageTemplates")
 
@@ -153,3 +153,7 @@ if not os.path.exists(TMP + "/PySourceColor.py"):
            TMP + "/PySourceColor.py")
 mkdirs(THIRD + "/PySourceColor-files")
 shutil.copy(TMP + "/PySourceColor.py", THIRD + "/PySourceColor-files")
+
+get_file("gz", "ClientCookie-1.0.3.tar.gz",
+         "http://wwwsearch.sourceforge.net/ClientCookie/src/ClientCookie-1.0.3.tar.gz")
+installer("ClientCookie")
