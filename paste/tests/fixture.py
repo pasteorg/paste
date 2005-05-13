@@ -328,7 +328,7 @@ class TestApp(object):
         return environ
 
     def get(self, url, params=None, headers={},
-            status=None, time_request=False):
+            status=None):
         if params:
             if isinstance(params, dict):
                 params = urllib.urlencode(params)
@@ -343,11 +343,10 @@ class TestApp(object):
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
         req = TestRequest(url, environ)
-        return self.do_request(req, status=status,
-                               time_request=time_request)
+        return self.do_request(req, status=status)
 
     def post(self, url, params=None, headers={}, status=None,
-             upload_files=None, time_request=False):
+             upload_files=None):
         environ = self.make_environ()
         if params and isinstance(params, dict):
             params = urllib.urlencode(params)
@@ -360,8 +359,7 @@ class TestApp(object):
         environ['REQUEST_METHOD'] = 'POST'
         environ['wsgi.input'] = StringIO(params)
         req = TestRequest(url, environ)
-        return self.do_request(req, status=status,
-                               time_request=time_request)
+        return self.do_request(req, status=status)
             
     def encode_multipart(self, params, files):
         """
@@ -411,7 +409,7 @@ class TestApp(object):
                 "you gave: %r"
                 % repr(file_info)[:100])
 
-    def do_request(self, req, status, time_request):
+    def do_request(self, req, status):
         app = lint.middleware(self.app)
         old_stdout = sys.stdout
         out = StringIO()
@@ -423,14 +421,17 @@ class TestApp(object):
         finally:
             sys.stdout = old_stdout
             sys.stderr.write(out.getvalue())
-        res = self.make_response(raw_res)
+        res = self.make_response(raw_res, end_time - start_time)
         res.request = req
         if self.namespace is not None:
             self.namespace['res'] = res
         self.check_status(status, res)
         self.check_errors(res)
-        if time_request:
-            return end_time - start_time
+        if self.namespace is None:
+            # It's annoying to return the response in doctests, as it'll
+            # be printed, so we only return it is we couldn't assign
+            # it anywhere
+            return res
 
     def check_status(self, status, res):
         if status == '*':
@@ -451,12 +452,14 @@ class TestApp(object):
             raise AppError(
                 "Application had errors logged:\n%s" % res.errors)
         
-    def make_response(self, (status, headers, body, errors)):
-        return TestResponse(self, status, headers, body, errors)
+    def make_response(self, (status, headers, body, errors), total_time):
+        return TestResponse(self, status, headers, body, errors,
+                            total_time)
 
 class TestResponse(object):
 
-    def __init__(self, test_app, status, headers, body, errors):
+    def __init__(self, test_app, status, headers, body, errors,
+                 total_time):
         self.test_app = test_app
         self.status = int(status.split()[0])
         self.full_status = status
@@ -464,6 +467,7 @@ class TestResponse(object):
         self.body = body
         self.errors = errors
         self._normal_body = None
+        self.time = total_time
         
     def header(self, name, default=NoDefault):
         """
