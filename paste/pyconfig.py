@@ -94,6 +94,7 @@ class Config(UserDict.DictMixin):
         namespace['__file__'] = os.path.abspath(filename)
         namespace['load'] = self.make_loader(filename, namespace)
         namespace['include'] = self.make_includer(filename, namespace)
+        content = content.replace("\r\n","\n")
         exec content in namespace
         if load_self:
             for name in namespace.keys():
