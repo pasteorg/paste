@@ -7,6 +7,7 @@ import cgi
 import os
 import warnings
 import webbrowser
+from Cookie import SimpleCookie
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -332,6 +333,10 @@ class TestApp(object):
         self.app = app
         self.config = config
         self.namespace = namespace
+        self.reset()
+
+    def reset(self):
+        self.cookies = {}
 
     def make_environ(self):
         environ = self.config.get('test_environ', {}).copy()
@@ -421,6 +426,11 @@ class TestApp(object):
                 % repr(file_info)[:100])
 
     def do_request(self, req, status):
+        if self.cookies:
+            c = SimpleCookie()
+            for name, value in self.cookies.items():
+                c[name] = value
+            req.environ['HTTP_COOKIE'] = str(c).split(': ', 1)[1]
         app = lint.middleware(self.app)
         old_stdout = sys.stdout
         out = StringIO()
@@ -438,6 +448,10 @@ class TestApp(object):
             self.namespace['res'] = res
         self.check_status(status, res)
         self.check_errors(res)
+        for header in res.all_headers('set-cookie'):
+            c = SimpleCookie(header)
+            for key, morsel in c.items():
+                self.cookies[key] = morsel.value
         if self.namespace is None:
             # It's annoying to return the response in doctests, as it'll
             # be printed, so we only return it is we couldn't assign
