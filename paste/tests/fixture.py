@@ -4,6 +4,9 @@ import urllib
 import mimetypes
 import time
 import cgi
+import os
+import warnings
+import webbrowser
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -15,6 +18,14 @@ from paste.util import thirdparty
 doctest = thirdparty.load_new_module('doctest', (2, 4))
 from paste import wsgilib
 from paste import lint
+
+def tempnam_no_warning(*args):
+    """
+    An os.tempnam with the warning turned off, because sometimes
+    you just need to use this and don't care about the stupid
+    security warning.
+    """
+    return os.tempnam(*args)
 
 class NoDefault:
     pass
@@ -472,8 +483,8 @@ class TestResponse(object):
     def header(self, name, default=NoDefault):
         """
         Returns the named header; an error if there is not exactly one
-        matching header (unless you give a default -- always an error if
-        there is more than one header)
+        matching header (unless you give a default -- always an error
+        if there is more than one header)
         """
         found = None
         for cur_name, value in self.headers:
@@ -502,6 +513,9 @@ class TestResponse(object):
         return found
 
     def follow(self, **kw):
+        """
+        If this request is a redirect, follow that redirect.
+        """
         assert self.status >= 300 and self.status < 400, (
             "You can only follow redirect responses (not %s)"
             % self.full_status)
@@ -522,10 +536,21 @@ class TestResponse(object):
     normal_body = property(normal_body__get)
 
     def __contains__(self, s):
+        """
+        A response 'contains' a string if it is present in the body
+        of the response.  Whitespace is normalized when searching
+        for a string.
+        """
         return (self.body.find(s) != -1
                 or self.normal_body.find(s) != -1)
 
     def mustcontain(self, *strings):
+        """
+        Assert that the response contains all of the strings passed
+        in as arguments.  Equivalent to::
+
+            assert string in res
+        """
         for s in strings:
             if not s in self:
                 print >> sys.stderr, "Actual response (no %r):" % s
@@ -544,6 +569,18 @@ class TestResponse(object):
             '\n'.join(['%s: %s' % (n, v) for n, v in self.headers]),
             simple_body)
 
+    def showbrowser(self):
+        """
+        Show this response in a browser window (for debugging purposes,
+        when it's hard to read the HTML).
+        """
+        fn = tempnam_no_warning(None, 'paste-fixture') + '.html'
+        f = open(fn, 'wb')
+        f.write(self.body)
+        f.close()
+        url = 'file:' + fn.replace(os.sep, '/')
+        webbrowser.open_new(url)
+        
 class TestRequest(object):
 
     def __init__(self, url, environ):
