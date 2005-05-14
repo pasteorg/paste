@@ -32,6 +32,7 @@ import os
 from paste import reloader
 from paste import wsgilib
 from paste import CONFIG
+from paste.util import plugin
 
 # This way you can run this out of a checkout, and we'll fix up
 # the path...
@@ -56,8 +57,6 @@ from paste.pyconfig import Config
 from paste.configmiddleware import config_middleware
 from paste.webkit import wsgiwebkit
 from paste.util import thirdparty
-
-servers = {}
 
 default_ops = {
     'port': 8080,
@@ -98,7 +97,7 @@ def load_commandline(args, allow_reload=True):
         conf['verbose'] = False
     server = conf.get('server')
     if not server:
-        server_ops = servers.keys()
+        server_ops = plugin.find_plugins('servers', '_server')
         server_ops.sort()
         print "Missing --server=name, one of: %s" % ', '.join(server_ops)
         return None, 0
@@ -124,16 +123,27 @@ def run_commandline(args):
     return run_server(conf, app)
 
 def run_server(conf, app):
-    server = servers[conf['server']]
+    try:
+        server_mod = plugin.load_plugin_module(
+            dir='servers',
+            dir_package='paste.servers',
+            name=conf['server'],
+            name_extension='_server')
+    except plugin.PluginNotFound, e:
+        print "Error loading server: %s" % e
+        print "Available servers:"
+        server_ops = plugin.find_plugins('servers', '_server')
+        server_ops.sort()
+        print ', '.join(server_ops)
+        return 1
     if conf['verbose']:
         print "Starting server."
     try:
-        server(conf, app)
+        server_mod.serve(conf, app)
     except KeyboardInterrupt:
         # This is an okay error
         pass
     return 0
-    
 
 def load_conf(conf, filename, default=False):
     if isinstance(filename, (list, tuple)):
@@ -158,90 +168,6 @@ def update_sys_path(paths, verbose):
 def help():
     program = sys.argv[0]
     return help_message % {'program': program}
-
-def twisted_serve(conf, app):
-    print 'Twisted support has been temporarily removed from Paste.'
-
-servers['twisted'] = twisted_serve
-
-def scgi_serve(conf, app):
-    thirdparty.add_package('scgi')
-    from paste.scgiserver import serve_application
-    prefix = conf.get('scgi_prefix', '/')
-    serve_application(app, prefix, port=int(conf.get('port', 4000)))
-
-servers['scgi'] = scgi_serve
-
-def wsgiutils_serve(conf, app):
-    thirdparty.add_package('wsgiutils')
-    from wsgiutils import wsgiServer
-    server = wsgiServer.WSGIServer(
-        (conf.get('host', 'localhost'),
-         int(conf.get('port', 8080))), {'': app})
-    server.serve_forever()
-
-servers['wsgiutils'] = wsgiutils_serve
-
-def cgi_serve(conf, app):
-    replacements = {}
-    replacements['default_config_fn'] = os.path.abspath(default_config_fn)
-
-    # Ideally, other_conf should be any options that came from the
-    # command-line.
-    # @@: This assumes too much about the ordering of namespaces.
-    other_conf = dict(conf.namespaces[-2])
-    # Not a good idea to let 'verbose' through, but this doesn't really
-    # stop any sourced configs from setting it either...
-    if other_conf.has_key('verbose'):
-        del other_conf['verbose']
-    replacements['other_conf'] = other_conf
-
-    template_fn = os.path.join(os.path.dirname(__file__),
-                               'server_script_template.py')
-    template = open(template_fn).read()
-    for name, value in replacements.items():
-        template = template.replace('@@' + name + '@@', repr(value))
-
-    print "#!%s" % sys.executable
-    print template
-    print "if __name__ == '__main__':"
-    print "    from paste.cgiserver import run_with_cgi"
-    print "    run_with_cgi(app)"
-
-servers['cgi'] = cgi_serve
-
-def console_server(conf, app):
-    url = conf.get('url', '/')
-    query_string = ''
-    if '?' in url:
-        url, query_string = url.split('?', 1)
-    quiet = conf.get('quiet', False)
-    status, headers, content, errors = wsgilib.raw_interactive(
-        app, url, QUERY_STRING=query_string)
-    any_header = False
-    if not quiet or int(status.split()[0]) != 200:
-        print 'Status:', status
-        any_header = True
-    for header, value in headers:
-        if quiet and (
-            header.lower() in ('content-type', 'content-length')
-            or (header.lower() == 'set-cookie'
-                and value.startswith('_SID_'))):
-            continue
-        print '%s: %s' % (header, value)
-        any_header = True
-    if any_header:
-        print
-    if conf.get('compact', False):
-        # Remove empty lines
-        content = '\n'.join([l for l in content.splitlines()
-                             if l.strip()])
-    print content
-    if errors:
-        sys.stderr.write('-'*25 + ' Errors ' + '-'*25 + '\n')
-        sys.stderr.write(errors + '\n')
-
-servers['console'] = console_server
 
 def make_app(conf):
     if conf.get('publish_dir'):
