@@ -1,5 +1,6 @@
 from paste.util import thirdparty
 thirdparty.add_package('flup')
+from paste import pyconfig
 
 def serve(conf, app):
     from flup.server.ajp import WSGIServer
@@ -11,22 +12,15 @@ def serve_server(conf, app, server_class):
         scriptName=conf.get('root_url', ''),
         bindAddress=(conf.get('host', 'localhost'),
                      int(conf.get('port', 8009))),
-        allowedServers=make_allowed_servers(conf.get('allowed_servers', None)))
+        allowedServers=pyconfig.make_list(conf.get('allowed_servers', None)))
     return server.run()
 
-def make_allowed_servers(option):
-    if not option:
-        return None
-    if isinstance(option, (str, unicode)):
-        option = option.split(',')
-    return [s.strip() for s in option]
-
-options = {
-    'host': 'The host name to bind to (default localhost).  Note, if binding to localhost, only local connections will be allowed.',
-    'port': 'The port to bind to (default 8009).',
-    'root_url': 'The URL level to expect for incoming connections; if not set and this is not bound to /, then SCRIPT_NAME and PATH_INFO may be incorrect.',
-    'allow_servers': 'A list of servers to allow connections from.',
-    }
+options = [
+    ('host', 'The host name to bind to (default localhost).  Note, if binding to localhost, only local connections will be allowed.'),
+    ('port', 'The port to bind to (default 8009).'),
+    ('root_url', 'The URL level to expect for incoming connections; if not set and this is not bound to /, then SCRIPT_NAME and PATH_INFO may be incorrect.'),
+    ('allow_servers', 'A list of servers to allow connections from.'),
+    ]
 
 description = """\
 An AJP (Apache Jarkarta Tomcat Connector) threaded server.  For more
