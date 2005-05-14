@@ -1,6 +1,8 @@
+from paste.util import thirdparty
+thirdparty.add_package('wsgiutils')
+from wsgiutils import wsgiServer
+
 def serve(conf, app):
-    thirdparty.add_package('wsgiutils')
-    from wsgiutils import wsgiServer
     server = wsgiServer.WSGIServer(
         (conf.get('host', 'localhost'),
          int(conf.get('port', 8080))), {'': app})
