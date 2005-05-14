@@ -39,14 +39,14 @@ class GzipResponse(object):
         self.compress_level = compress_level
         self.gzip_fileobj = None
 
-    def gzip_start_response(self, status, headers):
+    def gzip_start_response(self, status, headers, exc_info=None):
         # This isn't part of the spec yet:
         if wsgilib.has_header(headers, 'content-encoding'):
             # we won't double-encode
-            return self.start_response(status, headers)
+            return self.start_response(status, headers, exc_info)
 
         headers.append(('content-encoding', 'gzip'))
-        raw_writer = self.start_response(status, headers)
+        raw_writer = self.start_response(status, headers, exc_info)
         dummy_fileobj = GzipOutput()
         dummy_fileobj.write = raw_writer
         self.gzip_fileobj = gzip.GzipFile('', 'wb', self.compress_level,

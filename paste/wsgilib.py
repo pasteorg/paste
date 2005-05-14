@@ -69,7 +69,9 @@ def raw_interactive(application, path_info='', **environ):
         basic_environ['wsgi.input'] = StringIO(basic_environ['wsgi.input'])
     output = StringIO()
     data = {}
-    def start_response(status, headers):
+    def start_response(status, headers, exc_info=None):
+        if exc_info:
+            raise exc_info[0], exc_info[1], exc_info[2]
         data['status'] = status
         data['headers'] = headers
         return output.write

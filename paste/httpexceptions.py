@@ -213,13 +213,14 @@ def middleware(application):
 
     def start_application(environ, start_response):
         app_started = []
-        def checked_start_response(status, headers):
+        def checked_start_response(status, headers, exc_info=None):
             app_started.append(None)
-            return start_response(status, headers)
+            return start_response(status, headers, exc_info)
         
         try:
             return application(environ, start_response)
         except HTTPException, e:
+            print "****Got:", e
             if app_started:
                 # They've already started the response, so we can't
                 # do the right thing anymore.
@@ -227,8 +228,9 @@ def middleware(application):
             headers = {'content-type': 'text/html'}
             if e.headers:
                 headers.update(e.headers)
-            write = start_response('%s %s' % (e.code, e.title),
-                                   headers.items())
+            print "Sending headers:", headers.items()
+            start_response('%s %s' % (e.code, e.title),
+                           headers.items())
             return [e.html(environ)]
         
     return start_application

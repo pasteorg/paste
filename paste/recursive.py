@@ -74,7 +74,9 @@ class Includer(Recursive):
     def activate(self, environ):
         environ['wsgi.errors'].write('Including %r\n' % (environ['SCRIPT_NAME'] + environ['PATH_INFO']))
         response = IncludedResponse
-        def start_response(status, headers):
+        def start_response(status, headers, exc_info=None):
+            if exc_info:
+                raise exc_info[0], exc_info[1], exc_info[2]
             response.status = status
             response.headers = headers
             return response.write

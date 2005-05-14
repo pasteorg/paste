@@ -60,9 +60,9 @@ class ErrorMiddleware(object):
             return self.application(environ, start_response)
         environ['paste.throw_errors'] = True
 
-        def detect_start_response(status, headers):
+        def detect_start_response(status, headers, exc_info=None):
             started.append(True)
-            return start_response(status, headers)
+            return start_response(status, headers, exc_info)
         
         try:
             __traceback_supplement__ = Supplement, self, environ
@@ -175,6 +175,9 @@ def handle_exception(exc_info, conf, error_stream, html=True):
         if not rep_err:
             extra_data += rep_err
             reported = True
+    else:
+        error_stream.write('Error - %s: %s\n' % (
+            exc_data.exception_type, exc_data.exception_value))
     if html:
         if conf.get('debug', False):
             return_error = error_template(

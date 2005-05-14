@@ -37,11 +37,11 @@ class SessionMiddleware(object):
         session_factory = SessionFactory(environ, **self.factory_kw)
         environ['paste.session.factory'] = session_factory
 
-        def session_start_response(status, headers):
+        def session_start_response(status, headers, exc_info=None):
             if not session_factory.created:
                 return start_response(status, headers)
             headers.append(session_factory.set_cookie_header())
-            return start_response(status, headers)
+            return start_response(status, headers, exc_info)
 
         app_iter = self.application(environ, session_start_response)
         if session_factory.used:
