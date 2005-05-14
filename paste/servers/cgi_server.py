@@ -28,3 +28,15 @@ def serve(conf, app):
     print "if __name__ == '__main__':"
     print "    from paste.cgiserver import run_with_cgi"
     print "    run_with_cgi(app)"
+
+description = """\
+A 'server' that creates a CGI script that you can use to invoke your
+application.
+"""
+
+help = """\
+Typically you would use this like:
+
+  %prog --server=cgi > .../cgi-bin/myapp.cgi
+  chmod +x .../cgi-bin/myapp.cgi
+"""

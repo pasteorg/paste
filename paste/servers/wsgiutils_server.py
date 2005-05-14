@@ -9,11 +9,11 @@ def serve(conf, app):
     server.serve_forever()
 
 description = """\
-WSGIUtils is a small threaded server using Python's standard
-SimpleHTTPServer.
+WSGIUtils <http://www.owlfish.com/software/wsgiutils/> is a small
+threaded server using Python's standard SimpleHTTPServer.
 """
 
-options = {
-    'port': 'Port to serve on (default: 8080)',
-    'host': 'Host to serve from (default: localhost, which is only accessible from the local computer; use 0.0.0.0 to make your application public)',
-    }
+options = [
+    ('port', 'Port to serve on (default: 8080)'),
+    ('host', 'Host to serve from (default: localhost, which is only accessible from the local computer; use 0.0.0.0 to make your application public)'),
+    ]
