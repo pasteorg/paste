@@ -21,10 +21,10 @@ def webkit(directory, install_fake_webware=True, use_lint=False):
     app = urlparser.URLParser(directory, os.path.basename(directory))
     if use_lint:
         app = lint.middleware(app)
-    app = session.SessionMiddleware(app)
+    app = httpexceptions.middleware(app)
     if use_lint:
         app = lint.middleware(app)
-    app = httpexceptions.middleware(app)
+    app = session.SessionMiddleware(app)
     if use_lint:
         app = lint.middleware(app)
     app = recursive.RecursiveMiddleware(app)
