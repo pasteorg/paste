@@ -1,0 +1,57 @@
+<html metal:use-macro="here/standard_template.pt/macros/page">
+<metal:body fill-slot="body">
+
+<form action="view_list?_action_=check" method="POST">
+<input type="hidden" name="id"
+ tal:attributes="value options/list/id">
+
+<table>
+<tr>
+  <th>Done?</th>
+  <th>Description</th>
+</tr>
+
+<tr tal:repeat="item options/list_items">
+ <tal:let define="name python: 'item_%s' % item.id">
+ <td>
+  <input type="checkbox"
+   tal:attributes="name name;
+                   id name;
+                   checked item/done">
+ </td>
+ <td>
+  <label tal:attributes="for name"
+   tal:content="item/description">description</label>
+ </td>
+ <td><a tal:attributes="
+        href python: 'view_list?_action_=destroy&id=%s&item_id=%s'
+        % (options['list'].id, item.id)">[delete]</a></td>
+ </tal:let>
+</tr>
+
+<tr tal:condition="not: options/list_items">
+ <td colspan=2>No items to display</td>
+</tr>
+
+</table>
+
+<input type="submit" value="Update item status">
+</form>
+
+<form action="view_list?_action_=add" method="POST">
+<input type="hidden" name="id"
+ tal:attributes="value options/list/id">
+Add item:<br>
+<input type="text" style="width: 100%" name="description"><br>
+<input type="submit" value="Add">
+</form>
+
+<form action="edit_list?_action_=destroy" method="POST">
+<input type="hidden" name="id"
+ tal:attributes="value options/list/id">
+<input type="submit" value="Delete this list"
+ onclick="return window.confirm('Really delete this list?')">
+</form>
+
+</metal:body>
+</html>
