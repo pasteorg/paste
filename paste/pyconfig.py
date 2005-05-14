@@ -342,3 +342,29 @@ class DispatchingConfig(object):
                 "No configuration has been registered for this process "
                 "or thread")
         return conf[key]
+
+def make_bool(option):
+    """
+    Convert a string option to a boolean, e.g. yes/no, true/false
+    """
+    if not isinstance(option, (str, unicode)):
+        return option
+    if option.lower() in ('y', 'yes', 't', 'true', '1', 'on'):
+        return True
+    if option.lower() in ('n', 'no', 'f', 'false', '0', 'off'):
+        return False
+    raise ValueError(
+        "Boolean (yes/no) value expected (got: %r)" % option)
+
+def make_list(option):
+    """
+    Convert a string to a list, with commas for separators.
+    """
+    if not option:
+        return []
+    if not isinstance(option, (str, unicode)):
+        if not isinstance(option, (list, tuple)):
+            return [option]
+        else:
+            return option
+    return [s.strip() for s in option.split(',')]
