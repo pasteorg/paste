@@ -49,8 +49,7 @@ function html_quote(s) {
   return s.replace('&', '&amp;').replace('<', '&lt;');
 }
 
-function clear() {
-  alert(output_html);
+function clear_output() {
   output_html = '';
   refresh_display();
   return false;
