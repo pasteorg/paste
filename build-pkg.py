@@ -57,7 +57,7 @@ def delete_pyc(arg, dirname, files):
     """
     for name in files:
         if name.endswith(".pyc") or name.endswith(".pyo"):
-            os.remove(os.path.join(dirname, name))
+            os.remove(os.path.join(dirname, name))    
 
 def get_file(zip_type, filename, url):
     """
@@ -157,3 +157,16 @@ shutil.copy(TMP + "/PySourceColor.py", THIRD + "/PySourceColor-files")
 get_file("gz", "ClientCookie-1.0.3.tar.gz",
          "http://wwwsearch.sourceforge.net/ClientCookie/src/ClientCookie-1.0.3.tar.gz")
 installer("ClientCookie")
+
+flup_tmpdir = TMP + "/" + "flup"
+if os.path.exists(flup_tmpdir):
+    os.chdir(flup_tmpdir)
+    cmd ="svn up"
+else:
+    cmd ="svn co http://svn.saddi.com/flup/trunk %s/flup" % TMP
+os.system(cmd)
+DEST = THIRD + "/flup-files/flup"
+mkdirs(DEST)
+shutil.rmtree(DEST,ignore_errors=1)
+os.chdir(THIRD)
+shutil.copytree(TMP + "/flup/flup", DEST)
