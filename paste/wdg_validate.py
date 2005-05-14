@@ -27,9 +27,9 @@ class WDGValidateMiddleware(object):
     def __call__(self, environ, start_response):
         output = StringIO()
         response = []
-        def writer_start_response(status, headers):
+        def writer_start_response(status, headers, exc_info=None):
             response.extend((status, headers))
-            start_response(status, headers)
+            start_response(status, headers, exc_info)
             return output.write
         app_iter = self.app(environ, writer_start_response)
         try:

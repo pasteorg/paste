@@ -113,7 +113,7 @@ def middleware(
         if username:
             environ['REMOTE_USER'] = username
 
-        def login_start_response(status, headers):
+        def login_start_response(status, headers, exc_info=None):
             if environ.get('paste.login._dologin'):
                 cookie = SimpleCookie(cookie_name,
                                       signer.make_signature(username),
@@ -133,7 +133,7 @@ def middleware(
                         "use a non-relative page for the login_page")
                 environ['paste.login._doredirect'] = login_page
                 return garbage_writer
-            return start_response(status, headers)
+            return start_response(status, headers, exc_info)
 
         app_iter = application(environ, login_start_response)
         
