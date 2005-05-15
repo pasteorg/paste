@@ -7,7 +7,7 @@ export PYTHONPATH=$parent:$PYTHONPATH
 
 NORMAL="DeveloperGuidelines Paste servers StyleGuide web/index \
         what-is-paste testing-applications"
-DOCTEST_BUILD="BlogTutorial TodoTutorial"
+DOCTEST_BUILD="blog-tutorial TodoTutorial"
 
 for NAME in $NORMAL ; do
     if [ -e "$NAME.html" -a ! "$NAME.html" -ot "$NAME.txt" ] ; then
