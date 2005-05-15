@@ -24,8 +24,13 @@ paste_parent = os.path.dirname(
     os.path.dirname(os.path.dirname(here)))
 
 def run(command):
+    data = run_raw(command)
+    if data:
+        print data
+
+def run_raw(command):
     """
-    Runs the string command, prints any output.
+    Runs the string command, returns any output.
     """
     proc = subprocess.Popen(command, shell=True,
                             stderr=subprocess.STDOUT,
@@ -37,7 +42,17 @@ def run(command):
     if data:
         data = '\n'.join(
             [l for l in data.splitlines() if l])
-        print data
+        return data
+    else:
+        return ''
+
+def run_command(command, name, and_print=False):
+    output = run_raw(command)
+    data = '$ %s\n%s' % (command, output)
+    show_file('shell-command', name, description='shell transcript',
+              data=data)
+    if and_print and output:
+        print output
 
 def _make_env():
     env = os.environ.copy()
@@ -164,7 +179,7 @@ def html_matches(pattern, text):
     regex = '^%s$' % regex
     return re.search(regex, text)
 
-def create_file(path, version, data):
+def convert_docstring_string(data):
     if data.startswith('\n'):
         data = data[1:]
     lines = data.splitlines()
@@ -175,21 +190,34 @@ def create_file(path, version, data):
         else:
             new_lines.append(line)
     data = '\n'.join(new_lines) + '\n'
+    return data
+
+def create_file(path, version, data):
+    data = convert_docstring_string(data)
     write_data(path, data)
     show_file(path, version)
 
-def show_file(path, version):
-    ext = os.path.splitext(path)[1]
-    f = open(path, 'rb')
-    data = f.read()
+def append_to_file(path, version, data):
+    data = convert_docstring_string(data)
+    f = open(path, 'a')
+    f.write(data)
     f.close()
+    show_file(path, version, description='added to %s' % path,
+              data=data)
+
+def show_file(path, version, description=None, data=None):
+    ext = os.path.splitext(path)[1]
+    if data is None:
+        f = open(path, 'rb')
+        data = f.read()
+        f.close()
     if ext == '.py':
         html = ('<div class="source-code">%s</div>' 
                 % PySourceColor.str2html(data, PySourceColor.dark))
     else:
         html = '<pre class="source-code">%s</pre>' % cgi.escape(data, 1)
     html = '<span class="source-filename">%s</span><br>%s' % (
-        path, html)
+        description or path, html)
     write_data(resource_filename('%s.%s.gen.html' % (path, version)),
                html)
 
@@ -396,8 +424,10 @@ if __name__ == '__main__':
         fn = os.path.abspath(fn)
         # @@: OK, ick; but this module gets loaded twice
         sys.testing_document_filename = fn
-        doctest.testfile(fn, module_relative=False,
-                         parser=LongFormDocTestParser())
+        doctest.testfile(
+            fn, module_relative=False,
+            optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
+            parser=LongFormDocTestParser())
         new = os.path.splitext(fn)[0] + '.html'
         assert new != fn
         os.system('rst2html.py %s > %s' % (fn, new))
