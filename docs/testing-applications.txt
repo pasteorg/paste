@@ -1,0 +1,129 @@
+Testing Applications with Paste
++++++++++++++++++++++++++++++++
+
+:author: Ian Bicking <ianb@colorstudy.com>
+:revision: $Rev: 2385 $
+:date: $LastChangedDate: 2005-04-25 20:20:16 -0500 (Mon, 25 Apr 2005) $
+
+.. contents::
+
+Introduction
+============
+
+Paste includes functionality for testing your application in a
+convenient manner.  These facilities are quite young, and feedback is
+invited.  Feedback and discussion should take place on the
+`Paste-users list
+<http://pythonpaste.org/mailman/listinfo/paste-users>`_.
+
+These facilities let you test your Paste and WSGI-based applications
+easily and without a server. 
+
+The Test Environment
+====================
+
+This has been written with `py.test
+<http://codespeak.net/py/current/doc/test.html>`_ in mind.  The
+py.test convention is to put tests in modules named ``test_*.py``, and
+the actual test functions are also named starting with ``test_``.
+
+In your testing module you should do::
+
+    from paste.tests.fixture import setup_module
+
+This will add some initialization, will load your configure, will call
+a ``reset_state`` function if you define one, and will insert the
+variables ``app`` and ``CONFIG`` in your module.
+
+If you have path problems you can set ``$PYTHONPATH``, or you can add
+something to a ``conftest.py`` module, like::
+
+    import sys
+    sys.path.append('path/to/Paste', ...)
+
+Note that paths given in the ``sys_path`` configuration item will also
+be loaded (but Paste itself must be found first).
+
+The Tests Themselves
+====================
+
+The ``app`` object is a wrapper around your application, with many
+methods to make testing convenient.  Here's an example test script::
+
+    def test_myapp():
+        res = app.get('/view', params={'id': 10})
+        # We just got /view?id=10
+        res.mustcontain('Item 10')
+        res = app.post('/view', params={'id': 10, 'name': 'New item
+            name'})
+        # The app does POST-and-redirect...
+        res.follow()
+        assert res.request.url == '/view?id=10'
+        res.mustcontain('New item name')
+        res.mustcontain('Item updated')
+
+The methods of the ``app`` object (a ``paste.tests.fixture.TestApp``
+object):
+
+``get(url, params={}, headers={}, status=None)``:
+    Gets the URL.  URLs are based in the root of your application; no
+    domains are allowed.  Parameters can be given as a dictionary, or
+    included directly in the ``url``.  Headers can also be added.
+
+    This tests that the status is a ``200 OK`` or a redirect header,
+    unless you pass in a ``status``.  A status of ``"*"`` will never
+    fail; or you can assert a specific status (like ``500``).
+
+    Also, if any errors are written to the error stream this will
+    raise an error.
+
+``post(url, params={}, headers={}, status=None, upload_files=())``:
+    POSTS to the URL.  Like GET, except also allows for uploading
+    files.  The uploaded files are a list of ``(field_name, filename,
+    file_content)``.  
+
+    If you don't want to do a urlencoded post body, you can put a
+    ``content-type`` header in your header, and pass the body in as a
+    string with ``params``.
+
+The response object:
+
+``header(header_name, [default])``:
+    Returns the named header.  It's an error if there is more than one
+    matching header.  If you don't provide a default, it is an error
+    if there is no matching header.
+
+``all_headers(header_name):``
+    Returns a list of all matching headers.
+
+``follow(**kw)``:
+    Follows the redirect.  It is an error if this response wasn't a
+    redirect.  Any keyword arguments are passed to ``app.get`` (e.g.,
+    ``status``).
+
+``x in res``:
+    Returns True if the string is found in the response.  Whitespace
+    is normalized for this test.
+
+``mustcontain(*strings)``:
+    Raises an error if any of the strings are not found in the
+    response.
+
+``showbrowser()``:
+    Opens the HTML response in a browser; useful for debugging.
+
+``str(res)``:
+    Gives a slightly-compacted version of the response.
+
+Request objects:
+
+``url``:
+    The url requested.
+
+``environ``:
+    The environment used for the request.
+
+``full_url``:
+    The url with query string.
+
+
