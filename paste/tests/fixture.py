@@ -19,6 +19,9 @@ from paste.util import thirdparty
 doctest = thirdparty.load_new_module('doctest', (2, 4))
 from paste import wsgilib
 from paste import lint
+from paste import pyconfig
+from paste import CONFIG
+from paste import server
 
 def tempnam_no_warning(*args):
     """
@@ -604,3 +607,35 @@ class TestRequest(object):
             self.full_url = url + '?' + environ['QUERY_STRING']
         else:
             self.full_url = url
+
+
+def setup_module(module):
+    """
+    This is used by py.test if it is in the module, so do::
+
+        from paste.tests.fixture import setup_module
+
+    to enable this.  This adds an ``app`` and ``CONFIG`` object to the
+    module.  If there is a function ``reset_state`` in your module
+    then that is also called.
+    """
+    try:
+        CONFIG.current_config()
+    except AttributeError:
+        # No config setup yet
+        start_dir = os.path.abspath(os.path.dirname(module.__file__))
+        while not os.path.exists(os.path.join(start_dir, 'server.conf')):
+            assert start_dir, (
+                "server.conf not found (starting from %s"
+                % module.__file__)
+            start_dir = os.path.dirname(start_dir)
+        server_conf_path = os.path.join(start_dir, 'server.conf')
+        conf = pyconfig.setup_config(
+            server_conf_path, add_config={'testing': True})
+    app = TestApp(server.make_app(CONFIG.current_conf()),
+                  CONFIG.current_conf())
+    module.app = app
+    module.CONFIG = CONFIG
+    if hasattr(module, 'reset_state'):
+        module.reset_state()
+
