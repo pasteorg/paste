@@ -1,5 +1,4 @@
 from paste.util import thirdparty
-thirdparty.add_package('sqlobject')
 import sqlobject
 from todo_wareweb import db
 
@@ -25,5 +24,5 @@ def urlparser_wrap(environ, start_response, app):
     try:
         return app(environ, start_response)
     finally:
-        sqlobject.sqlhub.threadConnection = None
+        del sqlobject.sqlhub.threadConnection
     
