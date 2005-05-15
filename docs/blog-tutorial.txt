@@ -52,17 +52,17 @@ Setting Up The App
 .. comment:
 
     >>> from paste.tests.doctest_webapp import *
-    >>> BASE = '/var/www/example-builds/wkblog'
+    >>> BASE = '/var/www/example-builds/wwblog'
     >>> import sys
     >>> clear_dir(BASE)
-    >>> run("app-setup create --template=webkit_zpt %s" % BASE)
+    >>> run("paste-setup create --template=webkit_zpt %s" % BASE)
     >>> os.chdir(BASE)
 
 ::
 
     $ export PYTHONPATH=/path/to/Paste:$PYTHONPATH
-    $ BASE=/var/www/example-builds/wkblog
-    $ app-setup create --template=webkit_zpt $BASE
+    $ BASE=/var/www/example-builds/wwblog
+    $ paste-setup create --template=webkit_zpt $BASE
     $ cd $BASE
 
 The Model
@@ -81,12 +81,6 @@ Here's the model:
 
     create_file('db.py', 'v1', r"""
     from sqlobject import *
-    try:
-        from datetime import datetime
-        now = datetime.now
-    except ImportError:
-        from mx import DateTime
-        now = DateTime.now
     
     class Article(SQLObject):
         url = StringCol(notNull=True)
@@ -95,7 +89,7 @@ Here's the model:
         content_mime_type = StringCol(notNull=True)
         author = ForeignKey('User')
         parent = ForeignKey('Article', default=None)
-	created = DateTimeCol(notNull=True, default=now)
+	created = DateTimeCol(notNull=True, default=DateTimeCol.now)
         last_updated = DateTimeCol(default=None)
         atom_id = StringCol()
         hidden = BoolCol(notNull=True, default=False)
@@ -112,22 +106,15 @@ Here's the model:
         username = StringCol(alternateID=True)
         email = StringCol()
         name = StringCol()
+        homepage = StringCol()
         password_encoded = StringCol()
         role = StringCol(notNull=True, default='user')
     """)
 
 .. raw:: html
-   :file: resources/BlogTutorial/db.py.v1.gen.html
+   :file: resources/blog-tutorial/db.py.v1.gen.html
 
 A few things to note:
-
-* Sadly, both datetime_ and mxDateTime_ are pseudo-standards.  Well,
-  datetime is the standard, but mxDateTime has the legacy.  So we have
-  to do this little dance to import one or the other.  (We use ``now``
-  later as a default)
-
-.. _datetime: http://python.org/doc/current/lib/module-datetime.html
-.. _mxDateTime: http://www.egenix.com/files/python/mxDateTime.html
 
 * All the columns allow ``NULL`` by default, unless we say
   ``notNull=True``.
@@ -163,7 +150,7 @@ These classes have lots of other *behavior*, but this should be a good
 list of actual information.  We'll add more behavior later.
 
 Now we'll create the database.  First we configure it, adding these
-lines::
+lines to ``server.conf``::
 
     import os
     database = 'sqlite:%s/data.db' % os.path.dirname(__file__)
@@ -184,4 +171,169 @@ Now we'll use ``sqlobject-admin`` to set up the tables:
 
 .. comment (do it)
 
-    >>> run('sqlobject-admin create -f server.conf -m wkblog.db')
+    >>> run_command('sqlobject-admin create -f server.conf '
+    ...             '-m wwblog.db', 'create', and_print=True)
+
+
+.. raw:: html
+   :file: resources/blog-tutorial/shell-command.create.gen.html
+
+Fixture Data
+------------
+
+To test things later we'll need a bit of data to make the tests
+interesting.  It's best if we write code to clear any data and put
+known data in -- that way we can restore the database at any time to a
+known state, and can write our tests against that data.
+
+We'll add some code to the end of ``db.py``:
+
+.. comment (change)
+
+    >>> append_to_file('db.py', 'append-fixture', r"""
+    ... 
+    ... from paste import CONFIG
+    ... def reset_data():
+    ...     sqlhub.processConnection = connectionForURI(CONFIG['database'])
+    ...     for soClass in (User, Category, Article):
+    ...         soClass.clearTable()
+    ...     auth = User(username='author', email='author@example.com',
+    ...                 name='Author Person', password_encoded=None,
+    ...                 role='author', homepage=None)
+    ...     user = User(username='commentor', email='comment@example.com',
+    ...                 name='Comment Person', password_encoded=None,
+    ...                 role='user', homepage='http://yahoo.com')
+    ...     programming = Category(name='Programming')
+    ...     family = Category(name='family')
+    ...     a1 = Article(url='/2004/05/01/article1.html',
+    ...                  title='First article',
+    ...                  content='This is an article',
+    ...                  content_mime_type='text/html',
+    ...                  author=auth, parent=None,
+    ...                  last_updated=None, atom_id=None)
+    ...     a2 = Article(url='/2004/05/10/article2.html',
+    ...                  title='Second article',
+    ...                  content='Another\narticle',
+    ...                  content_mime_type='text/plain',
+    ...                  author=auth, parent=None,
+    ...                  last_updated=None, atom_id=None)
+    ...     c1 = Article(url='/2004/05/01/article1-comment1.html',
+    ...                  title=None, content='Nice article!',
+    ...                  content_mime_type='text/x-untrusted-html',
+    ...                  author=user, parent=a1, last_updated=None,
+    ...                  atom_id=None, article_type='comment')
+    ...     a1.addCategory(programming)
+    ...     a1.addCategory(family)
+    ... """)
+
+.. raw:: html
+   :file: resources/blog-tutorial/db.py.append-fixture.gen.html
+
+Test Fixture
+------------
+
+See `Testing Applications With Paste <testing-applications.html>`_ for
+more on the details of how we set up testing.  We'll be using `py.test
+<http://codespeak.net/py/current/doc/test.html>`_ for the testing
+framework.
+
+First, lets create our own test fixture.  We'll create a directory
+``tests/`` and add a file ``fixture.py``.
+
+.. comment (create files):
+
+    >>> create_file('tests/__init__.py', 'v1', '#\n')
+    >>> create_file('tests/fixture.py', 'v1', r"""
+    ... from paste.tests.fixture import setup_module as paste_setup
+    ... from wwblog import db
+    ...
+    ... def setup_module(module):
+    ...     paste_setup(module)
+    ...     db.reset_data()
+    ... """)
+
+.. raw:: html
+   :file: resources/blog-tutorial/tests/fixture.py.v1.gen.html
+
+Now in each test we'll do::
+
+    from wwblog.tests.fixture import setup_module
+
+And that will give us a consistent state for the module (note that
+data isn't reset between each test in the module, just once for the
+module, so we'll have to be aware of that).
+
+Let's write a first test:
+
+.. comment (create test):
+
+    >>> create_file('tests/test_db.py', 'v1', r"""
+    ... from fixture import setup_module
+    ... from wwblog.db import *
+    ...
+    ... def test_data():
+    ...     # make sure we have the two users we set up
+    ...     assert len(list(User.select())) == 2
+    ...     # and get the first article for testing
+    ...     a1 = list(Article.selectBy(title='First article'))[0]
+    ...     # make sure it has categories, then make sure the
+    ...     # categories contain this article as well
+    ...     assert len(list(a1.categories)) == 2
+    ...     for cat in a1.categories:
+    ...         assert a1 in cat.articles
+    ... """)
+
+.. raw:: html
+   :file: resources/blog-tutorial/tests/test_db.py.v1.gen.html
+
+For the most part, this stuff is already tested by SQLObject, but this
+is a basic sanity check, and a test that we have set up the classes
+properly.  One problem, though, is that we have to make sure that
+``sys.path`` is set up properly.  We could set ``$PYTHONPATH``, but
+that can be a bit annoying; we'll put it in a special file
+``conftest.py`` that py.test loads up:
+
+.. comment (create):
+
+    >>> create_file('conftest.py', 'v1', r"""
+    ... import sys, os
+    ... sys.path.append('/path/to/Paste')
+    ... sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    ... from paste.util.thirdparty import add_package
+    ... add_package('sqlobject')
+    ... """)
+
+.. raw:: html
+   :file: resources/blog-tutorial/conftest.py.v1.gen.html
+    
+Now we should be able to run py.test:
+
+.. comment (do):
+
+    >>> run_command('py.test', 't1', and_print=True)
+    inserting into sys.path: ...
+    =========================== test process starts ===========================
+    testing-mode: inprocess
+    executable:   .../python  (...)
+    using py lib: .../py <rev ...>
+    wwblog/tests/test_db.py[1] .
+    ================= tests finished: 1 passed in ... seconds =================
+
+.. raw:: html
+   :file: resources/blog-tutorial/shell-command.t1.gen.html
+
+Very good!  Alright then, on to making an application...
+
+The Front Page
+--------------
+
+First we'll set up a simple front page.  We'll write a new
+``index.py``:
+
+.. comment (do so):
+
+    >>> create_file('web/index.py', 'v1', r"""
+    ... """)
+
+.. raw:: html
+   :file: resources/blog-tutorial/web/index.py.v1.gen.html
