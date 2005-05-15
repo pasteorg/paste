@@ -63,7 +63,10 @@ functionality.
                 "paste.webkit.FakeWebware",
                 "paste.webkit.FakeWebware.WebKit",
                 "paste.webkit.FakeWebware.WebUtils",
-                "paste.webkit.FakeWebware.MiscUtils"],
+                "paste.webkit.FakeWebware.MiscUtils",
+                "paste.servers",
+                "paste.servers.scgi_server",
+                "paste.wareweb"],
       scripts=['scripts/paste-server', 'scripts/paste-setup'],
       download_url="",
       data_files=get_data_files(os.path.join("paste","app_templates")) +
