@@ -324,6 +324,41 @@ Now we should be able to run py.test:
 
 Very good!  Alright then, on to making an application...
 
+Static Publishing
+-----------------
+
+Remember I said something about static publishing?  So... what does
+that mean?
+
+Well, it means that when possible we should write files out to disk.
+These files might be in their final form, though in some environments
+it might be nice to write out files that are interpreted by `server
+side includes <http://httpd.apache.org/docs/mod/mod_include.html>`_ or
+PHP.  
+
+By generating what is effectively code, the "static" files can contain
+dynamic portions, e.g., a running list of recently-updated external
+blogs.  But more importantly, many changes can be made without
+generating the entire site; changes to the look of the site, of
+course, but also smaller things, like up-to-date archive links on the
+sides of pages and other little bits of code.
+
+This tutorial will work with server-side includes, because they are
+dumb enough that we won't be tempted to push too much functionality
+into them (and we might be able to extract their functionality into
+fully-formed pages); but they'll also save us a lot of work early on.
+If you haven't used server-side includes you can read the document I
+linked too, but you can also probably pick it up easily enough from
+the examples.
+
+URL Layout
+----------
+
+The blog "application" will be available through some URL (which we
+can figure out at runtime).  But everything else gets written onto
+disk with some URL equivalent, so that path and URL will have to be
+configurable.
+
 The Front Page
 --------------
 
