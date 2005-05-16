@@ -1,0 +1,7 @@
+<html metal:use-macro="here/standard_template.pt/macros/page">
+<metal:body fill-slot="body">
+
+
+
+</metal:body>
+</html>
