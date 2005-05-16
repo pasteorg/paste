@@ -202,6 +202,14 @@ def append_to_file(path, version, data):
     f = open(path, 'a')
     f.write(data)
     f.close()
+    # I think these appends can happen so quickly (in less than a second)
+    # that the .pyc file doesn't appear to be expired, even though it
+    # is after we've made this change; so we have to get rid of the .pyc
+    # file:
+    if path.endswith('.py'):
+        pyc_file = path + 'c'
+        if os.path.exists(pyc_file):
+            os.unlink(pyc_file)
     show_file(path, version, description='added to %s' % path,
               data=data)
 
