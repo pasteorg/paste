@@ -1,5 +1,5 @@
 from fixture import *
-from paste.error_middleware import ErrorMiddleware
+from paste.errormiddleware import ErrorMiddleware
 from paste import lint
 
 def do_request(app, expect_status=500):

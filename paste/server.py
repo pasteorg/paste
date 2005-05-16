@@ -29,10 +29,6 @@ OPTIONS
 
 import sys
 import os
-from paste import reloader
-from paste import wsgilib
-from paste import CONFIG
-from paste.util import plugin
 
 # This way you can run this out of a checkout, and we'll fix up
 # the path...
@@ -53,18 +49,11 @@ if os.path.dirname(here) != paste_path:
         'Warning: server.py is running out of %s, but paste is loaded '
         'out of %s\n' % (here, paste_path))
 
-from paste.pyconfig import Config
-from paste.configmiddleware import config_middleware
-from paste.webkit import wsgiwebkit
-from paste.util import thirdparty
-
-default_ops = {
-    'port': 8080,
-    'host': 'localhost',
-    'verbose': False,
-    'quiet': False,
-    'reload': False,
-    }
+from paste import reloader
+from paste import wsgilib
+from paste import CONFIG
+from paste.util import plugin
+from paste import pyconfig
 
 reloader_environ_key = 'WSGI_RELOADER_SHOULD_RUN'
 
@@ -72,10 +61,8 @@ default_config_fn = os.path.join(os.path.dirname(__file__),
                                  'default_config.conf')
 
 def load_commandline(args, allow_reload=True):
-    conf = Config()
-    # We use conf.verbose early, so we set it now:
-    conf.load_dict(default_ops, default=True)
-    args = conf.load_commandline(
+    conf = pyconfig.Config(with_default=True)
+    conf.load_commandline(
         args, bool_options=['help', 'verbose', 'reload', 'debug', 'quiet',
                             'no_verbose'],
         aliases={'h': 'help', 'v': 'verbose', 'f': 'config_file',
@@ -85,14 +72,10 @@ def load_commandline(args, allow_reload=True):
         return None, 0
     if conf.get('no_verbose'):
         conf['verbose'] = False
-    load_conf(conf, default_config_fn, True)
-    reloader.watch_file(default_config_fn)
     if not conf.get('no_server_conf') and os.path.exists('server.conf'):
         load_conf(conf, 'server.conf', True)
-        reloader.watch_file('server.conf')
     if conf.get('config_file'):
         load_conf(conf, conf['config_file'], True)
-        reloader.watch_file(conf['config_file'])
     if conf['quiet']:
         conf['verbose'] = False
     server = conf.get('server')
@@ -111,8 +94,7 @@ def load_commandline(args, allow_reload=True):
                 return restart_with_reloader(conf)
             except KeyboardInterrupt:
                 return None, 0
-    if conf.get('sys_path'):
-        update_sys_path(conf['sys_path'], conf['verbose'])
+    conf.update_sys_path()
     app = make_app(conf)
     return conf, app
 
@@ -154,16 +136,6 @@ def load_conf(conf, filename, default=False):
         if conf['verbose']:
             print 'Loading configuration from %s' % filename
         conf.load(filename, default=default)
-
-def update_sys_path(paths, verbose):
-    if isinstance(paths, (str, unicode)):
-        paths = [paths]
-    for path in paths:
-        path = os.path.abspath(path)
-        if path not in sys.path:
-            if verbose:
-                print 'Adding %s to path' % path
-            sys.path.insert(0, path)
             
 def help():
     program = sys.argv[0]
@@ -177,10 +149,6 @@ def make_app(conf):
         framework_name,
         '_framework')
     app = framework.build_application(conf)
-    if conf.get('lint'):
-        import lint
-        app = lint.middleware(app)
-    app = config_middleware(app, conf)
     return app
 
 def restart_with_reloader(conf):

@@ -139,88 +139,23 @@ class Config(UserDict.DictMixin):
             self.namespaces.insert(default, d)
         else:
             self.namespaces.insert(0, d)
-    
-    def load_commandline(self, items, bool_options, aliases={}, default=False):
-        """
-        Loads options from the command line.  bool_options take no arguments,
-        everything else is supposed to take arguments.  aliases is a mapping
-        of arguments to other arguments.  All -'s are turned to _, like
-        --config-file=... becomes config_file.  Any extra arguments are
-        returned as a list.
-        """
-        options = {}
-        args = []
-        while items:
-            if items[0] == '--':
-                args.extend(items[1:])
-                break
-            elif items[0].startswith('--'):
-                name = items[0][2:]
-                value = None
-                if '=' in name:
-                    name, value = name.split('=', 1)
-                name = aliases.get(name, name)
-                if (name in bool_options
-                    or name.replace('-', '_') in bool_options):
-                    if value is not None:
-                        raise BadCommandLine(
-                            "%s does not take any arguments"
-                            % items[0])
-                    options[name] = True
-                    items.pop(0)
-                    continue
-                if value is None:
-                    if len(items) <= 1:
-                        raise BadCommandLine(
-                            "%s takes an argument, but no argument given"
-                            % items[0])
-                    value = items[1]
-                    items.pop(0)
-                items.pop(0)
-                value = self.convert_commandline(value)
-                options[name] = value
-            elif items[0].startswith('-'):
-                orig = items[0]
-                name = items[0][1:]
-                items.pop(0)
-                if '=' in name:
-                    raise BadCommandLine(
-                        "Single-character options may not have arguments (%r)"
-                        % orig)
-                for i in range(len(name)):
-                    op_name = aliases.get(name[i], name[i])
-                    if op_name in bool_options:
-                        options[op_name] = True
-                    else:
-                        if i != len(name)-1:
-                            raise BadCommandLine(
-                                "-%s takes an argument, it cannot be followed "
-                                "by other options (in %s)"
-                                % (name[i], orig))
-                        if not items:
-                            raise BadCommandLine(
-                                "-%s takes an argument, but no argument given"
-                                % name[i])
-                        value = self.convert_commandline(items[0])
-                        items.pop(0)
-                        options[op_name] = value
-                        break
-            else:
-                args.append(items[0])
-                items.pop(0)
-        for key in options.keys():
-            options[key.replace('-', '_')] = options[key]
-        self.load_dict(options, default)
+
+    def load_commandline(self, *args, **kw):
+        options, args = parse_commandline(*args, **kw)
+        self.load_dict(options)
         return args
 
-    def convert_commandline(self, value):
-        try:
-            return int(value)
-        except ValueError:
-            pass
-        return value
+    def update_sys_path(self):
+        update_sys_path(self.get('sys_path'), self.get('verbose'))
 
-def setup_config(filename, add_config=None):
+def setup_config(filename, add_config=None, conf=None):
+    """
+    Load the configuration with all default configs also applied,
+    and, apply sys_path.
+
+    If add_config is given, this configuration (a dictionary or
+    filename) is loaded before the filename is loaded.
+    """
     conf = Config(with_default=True)
     if add_config:
         if isinstance(add_config, (str, unicode)):
@@ -235,6 +170,8 @@ def setup_config(filename, add_config=None):
     return conf
 
 def update_sys_path(paths, verbose):
+    if paths is None:
+        return
     if isinstance(paths, (str, unicode)):
         paths = [paths]
     for path in paths:
@@ -243,7 +180,97 @@ def update_sys_path(paths, verbose):
             if verbose:
                 print 'Adding %s to path' % path
             sys.path.insert(0, path)
-        
+    
+def parse_commandline(items, bool_options, aliases={}, default=False):
+    """
+    Parses options from the command line.  bool_options take no
+    arguments, everything else is supposed to take arguments.  aliases
+    is a mapping of arguments to other arguments.  All -'s are turned
+    to _, like --config-file=... becomes config_file.  Any extra
+    arguments are returned as a list.
+    """
+    options = {}
+    args = []
+    while items:
+        if items[0] == '--':
+            args.extend(items[1:])
+            break
+        elif items[0].startswith('--'):
+            name = items[0][2:]
+            value = None
+            if '=' in name:
+                name, value = name.split('=', 1)
+            name = aliases.get(name, name)
+            if (name in bool_options
+                or name.replace('-', '_') in bool_options):
+                if value is not None:
+                    raise BadCommandLine(
+                        "%s does not take any arguments"
+                        % items[0])
+                # For things like -vv (extra verbose)
+                if options.get(name):
+                    options[name] += 1
+                else:
+                    options[name] = True
+                items.pop(0)
+                continue
+            if value is None:
+                if len(items) <= 1:
+                    raise BadCommandLine(
+                        "%s takes an argument, but no argument given"
+                        % items[0])
+                value = items[1]
+                items.pop(0)
+            items.pop(0)
+            value = convert_commandline(value)
+            options[name] = value
+        elif items[0].startswith('-'):
+            orig = items[0]
+            name = items[0][1:]
+            items.pop(0)
+            if '=' in name:
+                raise BadCommandLine(
+                    "Single-character options may not have arguments (%r)"
+                    % orig)
+            for i in range(len(name)):
+                op_name = aliases.get(name[i], name[i])
+                if op_name in bool_options:
+                    options[op_name] = True
+                else:
+                    if i != len(name)-1:
+                        raise BadCommandLine(
+                            "-%s takes an argument, it cannot be followed "
+                            "by other options (in %s)"
+                            % (name[i], orig))
+                    if not items:
+                        raise BadCommandLine(
+                            "-%s takes an argument, but no argument given"
+                            % name[i])
+                    value = convert_commandline(items[0])
+                    items.pop(0)
+                    options[op_name] = value
+                    break
+        else:
+            args.append(items[0])
+            items.pop(0)
+    for key in options.keys():
+        options[key.replace('-', '_')] = options[key]
+    return options, args
+
+def convert_commandline(value):
+    """
+    Converts command-line strings to Python objects; just converting
+    integer strings to integers now.
+    """
+    # @@: In most cases we should anticipate string options and parse
+    # them appropriately, instead of this conversion which cannot be
+    # context-sensitive
+    try:
+        return int(value)
+    except ValueError:
+        pass
+    return value
+
 class DispatchingConfig(object):
 
     """
