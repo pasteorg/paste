@@ -50,10 +50,7 @@ def load_plugin_module(dir, dir_package, name, name_extension=''):
         module_name = parse_txt_plugin(os.path.join(dir, txt_name))
     else:
         module_name = dir_package + '.' + name + name_extension
-    try:
-        return import_string.import_module(module_name)
-    except ImportError, e:
-        raise PluginNotFound(str(e))
+    return import_string.import_module(module_name)
 
 def parse_txt_plugin(fn):
     f = open(fn)
@@ -67,6 +64,7 @@ def parse_txt_plugin(fn):
                 raise PluginNotFound(
                     "Plugin file %s contains more than one line that "
                     "could be interpreted as a module name" % fn)
+            module_name = line
         if module_name is None:
             raise PluginNotFound(
                 "Plugin file %s does not contain a module name" % fn)

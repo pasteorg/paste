@@ -170,24 +170,18 @@ def help():
     return help_message % {'program': program}
 
 def make_app(conf):
-    if conf.get('publish_dir'):
-        app = wsgiwebkit.webkit(conf['publish_dir'], use_lint=conf.get('lint'))
-    elif conf.get('publish_app'):
-        app = conf['publish_app']
-        if isinstance(app, (str, unicode)):
-            from paste.util import import_string
-            app = import_string.eval_import(app)
-    else:
-        # @@ ianb 2005-03-23: This should be removed sometime
-        if conf.get('webkit_dir'):
-            print 'The webkit_dir configuration variable is no longer supported'
-            print 'Use publish_dir instead'
-        print "You must provide publish_dir or publish_app"
-        sys.exit(2)
-    # @@: we can't do this when we support making multiple applications
-    # with this function:
-    CONFIG.push_process_config(conf)
-    return config_middleware(app, conf)
+    framework_name = conf.get('framework', 'default')
+    framework = plugin.load_plugin_module(
+        os.path.join(os.path.dirname(__file__), 'frameworks'),
+        'paste.frameworks',
+        framework_name,
+        '_framework')
+    app = framework.build_application(conf)
+    if conf.get('lint'):
+        import lint
+        app = lint.middleware(app)
+    app = config_middleware(app, conf)
+    return app
 
 def restart_with_reloader(conf):
     if conf['verbose']:
