@@ -44,10 +44,30 @@ class Fields(UserDict):
         self.data = field_dict
 
     def __getattr__(self, attr):
+        # @@: I don't like this.  Should it give a KeyError?
+        # should it exist at all?
         return self.data.get(attr)
 
     def getlist(self, name):
+        """
+        Return the named item as a list ([] if name not found,
+        [self[name]] if only one field passed in).
+        """
         v = self.data.get(name, [])
         if isinstance(v, list):
             return v
         return [v]
+
+    def itemlist(self):
+        """
+        Return a list of (name, [values...]).  Like .items(),
+        except all values becomes a list (like .getlist()).
+        """
+        items = []
+        for name, value in self.iteritems():
+            if isinstance(value, list):
+                items.append((name, value))
+            else:
+                items.append((name, [value]))
+        return items
+    
