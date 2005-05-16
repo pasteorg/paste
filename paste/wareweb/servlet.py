@@ -48,6 +48,8 @@ class Servlet(object):
         self.cookies_out = {}
         self.request_method = environ['REQUEST_METHOD'].upper()
         self.app_url = self.environ.get('%s.base_url' % self.app_name, '')
+        self.app_static_url = self.config.get(
+            'static_url', self.app_url + '/static')
         self.path_info = self.environ.get('PATH_INFO', '')
         if self.path_info:
             self.path_parts = filter(None, self.path_info[1:].split('/'))
@@ -115,6 +117,10 @@ class Servlet(object):
 
     def title__get(self):
         return self.__class__.__name__
+
+    def title__set(self, value):
+        # Get rid of the property:
+        self.__dict__['title'] = value
 
     def set_cookie(self, cookie_name, value, path='/',
                    expires='ONCLOSE', secure=False):
