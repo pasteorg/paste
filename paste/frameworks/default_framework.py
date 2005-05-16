@@ -1,7 +1,7 @@
 def build_application(conf):
     if conf.get('publish_dir'):
-        from paste.webkit import wsgiwebkit
-        app = wsgiwebkit.webkit(conf['publish_dir'], use_lint=conf.get('lint'))
+        from paste.webkit import conf_setup
+        app = conf_setup.build_application(conf)
     elif conf.get('publish_app'):
         app = conf['publish_app']
         if isinstance(app, (str, unicode)):
