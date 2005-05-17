@@ -31,6 +31,15 @@ http://svn.w4py.org/Paste/trunk/examples/todo_sql/
 Setting up the files
 ====================
 
+First, get the latest version of Paste with::
+
+    svn co http://svn.pythonpaste.org/Paste/trunk Paste
+    cd Paste
+    python build-pkg.py
+
+That last line downloads a lot of dependencies and installs them
+locally to Paste.
+
 .. note::
 
     We're doing all this in the Python interpreter, even though you'd normally do
