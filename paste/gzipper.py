@@ -5,7 +5,6 @@ Gzip-encodes the response.
 """
 
 import gzip
-from cStringIO import StringIO
 import wsgilib
 
 class GzipOutput(object):

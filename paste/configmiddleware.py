@@ -1,4 +1,3 @@
-from paste.util import threadinglocal
 from paste import CONFIG
 from paste import wsgilib
 

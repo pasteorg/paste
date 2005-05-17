@@ -118,10 +118,10 @@ def construct_url(environ, with_query_string=True, with_path_info=True):
 
     if environ['wsgi.url_scheme'] == 'https':
         if environ['SERVER_PORT'] != '443':
-           url += ':' + environ['SERVER_PORT']
+            url += ':' + environ['SERVER_PORT']
     else:
         if environ['SERVER_PORT'] != '80':
-           url += ':' + environ['SERVER_PORT']
+            url += ':' + environ['SERVER_PORT']
 
     url += environ.get('SCRIPT_NAME','')
     if with_path_info:
@@ -197,8 +197,8 @@ def send_file(filename):
 
 class _FileIter:
 
-    def __init__(self, file, blocksize=4096):
-        self.file = file
+    def __init__(self, fp, blocksize=4096):
+        self.file = fp
         self.blocksize = blocksize
 
     def __iter__(self):
@@ -223,7 +223,7 @@ def has_header(headers, name):
             return True
     return False
 
-def header_value(headers, name, collapse=False):
+def header_value(headers, name):
     """
     Returns the header's value, or None if no such header.  If a
     header appears more than once, all the values of the headers

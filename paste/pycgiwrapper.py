@@ -66,7 +66,7 @@ class CGIWrapper(object):
         else:
             del message['status']
         headers = message.items()
-        writer = start_response(status, headers)
+        start_response(status, headers)
         return [body]
 
     suffix_info = [t for t in imp.get_suffixes() if t[0] == '.py'][0]
@@ -74,8 +74,8 @@ class CGIWrapper(object):
     def run_script(self):
         f = open(self.cgi_filename, self.suffix_info[1])
         try:
-            mod = imp.load_module('__main__', f, self.cgi_filename,
-                                  self.suffix_info)
+            imp.load_module('__main__', f, self.cgi_filename,
+                            self.suffix_info)
         except SystemExit:
             pass
         f.close()
@@ -144,7 +144,8 @@ _real_FieldStorage = cgi.FieldStorage
 class FieldStorageWrapper(_real_FieldStorage):
 
     def __init__(self, fp=None, headers=None, outerboundary="",
-                 environ=os.environ, keep_blank_values=0, strict_parsing=0):
+                 environ=os.environ, keep_blank_values=0,
+                 strict_parsing=0):
         if fp is None:
             # @@: Should I look for sys.stdin too?
             # Or should I be replacing sys.stdin entirely?

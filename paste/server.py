@@ -50,7 +50,6 @@ if os.path.dirname(here) != paste_path:
         'out of %s\n' % (here, paste_path))
 
 from paste import reloader
-from paste import wsgilib
 from paste import CONFIG
 from paste.util import plugin
 from paste import pyconfig

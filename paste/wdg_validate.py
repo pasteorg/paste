@@ -27,10 +27,12 @@ class WDGValidateMiddleware(object):
     def __call__(self, environ, start_response):
         output = StringIO()
         response = []
+
         def writer_start_response(status, headers, exc_info=None):
             response.extend((status, headers))
             start_response(status, headers, exc_info)
             return output.write
+
         app_iter = self.app(environ, writer_start_response)
         try:
             for s in app_iter:
@@ -51,7 +53,13 @@ class WDGValidateMiddleware(object):
             ops.append('--xml')
         # @@: Should capture encoding too
         conf = environ['paste.config']
-        wdg_path = conf.get('wdg_path', 'validate')
+        html_errors = self.call_wdg_validate(
+            conf.get('wdg_path', 'validate'), ops, page)
+        if not html_errors:
+            return [page]
+        return self.add_error(page, html_errors)
+    
+    def call_wdg_validate(self, wdg_path, ops, page):
         proc = subprocess.Popen([wdg_path] + ops,
                                 shell=False,
                                 close_fds=True,
@@ -60,16 +68,16 @@ class WDGValidateMiddleware(object):
                                 stderr=subprocess.STDOUT)
         stdout = proc.communicate(page)[0]
         proc.wait()
-        if not stdout:
-            return [page]
-        add_text = '<pre style="background-color: #ffd; color: #600; border: 1px solid #000;">%s</pre>' % cgi.escape(stdout)
-        match = self._end_body_regex.search(page)
-        if match:
-            page = page[:match.start()] + add_text + page[match.end():]
-        else:
-            page += add_text
-        return [page]
-    
-                                
+        return stdout
             
-        
+    def add_error(self, html_page, html_errors):
+        add_text = ('<pre style="background-color: #ffd; color: #600; '
+                    'border: 1px solid #000;">%s</pre>'
+                    % cgi.escape(html_errors))
+        match = self._end_body_regex.search(html_page)
+        if match:
+            return [html_page[:match.start()]
+                    + add_text
+                    + html_page[match.end():]]
+        else:
+            return [html_page + add_text]

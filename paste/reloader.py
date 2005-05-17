@@ -63,7 +63,7 @@ class Monitor:
 
     def check_reload(self):
         filenames = self.extra_files[:]
-        for name, module in sys.modules.items():
+        for module in sys.modules.values():
             try:
                 filenames.append(module.__file__)
             except AttributeError:
@@ -95,22 +95,3 @@ class Monitor:
     watch_file = classinstancemethod(watch_file)
 
 watch_file = Monitor.watch_file
-
-def awake_select(addrs):
-    """
-    When using socket.select(), processes will not quit.  By connecting
-    to the addresses locally we move the code out of the select, where
-    it can terminate properly.
-
-    (For now, KeyboardInterrupt seems to terminate these selects
-    properly)
-    """
-    
-    for addr in addrs:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            sock.connect(addr)
-            sock.close()
-        except:
-            pass
-        

@@ -65,8 +65,8 @@ class PrintCatcher(filemixin.FileMixin):
 
     def __init__(self, default=None, factory=None, paramwriter=None):
         assert len(filter(lambda x: x is not None,
-                          [default, factory, paramwriter])) <= 1, \
-                          "You can only provide one of default, factory, or paramwriter"
+                          [default, factory, paramwriter])) <= 1, (
+            "You can only provide one of default, factory, or paramwriter")
         if default:
             self._defaultfunc = self._writedefault
         elif factory:
@@ -99,7 +99,9 @@ class PrintCatcher(filemixin.FileMixin):
         self._paramwriter(name, v)
 
     def _writeerror(self, name, v):
-        assert 0, "There is no PrintCatcher output stream for the thread %r" % name
+        assert False, (
+            "There is no PrintCatcher output stream for the thread %r"
+            % name)
 
     def register(self, catcher, name=None,
                  currentThread=threading.currentThread):
@@ -111,7 +113,8 @@ class PrintCatcher(filemixin.FileMixin):
                    currentThread=threading.currentThread):
         if name is None:
             name = currentThread().getName()
-        assert self._catchers.has_key(name), "There is no PrintCatcher catcher for the thread %r" % name
+        assert self._catchers.has_key(name), (
+            "There is no PrintCatcher catcher for the thread %r" % name)
         del self._catchers[name]
 
 _printcatcher = None
@@ -134,7 +137,9 @@ def uninstall():
         deregister = not_installed_error
 
 def not_installed_error(*args, **kw):
-    assert 0, "threadedprint has not yet been installed (call threadedprint.install())"
+    assert False, (
+        "threadedprint has not yet been installed (call "
+        "threadedprint.install())")
 
 register = deregister = not_installed_error
 
@@ -142,8 +147,8 @@ class StdinCatcher(filemixin.FileMixin):
 
     def __init__(self, default=None, factory=None, paramwriter=None):
         assert len(filter(lambda x: x is not None,
-                          [default, factory, paramwriter])) <= 1, \
-                          "You can only provide one of default, factory, or paramwriter"
+                          [default, factory, paramwriter])) <= 1, (
+            "You can only provide one of default, factory, or paramwriter")
         if default:
             self._defaultfunc = self._readdefault
         elif factory:
@@ -161,7 +166,7 @@ class StdinCatcher(filemixin.FileMixin):
         name = currentThread().getName()
         catchers = self._catchers
         if not catchers.has_key(name):
-            self._defaultfunc(name, v, size)
+            self._defaultfunc(name, size)
         else:
             catcher = catchers[name]
             catcher.read(size)
@@ -176,7 +181,9 @@ class StdinCatcher(filemixin.FileMixin):
         self._paramreader(name, size)
 
     def _readerror(self, name, size):
-        assert 0, "There is no StdinCatcher output stream for the thread %r" % name
+        assert False, (
+            "There is no StdinCatcher output stream for the thread %r"
+            % name)
 
     def register(self, catcher, name=None,
                  currentThread=threading.currentThread):
@@ -188,7 +195,8 @@ class StdinCatcher(filemixin.FileMixin):
                    currentThread=threading.currentThread):
         if name is None:
             name = currentThread().getName()
-        assert self._catchers.has_key(name), "There is no StdinCatcher catcher for the thread %r" % name
+        assert self._catchers.has_key(name), (
+            "There is no StdinCatcher catcher for the thread %r" % name)
         del self._catchers[name]
 
 _stdincatcher = None
@@ -210,4 +218,6 @@ def uninstall():
         register_stdin = deregister_stdin = not_installed_error_stdin
 
 def not_installed_error_stdin(*args, **kw):
-    assert 0, "threadedprint has not yet been installed for stdin (call threadedprint.install_stdin())"
+    assert False, (
+        "threadedprint has not yet been installed for stdin (call "
+        "threadedprint.install_stdin())")

@@ -73,26 +73,25 @@ class ErrorMiddleware(object):
                 start_response('500 Internal Server Error',
                                [('content-type', 'text/html')])
             # @@: it would be nice to deal with bad content types here
-            dummy_file = StringIO()
             response = self.exception_handler(sys.exc_info(), environ)
             return [response]
 
-    def catching_iter(self, iter, environ):
+    def catching_iter(self, app_iter, environ):
         __traceback_supplement__ = Supplement, self, environ
-        if not iter:
+        if not app_iter:
             raise StopIteration
         error_on_close = False
         try:
-            for v in iter:
+            for v in app_iter:
                 yield v
-            if hasattr(iter, 'close'):
+            if hasattr(app_iter, 'close'):
                 error_on_close = True
-                iter.close()
+                app_iter.close()
         except:
             response = self.exception_handler(sys.exc_info(), environ)
-            if not error_on_close and hasattr(iter, 'close'):
+            if not error_on_close and hasattr(app_iter, 'close'):
                 try:
-                    iter.close()
+                    app_iter.close()
                 except:
                     close_response = self.exception_handler(
                         sys.exc_info(), environ)
@@ -200,9 +199,9 @@ def handle_exception(exc_info, conf, error_stream, html=True):
         error_stream.write(extra_data)
     return return_error
 
-def send_report(reporter, exc_data, html=True):
+def send_report(rep, exc_data, html=True):
     try:
-        reporter.report(exc_data)
+        rep.report(exc_data)
     except:
         output = StringIO()
         traceback.print_exc(file=output)
@@ -212,11 +211,11 @@ def send_report(reporter, exc_data, html=True):
 
             <pre>%s</pre>
             </p>""" % (
-                cgi.escape(str(reporter)), output.getvalue())
+                cgi.escape(str(rep)), output.getvalue())
         else:
             return (
                 "Additionally an error occurred while sending the "
-                "%s report:\n%s" % (str(reporter), output.getvalue()))
+                "%s report:\n%s" % (str(rep), output.getvalue()))
     else:
         return ''
 

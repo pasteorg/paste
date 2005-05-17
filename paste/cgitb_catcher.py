@@ -9,7 +9,6 @@ documentation for more:
 import cgitb
 from cStringIO import StringIO
 import sys
-import traceback
 
 class DummyFile(object):
     pass
@@ -24,7 +23,7 @@ def middleware(application, **kw):
             return started[0]
         
         try:
-            app_iter = application(environ, start_response)
+            app_iter = application(environ, detect_start_response)
             return catching_iter(app_iter)
         except:
             if not started:
@@ -40,12 +39,12 @@ def middleware(application, **kw):
             hook(*sys.exc_info())
             return [dummy_file.getvalue()]
 
-    def catching_iter(iter):
-        if not iter:
+    def catching_iter(app_iter):
+        if not app_iter:
             raise StopIteration
         try:
-            for v in iter:
-                yield iter
+            for v in app_iter:
+                yield v
         except:
             exc = sys.exc_info()
             dummy_file = StringIO()
