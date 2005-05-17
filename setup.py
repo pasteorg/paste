@@ -69,7 +69,7 @@ functionality.
                 "paste.wareweb"],
       scripts=['scripts/paste-server', 'scripts/paste-setup'],
       download_url="",
-      data_files=get_data_files(os.path.join("paste","app_templates")) +
+      data_files=get_data_files(os.path.join("paste","app_templates")) + get_data_files(os.path.join("paste", "frameworks")) + 
           [(os.path.join(sysconfig.get_python_lib()[len(sysconfig.PREFIX) + 1:], "paste"), [os.path.join("paste", "default_config.conf")])]
       )
 
