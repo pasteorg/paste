@@ -105,7 +105,7 @@ def interactive(*args, **kw):
     full.write(content)
     return full.getvalue()
 
-def construct_url(environ, with_query_string=True):
+def construct_url(environ, with_query_string=True, with_path_info=True):
     """
     Reconstructs the URL from the WSGI environment.
     """
@@ -124,7 +124,8 @@ def construct_url(environ, with_query_string=True):
            url += ':' + environ['SERVER_PORT']
 
     url += environ.get('SCRIPT_NAME','')
-    url += environ.get('PATH_INFO','')
+    if with_path_info:
+        url += environ.get('PATH_INFO','')
     if with_query_string:
         if environ.get('QUERY_STRING'):
             url += '?' + environ['QUERY_STRING']
