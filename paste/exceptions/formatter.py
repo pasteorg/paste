@@ -209,15 +209,19 @@ class HTMLFormatter(TextFormatter):
         for name in 'normal', 'supplemental':
             lines.extend([value for n, value in data_by_importance[name]])
         if data_by_importance['extra']:
+            #lines.append(
+            #    hide_display_js +
+            #    '<a href="#extra_data" '
+            #    'onclick="javascript:hide_display(\'extra_data\')" '
+            #    'class="button">show extra data</a><br>'
+            #    '<div id="extra_data" class="hidden-data">')
             lines.append(
-                hide_display_js +
-                '<a href="#extra_data" '
-                'onclick="javascript:hide_display(\'extra_data\')" '
-                'class="button">show extra data</a><br>'
-                '<div id="extra_data" style="display: none">')
+                '<script type="text/javascript">\nshow_button(\'extra_data\');\n</script>\n' +
+                '<div id="extra_data" class="hidden-data">\n')
             lines.extend([value for n, value in data_by_importance['extra']])
             lines.append('</div>')
-        return self.format_combine_lines(lines)
+        text = self.format_combine_lines(lines)
+        return error_css + hide_display_js + text
 
     def zebra_table(self, title, rows, table_class="variables"):
         if isinstance(rows, dict):
@@ -258,20 +262,61 @@ class HTMLFormatter(TextFormatter):
                 new_words.append(word)
         return ' '.join(new_words)
 
-hide_display_js = '''\
+hide_display_js = r'''
 <script type="text/javascript">
 function hide_display(id) {
   var el = document.getElementById(id);
-  if (el.style.display == "none") {
-    el.style.display = "";
+  if (el.className == "hidden-data") {
+    el.className = "";
     return true;
   } else {
-    el.style.display = "none";
+    el.className = "hidden-data";
     return false;
   }
 }
+document.write('<style type="text/css">\n');
+document.write('.hidden-data {display: none}\n');
+document.write('</style>\n');
+function show_button(toggle_id) {
+  document.write('<a href="#' + toggle_id
+      + '" onclick="javascript:hide_display(\'' + toggle_id
+      + '\')" class="button">show extra data</a><br>');
+}
 </script>'''
     
+
+error_css = """
+<style type="text/css">
+table {
+  width: 100%;
+}
+
+tr.header {
+  background-color: #006;
+  color: #fff;
+}
+
+tr.even {
+  background-color: #ddd;
+}
+
+table.variables td {
+  verticle-align: top;
+  overflow: auto;
+}
+
+a.button {
+  background-color: #ccc;
+  border: 2px outset #aaa;
+  color: #000;
+  text-decoration: none;
+}
+
+a.button:hover {
+  background-color: #ddd;
+}
+</style>
+"""
 
 def format_html(exc_data, **ops):
     return HTMLFormatter(**ops).format_collected_data(exc_data)

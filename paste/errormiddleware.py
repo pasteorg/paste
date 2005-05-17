@@ -223,7 +223,6 @@ def error_template(exception, extra):
     return '''
     <html>
     <head>
-    <style type="text/css">%s</style>
     <title>Server Error</title>
     </head>
     <body>
@@ -231,35 +230,4 @@ def error_template(exception, extra):
     %s
     %s
     </body>
-    </html>''' % (css, exception, extra)
-
-css = """
-table {
-  width: 100%;
-}
-
-tr.header {
-  background-color: #006;
-  color: #fff;
-}
-
-tr.even {
-  background-color: #ddd;
-}
-
-table.variables td {
-  verticle-align: top;
-  overflow: auto;
-}
-
-a.button {
-  background-color: #ccc;
-  border: 2px outset #aaa;
-  color: #000;
-  text-decoration: none;
-}
-
-a.button:hover {
-  background-color: #ddd;
-}
-"""
+    </html>''' % (exception, extra)
