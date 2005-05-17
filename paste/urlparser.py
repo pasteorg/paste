@@ -175,7 +175,8 @@ class URLParser(object):
             environ,
             status,
             '''
-            <p>The resource has moved to <a href="%s">%s</a>.  You should be redirected automatically.</p>''' % (url, url))
+            <p>The resource has moved to <a href="%s">%s</a>.  You
+            should be redirected automatically.</p>''' % (url, url))
         start_response(status, headers + [('Location', url)])
         return [body]
 

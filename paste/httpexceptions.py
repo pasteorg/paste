@@ -218,7 +218,7 @@ def middleware(application):
             return start_response(status, headers, exc_info)
         
         try:
-            return application(environ, start_response)
+            return application(environ, checked_start_response)
         except HTTPException, e:
             if app_started:
                 # They've already started the response, so we can't

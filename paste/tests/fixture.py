@@ -5,14 +5,13 @@ import mimetypes
 import time
 import cgi
 import os
-import warnings
 import webbrowser
+import smtplib
 from Cookie import SimpleCookie
 try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-import types
 import re
 #from py.test.collect import Module, PyCollector
 from paste.util import thirdparty
@@ -225,7 +224,8 @@ class FakeFile(object):
     def open(self, mode):
         if mode == 'r' or mode == 'rb':
             if self.content is None:
-                raise IOError("[FakeFS] No such file or directory: %r" % filename)
+                raise IOError("[FakeFS] No such file or directory: %r"
+                              % self.filename)
             return ReaderFile(self)
         elif mode == 'w' or mode == 'wb':
             return WriterFile(self)
@@ -234,8 +234,8 @@ class FakeFile(object):
 
 class ReaderFile(object):
 
-    def __init__(self, file):
-        self.file = file
+    def __init__(self, fp):
+        self.file = fp
         self.stream = StringIO(self.file.content)
         self.open = True
 
@@ -249,8 +249,8 @@ class ReaderFile(object):
 
 class WriterFile(object):
 
-    def __init__(self, file):
-        self.file = file
+    def __init__(self, fp):
+        self.file = fp
         self.stream = StringIO()
         self.open = True
 
@@ -317,6 +317,8 @@ class TestApp(object):
         environ['CONTENT_LENGTH'] = str(len(params))
         environ['REQUEST_METHOD'] = 'POST'
         environ['wsgi.input'] = StringIO(params)
+        for header, value in headers.items():
+            environ['HTTP_%s' % header.replace('-', '_').upper()] = value
         req = TestRequest(url, environ)
         return self.do_request(req, status=status)
             
@@ -353,8 +355,9 @@ class TestApp(object):
         if len(file_info) == 2:
             # It only has a filename
             filename = file_info[2]
-            if self.conf.get('test_file_path'):
-                filename = os.path.join(self.conf['test_file_path'], filename)
+            if self.config.get('test_file_path'):
+                filename = os.path.join(self.config['test_file_path'],
+                                        filename)
             f = open(filename, 'rb')
             content = f.read()
             f.close()

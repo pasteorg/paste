@@ -49,7 +49,8 @@ def find_template_info(args):
     except ImportError, e:
         raise InvalidCommand(
             'No template exists by the name %r (%s)' % (template_name, e))
-    return (server_conf_fn, template_name, os.path.dirname(template_mod.__file__), template_mod)
+    return (server_conf_fn, template_name,
+            os.path.dirname(template_mod.__file__), template_mod)
 
 def find_template_option(args):
     copy = args[:]
@@ -102,6 +103,7 @@ class CommandRunner(object):
         self.commands = {}
         self.command_aliases = {}
         self.register_standard_commands()
+        self.server_conf_fn = None
 
     def run(self, argv, template_name, template_dir, template_module,
             server_conf_fn):
@@ -259,9 +261,11 @@ class CommandList(Command):
             if self.args and not fnmatch.fnmatch(name, self.args[0]):
                 continue
             if not self.options.verbose:
-                print '%s: %s\n' % (name, self.template_description().splitlines()[0])
+                print '%s: %s\n' % (
+                    name, self.template_description().splitlines()[0])
             else:
-                return '%s: %s\n' % (self.name, self.template_description())
+                return '%s: %s\n' % (
+                    self.name, self.template_description())
             # @@: for verbosity >= 2 we should give lots of metadata
             any = True
         if not any:
@@ -346,8 +350,8 @@ class CommandCreate(Command):
         template_options['absolute_parent'] = os.path.dirname(
             os.path.abspath(output_dir))
         template_options['template_name'] = self.template_name
-        self.copy_dir(file_dir, output_dir, template_options, self.options.verbose,
-                      self.options.simulate)
+        self.copy_dir(file_dir, output_dir, template_options,
+                      self.options.verbose, self.options.simulate)
 
     def copy_dir(self, *args, **kw):
         copy_dir(*args, **kw)

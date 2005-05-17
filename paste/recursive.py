@@ -50,7 +50,9 @@ class Recursive(object):
         environ['paste.recursive.previous_environ'] = self.previous_environ
         base_path = self.original_environ.get('SCRIPT_NAME')
         if path.startswith('/'):
-            assert path.startswith(base_path), "You can only forward requests to resources under the path %r (not %r)" % (base_path, path)
+            assert path.startswith(base_path), (
+                "You can only forward requests to resources under the "
+                "path %r (not %r)" % (base_path, path))
             path = path[len(base_path)+1:]
         assert not path.startswith('/')
         path_info = '/' + path
@@ -66,13 +68,11 @@ class Recursive(object):
 class Forwarder(Recursive):
 
     def activate(self, environ):
-        environ['wsgi.errors'].write('Forwarding to %r\n' % (environ['SCRIPT_NAME'] + environ['PATH_INFO']))
         return self.application(environ, self.start_response)
 
 class Includer(Recursive):
     
     def activate(self, environ):
-        environ['wsgi.errors'].write('Including %r\n' % (environ['SCRIPT_NAME'] + environ['PATH_INFO']))
         response = IncludedResponse
         def start_response(status, headers, exc_info=None):
             if exc_info:
@@ -104,7 +104,9 @@ class IncludedResponse(object):
         self.output = None
 
     def write(self):
-        assert self.output is not None, "This response has already been closed and no further data can be written."
+        assert self.output is not None, (
+            "This response has already been closed and no further data "
+            "can be written.")
         self.output.write()
 
     def __str__(self):

@@ -141,8 +141,13 @@ class Config(UserDict.DictMixin):
             self.namespaces.insert(0, d)
 
     def load_commandline(self, *args, **kw):
+        if 'default' in kw:
+            default = kw['default']
+            del kw['default']
+        else:
+            default = False
         options, args = parse_commandline(*args, **kw)
-        self.load_dict(options)
+        self.load_dict(options, default=default)
         return args
 
     def update_sys_path(self):
@@ -181,7 +186,7 @@ def update_sys_path(paths, verbose):
                 print 'Adding %s to path' % path
             sys.path.insert(0, path)
     
-def parse_commandline(items, bool_options, aliases={}, default=False):
+def parse_commandline(items, bool_options, aliases={}):
     """
     Parses options from the command line.  bool_options take no
     arguments, everything else is supposed to take arguments.  aliases
@@ -268,8 +273,7 @@ def convert_commandline(value):
     try:
         return int(value)
     except ValueError:
-        pass
-    return value
+        return value
 
 class DispatchingConfig(object):
 
@@ -342,7 +346,7 @@ class DispatchingConfig(object):
         self._process_configs.append(conf)
 
     def pop_process_config(self, conf=None):
-        self._pop_from(self._process_config, conf)
+        self._pop_from(self._process_configs, conf)
             
     def __getattr__(self, attr):
         conf = self.current_conf()
