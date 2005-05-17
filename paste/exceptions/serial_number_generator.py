@@ -7,7 +7,7 @@ to create compact representations that are unique for a certain string
 
 import md5
 
-good_characters = "023456789abcdefghjkmnpqrtuvwxyz"
+good_characters = "23456789abcdefghjkmnpqrtuvwxyz"
 
 base = len(good_characters)
 
