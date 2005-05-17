@@ -28,6 +28,12 @@ http://svn.w4py.org/Paste/trunk/examples/todo_sql/
 .. _SQLObject: http://sqlobject.org
 .. _Zope Page Templates: http://www.zope.org/DevHome/Wikis/DevSite/Projects/ZPT/FrontPage
 
+If you have questions about this tutorial, please contact the `paste
+mailing list <http://pythonpaste.org/mailman/listinfo/paste-users>`_
+or try IRC (``#webware`` on freenode.net).  If there's something that
+confused you and you want to give feedback, please `submit an issue
+<http://pythonpaste.org/trac/newticket?component=documentation>`_.
+
 Setting up the files
 ====================
 
