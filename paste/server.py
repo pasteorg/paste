@@ -102,6 +102,7 @@ def run_commandline(args):
     conf, app = load_commandline(args)
     if conf is None:
         return app
+    CONFIG.push_process_config(conf)
     return run_server(conf, app)
 
 def run_server(conf, app):
