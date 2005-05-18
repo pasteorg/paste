@@ -7,9 +7,12 @@ def serve(conf, app):
     return serve_server(conf, app, WSGIServer)
 
 def serve_server(conf, app, server_class):
+    root_url = conf.get('root_url', '')
+    while root_url.endswith('/'):
+        root_url = root_url[:-1]
     server = server_class(
         app,
-        scriptName=conf.get('root_url', ''),
+        scriptName=root_url,
         bindAddress=(conf.get('host', 'localhost'),
                      int(conf.get('port', 8009))),
         allowedServers=pyconfig.make_list(conf.get('allowed_servers', None)))
