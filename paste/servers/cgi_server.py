@@ -18,7 +18,7 @@ def serve(conf, app):
     replacements['other_conf'] = other_conf
 
     template_fn = os.path.join(os.path.dirname(__file__),
-                               'server_script_template.py')
+                               'server_script_template.py.txt')
     template = open(template_fn).read()
     for name, value in replacements.items():
         template = template.replace('@@' + name + '@@', repr(value))
