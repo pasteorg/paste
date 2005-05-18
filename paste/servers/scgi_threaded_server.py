@@ -19,7 +19,7 @@ options = [
     ('host', 'The host name to bind to (default localhost).  Note, if binding to localhost, only local connections will be allowed.'),
     ('port', 'The port to bind to (default 4000).'),
     ('root_url', 'The URL level to expect for incoming connections; if not set and this is not bound to /, then SCRIPT_NAME and PATH_INFO may be incorrect.'),
-    ('allow_servers', 'A list of servers to allow connections from.'),
+    ('allowed_servers', 'A list of servers to allow connections from.'),
     ]
 
 description = """\
