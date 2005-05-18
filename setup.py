@@ -71,6 +71,7 @@ functionality.
                 "paste.webkit.FakeWebware.WebKit",
                 "paste.webkit.FakeWebware.WebUtils",
                 "paste.webkit.FakeWebware.MiscUtils",
+                "paste.webkit.FakeWebware.TaskKit",
                 "paste.servers",
                 "paste.servers.scgi_server",
                 "paste.wareweb"],
