@@ -3,9 +3,7 @@ thirdparty.add_package('scgi')
 from scgiserver import serve_application
 
 def serve(conf, app):
-    prefix = conf.get('root_url', '')
-    while prefix.endswith('/'):
-        prefix = prefix[:-1]
+    prefix = conf.get('root_url', '').rstrip('/')
     serve_application(app, prefix, port=int(conf.get('port', 4000)))
 
 options = [
