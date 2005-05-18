@@ -1,4 +1,5 @@
 import os
+from optparse import Option
 from paste.util import thirdparty
 thirdparty.add_package('flup')
 from paste import pyconfig
@@ -26,10 +27,18 @@ def serve_server(conf, app, server_class):
     return server.run()
 
 options = [
-    ('socket', 'The filename of a socket to listen to for connections.  Default is fcgi_sock in the current directory.'),
-    ('host', 'The host to bind to when listening for connections over the network.  You must also provide port if you provide host.'),
-    ('port', 'The port to bind to.'),
-    ('multiplex', 'Option to multiplex connections (default: false).'),
+    Option('--socket',
+           metavar="FILENAME",
+           help='The filename of a socket to listen to for connections.  Default is fcgi_sock in the current directory.'),
+    Option('--host',
+           metavar="HOST",
+           help='The host to bind to when listening for connections over the network.  You must also provide port if you provide host.'),
+    Option('--port',
+           metavar="PORT",
+           help='The port to bind to.'),
+    Option('--multiplex',
+           metavar="true/false",
+           help='Option to multiplex connections (default: false).'),
     ]
 
 description = """\

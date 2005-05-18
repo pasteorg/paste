@@ -6,11 +6,15 @@ import os
 import sys
 from cStringIO import StringIO
 import re
+import textwrap
 from paste.util.thirdparty import load_new_module
 string = load_new_module('string', (2, 4))
 
 from paste import pyconfig
 from paste import urlparser
+from paste import server
+from paste import CONFIG
+from paste.util import plugin
 
 class InvalidCommand(Exception):
     pass
@@ -37,18 +41,10 @@ def find_template_info(args):
     else:
         server_conf_fn, template_name = find_template_config(args)
     if not template_name:
-        raise InvalidCommand(
-            'No template given (provide --template=name or run this command '
-            'from a directory containing server.conf)')
-    if not re.search(r'^[a-zA-Z_][a-zA-Z0-9_]*$', template_name):
-        raise InvalidCommand(
-            'The template name %r is invalid; template names can contain only '
-            'letters, numbers, and _.' % template_name)
-    try:
-        template_mod = load_template(template_name)
-    except ImportError, e:
-        raise InvalidCommand(
-            'No template exists by the name %r (%s)' % (template_name, e))
+        template_name = 'default'
+    template_mod = plugin.load_plugin_module(
+        'app_templates', 'paste.app_templates',
+        template_name, '_tmpl')
     return (server_conf_fn, template_name,
             os.path.dirname(template_mod.__file__), template_mod)
 
@@ -58,7 +54,7 @@ def find_template_option(args):
         if copy[0] == '--':
             return None, copy
         if copy[0] == '-t' or copy[0] == '--template':
-            if not copy[1:]:
+            if not copy[1:] or copy[1].startswith('-'):
                 raise InvalidCommand(
                     '%s needs to be followed with a template name' % copy[0])
             return copy[1], copy[2:]
@@ -72,22 +68,10 @@ def find_template_option(args):
 def find_template_config(args):
     conf_fn = os.path.join(os.getcwd(), 'server.conf')
     if not os.path.exists(conf_fn):
-        return None
+        return None, None
     conf = pyconfig.Config(with_default=True)
     conf.load(conf_fn)
     return conf_fn, conf.get('app_template')
-
-def load_template(template_name):
-    base = os.path.join(os.path.dirname(__file__), 'app_templates')
-    full_name = 'paste.app_templates.%s.command' % template_name
-    errors = StringIO()
-    mod = urlparser.load_module_from_name(
-        None, os.path.join(base, template_name, 'command'),
-        full_name, errors)
-    if mod is None:
-        raise InvalidCommand(
-            'Cannot load module: %s' % errors.getvalue())
-    return mod
 
 def run(args):
     try:
@@ -142,6 +126,7 @@ class CommandRunner(object):
         # @@: these commands shouldn't require a template
         self.register(CommandHelp)
         self.register(CommandList)
+        self.register(CommandServe)
 
 ############################################################
 ## Command framework
@@ -193,13 +178,7 @@ class Command(object):
         self.template_module = template_module
 
     def run(self):
-        self.parser.usage = "%%prog [options]\n%s" % self.summary
-        self.parser.prog = '%s %s' % (
-            os.path.basename(self.invoked_as),
-            self.command_name)
-        if self.description:
-            self.parser.description = self.description
-        self.options, self.args = self.parser.parse_args(self.raw_args)
+        self.parse_args(self.raw_args)
         if (getattr(self.options, 'simulate', False)
             and not self.options.verbose):
             self.options.verbose = 1
@@ -216,6 +195,15 @@ class Command(object):
                 self.runner.invalid(
                     'You must provide the option %s' % option_name)
         self.command()
+
+    def parse_args(self, args):
+        self.parser.usage = "%%prog [options]\n%s" % self.summary
+        self.parser.prog = '%s %s' % (
+            os.path.basename(self.invoked_as),
+            self.command_name)
+        if self.description:
+            self.parser.description = self.description
+        self.options, self.args = self.parser.parse_args(args)
 
     def ask(self, prompt, safe=False, default=True):
         if self.options.interactive >= 2:
@@ -276,6 +264,89 @@ class CommandList(Command):
         content = f.read().strip()
         f.close()
         return content
+
+class CommandServe(Command):
+
+    name = 'serve'
+    summary = 'Run server'
+    parser = standard_parser(simulate=False)
+
+    def command(self):
+        sys.exit(server.run_commandline(self.args))
+
+    def parse_args(self, args):
+        # Unlike most commands, this takes arbitrary options and folds
+        # them into the configuration
+        conf, app = server.load_commandline(args)
+        if conf is None:
+            sys.exit(app)
+        if app == 'help':
+            self.help(conf)
+            sys.exit()
+        if conf.get('list_servers'):
+            self.list_servers(conf)
+            sys.exit()
+        CONFIG.push_process_config(conf)
+        sys.exit(server.run_server(conf, app))
+        self.config = conf
+
+    def help(self, config):
+        # Here we make a fake parser just to get the help
+        parser = optparse.OptionParser()
+        group = parser.add_option_group("general options")
+        group.add_options(server.load_commandline_options())
+        extra_help = None
+        if config.get('server'):
+            try:
+                server_mod = server.get_server_mod(config['server'])
+            except plugin.PluginNotFound, e:
+                print "Server %s not found" % config['server']
+                print "  (%s)" % e
+                sys.exit(1)
+            ops = getattr(server_mod, 'options', None)
+            if ops:
+                group = parser.add_option_group(
+                    "%s options" % server_mod.plugin_name,
+                    description=getattr(server_mod, 'description', None))
+                group.add_options(ops)
+            extra_help = getattr(server_mod, 'help', None)
+        parser.print_help()
+        if extra_help:
+            print
+            # @@: textwrap kills any special formatting, so maybe
+            # we just can't use it
+            #print self.fill_text(extra_help)
+            print extra_help
+
+    def list_servers(self, config):
+        server_ops = plugin.find_plugins('servers', '_server')
+        server_ops.sort()
+        print 'These servers are available:'
+        print
+        for server_name in server_ops:
+            self.show_server(server_name)
+
+    def show_server(self, server_name):
+        server_mod = server.get_server_mod(server_name)
+        print '%s:' % server_mod.plugin_name
+        desc = getattr(server_mod, 'description', None)
+        if not desc:
+            print '    No description available'
+        else:
+            print self.fill_text(desc)
+
+    def fill_text(self, text):
+        try:
+            width = int(os.environ['COLUMNS'])
+        except (KeyError, ValueError):
+            width = 80
+        width -= 2
+        return textwrap.fill(
+            text,
+            width,
+            initial_indent=' '*4,
+            subsequent_indent=' '*4)
+        
 
 class CommandHelp(Command):
 
