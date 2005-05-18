@@ -50,7 +50,9 @@ def load_plugin_module(dir, dir_package, name, name_extension=''):
         module_name = parse_txt_plugin(os.path.join(dir, txt_name))
     else:
         module_name = dir_package + '.' + name + name_extension
-    return import_string.import_module(module_name)
+    module = import_string.import_module(module_name)
+    module.plugin_name = name
+    return module
 
 def parse_txt_plugin(fn):
     f = open(fn)
