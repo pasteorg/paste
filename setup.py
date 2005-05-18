@@ -12,22 +12,29 @@ if sys.version < '2.2.3':
 
 import os
 
-BASEDIR = os.path.split(os.path.abspath(__file__))[0]
+BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'paste')
+DATA_PREFIX = sysconfig.get_python_lib(prefix='')
 
-def get_data_files(path, files = []):
-    l = []
-    for name in os.listdir(path):
-        if name[0] == ".":
+
+def get_data_files(relpath, files=None):
+    files = files or []
+    for name in os.listdir(os.path.join(BASEDIR, relpath)):
+        if name.startswith("."):
             continue
-        relpath = os.path.join(path, name)
-        f = os.path.join(BASEDIR, relpath)
-        if os.path.isdir(f):
-            get_data_files(relpath, files)
-        elif os.path.isfile(f):
-            l.append(f)
-    pref = sysconfig.get_python_lib()[len(sysconfig.PREFIX) + 1:] 
-    files.append((os.path.join(pref, path), l)) 
+        fn = os.path.join(relpath, name)
+        if os.path.isdir(os.path.join(BASEDIR, fn)):
+            get_data_files(fn, files)
+        elif os.path.isfile(os.path.join(BASEDIR, fn)):
+            files.append(fn)
     return files
+
+package_data = []
+for subdir in [('app_templates',),
+               ('frameworks',)]:
+    package_data.extend(get_data_files(os.path.join(*subdir)))
+for filename in [('default_config.conf',)]:
+    package_data.append(os.path.join(*filename))
+print package_data
 
 setup(name="Paste",
       version="0.1",
@@ -69,8 +76,7 @@ functionality.
                 "paste.wareweb"],
       scripts=['scripts/paste-server', 'scripts/paste-setup'],
       download_url="",
-      data_files=get_data_files(os.path.join("paste","app_templates")) + get_data_files(os.path.join("paste", "frameworks")) + 
-          [(os.path.join(sysconfig.get_python_lib()[len(sysconfig.PREFIX) + 1:], "paste"), [os.path.join("paste", "default_config.conf")])]
+      package_data={'paste': package_data},
       )
 
 # Send announce to:
