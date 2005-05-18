@@ -1,4 +1,4 @@
-from paste.wareweb import unpack
+from paste.wareweb import packing
 from paste.wareweb import cgifields
 from cStringIO import StringIO
 
@@ -15,7 +15,7 @@ def test_functions():
         yield function_test, a1, a2, a3, a4
 
 def function_test(func, query, expect_args, expect_kw):
-    spec = unpack.FunctionArgSpec(func)
+    spec = packing.FunctionArgSpec(func)
     if '?' in query:
         path_info, query = query.split('?')
     else:
@@ -28,7 +28,7 @@ def function_test(func, query, expect_args, expect_kw):
         'wsgi.input': StringIO()})
     try:
         args, kw = spec.unpack_args(path_parts, fields)
-    except unpack.HTTPBadRequest, e:
+    except packing.HTTPBadRequest, e:
         print fields
         print path_parts
         if not expect_kw and len(expect_args) == 1:
@@ -94,4 +94,10 @@ def t3(arg1_path, arg2_path=None, x=None):
 @unpack_test('a=1&a=2', a_list_int=[1, 2])
 @unpack_test('a=b', "Bad variable 'a': invalid literal for int(): b")
 def t4(a_list_int=[]):
+    pass
+
+@unpack_test('/1/2', '1', 2)
+@unpack_test('/xxx/5', 'xxx', 5)
+@unpack_test('/1/x', 'Not enough parameters on the URL (expected 2 more path segments)')
+def t5(first_path, second_int_path):
     pass
