@@ -1,6 +1,7 @@
 from paste.util import thirdparty
 thirdparty.add_package('flup')
 from paste import pyconfig
+from optparse import Option
 
 def serve(conf, app):
     from flup.server.scgi import WSGIServer
@@ -17,10 +18,18 @@ def serve_server(conf, app, server_class):
     return server.run()
 
 options = [
-    ('host', 'The host name to bind to (default localhost).  Note, if binding to localhost, only local connections will be allowed.'),
-    ('port', 'The port to bind to (default 4000).'),
-    ('root_url', 'The URL level to expect for incoming connections; if not set and this is not bound to /, then SCRIPT_NAME and PATH_INFO may be incorrect.'),
-    ('allowed_servers', 'A list of servers to allow connections from.'),
+    Option('--host',
+           metavar='HOST',
+           help='The host name to bind to (default localhost).  Note, if binding to localhost, only local connections will be allowed.'),
+    Option('--port',
+           metavar="PORT",
+           help='The port to bind to (default 4000).'),
+    Option('--root-url',
+           metavar="URL",
+           help='The URL level to expect for incoming connections; if not set and this is not bound to /, then SCRIPT_NAME and PATH_INFO may be incorrect.'),
+    Option('--allowed-servers',
+           metavar="URL_LIST",
+           help='A list of servers to allow connections from.'),
     ]
 
 description = """\

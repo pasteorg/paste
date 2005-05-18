@@ -1,4 +1,5 @@
 from paste import wsgilib
+from optparse import Option
 
 def serve(conf, app):
     url = conf.get('url', '/')
@@ -30,3 +31,13 @@ def serve(conf, app):
     if errors:
         sys.stderr.write('-'*25 + ' Errors ' + '-'*25 + '\n')
         sys.stderr.write(errors + '\n')
+
+description = """\
+Displays a single request to stdout
+"""
+
+options = [
+    Option('--url',
+           metavar='URL',
+           help="The URL (not including domain or port!) to GET"),
+    ]

@@ -50,7 +50,12 @@ def load_plugin_module(dir, dir_package, name, name_extension=''):
         module_name = parse_txt_plugin(os.path.join(dir, txt_name))
     else:
         module_name = dir_package + '.' + name + name_extension
-    module = import_string.import_module(module_name)
+    try:
+        module = import_string.import_module(module_name)
+    except ImportError, e:
+        raise PluginNotFound(
+            "Plugin %s not found (could not be imported: %s)"
+            % (name, e))
     module.plugin_name = name
     return module
 
