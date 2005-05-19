@@ -46,7 +46,8 @@ Announcements:
 
 Checkins:
   paste-checkins@pythonpaste.org (`subscribe
-  <http://pythonpaste.org/mailman/listinfo/paste-checkins>`__)
+  <http://pythonpaste.org/mailman/listinfo/paste-checkins>`__,
+  `rss feed <http://pythonpaste.org/trac/timeline/?daysback=90&max=50&wiki=on&ticket=on&changeset=on&milestone=on&format=rss>`_)
 
 IRC:
   ``#webware`` on `freenode <http://freenode.net>`_
