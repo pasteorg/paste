@@ -1,20 +1,32 @@
-from distutils.core import setup
-from distutils import sysconfig
-import warnings
-warnings.filterwarnings("ignore", "Unknown distribution option")
-
+# Setup setuptools:
 import sys
-# patch distutils if it can't cope with the "classifiers" keyword
-if sys.version < '2.2.3':
-    from distutils.dist import DistributionMetadata
-    DistributionMetadata.classifiers = None
-    DistributionMetadata.download_url = None
-
 import os
+base_paste_url = 'http://pythonpaste.org/downloads/'
+python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
+setuptools_version = '0.0.1'
+support_dir = os.path.join(os.path.dirname(__file__), 'support')
+setuptools_filename = 'setuptools-%s-py%s.egg' % (
+    setuptools_version, python_version)
+full_filename = os.path.join(support_dir, setuptools_filename)
+if not os.path.exists(full_filename):
+    if not os.path.exists(support_dir):
+        os.mkdir(support_dir)
+    print 'Downloading %s' % setuptools_filename
+    setuptools_url = base_paste_url + setuptools_filename
+    print 'Downloading from %s' % setuptools_url
+    import urllib2
+    import shutil
+    f_in = urllib2.urlopen(setuptools_url)
+    f_out = open(full_filename, 'wb')
+    shutil.copyfileobj(f_in, f_out)
+    f_in.close()
+    f_out.close()
+if full_filename not in sys.path:
+    sys.path.append(full_filename)
+
+from setuptools import setup
 
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'paste')
-DATA_PREFIX = sysconfig.get_python_lib(prefix='')
-
 
 def get_data_files(relpath, files=None):
     files = files or []
@@ -34,7 +46,9 @@ for subdir in [('app_templates',),
     package_data.extend(get_data_files(os.path.join(*subdir)))
 for filename in [('default_config.conf',)]:
     package_data.append(os.path.join(*filename))
-print package_data
+#print package_data
+
+__revision__ = '$Revision: $'
 
 setup(name="Paste",
       version="0.1",
