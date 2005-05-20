@@ -67,11 +67,11 @@ More abstract discussion about Python web programming in general:
 Resources
 =========
 
-* `To-Do Tutorial`_, an introduction to Paste installation and application
-  design.
-
 * `Testing Applications with Paste <docs/testing-applications.html>`_,
-  an introduction to Paste's acceptance testing functionality.
+  a document on Paste's application testing facilities.
+
+* `To-do tutorial`_, an introduction to Paste installation and application
+  design
 
 * `URL Parsing with WSGI and Paste
   <docs/url-parsing-with-wsgi.html>`_, an introduction into the
