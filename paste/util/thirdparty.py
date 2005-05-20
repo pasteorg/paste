@@ -20,7 +20,15 @@ def load_new_module(module_name, python_version):
     if python_version > sys.version_info:
         if new_python_path not in sys.path:
             sys.path.append(new_python_path)
-        exec "import python.%s as generic_module" % module_name
+        try:
+            exec "import python.%s as generic_module" % module_name
+        except ImportError, e:
+            raise ImportError(
+                "Cannot load backported (from python version %s) "
+                "stdlib module %s; expected to find it in %s"
+                % ('.'.join(map(str, python_version)),
+                   module_name,
+                   os.path.join(new_python_path, 'python')))
     else:
         exec "import %s as generic_module" % module_name
     return generic_module
@@ -40,3 +48,8 @@ def add_package(package_name):
         path = os.path.join(third_party, '%s-files' % package_name)
         if os.path.exists(path):
             sys.path.append(path)
+        else:
+            raise ImportError(
+                "Cannot load the package %s; expected to find it in "
+                "%s.  Have you run build-pkg.py?"
+                % (package_name, path))
