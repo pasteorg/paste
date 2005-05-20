@@ -31,8 +31,8 @@ Most generally, URL parsing is about taking a URL and determining what
 intentionally.  It's really just a metaphor -- in reality there aren't
 any "resources" in HTTP; there are only requests and responses.
 
-In Paste, everything is about WSGI.  But that can seem to fancy.
-There's a four core things involved: the *request* (personified in the
+In Paste, everything is about WSGI.  But that can seem too fancy.
+There are four core things involved: the *request* (personified in the
 WSGI environment), the *response* (personified inthe
 ``start_response`` callback and the return iterator), the WSGI
 application, and the server that calls that application.  The
@@ -74,8 +74,7 @@ do.
 Motivations
 ===========
 
-The most obvious kind of URL parsing is in finding a WSGI
-applications.
+The most obvious kind of URL parsing is in finding a WSGI application.
 
 Typically when a framework first supports WSGI or is integrated into
 Paste, it is "monolithic" with respect to URLs.  That is, you define
@@ -125,7 +124,7 @@ The empty string:
 
     URLParser serves directories.  When ``PATH_INFO`` is empty, that
     means we got a request with no trailing ``/``, like say ``/blog``
-    If URLParser servers the ``blog`` directory, then this won't do --
+    If URLParser serves the ``blog`` directory, then this won't do --
     the user is requesting the ``blog`` *page*.  We have to redirect
     them to ``/blog/``.
 
@@ -205,11 +204,11 @@ Modifying The Request
 Well, URLParser is one kind of parser.  But others are possible, and
 aren't too hard to write.
 
-Lets imagine a URL like ``/2004/05/01/edit``.  It's like that
+Lets imagine a URL like ``/2004/05/01/edit``.  It's likely that
 ``/2004/05/01`` doesn't point to anything on file, but is really more
-of a "variable" that gets passed to ``edit``.  So we can pull them
-off and put them somewhere.  This is a good place for a WSGI
-extension.  Lets put them in ``environ["app.url_date"]``.
+of a "variable" that gets passed to ``edit``.  So we can pull them off
+and put them somewhere.  This is a good place for a WSGI extension.
+Lets put them in ``environ["app.url_date"]``.
 
 We'll pass one other applications in -- once we get the date (if any)
 we need to pass the request onto an application that can actually
@@ -277,7 +276,8 @@ Things to note:
 
 * The object has standard attributes and methods -- ``_q_exports``
   (attributes that are public to the web) and ``_q_traverse``
-  (a functional way of 
+  (a way of overriding the traversal without having an attribute for
+  each possible path segment).
 
 * The object isn't rendered until the path is completely consumed
   (when ``next`` is ``None``).  This means ``_q_traverse`` has to
