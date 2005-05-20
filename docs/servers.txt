@@ -4,7 +4,7 @@ Python Paste Servers
 
 :author: A.M. Kuchling <amk@amk.ca>
 :revision: $Rev$
-:date: $LastChangedDate: 2005-04-14 15:33:14 -0400 (Thu, 14 Apr 2005) $
+:date: $LastChangedDate$
 
 
 Introduction 

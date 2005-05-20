@@ -3,8 +3,8 @@ Blog Tutorial
 +++++++++++++
 
 :author: Ian Bicking <ianb@colorstudy.com>
-:revision: $Rev: 2321 $
-:date: $LastChangedDate: 2005-04-09 17:55:39 -0500 (Sat, 09 Apr 2005) $
+:revision: $Rev$
+:date: $LastChangedDate$
 
 .. contents::
 

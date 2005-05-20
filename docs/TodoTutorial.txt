@@ -16,8 +16,11 @@ To-Do: A Tutorial
     tested, and so must be inspected by eye after the document is
     assembled.
 
-Introduction
-============
+Introduction and Audience
+=========================
+
+This tutorial is intended for people interested in developing
+applications in Paste.
 
 This is a tutorial for building a simple to-do list application using
 `Python Paste <http://pythonpaste.org>`_, SQLObject_, and `Zope Page Templates`_.  You can view the
@@ -28,11 +31,7 @@ http://svn.w4py.org/Paste/trunk/examples/todo_sql/
 .. _SQLObject: http://sqlobject.org
 .. _Zope Page Templates: http://www.zope.org/DevHome/Wikis/DevSite/Projects/ZPT/FrontPage
 
-If you have questions about this tutorial, please contact the `paste
-mailing list <http://pythonpaste.org/mailman/listinfo/paste-users>`_
-or try IRC (``#webware`` on freenode.net).  If there's something that
-confused you and you want to give feedback, please `submit an issue
-<http://pythonpaste.org/trac/newticket?component=documentation>`_.
+.. include:: include/contact.txt
 
 Setting up the files
 ====================

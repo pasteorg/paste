@@ -2,8 +2,8 @@ Testing Applications with Paste
 +++++++++++++++++++++++++++++++
 
 :author: Ian Bicking <ianb@colorstudy.com>
-:revision: $Rev: 2385 $
-:date: $LastChangedDate: 2005-04-25 20:20:16 -0500 (Mon, 25 Apr 2005) $
+:revision: $Rev$
+:date: $LastChangedDate$
 
 .. contents::
 
@@ -18,6 +18,8 @@ invited.  Feedback and discussion should take place on the
 
 These facilities let you test your Paste and WSGI-based applications
 easily and without a server. 
+
+.. include:: include/contact.txt
 
 The Test Environment
 ====================

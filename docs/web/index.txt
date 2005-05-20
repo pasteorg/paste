@@ -67,8 +67,16 @@ More abstract discussion about Python web programming in general:
 Resources
 =========
 
-* `To-do tutorial`_, an introduction to Paste installation and application
-  design
+* `To-Do Tutorial`_, an introduction to Paste installation and application
+  design.
+
+* `Testing Applications with Paste <docs/testing-applications.html>`_,
+  an introduction to Paste's acceptance testing functionality.
+
+* `URL Parsing with WSGI and Paste
+  <docs/url-parsing-with-wsgi.html>`_, an introduction into the
+  architecture of Paste's URL parsing, and the ways you can bring WSGI
+  deeper into your framework.
 
 * `What is Paste? <./docs/what-is-paste.html>`_: a description of the
   project scope (see also the older documents `What is WSGIKit?
