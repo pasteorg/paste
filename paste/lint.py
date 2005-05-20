@@ -221,7 +221,10 @@ def check_status(status):
     assert type(status) is StringType, (
         "Status must be a string (not %r)" % status)
     # Implicitly check that we can turn it into an integer:
-    status_int = int(status.split(None, 1)[0])
+    status_code = status.split(None, 1)[0]
+    assert len(status_code) == 3, (
+        "Status codes must be three characters: %r" % status_code)
+    status_int = int(status_code)
     assert status_int >= 100, "Status code is invalid: %r" % status_int
 
 def check_headers(headers):
