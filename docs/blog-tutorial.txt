@@ -312,12 +312,12 @@ Now we should be able to run py.test:
 
     >>> run_command('py.test', 't1', and_print=True)
     inserting into sys.path: ...
-    =========================== test process starts ===========================
+    =...= test process starts =...=
     testing-mode: inprocess
     executable:   .../python  (...)
     using py lib: .../py <rev ...>
-    wwblog/tests/test_db.py[1] .
-    ================= tests finished: 1 passed in ... seconds =================
+    .../test_db.py[1] .
+    =...= tests finished: 1 passed in ... seconds =...=
 
 .. raw:: html
    :file: resources/blog-tutorial/shell-command.t1.gen.html
