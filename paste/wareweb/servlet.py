@@ -5,7 +5,7 @@ import time
 import timeinterval
 import cgifields
 import event
-import classinit
+from paste.util import classinit
 from UserDict import UserDict
 
 __all__ = ['Servlet']
