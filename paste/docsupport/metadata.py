@@ -1,8 +1,12 @@
+# @@: There are too many imports here; this shouldn't have much
+# overhead except during extraction, but everything in this
+# module has to be imported regardless.
 import sys
 import copy
 import types
 import inspect
 from itertools import count
+from paste.util import import_string
 from paste.util.classinit import ClassInitMeta
 from paste.util.classinstance import classinstancemethod
 
@@ -30,7 +34,10 @@ class DocItem(object):
             stack = None
 
     def get_object(self, name):
-        return getattr(sys.modules[self.call_module_name], name)
+        if '.' in name:
+            return import_string.eval_import(name)
+        else:
+            return getattr(sys.modules[self.call_module_name], name)
 
     def writeto(self, context):
         raise NotImplementedError

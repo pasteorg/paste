@@ -13,6 +13,9 @@ values (but will not delete previous values).  You can use attribute
 or dictionary access to get values.
 """
 
+__all__ = ['Config', 'setup_config', 'parse_commandline',
+           'DispatchingConfig', 'make_bool', 'make_list']
+
 import types
 import os
 import sys
@@ -42,7 +45,11 @@ def local_dict():
         config_local.wsgi_dict = result = {}
         return result
 
-class Config(UserDict.DictMixin):
+class Config(UserDict.DictMixin, object):
+
+    """
+    A dictionary-like object that represents configuration.
+    """
 
     def __init__(self, with_default=False):
         self.namespaces = []
@@ -131,16 +138,29 @@ class Config(UserDict.DictMixin):
         return include
 
     def load(self, filename, default=False):
+        """
+        Load the `filename`, which is a Python-syntax configuration
+        file.  If default is a positive value, do not put the values
+        at the top of the configuration stack (used to insert default
+        values that may already be overrided by a loaded
+        configuration).
+        """
         namespace = self.read_file(filename)
         self.load_dict(namespace, default)
 
     def load_dict(self, d, default=False):
+        """
+        Like `load`, but loads a dictionary (doesn't do any parsing).
+        """
         if default:
             self.namespaces.insert(default, d)
         else:
             self.namespaces.insert(0, d)
 
     def load_commandline(self, *args, **kw):
+        """
+        Loads a command line.
+        """
         if 'default' in kw:
             default = kw['default']
             del kw['default']
@@ -149,6 +169,7 @@ class Config(UserDict.DictMixin):
         options, args = parse_commandline(*args, **kw)
         self.load_dict(options, default=default)
         return args
+    load_commandline.proxy = 'parse_commandline'
 
     def update_sys_path(self):
         update_sys_path(self.get('sys_path'), self.get('verbose'))

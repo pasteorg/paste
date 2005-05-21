@@ -1,9 +1,25 @@
 from paste import CONFIG
 from paste import wsgilib
+from paste.docsupport import metadata
+
+__all__ = ['ConfigMiddleware']
 
 class ConfigMiddleware(object):
 
+    """
+    A WSGI middleware that adds a ``paste.config`` key to the request
+    environment, as well as registering the configuration temporarily
+    (for the length of the request) with ``paste.CONFIG``.
+    """
+
+    _wsgi_add1 = metadata.WSGIKey('paste.config',
+                                  interface='paste.pyconfig.Config')
+
     def __init__(self, application, config):
+        """
+        This delegates all requests to `application`, adding a *copy*
+        of the configuration `config`.
+        """
         self.application = application
         self.config = config
 
