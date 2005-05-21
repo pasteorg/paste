@@ -115,10 +115,12 @@ class MethodExtractor(Extractor):
     def extract(self):
         if not self.obj.__doc__:
             return
-        sig = self.make_sig(self.obj)
+        sig = self.make_sig()
         self.context.writekey('def %s(%s)' % (self.obj.func_name, sig),
                               monospace=False)
         self.context.writedoc(self.obj.__doc__)
+        if self.get_attr('proxy'):
+            self.context.writedoc(self.get_attr('proxy').__doc__)
         if getattr(self.obj, 'returns', None):
             returns = self.obj.returns
             if isinstance(returns, str):
@@ -126,8 +128,10 @@ class MethodExtractor(Extractor):
             self.context.extract(self.obj.returns)
         self.context.endkey()
 
-    def make_sig(self, func):
-        args, varargs, varkw, defaults = inspect.getargspec(func)
+    def make_sig(self):
+        proxy = self.get_attr('proxy')
+        args, varargs, varkw, defaults = inspect.getargspec(
+            proxy or self.obj)
         sig = []
         args.reverse()
         for arg in args:
@@ -143,6 +147,13 @@ class MethodExtractor(Extractor):
             sig.append('**%s' % varkw)
         return ', '.join(sig)
 
+    def get_attr(self, attr):
+        if not getattr(self.obj, attr, None):
+            return None
+        value = getattr(self.obj, attr)
+        if isinstance(value, str):
+            value = self.obj.func_globals[value]
+        return value
 
 ############################################################
 ## Context
