@@ -33,5 +33,5 @@ def apply_default_middleware(app, conf):
     app = errormiddleware.ErrorMiddleware(app)
     if conf.get('lint', False):
         app = lint.middleware(app)
-    app = configmiddleware.config_middleware(app, conf)
+    app = configmiddleware.ConfigMiddleware(app, conf)
     return app

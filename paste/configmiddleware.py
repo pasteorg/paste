@@ -1,14 +1,18 @@
 from paste import CONFIG
 from paste import wsgilib
 
-def config_middleware(app, config):
+class ConfigMiddleware(object):
 
-    def replacement_app(environ, start_response):
-        conf = environ['paste.config'] = config.copy()
+    def __init__(self, application, config):
+        self.application = application
+        self.config = config
+
+    def __call__(self, environ, start_response):
+        conf = environ['paste.config'] = self.config.copy()
         app_iter = None
         CONFIG.push_thread_config(conf)
         try:
-            app_iter = app(environ, start_response)
+            app_iter = self.application(environ, start_response)
         finally:
             if app_iter is None:
                 # An error occurred...
@@ -24,5 +28,3 @@ def config_middleware(app, config):
                 CONFIG.pop_thread_config(conf)
             new_app_iter = wsgilib.add_close(app_iter, close_config)
             return new_app_iter
-
-    return replacement_app
