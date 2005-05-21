@@ -1,29 +1,19 @@
-"""
-A WSGI middleware that allows for recursive and forwarded calls.
-All these calls go to the same 'application', but presumably that
-application acts differently with different URLs.  The forwarded
-URLs must be relative to this container.
-
-The forwarder is available through
-``environ['paste.recursive.forward'](path, extra_environ=None)``,
-the second argument is a dictionary of values to be added to the
-request, overwriting any keys.  The forward will call start_response;
-thus you must *not* call it after you have sent any output to the
-server.  Also, it will return an iterator that must be returned up the
-stack.  You may need to use exceptions to guarantee that this iterator
-will be passed back through the application.
-
-The includer is available through
-``environ['paste.recursive.include'](path, extra_environ=None)``.
-It is like forwarder, except it completes the request and returns a
-response object.  The response object has three public attributes:
-status, headers, and body.  The status is a string, headers is a list
-of (header_name, header_value) tuples, and the body is a string.
-"""
-
 from cStringIO import StringIO
+from paste.docsupport import metadata
+
+__all__ = ['RecursiveMiddleware']
 
 class RecursiveMiddleware(object):
+
+    """
+    A WSGI middleware that allows for recursive and forwarded calls.
+    All these calls go to the same 'application', but presumably that
+    application acts differently with different URLs.  The forwarded
+    URLs must be relative to this container.
+
+    Interface is entirely through the ``paste.recursive.forward`` and
+    ``paste.recursive.include`` environmental keys.
+    """
 
     def __init__(self, application):
         self.application = application
@@ -35,6 +25,11 @@ class RecursiveMiddleware(object):
             self.application, environ, start_response)
         return self.application(environ, start_response)
 
+    _wsgi_add1 = metadata.WSGIKey('paste.recursive.forward',
+                                  interface='Forwarder')
+    _wsgi_add2 = metadata.WSGIKey('paste.recursive.include',
+                                  interface='Includer')
+
 class Recursive(object):
 
     def __init__(self, application, environ, start_response):
@@ -44,6 +39,11 @@ class Recursive(object):
         self.start_response = start_response
 
     def __call__(self, path, new_environ=None):
+        """
+        `extra_environ` is an optional dictionary that is also added
+        to the forwarded request.  E.g., ``{'HTTP_HOST': 'new.host'}``
+        could be used to forward to a different virtual host.
+        """
         environ = self.original_environ.copy()
         if new_environ:
             environ.update(new_environ)
@@ -67,10 +67,32 @@ class Recursive(object):
 
 class Forwarder(Recursive):
 
+    """
+    The forwarder will try to restart the request, except with
+    the new `path` (replacing ``PATH_INFO`` in the request).
+
+    It must not be called after and headers have been returned.
+    It returns an iterator that must be returned back up the call
+    stack, so it must be used like::
+
+        return environ['paste.recursive.forward'](path)
+
+    Meaningful transformations cannot be done, since headers are
+    sent directly to the server and cannot be inspected or
+    rewritten.
+    """
+
     def activate(self, environ):
         return self.application(environ, self.start_response)
+    
 
 class Includer(Recursive):
+
+    """
+    Starts another request with the given path and adding or
+    overwriting any values in the `extra_environ` dictionary.
+    Returns an IncludeResponse object.
+    """
     
     def activate(self, environ):
         response = IncludedResponse
@@ -98,6 +120,16 @@ class IncludedResponse(object):
         self.output = StringIO()
         self.str = None
 
+    _attr_headers = metadata.Attribute("""
+    A list of ``[(header_name), (header_value)]``
+    """)
+    _attr_status = metadata.Attribute("""
+    The status code returned (a string), like ``'200 OK'``
+    """)
+    _attr_body = metadata.Attribute("""
+    The body of the response.
+    """)
+
     def close(self):
         self.str = self.output.getvalue()
         self.output.close()
@@ -118,3 +150,4 @@ class IncludedResponse(object):
         else:
             return self.str
     body = property(body__get)
+
