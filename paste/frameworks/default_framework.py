@@ -1,3 +1,5 @@
+import sys
+
 def build_application(conf):
     if conf.get('publish_dir'):
         from paste.webkit import conf_setup
