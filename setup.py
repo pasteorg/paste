@@ -1,3 +1,9 @@
+# If true, then the svn revision won't be used to calculate the
+# revision (set to True for real releases)
+RELEASE = False
+
+__version__ = "0.0"
+
 # Setup setuptools:
 import sys
 import os
@@ -48,10 +54,31 @@ for subdir in [('app_templates',),
 for filename in [('default_config.conf',)]:
     package_data.append(os.path.join(*filename))
 
-__revision__ = '$Revision: $'
+def get_svn_revision():
+    """
+    Returns the newest svn revision for all files in the this
+    directory.
+    """
+    import commands
+    status, output = commands.getstatusoutput(
+        'svn ls -v %s' % os.path.dirname(__file__))
+    if status:
+        return 'unknown'
+    max_revision = 0
+    for line in output.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        revision = int(line.split()[0])
+        max_revision = max(max_revision, revision)
+    return max_revision
+
+if not RELEASE:
+    rev = get_svn_revision()
+    __version__ += '-devel-r%s' % rev
 
 setup(name="Paste",
-      version="0.1",
+      version=__version__,
       description="Tools for use with a Web Server Gateway Interface stack",
       long_description="""\
 These provide several pieces of "middleware" that can be nested to build
