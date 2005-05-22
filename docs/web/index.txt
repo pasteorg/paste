@@ -67,6 +67,8 @@ More abstract discussion about Python web programming in general:
 Resources
 =========
 
+* `Paste Reference Document <docs/reference.html>`_
+
 * `Testing Applications with Paste <docs/testing-applications.html>`_,
   a document on Paste's application testing facilities.
 
