@@ -68,6 +68,29 @@ class WSGIKey(DocItem):
         self.writeobj(self.interface, context)
         context.endkey()
 
+class NoDefault: pass
+
+class Config(DocItem):
+
+    def __init__(self, doc, name=None, default=NoDefault):
+        self.doc = doc
+        self.name = name
+        self.default = default
+
+    def writeto(self, context):
+        name = self.name
+        if not self.name:
+            name = context.last_name
+            if name.startswith('_config_'):
+                name = name[len('_config_'):]
+        name = "``%s``" % name
+        if self.default is not NoDefault:
+            name += ' (default: ``%r``)' % self.default
+        context.writekey(name, type='Paste Configuration',
+                         monospace=False)
+        context.writedoc(self.doc)
+        context.endkey()
+
 class Attribute(DocItem):
 
     def __init__(self, doc, name=None, interface=None):
