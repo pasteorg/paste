@@ -1,7 +1,16 @@
+"""
+A module of many disparate routines.
+"""
+
 from Cookie import SimpleCookie
 from cStringIO import StringIO
 import mimetypes
 import os
+
+__all__ = ['get_cookies', 'add_close', 'raw_interactive',
+           'interactive', 'construct_url', 'error_body_response',
+           'error_response', 'send_file', 'has_header', 'header_value',
+           'path_info_split', 'path_info_pop']
 
 def get_cookies(environ):
     """
@@ -92,6 +101,10 @@ def raw_interactive(application, path_info='', **environ):
             errors.getvalue())
 
 def interactive(*args, **kw):
+    """
+    Runs the application interatively, wrapping `raw_interactive` but
+    returning the output in a formatted way.
+    """
     status, headers, content, errors = raw_interactive(*args, **kw)
     full = StringIO()
     if errors:
@@ -104,6 +117,7 @@ def interactive(*args, **kw):
     full.write('\n')
     full.write(content)
     return full.getvalue()
+interactive.proxy = 'raw_interactive'
 
 def construct_url(environ, with_query_string=True, with_path_info=True):
     """
