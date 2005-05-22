@@ -90,6 +90,7 @@ functionality.
                 "paste.servers.scgi_server",
                 "paste.wareweb",
                 "paste.docsupport",
+                "paste.packaging",
                 ],
       scripts=['scripts/paste-server', 'scripts/paste-setup'],
       download_url="",
