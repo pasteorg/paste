@@ -1,60 +1,67 @@
-"""
-WSGI middleware
-
-Application dispatching, based on URL.  An instance of `URLParser` is
-an application that loads and delegates to other applications.  It
-looks for files in its directory that match the first part of
-PATH_INFO; these may have an extension, but are not required to have
-one, in which case the available files are searched to find the
-appropriate file.  If it is ambiguous, a 404 is returned and an error
-logged.
-
-Each URLParser has a set of options, which can be local to that
-URLParser.  Also, there are default options:
-
-``index_name``:
-    The name of the index file, sans extension.
-
-``hide_extensions``:
-    A list of extensions (with leading ``.``) that should not ever
-    be served.
-
-``ignore_extensions``:
-    Extensions that will be ignored when searching for a file.  If
-    the extension is given explicitly, files with these extensions
-    will still be served.
-
-``constructors``:
-    A dictionary of extensions as keys, and application constructors
-    as values.  Also the key ``dir`` for directories, and ``*`` when
-    no other constructor is found.
-
-    Each constructor is called like ``constructor(environ, filename)``
-    and should return an application or ``None``.
-
-By default there is a constructor for .py files that loads the module,
-and looks for an attribute ``application``, which is a ready
-application object, or an attribute that matches the module name,
-which is a factory for building applications, and is called with no
-arguments.
-
-URLParser will also look in __init__.py for special overrides.  Currently
-the only override is urlparser_hook(environ), which can modify the
-environment; its return value is ignored.  You can use this, for example,
-to manipulate SCRIPT_NAME/PATH_INFO (try to keep them consistent with the
-original URL -- but consuming PATH_INFO and moving that to SCRIPT_NAME
-is ok).
-"""
-
 import os
 import sys
 import imp
 import wsgilib
+from paste.docsupport import metadata
 
 class NoDefault:
     pass
 
+__all__ = ['URLParser']
+
 class URLParser(object):
+
+    """
+    WSGI middleware
+
+    Application dispatching, based on URL.  An instance of `URLParser` is
+    an application that loads and delegates to other applications.  It
+    looks for files in its directory that match the first part of
+    PATH_INFO; these may have an extension, but are not required to have
+    one, in which case the available files are searched to find the
+    appropriate file.  If it is ambiguous, a 404 is returned and an error
+    logged.
+
+    By default there is a constructor for .py files that loads the module,
+    and looks for an attribute ``application``, which is a ready
+    application object, or an attribute that matches the module name,
+    which is a factory for building applications, and is called with no
+    arguments.
+
+    URLParser will also look in __init__.py for special overrides.
+    Currently the only override is urlparser_hook(environ), which can
+    modify the environment; its return value is ignored.  You can use
+    this, for example, to manipulate SCRIPT_NAME/PATH_INFO (try to
+    keep them consistent with the original URL -- but consuming
+    PATH_INFO and moving that to SCRIPT_NAME is ok).
+    """
+
+    _config_index_name = metadata.Config(
+        """
+        A list of allowed names for the index file (the file served
+        for requests that end in ``/``).
+        """, default=['index', 'Index', 'main', 'Main'])
+
+    _config_hide_extensions = metadata.Config(
+        """
+        A list of extensions (with leading ``.``) that should not ever
+        be served.""", default=['.pyc', '.bak', '.py~'])
+
+    _config_ignore_extensions = metadata.Config(
+        """
+        Extensions that will be ignored when searching for a file.  If
+        the extension is given explicitly, files with these extensions
+        will still be served.""", default=[])
+
+    _config_constructors = metadata.Config(
+        """
+        A dictionary of extensions as keys, and application constructors
+        as values.  Also the key ``dir`` for directories, and ``*`` when
+        no other constructor is found.
+
+        Each constructor is called like ``constructor(environ, filename)``
+        and should return an application or ``None``.
+        """)
 
     default_options = {
         'index_names': ['index', 'Index', 'main', 'Main'],
@@ -69,6 +76,15 @@ class URLParser(object):
     init_module = NoDefault
 
     def __init__(self, directory, base_python_name, add_options=None):
+        """
+        Create a URLParser object that looks at `directory`.
+        `base_python_name` is the package that this directory
+        represents, thus any Python modules in this directory will
+        be given names under this package.
+
+        `add_options` overrides individual configuration options for
+        this instance.
+        """
         if os.path.sep != '/':
             directory = directory.replace(os.path.sep, '/')
         self.directory = directory
@@ -231,6 +247,16 @@ class URLParser(object):
         return app
 
     def register_constructor(cls, extension, constructor):
+        """
+        Register a function as a constructor.  Registered constructors
+        apply to all instances of `URLParser`.
+
+        The extension should have a leading ``.``, or the special
+        extensions ``dir`` (for directories) and ``*`` (a catch-all).
+
+        `constructor` must be a callable that takes two arguments:
+        ``environ`` and ``filename``, and returns a WSGI application.
+        """
         d = cls.default_options['constructors']
         assert not d.has_key(extension), (
             "A constructor already exists for the extension %r (%r) "
@@ -240,6 +266,10 @@ class URLParser(object):
     register_constructor = classmethod(register_constructor)
 
     def get_parser(cls, directory, base_python_name):
+        """
+        Get a parser for the given directory, or create one if
+        necessary.  This way parsers can be cached and reused.
+        """
         try:
             return cls.parsers_by_directory[(directory, base_python_name)]
         except KeyError:
