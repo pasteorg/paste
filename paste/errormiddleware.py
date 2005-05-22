@@ -1,41 +1,6 @@
 """
 Error handler middleware, and paste.config reporter integration
-
-Usage::
-
-    error_caching_wsgi_app = ErrorMiddleware(wsgi_app)
-
-These configuration keys are used:
-
-``debug``:
-    show the errors in the browser
-``error_email``:
-    if present, send errors to this email address
-``error_log``:
-    if present, write errors to this file
-``show_exceptions_in_error_log``:
-    if true (the default) then write errors to wsgi.errors
-
-You can also use this outside of a web context, like::
-
-    import sys
-    import paste
-    import paste.error_middleware
-    try:
-        do stuff
-    except:
-        paste.error_middleware.exception_handler(
-            sys.exc_info(), paste.CONFIG, sys.stderr, html=False)
-
-If you want to report, but not fully catch the exception, call
-``raise`` after ``exception_handler``, which (when given no argument)
-will reraise the exception.
-
-By setting 'paste.throw_errors' to a true value, this middleware is
-disabled.  This can be useful in a testing environment where you don't
-want errors to be caught and transformed.
 """
-
 import sys
 import traceback
 import cgi
@@ -45,9 +10,48 @@ except ImportError:
     from StringIO import StringIO
 from paste.exceptions import formatter, collector, reporter
 from paste import wsgilib
+from paste.docsupport import metadata
+
+__all__ = ['ErrorMiddleware', 'handle_exception']
 
 class ErrorMiddleware(object):
 
+    """
+    Usage::
+
+        error_caching_wsgi_app = ErrorMiddleware(wsgi_app)
+
+    These configuration keys are used:
+
+    ``debug``:
+        show the errors in the browser
+    ``error_email``:
+        if present, send errors to this email address
+    ``error_log``:
+        if present, write errors to this file
+    ``show_exceptions_in_error_log``:
+        if true (the default) then write errors to wsgi.errors
+
+    By setting 'paste.throw_errors' to a true value, this middleware is
+    disabled.  This can be useful in a testing environment where you don't
+    want errors to be caught and transformed.
+    """
+
+    _config_debug = metadata.Config(
+        """If true, show errors in the browser""", default=False)
+    _config_error_email = metadata.Config(
+        """
+        The email address to send errors to (defining this enables
+        the emailing of errors)""", default=None)
+    _config_error_log = metadata.Config(
+        """
+        A filename to write errors to.
+        """, default=None)
+    _config_show_exceptions_in_error_log = metadata.Config(
+        """
+        If true, then write errors to ``wsgi.errors``.
+        """, default=True)
+    
     def __init__(self, application):
         self.application = application
     
@@ -147,6 +151,23 @@ class Supplement(object):
         }
     
 def handle_exception(exc_info, conf, error_stream, html=True):
+    """
+    You can also use exception handling outside of a web context,
+    like::
+
+        import sys
+        import paste
+        import paste.error_middleware
+        try:
+            do stuff
+        except:
+            paste.error_middleware.exception_handler(
+                sys.exc_info(), paste.CONFIG, sys.stderr, html=False)
+
+    If you want to report, but not fully catch the exception, call
+    ``raise`` after ``exception_handler``, which (when given no argument)
+    will reraise the exception.
+    """
     reported = False
     exc_data = collector.collect_exception(*exc_info)
     extra_data = ''
