@@ -122,7 +122,7 @@ class MethodExtractor(Extractor):
             return
         sig = self.make_sig()
         self.context.writekey('def %s(%s)' % (self.obj.func_name, sig),
-                              monospace=False)
+                              monospace=True)
         self.context.writedoc(self.obj.__doc__)
         if self.get_attr('proxy'):
             self.context.writedoc(self.get_attr('proxy').__doc__)
