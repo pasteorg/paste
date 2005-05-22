@@ -5,6 +5,7 @@ import textwrap
 import findmodules
 from paste.docsupport import metadata
 from paste.util.classinit import ClassInitMeta
+from paste.httpexceptions import HTTPException
 
 extractors = []
 
@@ -12,10 +13,14 @@ class Extractor(object):
 
     __metaclass__ = ClassInitMeta
     match_type = None
+    match_level = None
 
     def __classinit__(cls, new_attrs):
         if cls.__bases__ != (object,):
-            extractors.append(cls)
+            if cls.match_level is None:
+                extractors.append(cls)
+            else:
+                extractors.insert(cls.match_level, cls)
 
     def __init__(self, obj, context):
         self.obj = obj
@@ -46,7 +51,7 @@ class ModuleExtractor(Extractor):
 
 class ClassExtractor(Extractor):
 
-    match_type = type
+    match_type = (type, types.ClassType)
         
     def extract(self):
         self.context.writeheader(self.context.last_name, type='Class')
@@ -154,6 +159,20 @@ class MethodExtractor(Extractor):
         if isinstance(value, str):
             value = self.obj.func_globals[value]
         return value
+
+class HTTPExtractor(Extractor):
+
+    match_level = 0
+
+    def extract(self):
+        self.context.writekey(self.obj.__name__)
+        self.context.write('%s %s\n' % (self.obj.code, self.obj.title))
+        self.context.endkey()
+
+    def applies(cls, obj, context):
+        return (isinstance(obj, types.ClassType)
+                and issubclass(obj, HTTPException))
+    applies = classmethod(applies)
 
 ############################################################
 ## Context

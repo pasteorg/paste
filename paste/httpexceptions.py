@@ -196,12 +196,14 @@ class HTTPHttpVersionNotSupported(HTTPException):
     title = 'HTTP Version Not Supported'
     message = ('The HTTP version is not supported.')
 
+__all__ = []
 _exceptions = {}
 for name, value in globals().items():
     if (isinstance(value, (type, types.ClassType)) and
         issubclass(value, HTTPException) and
         value.code):
         _exceptions[value.code] = value
+        __all__.append(name)
 def get_exception(code):
     return _exceptions[code]
 
@@ -210,6 +212,11 @@ def get_exception(code):
 ############################################################
 
 def middleware(application):
+
+    """
+    This middleware catches any exceptions (which are subclasses of
+    `HTTPException`) and turns them into proper HTTP responses.
+    """
 
     def start_application(environ, start_response):
         app_started = []
@@ -232,3 +239,6 @@ def middleware(application):
             return [e.html(environ)]
         
     return start_application
+
+__all__.extend(['middleware', 'get_exception'])
+
