@@ -1,9 +1,3 @@
-"""
-A lint of sorts; an anal middleware that checks for WSGI compliance
-both in the server and the application (but otherwise does not effect
-the request, it just looks at the communication).
-"""
-
 import re
 import sys
 from types import *
@@ -12,6 +6,17 @@ header_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9\-_]*$')
 bad_header_value_re = re.compile(r'[\000-\037]')
 
 def middleware(application):
+
+    """
+    When applied between a WSGI server and a WSGI application, this
+    middleware will check for WSGI compliancy on a number of levels.
+    This middleware does not modify the request or response in any
+    way, but will throw an AssertionError if anything seems off
+    (except for a failure to close the application iterator, which
+    will be printed to stderr -- there's no way to throw an exception
+    at that point).
+    """
+    
     def lint_app(*args, **kw):
         assert len(args) == 2, "Two arguments required"
         assert not kw, "No keyword arguments allowed"
@@ -277,3 +282,5 @@ def check_iterator(iterator):
     assert not isinstance(iterator, str), (
         "You should not return a string as your application iterator, "
         "instead return a single-item list containing that string.")
+
+__all__ = ['middleware']
