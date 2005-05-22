@@ -1,5 +1,9 @@
 from cStringIO import StringIO
-import subprocess
+try:
+    import subprocess
+except ImportError:
+    # Don't want this to be unimportable in older Python's
+    subprocess = None
 from paste import wsgilib
 from paste.docsupport import metadata
 import re
@@ -72,6 +76,10 @@ class WDGValidateMiddleware(object):
         return self.add_error(page, html_errors)
     
     def call_wdg_validate(self, wdg_path, ops, page):
+        if subprocess is None:
+            raise ValueError(
+                "This middleware requires the subprocess module from "
+                "Python 2.4")
         proc = subprocess.Popen([wdg_path] + ops,
                                 shell=False,
                                 close_fds=True,
