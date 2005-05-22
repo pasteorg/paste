@@ -1,23 +1,35 @@
-"""
-Middleware that checks HTML and appends messages about the validity of
-the HTML.  Uses: http://www.htmlhelp.com/tools/validator/ -- interacts
-with the command line client.  Use the configuration ``wdg_path`` to
-override the path (default: looks for ``validate`` in $PATH).
-
-To install, in your web context's __init__.py::
-
-    def urlparser_wrap(environ, start_response, app):
-        return wdg_validate.WDGValidateMiddleware(app)(
-            environ, start_response)
-"""
-
 from cStringIO import StringIO
 import subprocess
 from paste import wsgilib
+from paste.docsupport import metadata
 import re
 import cgi
 
+__all__ = ['WDGValidateMiddleware']
+
 class WDGValidateMiddleware(object):
+
+    """
+    Middleware that checks HTML and appends messages about the validity of
+    the HTML.  Uses: http://www.htmlhelp.com/tools/validator/ -- interacts
+    with the command line client.  Use the configuration ``wdg_path`` to
+    override the path (default: looks for ``validate`` in $PATH).
+
+    To install, in your web context's __init__.py::
+
+        def urlparser_wrap(environ, start_response, app):
+            return wdg_validate.WDGValidateMiddleware(app)(
+                environ, start_response)
+
+    Or in your configuration::
+
+        middleware.append('paste.wdg_validate.WDGValidateMiddleware')
+    """
+
+    _config_wdg_path = metadata.Config(
+    """
+    The path to the ``validate`` executable.  ($PATH will be searched)
+    """, default='validate')
 
     _end_body_regex = re.compile(r'</body>', re.I)
 
