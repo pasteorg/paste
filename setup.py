@@ -29,7 +29,8 @@ from setuptools import setup
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'paste')
 
 def get_data_files(relpath, files=None):
-    files = files or []
+    if files is None:
+        files = []
     for name in os.listdir(os.path.join(BASEDIR, relpath)):
         if name.startswith("."):
             continue
@@ -46,7 +47,6 @@ for subdir in [('app_templates',),
     package_data.extend(get_data_files(os.path.join(*subdir)))
 for filename in [('default_config.conf',)]:
     package_data.append(os.path.join(*filename))
-#print package_data
 
 __revision__ = '$Revision: $'
 
