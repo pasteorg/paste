@@ -59,6 +59,7 @@ class Transaction(object):
         assert 0, "Not tracked"
 
     def awake(self):
+        __traceback_hide__ = True
         if self._session:
             self._session.awake(self)
         self._servlet.awake(self)
@@ -78,6 +79,7 @@ class Transaction(object):
         assert 0, "Not implemented"
 
     def runTransaction(self):
+        __traceback_hide__ = True
         try:
             self.awake()
             self.respond()

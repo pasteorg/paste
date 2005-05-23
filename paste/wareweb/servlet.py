@@ -72,6 +72,7 @@ class Servlet(object):
 
     @event.wrap_func
     def run(self):
+        __traceback_hide__ = 'before_and_this'
         try:
             self.awake()
             self.respond()
