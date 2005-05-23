@@ -21,6 +21,7 @@ class Servlet(object):
         """
         The core WSGI method, and the core of the servlet execution.
         """
+        __traceback_hide__ = 'before_and_this'
         trans = Transaction(environ, start_response)
         trans.setServlet(self)
         try:
