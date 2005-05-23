@@ -8,7 +8,8 @@ class SitePage(CPage):
 
     components = [
         ZPTComponent([os.path.join(os.path.dirname(__file__),
-                                   'templates')]),
+                                   'templates')],
+                     use_error_formatter=False),
         NotifyComponent()]
     
     def title(self):
