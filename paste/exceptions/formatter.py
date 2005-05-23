@@ -12,9 +12,11 @@ class AbstractFormatter:
     general_data_order = ['object', 'source_url']
 
     def __init__(self, show_hidden_frames=False,
+                 include_reusable=True,
                  trim_source_paths=()):
         self.show_hidden_frames = show_hidden_frames
         self.trim_source_paths = trim_source_paths
+        self.include_reusable = include_reusable
 
     def format_collected_data(self, exc_data):
         general_data = {}
@@ -251,19 +253,18 @@ class HTMLFormatter(TextFormatter):
         for name in 'normal', 'supplemental':
             lines.extend([value for n, value in data_by_importance[name]])
         if data_by_importance['extra']:
-            #lines.append(
-            #    hide_display_js +
-            #    '<a href="#extra_data" '
-            #    'onclick="javascript:hide_display(\'extra_data\')" '
-            #    'class="button">show extra data</a><br>'
-            #    '<div id="extra_data" class="hidden-data">')
             lines.append(
-                '<script type="text/javascript">\nshow_button(\'extra_data\');\n</script>\n' +
+                '<script type="text/javascript">\nshow_button(\'extra_data\', \'extra data\');\n</script>\n' +
                 '<div id="extra_data" class="hidden-data">\n')
             lines.extend([value for n, value in data_by_importance['extra']])
             lines.append('</div>')
         text = self.format_combine_lines(lines)
-        return error_css + hide_display_js + text
+        if self.include_reusable:
+            return error_css + hide_display_js + text
+        else:
+            # Usually because another error is already on this page,
+            # and so the js & CSS are unneeded
+            return text
 
     def zebra_table(self, title, rows, table_class="variables"):
         if isinstance(rows, dict):
@@ -319,10 +320,10 @@ function hide_display(id) {
 document.write('<style type="text/css">\n');
 document.write('.hidden-data {display: none}\n');
 document.write('</style>\n');
-function show_button(toggle_id) {
+function show_button(toggle_id, name) {
   document.write('<a href="#' + toggle_id
       + '" onclick="javascript:hide_display(\'' + toggle_id
-      + '\')" class="button">show extra data</a><br>');
+      + '\')" class="button">' + name + '</a><br>');
 }
 </script>'''
     
@@ -360,7 +361,24 @@ a.button:hover {
 </style>
 """
 
-def format_html(exc_data, **ops):
-    return HTMLFormatter(**ops).format_collected_data(exc_data)
+def format_html(exc_data, include_hidden_frames=False, **ops):
+    if not include_hidden_frames:
+        return HTMLFormatter(**ops).format_collected_data(exc_data)
+    short_er = format_html(exc_data, show_hidden_frames=False, **ops)
+    # @@: This should have a way of seeing if the previous traceback
+    # was actually trimmed at all
+    long_er = format_html(exc_data, show_hidden_frames=True,
+                          include_reusable=False, **ops)
+    return """
+    %s
+    <br>
+    <script type="text/javascript">
+    show_button('full_traceback', 'full traceback')
+    </script>
+    <div id="full_traceback" class="hidden-data">
+    %s
+    </div>
+    """ % (short_er, long_er)
+        
 def format_text(exc_data, **ops):
     return TextFormatter(**ops).format_collected_data(exc_data)
