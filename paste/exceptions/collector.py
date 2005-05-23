@@ -32,6 +32,8 @@ import serial_number_generator
 DEBUG_EXCEPTION_FORMATTER = True
 DEBUG_IDENT_PREFIX = 'E-'
 
+__all__ = ['collect_exception', 'ExceptionCollector']
+
 class ExceptionCollector:
 
     """
@@ -65,14 +67,16 @@ class ExceptionCollector:
         some of the complexity of the larger framework and let the
         user focus on their own errors.
 
-    ``__traceback_stop__``:
-        If set and true, then all frames before this should be hidden
-        (as though they had ``__traceback_hide__`` set).  This way
-        you can, for instance, hide an entire server.
+        By setting it to ``'before'``, all frames before this one will
+        be thrown away.  By setting it to ``'after'`` then all frames
+        after this will be thrown away until ``'reset'`` is found.  In
+        each case the frame where it is set is included, unless you
+        append ``'_and_this'`` to the value (e.g.,
+        ``'before_and_this'``).
 
-    ``__traceback_start__``:
-        Start up the traceback again if ``__traceback_stop__`` has
-        come into play.
+        Note that formatters will ignore this entirely if the frame
+        that contains the error wouldn't normally be shown according
+        to these rules.
 
     ``__traceback_reporter__``:
         This should be a reporter object (see the reporter module),
@@ -127,10 +131,6 @@ class ExceptionCollector:
         scope (@@: should it str()-ify it or not?)
     ``traceback_hide``:
         the value of any ``__traceback_hide__`` variable
-    ``traceback_stop``:
-        the value of any ``__traceback_stop__`` variable
-    ``traceback_start``:
-        the value of any ``__traceback_start__`` variable
     ``traceback_log``:
         the value of any ``__traceback_log__`` variable
     
@@ -179,15 +179,10 @@ class ExceptionCollector:
     itself.
 
     Formatters may want to use ``__traceback_hide__`` as a hint to
-    hide frames that are part of the 'framework' or underlying system;
-    any frames that precede ``__traceback_stop__`` should be treated
-    similarly.  Completely hiding these frames may be confusing, but
-    it allows an abbreviated view of the exception that may highlight
-    problems (it is advised that a complete traceback also be
-    generated).  If the last frame has one of these variables set, you
-    should probably ignore the variables entirely, as it means there
-    is an unexpected error in the framework.
-
+    hide frames that are part of the 'framework' or underlying system.
+    There are a variety of rules about special values for this
+    variables that formatters should be aware of.
+    
     TODO:
 
     More attributes in __traceback_supplement__?  Maybe an attribute
@@ -307,8 +302,7 @@ class ExceptionCollector:
             pass
 
         marker = []
-        for name in ('__traceback_hide__', '__traceback_stop__',
-                     '__traceback_start__', '__traceback_log__'):
+        for name in ('__traceback_hide__', '__traceback_log__'):
             try:
                 tbh = locals.get(name, marker)
                 if tbh is not marker:
@@ -451,9 +445,8 @@ class ExceptionFrame(Bunch):
     supplement_exception = None
     # The str() of any __traceback_info__ value found
     traceback_info = None
-    # The value of __traceback_hide__ and __traceback_stop__ variables:
+    # The value of __traceback_hide__
     traceback_hide = False
-    traceback_stop = False
 
     def get_source_line(self):
         """

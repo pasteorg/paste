@@ -27,16 +27,8 @@ class AbstractFormatter:
                 general_data[(importance, name)] = self.format_extra_data(
                     importance, title, value)
         lines = []
-        show_hidden_frames = self.show_hidden_frames
-        last = exc_data.frames[-1]
-        if last.traceback_hide or last.traceback_stop:
-            # If the last frame was supposed to have been hidden,
-            # there's clearly a problem in the hidden portion of
-            # the framework itself
-            show_hidden_frames = True
-        for frame in exc_data.frames:
-            if frame.traceback_hide and not show_hidden_frames:
-                continue
+        frames = self.filter_frames(exc_data.frames)
+        for frame in frames:
             sup = frame.supplement
             if sup:
                 if sup.object:
@@ -57,6 +49,8 @@ class AbstractFormatter:
             if frame.supplement_exception:
                 lines.append('Exception in supplement:')
                 lines.append(self.quote_long(frame.supplement_exception))
+            if frame.traceback_info:
+                lines.append(self.format_traceback_info(frame.traceback_info))
             filename = frame.filename
             if filename and self.trim_source_paths:
                 for path, repl in self.trim_source_paths:
@@ -81,6 +75,50 @@ class AbstractFormatter:
         for value in data_by_importance.values():
             value.sort()
         return self.format_combine(data_by_importance, lines, exc_info)
+
+    def filter_frames(self, frames):
+        """
+        Removes any frames that should be hidden, according to the
+        values of traceback_hide, self.show_hidden_frames, and the
+        hidden status of the final frame.
+        """
+        if self.show_hidden_frames:
+            return frames
+        new_frames = []
+        hidden = False
+        for frame in frames:
+            hide = frame.traceback_hide
+            # @@: It would be nice to signal a warning if an unknown
+            # hide string was used, but I'm not sure where to put
+            # that warning.
+            if hide == 'before':
+                new_frames = []
+                hidden = False
+            elif hide == 'before_and_this':
+                new_frames = []
+                hidden = False
+                continue
+            elif hide == 'reset':
+                hidden = False
+            elif hide == 'reset_and_this':
+                hidden = False
+                continue
+            elif hide == 'after':
+                hidden = True
+            elif hide == 'after_and_this':
+                hidden = True
+                continue
+            elif hide:
+                continue
+            elif hidden:
+                continue
+            new_frames.append(frame)
+        if frames[-1] not in new_frames:
+            # We must include the last frame; that we don't indicates
+            # that the error happened where something was "hidden",
+            # so we just have to show everything
+            return frames
+        return new_frames
 
     def pretty_string_repr(self, s):
         """
@@ -138,7 +176,9 @@ class TextFormatter(AbstractFormatter):
     def format_exception_info(self, etype, evalue):
         return self.emphasize(
             '%s: %s' % (self.quote(etype), self.quote(evalue)))
-
+    def format_traceback_info(self, info):
+        return info
+        
     def format_combine(self, data_by_importance, lines, exc_info):
         lines[:0] = [value for n, value in data_by_importance['important']]
         lines.append(exc_info)
@@ -186,6 +226,8 @@ class HTMLFormatter(TextFormatter):
         return 'File %r, line %s in <tt>%s</tt>' % (filename, lineno, name)
     def format_source(self, source_line):
         return '&nbsp;&nbsp;<tt>%s</tt>' % self.quote(source_line.strip())
+    def format_traceback_info(self, info):
+        return '<pre>%s</pre>' % self.quote(info)
 
     def format_extra_data(self, importance, title, value):
         if isinstance(value, str):
