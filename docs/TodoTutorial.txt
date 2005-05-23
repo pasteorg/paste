@@ -43,7 +43,8 @@ First, get the latest version of Paste with::
     python build-pkg.py
 
 That last line downloads a lot of dependencies and installs them
-locally to Paste.
+locally to Paste.  You can re-run this command to update these
+libraries as well.
 
 .. note::
 
@@ -91,7 +92,6 @@ Let's start out quickly.  We'll be installing the application in
     $ cd $BASE
     $ ls -R
     .:
-    db.py
     __init__.py
     server.conf
     sitepage.py
@@ -952,6 +952,9 @@ on this:
     ... </html>
     ... </metal:tpl>
     ... """)
+
+.. raw:: html
+   :file: resources/TodoTutorial/templates/standard_template.pt.nav.gen.html
 
 Let's look at that view page again:
 
