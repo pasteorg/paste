@@ -200,8 +200,10 @@ def handle_exception(exc_info, conf, error_stream, html=True):
             exc_data.exception_type, exc_data.exception_value))
     if html:
         if conf.get('debug', False):
+            error_html = formatter.format_html(exc_data,
+                                               include_hidden_frames=True)
             return_error = error_template(
-                formatter.format_html(exc_data), extra_data)
+                error_html, extra_data)
             extra_data = ''
             reported = True
         else:
