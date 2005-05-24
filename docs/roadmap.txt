@@ -1,0 +1,182 @@
+Paste Roadmap
++++++++++++++
+
+:revision: $Rev$
+:date: $LastChangedDate$
+
+This is a document describing Paste's future and some of the things
+planned.  This may change as events continue.  Discussion is welcome;
+please direct discussion to paste-users@pythonpaste.org
+
+Bold items are particularly important.  The sections are in no
+particular order.
+
+.. contents::
+
+To-Do
+=====
+
+paste-setup
+-----------
+
+* **Rename executable script**
+
+* **Remove ``paste-server``**
+
+* **Package installation and upgrading.**
+
+  * Package installation should allow for Paste-specific hooks.
+
+* **Deployment of multiple applications using configuration files**
+
+  * An application could be mapped to a particular URL, given a
+    configuration file that describes the application.
+
+* **``--daemon`` option for running as background process**
+
+* Template files should have optional ``.ext_tmpl`` extension, where
+  ``_tmpl`` gets stripped.  This way the currently-invalid ``.py``
+  template files wouldn't be recognized as Pythohn files.
+
+* Allow applications to easily add their own commands, e.g.,
+  ``add-user``.  
+
+paste.docsupport
+----------------
+
+* Add indexing for the various objects (middleware, configuration
+  options, WSGI environment keys).
+* Extract some packages into separate files.  (e.g., ``paste.webkit``,
+  ``paste.wareweb`` -- but *not* ``paste.exceptions``)
+
+paste.tests.doctest_webapp
+--------------------------
+
+* Maybe move out of ``tests`` package.
+* Make it fail hard on certain errors (e.g., when ``paste-setup`` fail
+
+paste.tests.fixture
+-------------------
+
+* Maybe move out of ``tests`` package.
+* Get rid of fake_request (convert current tests to TestApp).
+* Fill out or remove other mock objects.  (Maybe make a package for
+  other pieces?)
+
+paste.pycgiwrapper
+------------------
+
+* Document, test, or throw away.
+* Allow for non-Python CGI scripts (no clever tricks, just run it in a
+  subprocess).
+
+paste.pyconfig
+--------------
+
+* Put in notion of "profiles," which involve different sets of
+  configuration files.
+* Add ini-file parser/loader (probably taking from the old
+  ``paste.conf`` module), so some parts of configuration can be
+  explicitly handed off to a simpler configuration file.
+
+paste.reloader
+--------------
+
+* Make sure it uses HUP, etc.
+
+paste.wdg_validate
+------------------
+
+* Allow other validators to be plugged in.
+* Validate CSS (embedded CSS with report in parent page?).
+
+Blue-sky
+~~~~~~~~
+
+* Validate Javascript...?  An anal Javascript parser would be really
+  cool.
+
+paste.exceptions
+----------------
+
+* Display local variables in exception reports, like ``cgitb``.
+  Except values should be inlined into the source line itself in HTML
+  ``title`` attributes, and the ``class`` should represent the rough
+  type (e.g., module, None, string, number, function).
+
+* Keep extra data from being doubly displayed.
+
+* Add object and protocol so HTML can be included in extra data.
+
+* Include "serial number" in non-exception output.
+
+* Add hooks to suppress reporters.  E.g., if a "developer" is logged
+  in, the error report need not mailed.  Maybe just based on IP
+  address (a rough feature is all that is needed).
+
+Blue-sky
+~~~~~~~~
+
+* Allow evaluation in local stacks, interactively, keeping the
+  traceback in a session or similar location.
+
+paste.urlparser
+---------------
+
+* Static-file-only serving, for serving directories full of Javascript
+  and whatnot without security concern.
+
+* Middleware for various compositions of applications, like nesting
+  several applications under the same URL space, using the first one
+  that doesn't return 404.
+
+paste.session
+-------------
+
+* **Use flup session middleware**
+* Add DB-API-based session storage.
+* Add URI->DB-API connection parser (maybe strip from SQLObject).
+
+paste.login
+-----------
+
+* Really document it, and test it.
+* Provide some useful backends (htpasswd, database/DB-API,
+  SQLObject).
+
+paste.gzipper
+-------------
+
+* Probably should just be removed.
+
+Things to Add
+=============
+
+No module yet, so these are listed generally.
+
+* Really good static-file WSGI application, that knows about
+  If-Modified-Since, ETag, etc.  Should have caching of gzipped
+  versions and cache some metadata (like etags themselves).
+
+* Authorization middleware.
+
+* Something to manage collections of static files, like a Javascript
+  library.
+
+* Something to copy static files to a known location, based on
+  configuration.  E.g., copy static files into a location served by
+  Apache.  
+
+* Bring some Javascript library in, mostly for use in examples, but
+  also as a kind of suggestion.
+
+* Upload-progress-tracking WSGI application.
+
+* Something like Webware's TaskKit, but more abstract.  And
+  multiprocess-friendly.
+
+Done
+====
+
+I just wrote this, so nothing that's shown up on this list is done
+yet!
