@@ -67,6 +67,9 @@ More abstract discussion about Python web programming in general:
 Resources
 =========
 
+* `Roadmap <docs/roadmap.html>`_, a list of concrete goals and ideas.  Not
+  much of a roadmap yet, as there's no fixed milestones.
+
 * `Paste Reference Document <docs/reference.html>`_
 
 * `Testing Applications with Paste <docs/testing-applications.html>`_,
