@@ -6,7 +6,8 @@ echo "Adding $parent to \$PYTHONPATH"
 export PYTHONPATH=$parent:$PYTHONPATH
 
 NORMAL="DeveloperGuidelines Paste servers StyleGuide web/index \
-        what-is-paste testing-applications url-parsing-with-wsgi"
+        what-is-paste testing-applications url-parsing-with-wsgi \
+        roadmap"
 DOCTEST_BUILD="blog-tutorial TodoTutorial"
 
 for NAME in $NORMAL ; do
