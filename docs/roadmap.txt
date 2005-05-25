@@ -32,14 +32,19 @@ paste-setup
   * An application could be mapped to a particular URL, given a
     configuration file that describes the application.
 
-* **``--daemon`` option for running as background process**
-
 * Template files should have optional ``.ext_tmpl`` extension, where
   ``_tmpl`` gets stripped.  This way the currently-invalid ``.py``
   template files wouldn't be recognized as Pythohn files.
 
 * Allow applications to easily add their own commands, e.g.,
   ``add-user``.  
+
+* Better PID management when in daemon mode (don't clobber a PID file
+  of a running process)
+
+* Add options to manage the daemon process, like force
+  reloading/restarting (HUP?) and stopping; make init.d scripts as
+  minimal as possible.
 
 paste.docsupport
 ----------------
@@ -178,5 +183,5 @@ No module yet, so these are listed generally.
 Done
 ====
 
-I just wrote this, so nothing that's shown up on this list is done
-yet!
+25 May 2005: 
+    **``--daemon`` option for running as background process**
