@@ -63,7 +63,7 @@ def load_commandline(args, allow_reload=True):
     conf = pyconfig.Config(with_default=True)
     conf.load_commandline(
         args, bool_options=['help', 'verbose', 'reload', 'debug', 'quiet',
-                            'no_verbose', 'list_servers'],
+                            'no_verbose', 'list_servers', 'daemon'],
         aliases={'h': 'help', 'v': 'verbose', 'f': 'config_file',
                  'D': 'debug', 'q': 'quiet'})
     if conf.get('no_verbose'):
@@ -198,7 +198,8 @@ def restart_with_reloader(conf):
                                args, new_environ)
         if exit_code != 3:
             return None, exit_code
-        print "Exit code 3; restarting server"
+        if conf['verbose']:
+            print '-'*20, 'Restarting', '-'*20
 
 if __name__ == '__main__':
     sys.exit(run_commandline(sys.argv[1:]))
