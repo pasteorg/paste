@@ -1,4 +1,5 @@
 import sys
+from paste import makeapp
 
 def build_application(conf):
     if conf.get('publish_dir'):
@@ -9,6 +10,8 @@ def build_application(conf):
         if isinstance(app, (str, unicode)):
             from paste.util import import_string
             app = import_string.eval_import(app)
+        app = makeapp.apply_conf_middleware(app, conf)
+        app = makeapp.apply_default_middleware(app, conf)
     else:
         # @@ ianb 2005-03-23: This should be removed sometime
         if conf.get('webkit_dir'):
