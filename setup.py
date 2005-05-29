@@ -119,7 +119,7 @@ functionality.
                 "paste.docsupport",
                 "paste.packaging",
                 ],
-      scripts=['scripts/paste-server', 'scripts/paste-setup'],
+      scripts=['scripts/paster'],
       download_url="",
       package_data={'paste': package_data},
       )
