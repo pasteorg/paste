@@ -55,14 +55,14 @@ Setting Up The App
     >>> BASE = '/var/www/example-builds/wwblog'
     >>> import sys
     >>> clear_dir(BASE)
-    >>> run("paste-setup create --template=webkit_zpt %s" % BASE)
+    >>> run("paster create --template=webkit_zpt %s" % BASE)
     >>> os.chdir(BASE)
 
 ::
 
     $ export PYTHONPATH=/path/to/Paste:$PYTHONPATH
     $ BASE=/var/www/example-builds/wwblog
-    $ paste-setup create --template=webkit_zpt $BASE
+    $ paster create --template=webkit_zpt $BASE
     $ cd $BASE
 
 The Model

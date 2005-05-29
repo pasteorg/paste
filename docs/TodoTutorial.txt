@@ -68,7 +68,7 @@ Let's start out quickly.  We'll be installing the application in
     >>> import sys
     >>> sys.path.append('/path/to/Paste')
     >>> clear_dir(BASE)
-    >>> run("paste-setup create --template=webkit_zpt %s" % BASE)
+    >>> run("paster create --template=webkit_zpt %s" % BASE)
     >>> os.chdir(BASE)
     >>> ls(recurse=True)
     __init__.py
@@ -88,7 +88,7 @@ Let's start out quickly.  We'll be installing the application in
 
     $ export PYTHONPATH=/path/to/Paste:$PYTHONPATH
     $ BASE=/var/www/example-builds/todo_sql
-    $ paste-setup create --template=webkit_zpt $BASE
+    $ paster create --template=webkit_zpt $BASE
     $ cd $BASE
     $ ls -R
     .:

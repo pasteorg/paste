@@ -139,7 +139,7 @@ test.
 Application Templates
 ---------------------
 
-One facility in Paste is ``paste-setup`` a script to create
+One facility in Paste is ``paster`` a script to create
 application "templates".  Basically an empty application, with a
 little structure.  For instance, the Webware/Zope Page Template
 (webkit_zpt) application template sets up these files::
@@ -154,9 +154,9 @@ little structure.  For instance, the Webware/Zope Page Template
     web/static/stylesheet.css
 
 This is a kind of a minimal set up for a typical web application using
-these systems.  After the application is set up, ``paste-setup`` can
+these systems.  After the application is set up, ``paster`` can
 provide other commands.  For instance in a webkit_zpt application
-``paste-setup servlet edit`` will create ``web/edit.py`` and
+``paster servlet edit`` will create ``web/edit.py`` and
 ``web/edit.pt`` files.  Each template has control implement any
 commands how it sees fit, but some convenient functions and classes
 are provided to make implementation easier.
@@ -167,7 +167,7 @@ Distribution
 This is still an open issue, but I hope Paste will facilitate
 installation of multiple frameworks quickly.  Some of this is handled
 already: ``paste-server`` starts a server easily and quickly, and
-``paste-setup`` gives a user the basis for an application quickly.
+``paster`` gives a user the basis for an application quickly.
 Actual software installation is a little harder.  Right now the plan
 is to use `Python Eggs
 <http://peak.telecommunity.com/DevCenter/PythonEggs>`_, but it's just

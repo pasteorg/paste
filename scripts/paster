@@ -13,8 +13,6 @@ relative_paste = os.path.join(
 
 if os.path.exists(relative_paste):
     sys.path.insert(0, os.path.dirname(relative_paste))
-import paste.app_setup
-print paste.app_setup.__file__
 
 from paste import app_setup
 sys.exit(app_setup.run(sys.argv))

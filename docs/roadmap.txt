@@ -16,12 +16,8 @@ particular order.
 To-Do
 =====
 
-paste-setup
------------
-
-* **Rename executable script**
-
-* **Remove ``paste-server``**
+paster
+------
 
 * **Package installation and upgrading.**
 
@@ -58,7 +54,7 @@ paste.tests.doctest_webapp
 --------------------------
 
 * Maybe move out of ``tests`` package.
-* Make it fail hard on certain errors (e.g., when ``paste-setup`` fail
+* Make it fail hard on certain errors (e.g., when ``paster`` fail
 
 paste.tests.fixture
 -------------------
