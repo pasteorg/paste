@@ -28,10 +28,6 @@ paster
   * An application could be mapped to a particular URL, given a
     configuration file that describes the application.
 
-* Template files should have optional ``.ext_tmpl`` extension, where
-  ``_tmpl`` gets stripped.  This way the currently-invalid ``.py``
-  template files wouldn't be recognized as Pythohn files.
-
 * Allow applications to easily add their own commands, e.g.,
   ``add-user``.  
 
@@ -181,3 +177,8 @@ Done
 
 25 May 2005: 
     **``--daemon`` option for running as background process**
+
+29 May 2005:
+    * Template files should have optional ``.ext_tmpl`` extension, where
+      ``_tmpl`` gets stripped.  This way the currently-invalid ``.py``
+      template files wouldn't be recognized as Pythohn files.
