@@ -533,6 +533,8 @@ def copy_dir(source, dest, vars, verbosity, simulate):
                 print 'Skipping hidden file %s' % full
             continue
         dest_full = os.path.join(dest, _substitute_filename(name, vars))
+        if dest_full.endswith('_tmpl'):
+            dest_full = dest_full[:-5]
         if os.path.isdir(full):
             if verbosity:
                 print 'Recursing into %s' % full
