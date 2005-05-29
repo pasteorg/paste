@@ -182,6 +182,18 @@ def error_response(environ, error_code, message,
                ('content-length', str(len(body)))]
     return error_code, headers, body
 
+def error_response_app(error_code, message, debug_message=None):
+    """
+    An application that emits the given error response.
+    """
+    def application(environ, start_response):
+        status, headers, body = error_response(
+            environ, error_code, message,
+            debug_message=debug_message)
+        start_response(status, headers)
+        return [body]
+    return application
+
 def send_file(filename):
     """
     Returns an application that will send the file at the given
