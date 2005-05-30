@@ -162,15 +162,15 @@ class TextFormatter(AbstractFormatter):
         return 'URL: %s' % self.quote(url)
     def format_sup_line_pos(self, line, column):
         if column:
-            return 'Line %i, Column %i' % (line, column)
+            return self.emphasize('Line %i, Column %i' % (line, column))
         else:
-            return 'Line %i' % line
+            return self.emphasize('Line %i' % line)
     def format_sup_expression(self, expr):
-        return 'In expression: %s' % self.quote(expr)
+        return self.emphasize('In expression: %s' % self.quote(expr))
     def format_sup_warning(self, warning):
         return 'Warning: %s' % self.quote(warning)
     def format_sup_info(self, info):
-        return [self.quote(info)]
+        return [self.quote_long(info)]
     def format_source_line(self, filename, lineno, name):
         return 'File %r, line %s in %s' % (filename, lineno, name)
     def format_source(self, source_line):
