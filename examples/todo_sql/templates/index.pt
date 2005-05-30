@@ -18,6 +18,5 @@
  <input type="text" name="description">
  <input type="submit" value="Create!!!!">
 </form>
-<tal:block replace="servlet/request/environ" />
 </metal:body>
 </html>
