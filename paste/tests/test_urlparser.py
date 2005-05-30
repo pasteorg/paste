@@ -1,6 +1,6 @@
+import os
 from paste.urlparser import *
 from fixture import fake_request
-
 
 def path(name):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)),
