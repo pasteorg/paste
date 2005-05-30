@@ -5,6 +5,7 @@ from paste import urlparser
 from paste import session
 from paste import recursive
 from paste import httpexceptions
+from paste.util.findpackage import find_package
 
 def build_application(conf):
     if not 'publish_dir' in conf:
@@ -14,7 +15,8 @@ def build_application(conf):
     install_fake_webware = conf.get('install_fake_webware', True)
     if install_fake_webware:
         _install_fake_webware()
-    app = urlparser.URLParser(directory, os.path.basename(directory))
+    package = find_package(directory)
+    app = urlparser.URLParser(directory, package)
     app = makeapp.apply_conf_middleware(
         app, conf,
         [httpexceptions.middleware, session.SessionMiddleware,
