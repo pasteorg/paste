@@ -51,6 +51,8 @@ class Config(UserDict.DictMixin, object):
     A dictionary-like object that represents configuration.
     """
 
+    builtins = {}
+
     def __init__(self, with_default=False):
         self.namespaces = []
         if with_default:
@@ -84,7 +86,7 @@ class Config(UserDict.DictMixin, object):
 
     def read_file(self, filename, namespace=None,
                   load_self=True):
-        special_keys = ('__file__', 'load', 'include')
+        special_keys = ['__file__', 'load', 'include'] + self.builtins.keys()
         watch_file(filename)
         f = open(filename, 'rb')
         content = f.read()
@@ -101,6 +103,8 @@ class Config(UserDict.DictMixin, object):
         namespace['__file__'] = os.path.abspath(filename)
         namespace['load'] = self.make_loader(filename, namespace)
         namespace['include'] = self.make_includer(filename, namespace)
+        for key, builder in self.builtins.items():
+            namespace[key] = builder(self, filename, namespace)
         content = content.replace("\r\n","\n")
         exec content in namespace
         if load_self:
@@ -420,3 +424,34 @@ def make_list(option):
         else:
             return option
     return [s.strip() for s in option.split(',')]
+
+def make_use_package(conf, relative_to, namespace):
+    import easy_install
+    from pkg_resources import DistributionNotFound, require
+    def use_package(package_spec, url=None, instdir=None, zip_ok=False,
+                    multi=None, tmpdir=None):
+        if instdir is None:
+            instdir = namespace.get('app_packages', 'app-packages')
+        instdir = os.path.join(os.path.dirname(relative_to), instdir)
+        if instdir not in sys.path:
+            sys.path.insert(0, instdir)
+        if not os.path.exists(instdir):
+            os.makedirs(instdir)
+        try:
+            require(package_spec)
+        except DistributionNotFound, e:
+            pass
+        else:
+            return
+        if url is None:
+            url = namespace['package_urls'][package_spec]
+        installer = easy_install.Installer(instdir, zip_ok, multi, tmpdir)
+        try:
+            downloaded = installer.download(url)
+            installer.install_eggs(downloaded)
+        finally:
+            installer.close()
+        require(package_spec)
+    return use_package
+
+Config.builtins['use_package'] = make_use_package

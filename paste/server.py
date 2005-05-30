@@ -53,6 +53,7 @@ from paste import reloader
 from paste import CONFIG
 from paste.util import plugin
 from paste import pyconfig
+from paste import urlmap
 
 reloader_environ_key = 'WSGI_RELOADER_SHOULD_RUN'
 
@@ -177,6 +178,10 @@ def help():
     program = sys.argv[0]
     return help_message % {'program': program}
 
+def make_app_from_filename(filename):
+    conf = pyconfig.setup_config(filename)
+    return make_app(conf)
+
 def make_app(conf):
     framework_name = conf.get('framework', 'default')
     framework = plugin.load_plugin_module(
@@ -185,7 +190,25 @@ def make_app(conf):
         framework_name,
         '_framework')
     app = framework.build_application(conf)
-    return app
+    mapper = conf.get('system_urlmap')
+    if mapper:
+        mapper[''] = app
+        return mapper
+    else:
+        return app
+
+def make_proxy(conf, filename, namespace):
+    mapper = conf.get('system_urlmap')
+    if mapper is None:
+        namespace['system_urlmap'] = mapper = urlmap.URLMap()
+    current_url = conf.get('base_paste_url')
+    if current_url is None:
+        namespace['base_paste_url'] = current_url = ''
+    return urlmap.PathProxyURLMap(
+        mapper, current_url, os.path.dirname(filename),
+        make_app_from_filename)
+
+pyconfig.Config.builtins['urlmap'] = make_proxy
 
 def restart_with_reloader(conf):
     if conf['verbose']:
