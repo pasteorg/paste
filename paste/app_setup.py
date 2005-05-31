@@ -498,7 +498,7 @@ class CommandCreate(Command):
             print '  wsgi-server'
 
     def create(self, output_dir):
-        file_dir = os.path.join(self.template_dir, 'template')
+        file_dir = self.file_source_dir()
         if not os.path.exists(file_dir):
             raise OSError(
                 'No %s directory, I don\'t know what to do next' % file_dir)
@@ -512,6 +512,9 @@ class CommandCreate(Command):
         template_options['template_name'] = self.template_name
         self.copy_dir(file_dir, output_dir, template_options,
                       self.options.verbose, self.options.simulate)
+
+    def file_source_dir(self):
+        return os.path.join(self.template_dir, 'template')
 
     def copy_dir(self, *args, **kw):
         copy_dir(*args, **kw)
