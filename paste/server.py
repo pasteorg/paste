@@ -157,8 +157,26 @@ def run_server(conf, app):
     server_mod = get_server_mod(conf['server'])
     if conf['verbose']:
         print "Starting server."
+    if conf.get('profile_server'):
+        return run_server_profiled(conf, app, server_mod)
     try:
         server_mod.serve(conf, app)
+    except KeyboardInterrupt:
+        # This is an okay error
+        pass
+    return 0
+
+def run_server_profiled(conf, app, server_mod):
+    import hotshot
+    try:
+        prof_filename = conf.get('profile_server_log', 'hotshot_server.log')
+        if conf['verbose']:
+            print 'Logging profiling to %s' % prof_filename
+        prof = hotshot.Profile(prof_filename)
+        try:
+            prof.runcall(server_mod.serve, conf, app)
+        finally:
+            prof.close()
     except KeyboardInterrupt:
         # This is an okay error
         pass
