@@ -9,7 +9,7 @@ import sys
 import os
 base_paste_url = 'http://peak.telecommunity.com/dist/'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
-setuptools_version = '0.3a2'
+setuptools_version = '0.3a3'
 support_dir = os.path.join(os.path.dirname(__file__), 'support')
 setuptools_filename = 'setuptools-%s-py%s.egg' % (
     setuptools_version, python_version)
@@ -117,7 +117,6 @@ functionality.
                 "paste.servers.scgi_server",
                 "paste.wareweb",
                 "paste.docsupport",
-                "paste.packaging",
                 ],
       scripts=['scripts/paster'],
       download_url="",
