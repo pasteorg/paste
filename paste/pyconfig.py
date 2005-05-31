@@ -426,10 +426,10 @@ def make_list(option):
     return [s.strip() for s in option.split(',')]
 
 def make_use_package(conf, relative_to, namespace):
-    import easy_install
-    from pkg_resources import DistributionNotFound, require
     def use_package(package_spec, url=None, instdir=None, zip_ok=False,
                     multi=None, tmpdir=None):
+        import easy_install
+        from pkg_resources import DistributionNotFound, require
         if instdir is None:
             instdir = namespace.get('app_packages', 'app-packages')
         instdir = os.path.join(os.path.dirname(relative_to), instdir)
