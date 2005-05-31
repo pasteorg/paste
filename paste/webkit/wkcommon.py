@@ -43,6 +43,9 @@ def requestURI(dict):
     return uri
 
 def deprecated(msg=None):
+    # @@: Right now this takes up a surprising amount of CPU time
+    # (blech!  inspect is slow)
+    return
     if not msg:
         frame = inspect.stack()[1]
         methodName = frame[3]
