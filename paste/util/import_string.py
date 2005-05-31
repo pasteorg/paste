@@ -32,7 +32,11 @@ def simple_import(s):
             break
     obj = module
     while parts:
-        obj = getattr(module, parts[0])
+        try:
+            obj = getattr(module, parts[0])
+        except AttributeError:
+            raise ImportError(
+                "Cannot find %s in module %r" % (parts[0], module))
         parts = parts[1:]
     return obj
 
