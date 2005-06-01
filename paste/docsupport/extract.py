@@ -1,8 +1,15 @@
+if __name__ == '__main__':
+    # This has to be done very early on, to make the real module
+    # replace the stubby version
+    from paste.docsupport import metadata_real
+    metadata_real.install()
+
 import types
 import inspect
 from cStringIO import StringIO
 import textwrap
 import findmodules
+
 from paste.docsupport import metadata
 from paste.util.classinit import ClassInitMeta
 from paste.httpexceptions import HTTPException
@@ -187,6 +194,7 @@ class DocContext(object):
         self.header_level = 0
         self.indent_level = 0
         self.names = []
+        self.need_break = False
 
     def push_name(self, name):
         self.names.append(name)
@@ -203,6 +211,7 @@ class DocContext(object):
     last_name = property(last_name__get)
 
     def writeheader(self, name, type=None):
+        self.need_break = False
         if self.indent_level:
             self.writekey(name, type=type, monospace=False)
             return
@@ -221,6 +230,7 @@ class DocContext(object):
         self.header_level -= 1
         assert self.header_level >= 0, (
             "Too many endheader() calls.")
+        self.need_break = True
 
     def writedoc(self, doc):
         if doc is None:
@@ -260,6 +270,9 @@ class DocContext(object):
             "Too many endkeys or dedents (indent %s)" % self.indent_level)
 
     def write(self, s):
+        if self.need_break:
+            self.out.write('\n\n%s\n\n' % ('-'*40))
+            self.need_break = False
         if self.indent_level:
             self.out.write(self.indent(s, self.indent_level))
         else:
