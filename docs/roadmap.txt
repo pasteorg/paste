@@ -19,14 +19,9 @@ To-Do
 paster
 ------
 
-* **Package installation and upgrading.**
+* **Package installation and upgrading.** (partially done)
 
   * Package installation should allow for Paste-specific hooks.
-
-* **Deployment of multiple applications using configuration files**
-
-  * An application could be mapped to a particular URL, given a
-    configuration file that describes the application.
 
 * Allow applications to easily add their own commands, e.g.,
   ``add-user``.  
@@ -43,6 +38,7 @@ paste.docsupport
 
 * Add indexing for the various objects (middleware, configuration
   options, WSGI environment keys).
+
 * Extract some packages into separate files.  (e.g., ``paste.webkit``,
   ``paste.wareweb`` -- but *not* ``paste.exceptions``)
 
@@ -50,20 +46,28 @@ paste.tests.doctest_webapp
 --------------------------
 
 * Maybe move out of ``tests`` package.
-* Make it fail hard on certain errors (e.g., when ``paster`` fail
+
+* Make it fail hard on certain errors (e.g., when ``paster`` fails)
 
 paste.tests.fixture
 -------------------
 
 * Maybe move out of ``tests`` package.
+
 * Get rid of fake_request (convert current tests to TestApp).
+
 * Fill out or remove other mock objects.  (Maybe make a package for
   other pieces?)
+
+* ``setup_module`` really only applies to application acceptance
+  testing, but can be enabled unwittingly when doing ``import *`` --
+  figure something out there.
 
 paste.pycgiwrapper
 ------------------
 
 * Document, test, or throw away.
+
 * Allow for non-Python CGI scripts (no clever tricks, just run it in a
   subprocess).
 
@@ -72,9 +76,12 @@ paste.pyconfig
 
 * Put in notion of "profiles," which involve different sets of
   configuration files.
+
 * Add ini-file parser/loader (probably taking from the old
   ``paste.conf`` module), so some parts of configuration can be
   explicitly handed off to a simpler configuration file.
+
+* Clean up ``use_package`` and move to another module.
 
 paste.reloader
 --------------
@@ -85,6 +92,7 @@ paste.wdg_validate
 ------------------
 
 * Allow other validators to be plugged in.
+
 * Validate CSS (embedded CSS with report in parent page?).
 
 Blue-sky
@@ -131,13 +139,16 @@ paste.session
 -------------
 
 * **Use flup session middleware**
+
 * Add DB-API-based session storage.
+
 * Add URI->DB-API connection parser (maybe strip from SQLObject).
 
 paste.login
 -----------
 
 * Really document it, and test it.
+
 * Provide some useful backends (htpasswd, database/DB-API,
   SQLObject).
 
@@ -182,3 +193,10 @@ Done
     * Template files should have optional ``.ext_tmpl`` extension, where
       ``_tmpl`` gets stripped.  This way the currently-invalid ``.py``
       template files wouldn't be recognized as Pythohn files.
+
+30 May 2005:
+
+    * **Deployment of multiple applications using configuration files**
+
+      * An application could be mapped to a particular URL, given a
+        configuration file that describes the application.
