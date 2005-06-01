@@ -127,7 +127,7 @@ def show(path_info, example_name):
               % (url, url))
     out.write('<div class="doctest-example">\n')
     proc = subprocess.Popen(
-        ['paste-server', '--server=console', '--no-verbose',
+        ['paster', 'serve' '--server=console', '--no-verbose',
          '--url=' + path_info],
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
