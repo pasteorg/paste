@@ -5,11 +5,36 @@ import threading
 import cgi
 from cStringIO import StringIO
 from paste import wsgilib
+from paste.docsupport import metadata
+
+__all__ = ['ProfileMiddleware']
 
 class ProfileMiddleware(object):
 
+    """
+    You can enable this middleware by adding this to your
+    configuration::
+
+        middleware.append('paste.profilemiddleware.ProfileMiddleware')
+
+    All HTML pages will have profiling information appended to them.
+    The data is isolated to that single request, and does not include
+    data from previous requests.
+
+    This uses the ``hotshot`` module, which effects performance of the
+    application.  It also runs in a single-threaded mode, so it is
+    only usable in development environments.
+    """
+
     style = ('background-color: #ff9; color: #000; '
              'border: 2px solid #000; padding: 5px;')
+
+    config_profile_log_filename = metadata.Config("""
+    The filename to write profiling data to.
+    """, default='profile.log')
+    config_profile_limit = metadata.Config("""
+    Only this number of function calls will be displayed.
+    """, default=40)
 
     def __init__(self, application):
         self.application = application
@@ -17,8 +42,8 @@ class ProfileMiddleware(object):
 
     def __call__(self, environ, start_response):
         prof_filename = environ['paste.config'].get(
-            'hotshot_log', 'profile.log')
-        display_limit = environ['paste.config'].get('hotshot_limit', 40)
+            'profile_log_filename', 'profile.log')
+        display_limit = environ['paste.config'].get('profile_limit', 40)
         response = []
         body = []
         def replace_start_response(status, headers):
@@ -54,7 +79,8 @@ class ProfileMiddleware(object):
             self.lock.release()
 
 def capture_output(func, *args, **kw):
-    # Not threadsafe!
+    # Not threadsafe! (that's okay when ProfileMiddleware uses it,
+    # though, since it synchronizes itself.)
     out = StringIO()
     old_stdout = sys.stdout
     sys.stdout = out
