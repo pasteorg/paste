@@ -182,7 +182,7 @@ Running the application
 It's just the barest example application, but we can still run it and
 get some basic output.  Change into the directory and run::
 
-    $ path/to/paste/scripts/paste-server
+    $ path/to/paste/scripts/paster serve
 
 This will run a server on http://localhost:8080
 
@@ -195,7 +195,7 @@ This will run a server on http://localhost:8080
    :file: resources/TodoTutorial/default-frontpage.html
 
 You can run the server in different ways by passing command-line
-options to ``paste-server``, or by editing ``server.conf``.  The
+options to ``paster serve``, or by editing ``server.conf``.  The
 default setup only serves connection from the local computer
 (use ``host='0.0.0.0'`` to allow connections from anywhere), and
 serves on port 8080 (use ``port = 80`` to make it the default
