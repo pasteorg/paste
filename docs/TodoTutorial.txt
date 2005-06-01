@@ -16,7 +16,7 @@ To-Do: A Tutorial
     tested, and so must be inspected by eye after the document is
     assembled.
 
-Introduction and Audience
+Introduction and audience
 =========================
 
 This tutorial is intended for people interested in developing
@@ -229,8 +229,8 @@ A few things to note:
     kind of mini-framework for your application.
 
 ``class index(SitePage):``
-    Every servlet must have a class with the same name as the file it
-    is contained in.  This file gets created for every request, so you
+    Every servlet must have a class with the same name as the file that
+    contains it.  This file gets created for every request, so you
     can assign attributes (like ``self.list`` or whatever) and they'll
     only last as long as one request.
 
@@ -238,35 +238,35 @@ A few things to note:
     The ``setup`` method is called at the beginning of every request.
     This is where you should put together any objects that are
     required to process the request, and possibly perform actions
-    (like in response to a form submittal).  The actual content will
+    (say, in response to a form submittal).  The actual content will
     be rendered later.
 
 ``self.options.vars``
     ``self.options`` is an object where you store data for use by your
-    template.  The template can actually access any attributes of the
-    servlet, but assigning to ``self.options`` makes it explicit that
-    the value is intended for the template.
+    template.  The template can access any attributes of the servlet,
+    but assigning to ``self.options`` makes it explicit that the value
+    is intended for the template.
 
 ``self.request()``
     This is how, in the servlet, you access the request object.  The
     request object has several methods we'll look at later -- the most
-    useful being ``req.field(name, default)`` which retrieves the
+    useful being ``req.field(name, default)``, which retrieves the
     given field.
 
 ``req.environ()``
     This is the WSGI environment.  You won't know what that is, except
     that it's much like the environment passed to a CGI script.  It
-    contains things like ``SCRIPT_NAME``, ``REMOTE_ADDR``, etc.  It's
-    a dictionary, so we're just getting a sorted list of the keys and
-    values from that dictionary.
+    contains things such as ``SCRIPT_NAME``, ``REMOTE_ADDR``, etc.
+    It's a dictionary, so we're just getting a sorted list of the keys
+    and values from that dictionary.
 
 The rest should be self-explanatory by now.  
 
-Looking at Templates
+Looking at templates
 --------------------
 
 Now let's look at the template that goes with the servlet.  Every
-template is in ``template/servlet_name.pt`` -- ``.pt`` stands for
+template is in ``template/servlet_name.pt``. The ``.pt`` stands for
 "Page Template".
 
 .. comment (create index.py highlighted)
@@ -276,16 +276,16 @@ template is in ``template/servlet_name.pt`` -- ``.pt`` stands for
 .. raw:: html
    :file: resources/TodoTutorial/templates/index.pt.before_editing.gen.html
 
-OK, so a bit of explanation about this...
+OK, so a bit of explanation...
 
 ``<html metal:use-macro="here/standard_template.pt/macros/page">``
     ``metal:use-macro`` says that this page will define slots that
     will be inserted into the ``page`` macro in
-    ``standard_template.pt`` -- this is another way of saying that
+    ``standard_template.pt``. This is another way of saying that
     ``standard_template.pt`` gives the look and layout of the page.
-    This is different than many templating systems where you include a
+    This is different than many templating systems, where you include a
     header and footer -- ``standard_template.pt`` can rearrange all
-    your slots in whatever way it chooses, and is itself a complete
+    your slots in whichever way it chooses, and is itself a complete
     page.  We'll talk about slots next...
 
     Notice the ``metal:`` namespace.  METAL is the Page Template
@@ -325,19 +325,19 @@ OK, so a bit of explanation about this...
     This is a substitution -- ``tal:content`` replaces the contents of
     the tag with the given expression.  The current contents (``Var
     Name``) are simply thrown away; they are there for documentation
-    purpose at most.  If you wanted to leave them out, you could use
-    the XHTML notation of ``<td tal:content="python: var[0]" />``
+    at most.  If you wanted to leave them out, you could use the XHTML
+    notation of ``<td tal:content="python: var[0]" />``
 
     Here we need a Python expression, because ``var/0`` would be like
     ``var['0']``, and we need to access the index zero, not ``"0"``.
-    We indicate that it's a python expression with the ``python:``
+    We indicate that it's a Python expression with the ``python:``
     prefix.
 
 That's a quick introduction to Page Templates.  We'll wait to look at
 ``standard_template.pt``.
 
 
-The Sample Application
+The sample application
 ======================
 
 We'll be making a simple to-do list application.  The application will
@@ -350,13 +350,13 @@ Using a database
 .. note::
 
     These SQLObject classes could be considered your "model", but
-    really your model is whatever you want it to be -- there's no
+    really your model is whatever you want it to be. There's no
     formal concept of a model in this tutorial.
 
 The first thing we'll set up is a database connection.  This example
-uses SQLObject_, which is a object-relational mapper -- basically it
-makes your database tables look like Python classes, and each row in
-those tables is an instance of those classes.
+uses SQLObject_, which is a object-relational mapper. Basically, it
+makes your database tables look like Python classes, with each row in
+those tables as an instance of those classes.
 
 We'll be creating two tables:
 
@@ -417,17 +417,17 @@ translates this to an underscore style for the database.
 
 Each column is an attribute of the class, using special classes to
 indicate the type (``StringCol``, ``BoolCol``, etc).  Keyword
-arguments are used to indicate things like whether ``NULL`` is allowed
-(by default it is), and if there's a default value (SQLObject doesn't
-treat NULL as a default), and you could give the size of the text
-fields (by default they are all ``TEXT`` -- in these modern days
-it's not necessary to specify the length of your fields).
+arguments are used to indicate options such as whether ``NULL`` is
+allowed (by default it is), and whether there's a default value
+(SQLObject doesn't treat NULL as a default). You could also give the
+size of the text fields (by default they are all ``TEXT`` -- in these
+modern days it's not necessary to specify the length of your fields).
 
 SQLObject knows about several databases -- PostgreSQL, MySQL, and
 SQLite are especially well supported.  It can hide much of the
 specifics of the database, including generating the ``CREATE``
-statement.  We'll use SQLite in this example, but it's pretty much
-trivial to use another backend.
+statement.  We'll use SQLite in this example, but it's pretty trivial
+to use another backend.
 
 First, we have to add configuration to our ``server.conf`` file.
 We'll add these lines::
@@ -459,7 +459,7 @@ Now we have to actually create the tables; we'll use the
 
    SQLObject is, among other things, a database abstraction layer.  So
    it tries to use as many of the capabilities as it can of the
-   underlying database, but gloss over other issues.  In this case,
+   underlying database, but it glosses over other issues.  In this case,
    the ``todo_list_id`` column is a foreign key, but the SQL we show
    is for SQLite, and SQLite doesn't have foreign key constraints.  On
    PostgreSQL the ``CREATE`` statement would look different.
@@ -497,7 +497,7 @@ You have to be sure ``/var/www/example-builds`` is in your ``$PYTHONPATH``
 so that your ``todo_sql/`` directory is a module that Python can load.  ``-m
 todo_sql.db`` tells ``sqlobject-admin`` to load that module, look for
 SQLObject classes, and use them for its command -- in this case
-(``sqlobject-admin sql``) showing the ``CREATE`` statements.  Now lets
+(``sqlobject-admin sql``) showing the ``CREATE`` statements.  Now, let's
 actually create the tables::
 
     $ sqlobject-admin create -f server.conf -m todo_sql.db
@@ -506,8 +506,8 @@ actually create the tables::
 
     >>> run('sqlobject-admin create -f server.conf -m todo_sql.db')
 
-It prints nothing on success (or use ``-v`` or even ``-vv`` to get
-more messages).
+It prints nothing on success. Or, use ``-v``, or even ``-vv``, to get
+more messages.
 
 Now, let's put in just a little data for later::
 
@@ -523,7 +523,7 @@ Now, let's put in just a little data for later::
 Creating a servlet
 ------------------
 
-For now, we'll reuse the ``index.py`` servlet, and put in this code:
+For now, we'll reuse the ``index.py`` servlet, adding this code:
 
 .. comment (make code)
 
@@ -547,9 +547,9 @@ There's one new item here::
 
 ``TodoList.select()`` creates a select query -- it *doesn't* actually
 access the database, but it will when we first iterate over it (like
-in a ``for`` loop).  Or here, when we use ``list()`` to turn it into a
+in a ``for`` loop).  In this case, we use ``list()`` to turn it into a
 list.  We could give arguments to ``.select()`` to add a ``WHERE``
-clause to the select statement.  Here's the servlet that goes with it:
+clause to the ``SELECT`` statement.  Here's the servlet that goes with it:
 
 .. comment (make code)
 
@@ -582,7 +582,7 @@ clause to the select statement.  Here's the servlet that goes with it:
    :file: resources/TodoTutorial/templates/index.pt.v1.gen.html
 
 We also have to add a little magic to ``web/__init__.py`` to configure
-SQLObject (this will be improved in the future):
+SQLObject. (This will be improved in the future.)
 
 .. comment (make config)
 
@@ -663,9 +663,9 @@ Here's what that looks like:
 .. raw:: html
    :file: resources/TodoTutorial/web/edit_list.py.v1.gen.html
 
-A few things to point about out this.  First, note we are using the
-edit form as a creation form too, with the special id of ``"new"`` for
-this case.  Not that you have to do that, but I find it convenient.
+A few things to point about out this.  First, note we're using the
+edit form as a creation form, too, with the special id of ``"new"`` for
+this case.  You don't have to do that, but I find it convenient.
 
 If there was an id passed in, we use it to fetch an instance of
 ``TodoList`` with ``TodoList.get(int(self.list_id))``.
@@ -679,36 +679,36 @@ a list of possible actions -- so a user couldn't change the form and
 call an arbitrary method.
 
 ``.setup()`` is called regardless of the action, and
-``.defaultAction()`` is later called if no action is defined (by
-default ``defaultAction`` doesn't do anything).  In the form that
-submits to ``edit_list`` we used an action of ``save``, so that's what
+``.defaultAction()`` is later called if no action is defined. (By
+default, ``defaultAction`` doesn't do anything.)  In the form that
+submits to ``edit_list``, we used an action of ``save``, so that's what
 gets called.
 
-In ``.save()`` there's two kinds of actions -- one inserts a row, and
+In ``.save()`` there are two kinds of actions -- one inserts a row, and
 one updates a row.  Insertion is like instance creation -- you call
 the class::
 
     self.list = TodoList(description=desc)
 
-Updating is like attribute assignment (remember we already assigned
-``self.list`` in ``setup``)::
+Updating is like attribute assignment. (Remember, we already assigned
+``self.list`` in ``setup``.)
 
     self.list.description = desc
 
-Next you'll see we call ``self.message(...)`` -- this stores a message
-in the user's session object.  This is useful in cases like this,
-where you want to redirect the user someplace useful, but you also
-want to give them some indication of what happened.  When they go to
-the next page, that message will be displayed at the top of the page
-(and then removed from the session).  Even if you don't redirect, this
-is an easy way of putting little messages at the top of the screen.
+Next, you'll see we call ``self.message(...)`` -- this stores a message
+in the user's session object.  It's useful in cases like this, where
+you want to redirect the user someplace useful, but you also want to
+give them some indication of what happened.  When they go to the next
+page, that message will be displayed at the top of the page (and then
+removed from the session).  Even if you don't redirect, this is an easy
+way of adding messages to the top of the screen.
 
-Lastly we do a redirect -- ``self.sendRedirectAndEnd()`` aborts the
+Lastly, we do a redirect -- ``self.sendRedirectAndEnd()`` aborts the
 rest of the transaction and immediately redirects the user.
 
 You can also see we have a list deletion method (``destroy``).  To
-delete a row with SQLObject you call
-``sqlobjectInstance.destroySelf()``.  Then we just redirect them back
+delete a row with SQLObject, call
+``sqlobjectInstance.destroySelf()``.  Then we just redirect back
 to the main page.
 
 Here's what happens when you create a list:
@@ -724,9 +724,9 @@ Here's what happens when you create a list:
 view_list page
 --------------
 
-Hmm... well, that last page isn't very interesting, is it... we better
-write that ``view_list`` servlet.  Viewing a means displaying all its
-items (``TodoItem``) and allowing items to be added, removed, and
+Hmm... Well, that last page isn't very interesting, is it... We'd better
+write that ``view_list`` servlet.  Viewing a list means displaying all
+its items (``TodoItem``) and allowing items to be added, removed, and
 marked done or not done.
 
 .. comment (expanded)
@@ -787,9 +787,9 @@ marked done or not done.
 .. raw:: html
    :file: resources/TodoTutorial/web/view_list.py.v1.gen.html
 
-Hopefully this is looking familiar.  In ``setup`` we load up the
-objects, and set a title based on those options.  We also fetch the
-list's items, and define several actions -- ``check`` marks items done
+Hopefully this looks familiar.  In ``setup`` we load up the
+objects and set a title based on those options.  We also fetch the
+list's items and define several actions: ``check`` marks items done
 or not done, ``add`` adds new items, and ``destroy`` removes a single
 item.
 
@@ -884,7 +884,7 @@ or anything else that should be globally available, or have some
 default (but overrideable) implementation.
 
 For navigation we're going to put all the lists in a sidebar.  So
-we'll have to load all the lists in ``SitePage.awake()``, then we'll
+we'll have to load all the lists in ``SitePage.awake()``. Then we'll
 use that data in ``standard_template.pt``.  We'll add one line to
 ``SitePage.awake``, before ``self.setup()``::
 
@@ -976,7 +976,7 @@ I also want to note a few aspects of what we've created:
 
 * Style is separate from logic, by way of templates (style) and
   servlets (controller logic).  This is similar to a Controller-View
-  separation, but it is also intended to assist a separation of roles,
+  separation, but it's also intended to assist a separation of roles,
   typically Programmer-Designer.
 
 * The web interface logic is separated from the domain (or business)
