@@ -64,6 +64,7 @@ class WSGIKey(DocItem):
         super(WSGIKey, self).__init__()
 
     def writeto(self, context):
+        context.addindex('wsgikey', self.name)
         context.writekey(self.name, type='WSGI Environment Key')
         context.writedoc(self.doc)
         self.writeobj(self.interface, context)
@@ -84,6 +85,7 @@ class Config(DocItem):
             name = context.last_name
             if name.startswith('_config_'):
                 name = name[len('_config_'):]
+        context.addindex('config', name)
         name = "``%s``" % name
         if self.default is not NoDefault:
             name += ' (default: ``%r``)' % self.default

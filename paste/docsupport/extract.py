@@ -8,6 +8,7 @@ import types
 import inspect
 from cStringIO import StringIO
 import textwrap
+import re
 import findmodules
 
 from paste.docsupport import metadata
@@ -195,6 +196,7 @@ class DocContext(object):
         self.indent_level = 0
         self.names = []
         self.need_break = False
+        self.indexes = {}
 
     def push_name(self, name):
         self.names.append(name)
@@ -269,6 +271,12 @@ class DocContext(object):
         assert self.indent_level >= 0, (
             "Too many endkeys or dedents (indent %s)" % self.indent_level)
 
+    def addindex(self, index_type, name, description=None):
+        full_name = '%s.%s' % (index_type, name)
+        self.write('.. _%s:\n\n' % full_name)
+        self.indexes.setdefault(index_type, []).append(
+            (name, description))
+
     def write(self, s):
         if self.need_break:
             self.out.write('\n\n%s\n\n' % ('-'*40))
@@ -304,10 +312,36 @@ class DocContext(object):
         else:
             print >> sys.stderr, 'No extractor applies to %r\n' % obj
 
+    def close(self):
+        self.writeindexes()
+
+    def writeindexes(self):
+        index_types = self.indexes.keys()
+        index_types.sort()
+        for index_type in index_types:
+            self.writeindex(index_type, self.indexes[index_type])
+
+    def writeindex(self, index_type, indexes):
+        indexes.sort()
+        self.writeheader('Index: %s' % index_type)
+        for n, (name, description) in enumerate(indexes):
+            self.write('* `%s <#%s>`_\n'
+                       % (description or name,
+                          self.munge_link(index_type + '.' + name)))
+        self.write('\n')
+        self.endheader()
+
+    def munge_link(self, link):
+        link = link.lower()
+        link = re.sub(r'[ ._-]+', '-', link)
+        link = re.sub(r'[^a-z0-9-]', '', link)
+        return link
+
 def build_doc(package):
     context = DocContext()
     for module in findmodules.find_modules(package):
         context.extract(module)
+    context.close()
     return context.out.getvalue()
 
 if __name__ == '__main__':
