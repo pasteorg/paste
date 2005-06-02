@@ -8,7 +8,8 @@ def serve(conf, app):
     return serve_server(conf, app, WSGIServer)
 
 def serve_server(conf, app, server_class):
-    root_url = conf.get('root_url', '').rstrip('/')
+    root_url = conf.get('root_url', '')
+    root_url = root_url and root_url.rstrip('/')
     server = server_class(
         app,
         bindAddress=(conf.get('host', 'localhost'),
