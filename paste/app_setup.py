@@ -15,6 +15,7 @@ from paste import urlparser
 from paste import server
 from paste import CONFIG
 from paste.util import plugin
+from paste.util import import_string
 
 class InvalidCommand(Exception):
     pass
@@ -123,10 +124,10 @@ class CommandRunner(object):
         sys.exit(code)
 
     def register_standard_commands(self):
-        # @@: these commands shouldn't require a template
         self.register(CommandHelp)
         self.register(CommandList)
         self.register(CommandServe)
+        self.register(CommandInstall)
 
 ############################################################
 ## Command framework
@@ -467,6 +468,108 @@ class CommandHelp(Command):
                 if command.aliases:
                     print '%s (Aliases: %s)' % (
                         ' '*max_len, ', '.join(command.aliases))
+
+class CommandInstall(Command):
+
+    name = 'install'
+    summary = 'Install software and enable plugins'
+
+    parser = standard_parser(simulate=False, interactive=False)
+    parser.add_option(
+        '--enable',
+        help="Enable the Paste plugin in the given package (don't install)",
+        action="store_true",
+        dest="enable")
+    parser.add_option(
+        '-d', '--install-dir',
+        metavar="DIR",
+        help="Directory to install into (default: site-packages)",
+        dest="install_dir")
+    parser.add_option(
+        '-s', '--site-packages',
+        help="Install in site-packages (install globally)",
+        action="store_true",
+        dest="site_packages")
+
+    max_args = 1
+    min_args = 1
+
+    def command(self):
+        global easy_install
+        import easy_install
+        self.conf = pyconfig.Config(with_default=True)
+        self.server_conf_fn = self.runner.server_conf_fn
+        if self.server_conf_fn:
+            self.conf.load(self.server_conf_fn)
+        spec = self.args[0]
+        if not self.options.enable:
+            packages = self.distribution_packages(self.install(spec))
+        else:
+            if self.options.install_dir:
+                raise InvalidCommand(
+                    "You cannot provide the --install-dir option with --enable")
+            packages = [spec]
+        for pkg in packages:
+            self.enable(pkg)
+
+    def install(self, spec):
+        v = self.options.verbose
+        instdir = self.options.install_dir
+        if instdir is None:
+            instdir = self.conf.get('app_packages', 'app-packages')
+            instdir = os.path.join(os.path.dirname(self.server_conf_fn),
+                                   instdir)
+        if self.options.site_packages:
+            inst_dir = None
+        if instdir and instdir not in sys.path:
+            sys.path.install(0, instdir)
+        if instdir and not os.path.exists(instdir):
+            os.makedirs(instdir)
+        urlspec = easy_install.URL_SCHEME(spec)
+        if not urlspec:
+            spec = self.conf['package_urls'].get(spec, spec)
+        installer = easy_install.Installer(instdir)
+        try:
+            if v:
+                print 'Acquiring', spec
+            downloaded = installer.download(spec)
+            installed = installer.install_eggs(downloaded)
+        finally:
+            installer.close()
+        if v:
+            print 'Installed into', (
+                ', '.join([i.path for i in installed]))
+        return installed
+
+    def enable(self, package):
+        v = self.options.verbose
+        pkg_mod = import_string.import_module(package)
+        pkg_dir = os.path.dirname(pkg_mod.__file__)
+        installer_fn = os.path.join(pkg_dir, 'paste_install.py')
+        if not os.path.exists(installer_fn):
+            if self.options.enable:
+                raise InvalidCommand(
+                    "The package %s cannot be enabled (the modules "
+                    "%s doesn't exist)" % (package, installer_fn))
+            if v:
+                print '%s does not exist; not enabling %s' % (
+                    installer_fn, package)
+            return
+        installer_mod = import_string.import_module(
+            package + '.paste_install')
+        installer_mod.install_in_paste(
+            os.path.dirname(server.__file__))
+        if v:
+            print '%s enabled' % package
+
+    def distribution_packages(self, dists):
+        pkgs = []
+        for dist in dists:
+            for fn in os.listdir(dist.path):
+                if os.path.exists(
+                    os.path.join(dist.path, fn, '__init__.py')):
+                    pkgs.append(fn)
+        return pkgs
 
 ############################################################
 ## Optional helper commands
