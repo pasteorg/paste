@@ -135,6 +135,7 @@ class Supplement(object):
                                        'wsgi.multithread',
                                        'wsgi.run_once')])
         wsgi_vars['wsgi process'] = self.process_combos[proc_desc]
+        wsgi_vars['application'] = self.middleware.application
         data[('extra', 'Configuration')] = dict(self.environ['paste.config'])
         return data
 
