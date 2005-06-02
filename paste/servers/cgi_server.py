@@ -1,5 +1,6 @@
 import os
 import sys
+import commands
 from paste import server
 
 def serve(conf, app):
@@ -16,6 +17,7 @@ def serve(conf, app):
     if other_conf.has_key('verbose'):
         del other_conf['verbose']
     replacements['other_conf'] = other_conf
+    replacements['extra_sys_path'] = find_extra_sys_path()
 
     template_fn = os.path.join(os.path.dirname(__file__),
                                'server_script_template.py.txt')
@@ -26,8 +28,8 @@ def serve(conf, app):
     print "#!%s" % sys.executable
     print template
     print "if __name__ == '__main__':"
-    print "    from paste.cgiserver import run_with_cgi"
-    print "    run_with_cgi(app)"
+    print "    from paste.servers.cgi_wsgi import run_with_cgi"
+    print "    run_with_cgi(app, redirect_stdout=True)"
 
 description = """\
 A 'server' that creates a CGI script that you can use to invoke your
@@ -40,3 +42,24 @@ Typically you would use this like:
   %prog --server=cgi > .../cgi-bin/myapp.cgi
   chmod +x .../cgi-bin/myapp.cgi
 """
+
+def find_extra_sys_path():
+    """
+    Tries to find all the items on sys.path that wouldn't be there
+    normally.
+    """
+    args = [sys.executable, "-c", "import sys; print sys.path"]
+    old_keys = {}
+    for key, value in os.environ.items():
+        if key.startswith('PYTHON'):
+            old_keys[key] = value
+            del os.environ[key]
+    result = commands.getoutput('%s -c "import sys; print sys.path"'
+                                % sys.executable)
+    os.environ.update(old_keys)
+    bare_sys_path = eval(result)
+    extra = [path for path in sys.path
+             if path not in bare_sys_path]
+    return extra
+
+    
