@@ -7,6 +7,17 @@ applications, and __call__ is provided to do this.
 import wkcommon
 from wktransaction import Transaction
 
+class make_application(object):
+
+    def __get__(self, obj, type=None):
+        # Instances are already applications:
+        if obj:
+            return obj
+        # This application creates an instance for each call:
+        def application(environ, start_response):
+            return type()(environ, start_response)
+        return application
+
 class Servlet(object):
 
     # This is nested in Servlet so that transactions can access it as
@@ -33,6 +44,8 @@ class Servlet(object):
         except self.EndResponse:
             trans.response().deliver()
             return trans.response().wsgiIterator()
+
+    wsgi_app = make_application()
     
     ## Access ##
 
