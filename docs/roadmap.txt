@@ -86,6 +86,8 @@ paste.pyconfig
 paste.reloader
 --------------
 
+* Make it optionally use FAM or iNotify, instead of polling files.
+
 * Make sure it uses HUP, etc.
 
 paste.wdg_validate
