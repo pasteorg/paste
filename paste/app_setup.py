@@ -540,6 +540,8 @@ class CommandInstall(Command):
                 print 'Acquiring', spec
             downloaded = installer.download(spec)
             installed = installer.install_eggs(downloaded)
+            for dist in installed:
+                dist.install_on()
         finally:
             installer.close()
         if v:
