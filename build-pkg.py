@@ -114,7 +114,7 @@ if os.path.exists(zptkit_tmpdir):
     os.chdir(zptkit_tmpdir)
     cmd ="svn up"
 else:
-    cmd ="svn co http://svn.w4py.org/ZPTKit/trunk %s/ZPTKit" % TMP
+    cmd ="svn co http://svn.w4py.org/ZPTKit/trunk/ZPTKit %s/ZPTKit" % TMP
 os.system(cmd)
 DEST = THIRD + "/ZPTKit-files/ZPTKit"
 mkdirs(DEST)
