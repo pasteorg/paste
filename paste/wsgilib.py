@@ -63,7 +63,7 @@ def raw_interactive(application, path_info='', **environ):
         'REQUEST_METHOD': 'GET',
         'HTTP_HOST': 'localhost:80',
         'CONTENT_LENGTH': '0',
-        'REMOTE_ADDR', '127.0.0.1',
+        'REMOTE_ADDR': '127.0.0.1',
         'wsgi.input': StringIO(''),
         'wsgi.errors': errors,
         'wsgi.version': (1, 0),
