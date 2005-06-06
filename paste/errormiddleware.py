@@ -208,8 +208,9 @@ def handle_exception(exc_info, conf, error_stream, html=True):
             extra_data = ''
             reported = True
         else:
+            error_message = conf.get('error_message')
             return_error = error_template(
-            '''
+            error_message or '''
             An error occurred.  See the error logs for more information.
             (Turn debug on to display exception reports here)
             ''', '')
