@@ -558,7 +558,7 @@ class TestRequest(object):
             self.full_url = url
 
 
-def setup_module(module):
+def setup_module(module=None):
     """
     This is used by py.test if it is in the module, so do::
 
@@ -568,6 +568,11 @@ def setup_module(module):
     module.  If there is a function ``reset_state`` in your module
     then that is also called.
     """
+    if module is None:
+        # The module we were called from must be the module...
+        module = sys._getframe().f_back.f_globals['__name__']
+    if isinstance(module, (str, unicode)):
+        module = sys.modules[module]
     try:
         CONFIG.current_config()
     except AttributeError:
