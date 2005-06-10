@@ -708,9 +708,10 @@ def copy_dir(source, dest, vars, verbosity, simulate):
         content = _substitute_content(content, vars)
         if verbosity:
             print 'Copying %s to %s' % (full, dest_full)
-        f = open(dest_full, 'wb')
-        f.write(content)
-        f.close()
+        if not simulate:
+            f = open(dest_full, 'wb')
+            f.write(content)
+            f.close()
 
 def _substitute_filename(fn, vars):
     for var, value in vars.items():
