@@ -306,6 +306,8 @@ class CommandServe(Command):
         conf = self.config
         verbose = conf.get('verbose') or 0
         if conf.get('daemon'):
+            if not conf.get('pid_file'):
+                conf['pid_file'] = 'server.pid'
             # We must enter daemon mode!
             if verbose > 1:
                 print 'Entering daemon mode'
@@ -313,11 +315,27 @@ class CommandServe(Command):
             if pid:
                 sys.exit()
             # Always record PID and output when daemonized
-            if not conf.get('pid_file'):
-                conf['pid_file'] = 'server.pid'
             if not conf.get('log_file'):
                 conf['log_file'] = 'server.log'
         if conf.get('pid_file'):
+            pid_file = conf['pid_file']
+            if os.path.exists(pid_file):
+                f = open(pid_file)
+                pid = int(f.read().strip())
+                f.close()
+                pid_exists = False
+                try:
+                    os.kill(pid, 0)
+                except OSError:
+                    print 'Warning: PID file %s exists, but process does not exist' % pid_file
+                    os.unlink(pid_file)
+                except Exception, e:
+                    raise InvalidCommand(
+                        'Could not check for process existance: %s' % e)
+                else:
+                    raise InvalidCommand(
+                        'Server process already running with pid %s' % pid)
+                    
             # @@: We should check if the pid file exists and has
             # an active process in it
             if verbose > 1:
@@ -334,7 +352,11 @@ class CommandServe(Command):
                     + ' Starting server PID: %s ' % os.getpid()
                     + '-'*20 + '\n')
         self.change_user_group(conf.get('user'), conf.get('group'))
-        sys.exit(server.run_server(conf, self.app))
+        try:
+            sys.exit(server.run_server(conf, self.app))
+        finally:
+            if conf.get('pid_file'):
+                os.unlink(conf['pid_file'])
 
     def change_user_group(self, user, group):
         if not user and not group:
