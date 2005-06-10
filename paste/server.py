@@ -60,11 +60,13 @@ reloader_environ_key = 'WSGI_RELOADER_SHOULD_RUN'
 default_config_fn = os.path.join(os.path.dirname(__file__),
                                  'default_config.conf')
 
-def load_commandline(args, allow_reload=True):
+def load_commandline(args, extra_boolean=(), allow_reload=True):
     conf = pyconfig.Config(with_default=True)
+    boolean_options = ['help', 'verbose', 'reload', 'debug',
+                      'quiet', 'no_verbose', 'list_servers',
+                      'daemon'] + list(extra_boolean)
     conf.load_commandline(
-        args, bool_options=['help', 'verbose', 'reload', 'debug', 'quiet',
-                            'no_verbose', 'list_servers', 'daemon'],
+        args, bool_options=boolean_options,
         aliases={'h': 'help', 'v': 'verbose', 'f': 'config_file',
                  'D': 'debug', 'q': 'quiet'})
     if conf.get('no_verbose'):

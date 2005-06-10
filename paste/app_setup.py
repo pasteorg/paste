@@ -4,9 +4,16 @@ import optparse
 import fnmatch
 import os
 import sys
+import atexit
 from cStringIO import StringIO
 import re
 import textwrap
+try:
+    import signal
+except ImportError:
+    # Not available on Windows?
+    pass
+
 from paste.util.thirdparty import load_new_module
 string = load_new_module('string', (2, 4))
 
@@ -301,10 +308,17 @@ class CommandServe(Command):
         metavar='SERVER_NAME',
         help="The kind of server to start",
         dest="server")
+    parser.add_option(
+        '--stop-daemon',
+        help="Stop a daemon process (given the PID file)",
+        action="store_true",
+        dest="stop_daemon")
 
     def command(self):
         conf = self.config
         verbose = conf.get('verbose') or 0
+        if conf.get('stop_daemon'):
+            return self.stop_daemon()
         if conf.get('daemon'):
             if not conf.get('pid_file'):
                 conf['pid_file'] = 'server.pid'
@@ -352,11 +366,9 @@ class CommandServe(Command):
                     + ' Starting server PID: %s ' % os.getpid()
                     + '-'*20 + '\n')
         self.change_user_group(conf.get('user'), conf.get('group'))
-        try:
-            sys.exit(server.run_server(conf, self.app))
-        finally:
-            if conf.get('pid_file'):
-                os.unlink(conf['pid_file'])
+        if conf.get('pid_file'):
+            atexit.register(_remove_pid_file, conf['pid_file'])
+        sys.exit(server.run_server(conf, self.app))
 
     def change_user_group(self, user, group):
         if not user and not group:
@@ -390,10 +402,24 @@ class CommandServe(Command):
         if uid:
             os.setuid(uid)
 
+    def stop_daemon(self):
+        pid_file = self.config.get('pid_file', 'server.pid')
+        if not os.path.exists(pid_file):
+            print 'No PID file exists in %s' % pid_file
+            return 1
+        f = open(pid_file)
+        pid = int(f.read().strip())
+        f.close()
+        os.kill(pid, signal.SIGTERM)
+        if self.config.get('verbose'):
+            print 'Process %i killed' % pid
+        return 0
+
     def parse_args(self, args):
         # Unlike most commands, this takes arbitrary options and folds
         # them into the configuration
-        conf, app = server.load_commandline(args)
+        conf, app = server.load_commandline(
+            args, extra_boolean=['stop_daemon'])
         if conf is None:
             sys.exit(app)
         if app == 'help':
@@ -707,6 +733,10 @@ class TypeMapper(dict):
                 return 'False'
         else:
             return dict.__getitem__(self, item)
+
+def _remove_pid_file(filename):
+    print "Removing %s" % filename
+    os.unlink(filename)
 
 if __name__ == '__main__':
     run(sys.argv)
