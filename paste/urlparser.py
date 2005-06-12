@@ -29,11 +29,36 @@ class URLParser(object):
     arguments.
 
     URLParser will also look in __init__.py for special overrides.
-    Currently the only override is urlparser_hook(environ), which can
-    modify the environment; its return value is ignored.  You can use
-    this, for example, to manipulate SCRIPT_NAME/PATH_INFO (try to
-    keep them consistent with the original URL -- but consuming
-    PATH_INFO and moving that to SCRIPT_NAME is ok).
+    These overrides are:
+
+    ``urlparser_hook(environ)``
+        This can modified the environment.  Its return value is ignored,
+        and it cannot be used to change the response in any way.  You
+        *can* use this, for example, to manipulate SCRIPT_NAME/PATH_INFO
+        (try to keep them consistent with the original URL -- but
+        consuming PATH_INFO and moving that to SCRIPT_NAME is ok).
+
+    ``urlparser_wrap(environ, start_response, app)``:
+        After URLParser finds the application, it calls this function
+        (if present).  If this function doesn't call
+        ``app(environ, start_response)`` then the application won't be
+        called at all!  This can be used to allocate resources (with
+        ``try:finally:``) or otherwise filter the output of the
+        application.
+
+    ``not_found_hook(environ, start_response)``:
+        If no file can be found (*in this directory*) to match the
+        request, then this WSGI application will be called.  You can
+        use this to change the URL and pass the request back to
+        URLParser again, or on to some other application.  This
+        doesn't catch all ``404 Not Found`` responses, just missing
+        files.
+
+    ``application(environ, start_response)``:
+        This basically overrides URLParser completely, and the given
+        application is used for all requests.  ``urlparser_wrap`` and
+        ``urlparser_hook`` are still called, but the filesystem isn't
+        searched in any way.
     """
 
     _config_index_name = metadata.Config(
@@ -94,10 +119,8 @@ class URLParser(object):
     def __call__(self, environ, start_response):
         environ['paste.urlparser.base_python_name'] = self.base_python_name
         if self.add_options:
-            if environ.has_key('paste.urlparser.options'):
-                environ['paste.urlparser.options'].update(self.add_options)
-            else:
-                environ['paste.urlparser.options'] = self.add_options.copy()
+            environ.setdefault('paste.urlparser.options', {}).update(
+                self.add_options)
         if self.init_module is NoDefault:
             self.init_module = self.find_init_module(environ)
         path_info = environ.get('PATH_INFO', '')
@@ -106,27 +129,9 @@ class URLParser(object):
         if (self.init_module
             and getattr(self.init_module, 'urlparser_hook', None)):
             self.init_module.urlparser_hook(environ)
-        name, rest_of_path = wsgilib.path_info_split(environ['PATH_INFO'])
         orig_path_info = environ['PATH_INFO']
         orig_script_name = environ['SCRIPT_NAME']
-        environ['PATH_INFO'] = rest_of_path
-        if name is not None:
-            environ['SCRIPT_NAME'] = environ.get('SCRIPT_NAME', '') + '/' + name
-        if not name:
-            names = self.option(environ, 'index_names') or []
-            for index_name in names:
-                filename = self.find_file(environ, index_name)
-                if filename:
-                    break
-            else:
-                # None of the index files found
-                filename = None
-        else:
-            filename = self.find_file(environ, name)
-        if filename is None:
-            application = None
-        else:
-            application = self.get_application(environ, filename)
+        application = self.find_application(environ)
         if not application:
             if (self.init_module
                 and getattr(self.init_module, 'not_found_hook', None)
@@ -162,6 +167,31 @@ class URLParser(object):
                 environ, start_response, application)
         else:
             return application(environ, start_response)
+
+    def find_application(self, environ):
+        if (self.init_module
+            and getattr(self.init_module, 'application', None)):
+            return self.init_module.application
+        name, rest_of_path = wsgilib.path_info_split(environ['PATH_INFO'])
+        environ['PATH_INFO'] = rest_of_path
+        if name is not None:
+            environ['SCRIPT_NAME'] = environ.get('SCRIPT_NAME', '') + '/' + name
+        if not name:
+            names = self.option(environ, 'index_names') or []
+            for index_name in names:
+                filename = self.find_file(environ, index_name)
+                if filename:
+                    break
+            else:
+                # None of the index files found
+                filename = None
+        else:
+            filename = self.find_file(environ, name)
+        if filename is None:
+            application = None
+        else:
+            application = self.get_application(environ, filename)
+        return application
 
     def not_found(self, environ, start_response, debug_message=None):
         status, headers, body = wsgilib.error_response(
