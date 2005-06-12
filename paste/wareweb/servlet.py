@@ -14,6 +14,8 @@ class Servlet(object):
 
     app_name = 'app'
     listeners = []
+    _title = None
+    _html_title = None
 
     __metaclass__ = classinit.ClassInitMeta
 
@@ -43,7 +45,7 @@ class Servlet(object):
             self.app_name = self.config['app_name']
         self._cached_output = []
         self.headers_out = {
-            'Content-type': 'text/html; charset=UTF-8'}
+            'content-type': 'text/html; charset=UTF-8'}
         self.status = '200 OK'
         self.cookies_out = {}
         self.request_method = environ['REQUEST_METHOD'].upper()
@@ -117,11 +119,16 @@ class Servlet(object):
     ############################################################
 
     def title__get(self):
-        return self.__class__.__name__
+        return self._title or self.__class__.__name__
 
     def title__set(self, value):
-        # Get rid of the property:
-        self.__dict__['title'] = value
+        self._title = value
+
+    def html_title__get(self):
+        return self._html_title or self.title
+
+    def html_title__set(self, value):
+        self._html_title = value
 
     def set_cookie(self, cookie_name, value, path='/',
                    expires='ONCLOSE', secure=False):
