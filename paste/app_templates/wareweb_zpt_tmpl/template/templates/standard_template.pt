@@ -16,7 +16,7 @@
 
 <div class="notifyMessage"
  tal:condition="servlet/message"
- tal:content="structure/message/html">
+ tal:content="structure servlet/message/html">
   [This is where the notification messages go]
 </div>
 
