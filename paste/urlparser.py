@@ -170,7 +170,9 @@ class URLParser(object):
 
     def find_application(self, environ):
         if (self.init_module
-            and getattr(self.init_module, 'application', None)):
+            and getattr(self.init_module, 'application', None)
+            and not environ.get('paste.urlparser.init_application') == environ['SCRIPT_NAME']):
+            environ['paste.urlparser.init_application'] = environ['SCRIPT_NAME']
             return self.init_module.application
         name, rest_of_path = wsgilib.path_info_split(environ['PATH_INFO'])
         environ['PATH_INFO'] = rest_of_path
