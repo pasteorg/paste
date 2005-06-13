@@ -7,7 +7,6 @@ from cStringIO import StringIO
 import mimetypes
 import os
 import cgi
-import urllib
 
 __all__ = ['get_cookies', 'add_close', 'raw_interactive',
            'interactive', 'construct_url', 'error_body_response',
@@ -145,11 +144,11 @@ def interactive(*args, **kw):
 interactive.proxy = 'raw_interactive'
 
 def construct_url(environ, with_query_string=True, with_path_info=True,
-                  add_path=None, add_vars=None):
+                  script_name=None, path_info=None, querystring=None):
     """
-    Reconstructs the URL from the WSGI environment.  If add_path is
-    given, it is appended to the path.  If add_vars is given, it is
-    appended to the URL variables.
+    Reconstructs the URL from the WSGI environment.  You may override
+    SCRIPT_NAME, PATH_INFO, and QUERYSTRING with the keyword
+    arguments.
     """
     url = environ['wsgi.url_scheme']+'://'
 
@@ -165,23 +164,21 @@ def construct_url(environ, with_query_string=True, with_path_info=True,
         if environ['SERVER_PORT'] != '80':
             url += ':' + environ['SERVER_PORT']
 
-    url += environ.get('SCRIPT_NAME','')
+    if script_name is None:
+        url += environ.get('SCRIPT_NAME','')
+    else:
+        url += script_name
     if with_path_info:
-        url += environ.get('PATH_INFO','')
-    if add_path:
-        assert add_path.startswith('/'), (
-            "add_path must start with '/' (you gave %r)" % add_path)
-        url += add_path
-    if with_query_string:
-        if environ.get('QUERY_STRING'):
-            url += '?' + environ['QUERY_STRING']
-    if add_vars:
-        if not isinstance(add_vars, str):
-            add_vars = urllib.urlencode(add_vars, doseq=True)
-        if with_query_string and environ.get('QUERY_STRING'):
-            url += '&' + add_vars
+        if path_info is None:
+            url += environ.get('PATH_INFO','')
         else:
-            url += '?' + add_vars
+            url += path_info
+    if with_query_string:
+        if querystring is None:
+            if environ.get('QUERY_STRING'):
+                url += '?' + environ['QUERY_STRING']
+        elif querystring:
+            url += '?' + querystring
     return url
 
 def error_body_response(error_code, message):
