@@ -71,3 +71,4 @@ class Fields(UserDict):
                 items.append((name, [value]))
         return items
     
+    __str__ = UserDict.__repr__
