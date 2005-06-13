@@ -1,0 +1,26 @@
+<html metal:use-macro="here/standard_template.pt/macros/page">
+<metal:body fill-slot="body">
+
+<p>
+<tal:if condition="not: servlet/fragment">
+<tal:if condition="options/parent | nothing">
+Parent: <a tal:attributes="href options/parent/url"
+         tal:content="options/parent/name">name</a><br>
+</tal:if>
+</tal:if>
+Mimetype: <span tal:replace="options/mimetype"/><br>
+<a tal:attributes="href servlet/pathurl/action=download">download</a>
+</p>
+
+<pre tal:condition="python: options['content'] and not options['use_iframe']"
+ tal:content="options/content">content</pre>
+
+<img tal:condition="options/is_image"
+ tal:attributes="src servlet/pathurl/action=download">
+
+<iframe tal:condition="options/use_iframe"
+ tal:attributes="src servlet/pathurl/action=download/html=clean"
+ width="100%" height="200" name="test"></iframe>
+
+</metal:body>
+</html>

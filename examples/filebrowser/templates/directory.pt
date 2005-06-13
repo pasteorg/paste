@@ -1,0 +1,42 @@
+<html metal:use-macro="here/standard_template.pt/macros/page">
+<metal:body fill-slot="body">
+
+<div class="header">
+ <div class="controls">
+  <span tal:replace="structure python:
+  servlet.pastebutton(servlet.path)"/>
+ </div>
+ <tal:if condition="python: not servlet.fragment and options.get('parent')">
+ Parent: <a tal:attributes="href options/parent/url"
+          tal:content="options/parent/name"/><br>
+ </tal:if>
+ Files: <span tal:replace="python: len(options['files'])"/>
+</div>
+
+<tal:for repeat="f options/files">
+ <div tal:attributes="class python: 'item %s' % test(repeat['f'].odd(),
+                      'odd', 'even')"
+      tal:define="toggle f/url/toggle">
+  <div class="controls">
+   <span tal:condition="python: f['path'].check(dir=1)"
+    tal:replace="structure python: servlet.pastebutton(f['path'])"/>
+   <span tal:replace="structure python: servlet.copybutton(f['path'], 'cut')"/>
+   <span tal:replace="structure python: servlet.copybutton(f['path'],
+    'copy')"/>
+  </div>
+  <span tal:replace="structure python: toggle.link(
+    servlet.icons('1downarrow.png', alt='display'),
+    shownhtml=servlet.icons('1uparrow.png', alt='hide'))"/>
+   <a tal:attributes="href f/url"
+    tal:content="f/name" />
+   <blockquote tal:attributes="id toggle/id" 
+    style="display: none" class="subdisplay">...</blockquote>
+ </div>
+</tal:for>
+
+<p tal:condition="not: options/files">
+There are no files in this directory
+</p>
+
+</metal:body>
+</html>

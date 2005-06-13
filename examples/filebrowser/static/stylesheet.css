@@ -1,0 +1,43 @@
+body { 
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+fieldset#copybinframe { 
+  width: 40%;
+  float: right;
+  padding: 3px;
+}
+
+td { 
+  vertical-align: top;
+}
+
+div.controls { 
+  float: right;
+  display: inline;
+}
+
+blockquote.subdisplay { 
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-right: 0;
+}
+
+div.item {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+div.odd { 
+  background-color: #eee;
+}
+
+pre {
+    overflow: auto;
+}
+
+div.notifyMessage { 
+    border: 2px solid black;
+    background-color: #007700;
+    color: #ffffff;
+}
