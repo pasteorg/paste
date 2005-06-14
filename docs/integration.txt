@@ -63,7 +63,7 @@ The ``makeapp.apply_default_middleware`` function applies middleware
 that should always be present, specifically `ConfigMiddleware
 <http://pythonpaste.org/docs/reference.html#module-paste-configmiddleware>`_
 and `ErrorMiddleware
-<http://pythonpaste.org/docs/reference.html#module-paste-pyconfig>`_.
+<http://pythonpaste.org/docs/reference.html#module-paste-errormiddleware>`_.
 
 The ``(something framework specific)`` portion is up to you.  You
 might pull out configuration variables, e.g., ``publish_dir`` or
