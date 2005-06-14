@@ -101,7 +101,11 @@ Blue-sky
 ~~~~~~~~
 
 * Validate Javascript...?  An anal Javascript parser would be really
-  cool.
+  cool.  Maybe use http://www.crockford.com/javascript/lint.html --
+  the interesting part is including the output of the lint in pages
+  that include the Javascript.  Since the lint program itself is
+  written in Javascript, this is mostly a figure-it-out task, not a
+  server infrastructure task.
 
 paste.exceptions
 ----------------
