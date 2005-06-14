@@ -69,6 +69,8 @@ Resources
 
 * `Configuration <docs/configuration.html>`_.
 
+* `Integrating Frameworks Into Paste <docs/integration.html>`_.
+
 * `Roadmap <docs/roadmap.html>`_, a list of concrete goals and ideas.  Not
   much of a roadmap yet, as there's no fixed milestones.
 
