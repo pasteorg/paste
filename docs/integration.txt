@@ -1,0 +1,132 @@
+Integrating Frameworks Into Paste
+=================================
+
+:author: Ian Bicking <ianb@colorstudy.com>
+:revision: $Rev$
+:date: $LastChangedDate$
+
+.. contents::
+
+Introduction and Audience
+-------------------------
+
+This document is intended for Python web framework developers who want
+to integrate or support Paste with their frameworks.
+
+Its Paste's intention to support all frameworks that support WSGI.
+However, there are many levels of integration with paste, and it takes
+some minimal glue.
+
+WSGI
+----
+
+`WSGI <http://www.python.org/peps/pep-0333.html>`_ is at the core of
+everything in Paste.  For a framework to work in Paste, it has to
+support WSGI.  If you haven't done that, then you know where to start.
+
+Creating the Application
+------------------------
+
+Once your framework supports WSGI, you will have added the code to
+create a WSGI "application".  Paste brings together the WSGI server, a
+series of middleware, and a WSGI application.  
+
+Paste does this with a configuration file.  Paste instantiates a
+server based on the configuration, collects the middleware (from the
+``middleware`` configuration variable), and the application.
+
+Configuration in Paste is "pull".  That is, the configuration is a
+dumb dictionary, and you pull whatever keys out of it that you are
+interested in.  The sole function your framework needs to provide is
+``build_application(conf)``, which takes the `configuration
+<http://pythonpaste.org/docs/configuration.html>`_ object and returns
+a WSGI application.  That's it.
+
+However, to be a friendly framework, this function should look
+something like this::
+
+    from paste import makeapp
+
+    def build_application(conf):
+        app = (something framework specific)
+        app = makeapp.apply_conf_middleware(
+            app, conf, [other middleware])
+        app = makeapp.apply_default_middleware(app, conf)
+        return app
+
+The ``makeapp.apply_conf_middleware`` function uses the ``middleware``
+configuration variable.  The third argument is an optional list of
+other middleware.  All this middleware must take just one argument,
+the application that it wraps.
+
+The ``makeapp.apply_default_middleware`` function applies middleware
+that should always be present, specifically `ConfigMiddleware
+<http://pythonpaste.org/docs/reference.html#module-paste-configmiddleware>`_
+and `ErrorMiddleware
+<http://pythonpaste.org/docs/reference.html#module-paste-pyconfig>`_.
+
+The ``(something framework specific)`` portion is up to you.  You
+might pull out configuration variables, e.g., ``publish_dir`` or
+``publish_object``.  Whatever you want; just be sure to tell your
+users.
+
+Paste Plugins
+-------------
+
+Now you are thinking, *where do I put build_application*?  Well, I'm
+glad you asked.
+
+First, every framework has a name.  The configuration file must
+contain ``framework = "framework_name"``.
+
+Paste puts different plugins in different directories in the ``paste``
+package.  The framework plugins go in
+``paste/frameworks/*_framework.*``.
+
+For instance, the ``webkit`` framework goes in
+``paste/frameworks/webkit_framework.txt``.  The file can be either a
+``.txt`` file, or a ``.py`` file.
+
+A ``.py`` file is a module that contains the ``build_application``
+function.  A ``.txt`` file contains the name of the module that
+contains the ``build_application`` function.  So if you don't want to
+put a Python file in the ``paste`` package, you can just put a
+reference back into your package.
+
+To install a plugin, you can do::
+
+    import os
+    import paste
+    f = open(os.path.join(os.path.dirname(paste.__file__),
+                          'frameworks', 'foobar_framework.txt'), 'w')
+    f.write('.'.join(__name__.split('.')[:-1] + ['paste_setup']))
+    f.write('\n')
+    f.close()
+
+This is assuming that this is a module in the package, and there's a
+sister module in ``package.paste_setup``.
+
+Application Templates
+---------------------
+
+The framework is a good starting point.  An application template is a
+nice second step.
+
+An application template is a set of commands to ``paster``, and
+typically a bare set of files for a new application.  This is meant to
+help users get examples set up quickly, and provide some guidance.  A
+framework can have multiple application templates.
+
+For now, the best way to understand this is to look at the
+``webkit_zpt`` template included with Paste.  This combines
+Webkit/Webware and Zope Page Templates; another application template
+might use a different templating language, or might bring in other
+sub-frameworks.  
+
+Application templates are also plugins, put in
+``paste/app_templates/*_tmpl.*``.  They contain one function, ``run``.
+This is typically implemented by
+``paste.app_setup.CommandRunner.run``, and the actual commands (since
+``paster`` is a two-level command-line application) are subclasses of
+``paste.app_setup.Command``.
+
