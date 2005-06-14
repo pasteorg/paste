@@ -7,7 +7,7 @@ export PYTHONPATH=$parent:$PYTHONPATH
 
 NORMAL="DeveloperGuidelines Paste servers StyleGuide web/index \
         what-is-paste testing-applications url-parsing-with-wsgi \
-        roadmap"
+        roadmap configuration"
 DOCTEST_BUILD="blog-tutorial TodoTutorial"
 
 for NAME in $NORMAL ; do
