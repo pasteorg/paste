@@ -107,24 +107,24 @@ class Config(UserDict.DictMixin, object):
             namespace[key] = builder(self, filename, namespace)
         content = content.replace("\r\n","\n")
         exec content in namespace
-        if load_self:
-            for name in namespace.keys():
-                if (hasattr(__builtins__, name)
-                    or name.startswith('_')):
-                    del namespace[name]
-                    continue
-                if orig.has_key(name) and namespace[name] is orig[name]:
-                    del namespace[name]
-                    continue
-                if isinstance(namespace[name], types.ModuleType):
-                    del namespace[name]
-                    continue
+        added_ns = {}
+        for name in namespace.keys():
+            if (hasattr(__builtins__, name)
+                or name.startswith('_')):
+                continue
+            if (load_self
+                and orig.has_key(name)
+                and namespace[name] is orig[name]):
+                continue
+            if isinstance(namespace[name], types.ModuleType):
+                continue
+            added_ns[name] = namespace[name]
         for key, value in old_values.items():
-            if value is None and namespace.has_key(key):
-                del namespace[key]
+            if value is None and key in added_ns:
+                del added_ns[key]
             elif value is not None:
-                namespace[key] = value
-        return namespace
+                added_ns[key] = value
+        return added_ns
 
     def make_loader(self, relative_to, namespace):
         def load(filename):
