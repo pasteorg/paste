@@ -4,6 +4,8 @@ A Webware HTTPResponse object.
 
 import time
 from wkcommon import NoDefault, Cookie
+from types import *
+TimeTupleType = type(time.gmtime(0))
 
 class HTTPResponse(object):
 
