@@ -76,9 +76,9 @@ class PathDispatch(MethodDispatch):
     def find_method(self, servlet, ret_value):
         parts = servlet.path_parts
         if not parts:
-            action == 'index'
+            action = 'index'
         else:
-            action == parts[0]
+            action = parts[0]
             servlet.path_parts = parts[1:]
         name, method = self.get_method(servlet, action)
         if name is None:
