@@ -335,6 +335,9 @@ class HTTPRequest(object):
         sid = self.value('_SID_', None)
         return sid
 
+    def config(self):
+        return self._environ.get('paste.config', {})
+
     ## Inspection ##
 
     def info(self):
