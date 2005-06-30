@@ -74,7 +74,7 @@ do.
 Motivations
 ===========
 
-The most obvious kind of URL parsing is in finding a WSGI application.
+The most obvious kind of URL parsing is finding a WSGI application.
 
 Typically when a framework first supports WSGI or is integrated into
 Paste, it is "monolithic" with respect to URLs.  That is, you define
@@ -105,7 +105,7 @@ framework application code.
 Finding Applications
 ====================
 
-Ok, enough theory.  How does a URL parser work?  Well, it is a WSGI
+OK, enough theory.  How does a URL parser work?  Well, it is a WSGI
 application, and a WSGI server, in the typical "WSGI middleware"
 style.  Except that it determines which application it will serve
 for each request.
@@ -234,6 +234,11 @@ handle it.  This "application" might be a URLParser or similar system
 
 This is really like traditional "middleware", in that it sits between
 the server and just one application.
+
+Assuming you put this class in the ``myapp.grabdate`` module, you
+could install it by adding this to your configuration::
+
+    middleware.append('myapp.grabdate.GrabDate')
 
 Object Publishing
 =================
