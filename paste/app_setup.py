@@ -258,17 +258,17 @@ class CommandList(Command):
                 continue
             if not self.options.verbose:
                 print '%s: %s\n' % (
-                    name, self.template_description().splitlines()[0])
+                    name, self.template_description(dir).splitlines()[0])
             else:
                 return '%s: %s\n' % (
-                    self.name, self.template_description())
+                    self.name, self.template_description(dir))
             # @@: for verbosity >= 2 we should give lots of metadata
             any = True
         if not any:
             print 'No application templates found'
 
-    def template_description(self):
-        f = open(os.path.join(self.template_dir, 'description.txt'))
+    def template_description(self, dir):
+        f = open(os.path.join(dir, 'description.txt'))
         content = f.read().strip()
         f.close()
         return content
