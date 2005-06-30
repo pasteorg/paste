@@ -121,7 +121,6 @@ class FunctionArgSpec(object):
     def unpack_args(self, path_parts, fields):
         args = []
         kw = {}
-        fields = fields.copy()
         if len(self.positional) > len(path_parts):
             raise HTTPBadRequest(
                 "Not enough parameters on the URL (expected %i more "
