@@ -131,7 +131,7 @@ class URLParser(object):
             self.init_module.urlparser_hook(environ)
         orig_path_info = environ['PATH_INFO']
         orig_script_name = environ['SCRIPT_NAME']
-        application = self.find_application(environ)
+        application, filename = self.find_application(environ)
         if not application:
             if (self.init_module
                 and getattr(self.init_module, 'not_found_hook', None)
@@ -190,10 +190,9 @@ class URLParser(object):
         else:
             filename = self.find_file(environ, name)
         if filename is None:
-            application = None
+            return None, filename
         else:
-            application = self.get_application(environ, filename)
-        return application
+            return self.get_application(environ, filename), filename
 
     def not_found(self, environ, start_response, debug_message=None):
         status, headers, body = wsgilib.error_response(
