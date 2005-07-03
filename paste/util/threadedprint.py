@@ -63,10 +63,16 @@ import filemixin
 
 class PrintCatcher(filemixin.FileMixin):
 
-    def __init__(self, default=None, factory=None, paramwriter=None):
+    def __init__(self, default=None, factory=None, paramwriter=None,
+                 leave_stdout=False):
         assert len(filter(lambda x: x is not None,
                           [default, factory, paramwriter])) <= 1, (
             "You can only provide one of default, factory, or paramwriter")
+        if leave_stdout:
+            assert not default, (
+                "You cannot pass in both default (%r) and "
+                "leave_stdout=True" % default)
+            default = sys.stdout
         if default:
             self._defaultfunc = self._writedefault
         elif factory:
@@ -109,7 +115,7 @@ class PrintCatcher(filemixin.FileMixin):
             name = currentThread().getName()
         self._catchers[name] = catcher
 
-    def deregister(self, catcher, name=None,
+    def deregister(self, name=None,
                    currentThread=threading.currentThread):
         if name is None:
             name = currentThread().getName()
