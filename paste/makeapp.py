@@ -33,5 +33,11 @@ def apply_default_middleware(app, conf):
     app = errormiddleware.ErrorMiddleware(app)
     if conf.get('lint', False):
         app = lint.middleware(app)
+    for middleware in conf.get('important_middleware', []):
+        if isinstance(middleware, (str, unicode)):
+            middleware = import_string.eval_import(middleware)
+        app = middleware(app)
+        if conf.get('lint', False):
+            app = lint.middleware(app)
     app = configmiddleware.ConfigMiddleware(app, conf)
     return app
