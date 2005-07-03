@@ -4,32 +4,7 @@ RELEASE = False
 
 __version__ = "0.0"
 
-# Setup setuptools:
-import sys
 import os
-base_paste_url = 'http://peak.telecommunity.com/dist/'
-python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
-setuptools_version = '0.3a3'
-support_dir = os.path.join(os.path.dirname(__file__), 'support')
-setuptools_filename = 'setuptools-%s-py%s.egg' % (
-    setuptools_version, python_version)
-full_filename = os.path.join(support_dir, setuptools_filename)
-if not os.path.exists(full_filename):
-    if not os.path.exists(support_dir):
-        os.mkdir(support_dir)
-    print 'Downloading %s' % setuptools_filename
-    setuptools_url = base_paste_url + setuptools_filename
-    print 'Downloading from %s' % setuptools_url
-    import urllib2
-    import shutil
-    f_in = urllib2.urlopen(setuptools_url)
-    f_out = open(full_filename, 'wb')
-    shutil.copyfileobj(f_in, f_out)
-    f_in.close()
-    f_out.close()
-if full_filename not in sys.path:
-    sys.path.append(full_filename)
-
 from setuptools import setup
 
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'paste')
