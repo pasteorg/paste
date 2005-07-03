@@ -11,7 +11,7 @@ import cgi
 __all__ = ['get_cookies', 'add_close', 'raw_interactive',
            'interactive', 'construct_url', 'error_body_response',
            'error_response', 'send_file', 'has_header', 'header_value',
-           'path_info_split', 'path_info_pop']
+           'path_info_split', 'path_info_pop', 'capture_output']
 
 def get_cookies(environ):
     """
@@ -352,6 +352,47 @@ def path_info_pop(environ):
         environ['PATH_INFO'] = '/' + path
         environ['SCRIPT_NAME'] += segment
         return segment
+
+def capture_output(environ, start_response, application):
+    """
+    Runs application with environ and start_response, and captures
+    status, headers, and body.  Sends status and header, but *not*
+    body.  Returns (status, headers, body).  Typically this is used
+    like::
+
+        def dehtmlifying_middleware(application):
+            def replacement_app(environ, start_response):
+                status, headers, body = capture_output(
+                    environ, start_response, application)
+                content_type = header_value(headers, 'content-type')
+                if (not content_type
+                    or not content_type.startswith('text/html')):
+                    return [body]
+                body = re.sub(r'<.*?>', '', body)
+                return [body]
+            return replacement_app
+    """
+    data = []
+    output = StringIO()
+    def replacement_start_response(status, headers, exc_info=None):
+        data.append(status)
+        data.append(headers)
+        start_response(status, headers, exc_info)
+        return output
+    app_iter = application(environ, replacement_start_response)
+    try:
+        for item in app_iter:
+            output.write(item)
+    finally:
+        if hasattr(app_iter, 'close'):
+            app_iter.close()
+    if not data:
+        data.append(None)
+    if len(data) < 2:
+        data.append(None)
+    data.append(output.getvalue())
+    return data
+        
 
 if __name__ == '__main__':
     import doctest
