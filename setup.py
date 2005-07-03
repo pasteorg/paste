@@ -5,6 +5,9 @@ RELEASE = False
 __version__ = "0.0"
 
 import os
+
+from ez_setup import use_setuptools
+use_setuptools()
 from setuptools import setup
 
 BASEDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'paste')
