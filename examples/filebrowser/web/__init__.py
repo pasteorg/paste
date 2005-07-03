@@ -1,9 +1,11 @@
 import os
 import urllib
 from py.path import local
+from paste import CONFIG
 from paste import wsgilib
 from paste import httpexceptions
 from paste import urlparser
+from filebrowser import pathobj
 
 def urlparser_hook(environ):
     if not environ.has_key('filebrowser.base_url'):
@@ -20,20 +22,18 @@ special_dirs['app'] = urlparser.URLParser(
     os.path.dirname(__file__), 'filebrowser.web')
 
 def application(environ, start_response):
-    if environ.get('browser.resolved'):
+    context = environ['filebrowser.pathcontext'] = pathobj.PathContext(
+        root=environ['paste.config']['browse_path'])
+    if environ.get('filebrowser.resolved'):
         return special_dirs['app'](environ, start_response)
-    conf = environ['paste.config']
     path_info = environ.get('PATH_INFO', '')
     for special_dir, parser in special_dirs.items():
         if path_info.startswith('/_%s/' % special_dir):
-            environ['browser.resolved'] = True
+            environ['filebrowser.resolved'] = True
             wsgilib.path_info_pop(environ)
             return parser(environ, start_response)
-    environ['browser.filepath'] = urllib.unquote(environ['PATH_INFO'])
-    vars = dict(wsgilib.parse_querystring(environ))
-    action = (vars.get('action') or ['index'])[0]
-    servlet_fn = os.path.join(os.path.dirname(__file__), action + '.py')
-    servlet_app = urlparser.make_py(environ, servlet_fn)
-    return servlet_app(environ, start_response)
+    path = urllib.unquote(environ['PATH_INFO'])
+    path_servlet = context.path(path)
+    return path_servlet(environ, start_response)
 
     

@@ -1,0 +1,15 @@
+<html metal:use-macro="here/standard_template.pt/macros/page">
+<metal:body fill-slot="body">
+
+<form tal:attributes="action options/action" method="POST">
+<input type="hidden" name="action" value="save">
+Edit:<br>
+<textarea name="content" rows=10 cols=60 style="width: 100%"
+ tal:content="options/content"></textarea>
+<br>
+<input type="submit" value="Save">
+<button tal:attributes="onclick servlet/pathurl/js_set_location">Cancel</button>
+</form>
+
+</metal:body>
+</html>
