@@ -13,7 +13,7 @@ function lazyToggle(container, url, options) {
   if (Element.hidden(container)) {
     Element.show(container);
     if (! $(container).lazy_loaded) {
-      new Ajax.Updater(container, url, {method: 'get'});
+      new Ajax.Updater(container, url, options);
       $(container).lazy_loaded = true;
     }
     if (options.link) {

@@ -8,8 +8,11 @@ Parent: <a tal:attributes="href options/parent/url"
          tal:content="options/parent/name">name</a><br>
 </tal:if>
 </tal:if>
-Mimetype: <span tal:replace="options/mimetype"/><br>
+Mimetype: <span tal:replace="servlet/mimetype"/><br>
 <a tal:attributes="href servlet/pathurl/action=download">download</a>
+<tal:if condition="options/allow_edit"> |
+  <a tal:attributes="href servlet/pathurl/action=edit">edit</a></tal:if>
+
 </p>
 
 <pre tal:condition="python: options['content'] and not options['use_iframe']"

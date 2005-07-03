@@ -18,7 +18,7 @@
                       'odd', 'even')"
       tal:define="toggle f/url/toggle">
   <div class="controls">
-   <span tal:condition="python: f['path'].check(dir=1)"
+   <span tal:condition="python: f['path'].isdir"
     tal:replace="structure python: servlet.pastebutton(f['path'])"/>
    <span tal:replace="structure python: servlet.copybutton(f['path'], 'cut')"/>
    <span tal:replace="structure python: servlet.copybutton(f['path'],

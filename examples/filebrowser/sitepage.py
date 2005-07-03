@@ -4,8 +4,8 @@ import os
 import urllib
 from paste.wareweb import *
 from paste import wsgilib
+from paste import CONFIG
 from ZPTKit.zptwareweb import ZPTComponent
-from py.path import local
 import handlers
 
 class SitePage(Servlet):
@@ -16,31 +16,22 @@ class SitePage(Servlet):
 
     def awake(self):
         super(SitePage, self).awake(call_setup=False)
-        self.root = local(self.config['browse_path'])
-        if 'browser.filepath' in self.environ:
-            self.pathinfo = self.environ['browser.filepath']
-            self.path = self.root.join(self.pathinfo)
-        else:
-            self.pathinfo = ''
-            self.path = None
+        self.pathcontext = self.environ['filebrowser.pathcontext']
         self.pathurl = URL(self.environ,
                            script_name=self.app_url,
-                           path_info=self.pathinfo)
+                           path_info=self.path_info)
+        # While this is the URL that points to the non-file-specific
+        # application (for things like copy and past)
         self.globalurl = URL(self.environ,
                              script_name=self.app_url + '/_app',
                              path_info='')
         self.icons = Icon(self.app_url + '/_icons')
         self.app_static_url = self.app_url + '/_static'
+        # Prototype adds this special _ variable for Ajax requests:
         self.fragment = '_' in self.fields
         self.copybin = self.session.setdefault('copybin', {})
         self.update_copybin_display()
         self.setup()
-
-    def rootedpath(self, path):
-        path = str(path)
-        assert path.startswith(str(self.root)), (
-            "Bad path: %r (doesn't start with %r)" % (path, self.root))
-        return path[len(str(self.root)):]
 
     def handler(self, path=None):
         path = path or self.file
@@ -49,10 +40,10 @@ class SitePage(Servlet):
     def update_copybin_display(self):
         files = self.options.copyfiles = []
         for filename, cutcopy in self.copybin.items():
-            path = local(self.root).join(filename)
+            path = self.pathcontext.path(filename)
             files.append(
                 {'filename': filename,
-                 'url': self.app_url + filename,
+                 'url': self.app_url + filename + "?action=view",
                  'path': path,
                  'name': path.basename,
                  'cut': cutcopy=='cut',
@@ -62,14 +53,12 @@ class SitePage(Servlet):
         files.sort(key=lambda x: x['filename'])
 
     def pathid(self, prefix, path):
-        if isinstance(path, local):
-            path = self.rootedpath(path)
-        return prefix + path.replace('/', '__')
+        return prefix + str(path).replace('/', '__')
 
     def copybutton(self, path, copytype='copy'):
         assert copytype in ('copy', 'cut')
         copyurl = self.globalurl('copybin', **{
-            copytype: self.rootedpath(path)})
+            copytype: path})
         remote = copyurl.remote(
             id='copybin',
             onComplete='function (req) {new Effect.Highlight(%r)}'
@@ -79,7 +68,7 @@ class SitePage(Servlet):
         return remote.link(img)
 
     def pastebutton(self, path):
-        copyurl = self.globalurl('copybin', paste=self.rootedpath(path),
+        copyurl = self.globalurl('copybin', paste=path,
                                  back=wsgilib.construct_url(self.environ))
         return '<a href="%s">%s</a>' % (
             copyurl, self.icons('editpaste', alt="paste",
@@ -155,6 +144,9 @@ class URL(object):
     def name(self):
         return self.path_info.split('/')[-1]
 
+    def js_set_location(self):
+        return 'location.href = %r' % str(self)
+
 _idgen_count = itertools.count()
 def idgen():
     return 'node%s' % hex(_idgen_count.next() % 0xffffff)[2:]
@@ -190,7 +182,7 @@ class JSRemote(object):
 class JSToggle(JSRemote):
 
     def javascript(self):
-        return "lazyToggle(%r, %r, {link: this, parameters: %r}); return false" % (
+        return "lazyToggle(%r, %r, %s); return false" % (
             self.id, self.url.url_without_qs,
             self.option_js(parameters=repr(urllib.urlencode(self.url.vars.items())),
                            link='this'))
