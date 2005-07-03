@@ -10,6 +10,10 @@ from UserDict import UserDict
 
 __all__ = ['Servlet']
 
+class ForwardRequest(Exception):
+    def __init__(self, app):
+        self.application = app
+
 class Servlet(object):
 
     app_name = 'app'
@@ -34,11 +38,20 @@ class Servlet(object):
             value.__addtoclass__(attr, cls)
 
     def __call__(self, environ, start_response):
+        try:
+            status, headers, app_iter = self._process(
+                environ, start_response)
+        except ForwardRequest, e:
+            return e.application(environ, start_response)
+        else:
+            start_response(status, headers)
+            return app_iter
+
+    def _process(self, environ, start_response):
         value = event.raise_event('call', self, environ, start_response)
         if value is not event.Continue:
             status, headers, app_iter = value
-            start_response(status, headers)
-            return app_iter
+            return status, headers, app_iter
         self.environ = environ
         self.config = self.environ['paste.config']
         if self.config.get('app_name'):
@@ -69,20 +82,17 @@ class Servlet(object):
             else:
                 headers.append((name, value))
         # @@: cookies
-        start_response(self.status, headers)
-        return self._cached_output
+        return self.status, headers, self._cached_output
 
     @event.wrap_func
     def run(self):
         __traceback_hide__ = 'before_and_this'
         try:
-            self.awake()
-            self.respond()
+            event.wrap_func(self.awake.im_func)(self)
+            event.wrap_func(self.respond.im_func)(self)
         finally:
-            self.sleep()
+            event.wrap_func(self.sleep.im_func)(self)
 
-
-    @event.wrap_func
     def awake(self, call_setup=True):
         if call_setup:
             self.setup()
@@ -90,11 +100,9 @@ class Servlet(object):
     def setup(self):
         pass
 
-    @event.wrap_func
     def respond(self):
         pass
 
-    @event.wrap_func
     def sleep(self, call_teardown=True):
         if call_teardown:
             self.teardown()
@@ -186,5 +194,11 @@ class Servlet(object):
         raise httpexceptions.get_exception(status)(
             "This resource has been redirected",
             headers={'Location': url})
+
+    def forward_to_wsgiapp(self, app):
+        """
+        Forwards the request to the given WSGI application
+        """
+        raise ForwardRequest(app)
 
 abs_regex = re.compile(r'^[a-zA-Z]:')
