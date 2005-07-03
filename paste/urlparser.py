@@ -142,17 +142,16 @@ class URLParser(object):
                 environ['SCRIPT_NAME'] = orig_script_name
                 return not_found_hook(environ, start_response)
             if filename is None:
+                name, rest_of_path = wsgilib.path_info_split(environ['PATH_INFO'])
                 if not name:
-                    desc = 'one of %s' % ', '.join(
+                    name = 'one of %s' % ', '.join(
                         self.option(environ, 'index_names') or
                         ['(no index_names defined)'])
-                else:
-                    desc = name
 
                 return self.not_found(
                     environ, start_response,
                     'Tried to load %s from directory %s'
-                    % (desc, self.directory))
+                    % (name, self.directory))
             else:
                 environ['wsgi.errors'].write(
                     'Found resource %s, but could not construct application\n'
