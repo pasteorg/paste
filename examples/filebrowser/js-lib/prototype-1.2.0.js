@@ -17,6 +17,7 @@ var Prototype = {
 var Class = {
   create: function() {
     return function() { 
+      if (! this.initialize) alert('this: ' + this + ' init: ' + this.initialize);
       this.initialize.apply(this, arguments);
     }
   }
@@ -24,11 +25,13 @@ var Class = {
 
 var Abstract = new Object();
 
-Object.prototype.extend = function(object) {
-  for (property in object) {
-    this[property] = object[property];
-  }
-  return this;
+function extend(ob1, ob2) {
+  return (function(object) {
+    for (property in object) {
+      this[property] = object[property];
+    }
+    return this;
+  }).apply(ob1, [ob2]);
 }
 
 Function.prototype.bind = function(object) {
@@ -163,11 +166,11 @@ var Ajax = {
 Ajax.Base = function() {};
 Ajax.Base.prototype = {
   setOptions: function(options) {
-    this.options = {
+    this.options = extend({
       method:       'post',
       asynchronous: true,
       parameters:   ''
-    }.extend(options || {});
+    }, options || {});
   }
 }
 
@@ -175,7 +178,7 @@ Ajax.Request = Class.create();
 Ajax.Request.Events = 
   ['Uninitialized', 'Loading', 'Loaded', 'Interactive', 'Complete'];
 
-Ajax.Request.prototype = (new Ajax.Base()).extend({
+Ajax.Request.prototype = extend(new Ajax.Base(), {
   initialize: function(url, options) {
     this.transport = Ajax.getTransport();
     this.setOptions(options);
@@ -220,7 +223,7 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
 });
 
 Ajax.Updater = Class.create();
-Ajax.Updater.prototype = (new Ajax.Base()).extend({
+Ajax.Updater.prototype = extend(new Ajax.Base(), {
   initialize: function(container, url, options) {
     this.container = $(container);
     if (! this.container) {
@@ -419,14 +422,14 @@ Abstract.TimedObserver.prototype = {
 }
 
 Form.Element.Observer = Class.create();
-Form.Element.Observer.prototype = (new Abstract.TimedObserver()).extend({
+Form.Element.Observer.prototype = extend(new Abstract.TimedObserver(), {
   getValue: function() {
     return Form.Element.getValue(this.element);
   }
 });
 
 Form.Observer = Class.create();
-Form.Observer.prototype = (new Abstract.TimedObserver()).extend({
+Form.Observer.prototype = extend(new Abstract.TimedObserver(), {
   getValue: function() {
     return Form.serialize(this.element);
   }
@@ -517,7 +520,7 @@ Abstract.Insertion.prototype = {
 var Insertion = new Object();
 
 Insertion.Before = Class.create();
-Insertion.Before.prototype = (new Abstract.Insertion('beforeBegin')).extend({
+Insertion.Before.prototype = extend(new Abstract.Insertion('beforeBegin'), {
   initializeRange: function() {
     this.range.setStartBefore(this.element);
   },
@@ -528,7 +531,7 @@ Insertion.Before.prototype = (new Abstract.Insertion('beforeBegin')).extend({
 });
 
 Insertion.Top = Class.create();
-Insertion.Top.prototype = (new Abstract.Insertion('afterBegin')).extend({
+Insertion.Top.prototype = extend(new Abstract.Insertion('afterBegin'), {
   initializeRange: function() {
     this.range.selectNodeContents(this.element);
     this.range.collapse(true);
@@ -540,7 +543,7 @@ Insertion.Top.prototype = (new Abstract.Insertion('afterBegin')).extend({
 });
 
 Insertion.Bottom = Class.create();
-Insertion.Bottom.prototype = (new Abstract.Insertion('beforeEnd')).extend({
+Insertion.Bottom.prototype = extend(new Abstract.Insertion('beforeEnd'), {
   initializeRange: function() {
     this.range.selectNodeContents(this.element);
     this.range.collapse(this.element);
@@ -552,7 +555,7 @@ Insertion.Bottom.prototype = (new Abstract.Insertion('beforeEnd')).extend({
 });
 
 Insertion.After = Class.create();
-Insertion.After.prototype = (new Abstract.Insertion('afterEnd')).extend({
+Insertion.After.prototype = extend(new Abstract.Insertion('afterEnd'), {
   initializeRange: function() {
     this.range.setStartAfter(this.element);
   },
