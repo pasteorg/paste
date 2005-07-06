@@ -1,3 +1,4 @@
+<metal:tpl define-macro="view">
 <html metal:use-macro="here/standard_template.pt/macros/page">
 <metal:body fill-slot="body">
 
@@ -15,15 +16,9 @@ Mimetype: <span tal:replace="servlet/mimetype"/><br>
 
 </p>
 
-<pre tal:condition="python: options['content'] and not options['use_iframe']"
- tal:content="options/content">content</pre>
-
-<img tal:condition="options/is_image"
- tal:attributes="src servlet/pathurl/action=download">
-
-<iframe tal:condition="options/use_iframe"
- tal:attributes="src servlet/pathurl/action=download/html=clean"
- width="100%" height="200" name="test"></iframe>
+<metal:slot define-slot="view_inline">
+</metal:slot>
 
 </metal:body>
 </html>
+</metal:tpl>

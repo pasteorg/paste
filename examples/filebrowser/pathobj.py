@@ -23,8 +23,15 @@ class PathContext(object):
             ptype = 'dir'
         else:
             ptype = os.path.splitext(filename)[1]
-        path_class = self.path_classes.get(
-            ptype, self.path_classes['*'])
+        path_class = self.path_classes.get(ptype)
+        if not path_class:
+            mimetype, encoding = mimetypes.guess_type(filename)
+            if mimetype:
+                path_class = self.path_classes.get(mimetype)
+            if mimetype and not path_class:
+                path_class = self.path_classes.get(mimetype.split('/')[0]+'*')
+        if not path_class:
+            path_class = self.path_classes['*']
         return path_class(path, filename, self)
 
     @classmethod
@@ -46,6 +53,8 @@ class Path(sitepage.SitePage):
         default_action='view_raw')
 
     isdir = False
+    allow_edit = False
+    view_file_view = 'view_file.pt'
 
     def __init__(self, path, filename, context):
         super(Path, self).__init__()
@@ -71,6 +80,7 @@ class Path(sitepage.SitePage):
             'url': self.pathurl.up(),
             'name': self.pathurl.up().name() or 'root',
             }
+        self.options.allow_edit = self.allow_edit
         self.setup_file()
         
     def setup_file(self):
@@ -79,12 +89,20 @@ class Path(sitepage.SitePage):
             self.options.content = self.read()
         else:
             self.options.content = None
-        self.options.is_image = mime and mime.startswith('image/')
         self.options.use_iframe = mime == 'text/html'
 
     def action_view(self):
-        self.view = 'view_file.pt'
-        self.options.allow_edit = self.mimetype.startswith('text/')
+        self.view = self.view_file_view
+
+    def action_download(self):
+        # @@: This loads the entire file into memory, but currently
+        # Wareweb has no streaming method -- really it should forward
+        # the request to a WSGI file-serving application
+        self.view = None
+        self.set_header('content-type', self.mimetype)
+        f = open(self.filename, 'rb')
+        self.write(f.read())
+        f.close()
 
     def join(self, name):
         parts = name.split('/')
@@ -121,11 +139,6 @@ class Path(sitepage.SitePage):
                 content = self.bad_regex.sub('', content)
         self.write(content)
 
-    def action_edit(self):
-        self.view = 'edit_text.pt'
-        self.options.content = self.read()
-        self.options.action = str(self.pathurl)
-
     def action_save(self):
         content = self.fields.content
         f = open(self.filename, 'wb')
@@ -141,6 +154,45 @@ class Path(sitepage.SitePage):
         return content
         
 PathContext.register_class(Path)
+
+class Image(Path):
+
+    extensions = ['.png', '.gif', '.jpg', 'image/*']
+    view_file_view = 'view_image.pt'
+
+PathContext.register_class(Image)
+
+class TextFile(Path):
+
+    extensions = ['.txt', 'text/plain']
+    allow_edit = True
+    edit_view = 'edit_text.pt'
+
+    def action_view(self):
+        if self.fragment:
+            # The HTML iframe is nice in a fragment
+            self.view = 'view_html.pt'
+        else:
+            self.view = 'view_text.pt'
+
+    def action_edit(self):
+        self.view = self.edit_view
+        self.options.content = self.read()
+        self.options.action = str(self.pathurl)
+        self.options.ta_height = self.cookies.get('default_ta_height', 10)
+
+PathContext.register_class(TextFile)
+
+class HTMLFile(TextFile):
+
+    allow_edit = True
+    extensions = ['.html', '.htm', 'text/html']
+    edit_view = 'edit_html.pt'
+
+    def action_view(self):
+        self.view = 'view_html.pt'
+
+PathContext.register_class(HTMLFile)
 
 class Dir(Path):
 

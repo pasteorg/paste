@@ -1,0 +1,9 @@
+<html metal:use-macro="here/view_file.pt/macros/view">
+<metal:slot fill-slot="view_inline">
+<iframe width="100%" height="200" name="test"
+ tal:attributes="src
+ servlet/pathurl/action=download/html=clean"></iframe>
+
+</metal:slot>
+</html>
+

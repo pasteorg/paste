@@ -1,0 +1,6 @@
+<html metal:use-macro="here/view_file.pt/macros/view">
+<metal:slot fill-slot="view_inline">
+<img tal:attributes="src servlet/pathurl/action=download">
+</metal:slot>
+</html>
+
