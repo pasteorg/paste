@@ -1,0 +1,7 @@
+<html metal:use-macro="here/view_file.pt/macros/view">
+<metal:slot fill-slot="view_inline">
+<pre style="overflow: auto"
+ tal:content="options/content">content</pre>
+</metal:slot>
+</html>
+

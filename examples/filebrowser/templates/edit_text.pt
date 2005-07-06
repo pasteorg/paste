@@ -1,14 +1,72 @@
 <html metal:use-macro="here/standard_template.pt/macros/page">
+
+<metal:head fill-slot="extra_head">
+<script type="text/javascript">
+
+function adjust_textarea(id, adjustment) {
+    var el = $(id);
+    current = parseInt(el.getAttribute('rows'));
+    current += adjustment;
+    if (current < 2) {
+        current = 2;
+    }
+    el.setAttribute('rows', current);
+    createCookie('default_ta_height', current, 365*2);
+    return false;
+}
+
+function find_text(txt_id, input_id) {
+    var textarea = $(txt_id);
+    var txt = textarea.value.toLowerCase();
+    var input = $(input_id);
+    input.style.backgroundColor = '#fff';
+    var search_term = input.value.toLowerCase();
+    if (! search_term) {
+        return false;
+    }
+    var search_txt = txt;
+    var offset = 0;
+    if (textarea.selectionEnd - textarea.selectionStart) {
+        search_txt = txt.substring(textarea.selectionEnd);
+        offset = textarea.selectionEnd;
+    }
+    var pos = search_txt.indexOf(search_term);
+    if (pos == -1) {
+        input.style.backgroundColor = '#fdd';
+        textarea.selectionStart = textarea.selectionEnd = 0;
+        return false;
+    }
+    textarea.selectionStart = pos + offset;
+    textarea.selectionEnd = pos + offset + search_term.length;
+    return false;
+}
+
+</script>
+</metal:head>
+
 <metal:body fill-slot="body">
 
 <form tal:attributes="action options/action" method="POST">
 <input type="hidden" name="action" value="save">
 Edit:<br>
-<textarea name="content" rows=10 cols=60 style="width: 100%"
+<textarea name="content" id="txt-content" cols=60 style="width: 100%"
+ tal:attributes="rows options/ta_height"
  tal:content="options/content"></textarea>
 <br>
 <input type="submit" value="Save">
-<button tal:attributes="onclick servlet/pathurl/js_set_location">Cancel</button>
+<button tal:attributes="onclick
+ servlet/pathurl/action=view/js_set_location">Cancel</button>
+<button onclick="return adjust_textarea('txt-content', 1)">+</button>
+<button onclick="return adjust_textarea('txt-content', -1)">-</button>
+<a href="#" onclick="toggle('find-txt', {link: this}); return false" 
+ shownhtml="&amp;lt;&amp;lt;&amp;lt;"
+ style="text-decoration: none; color: #226">find...</a>
+<span id="find-txt" style="display: none">
+<input type="text" id="find-input" style="width: 5em">
+<button onclick="return find_text('txt-content',
+		    'find-input')">find</button>
+</span>
+
 </form>
 
 </metal:body>
