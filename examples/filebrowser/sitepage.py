@@ -2,6 +2,7 @@ import cgi
 import itertools
 import os
 import urllib
+import random
 from paste.wareweb import *
 from paste import wsgilib
 from paste import CONFIG
@@ -73,6 +74,19 @@ class SitePage(Servlet):
         return '<a href="%s">%s</a>' % (
             copyurl, self.icons('editpaste', alt="paste",
                                 title="Paste Files"))
+
+    def setup_xinha(self):
+        html = []
+        base_url = self.app_url + '/_js-lib/xinha/'
+        html.append('<script type="text/javascript">')
+        html.append('_editor_url = %r;' % base_url)
+        html.append('_editor_lang = "en";')
+        html.append('</script>')
+        html.append('<script type="text/javascript" src="%s"></script>'
+                    % (base_url + 'htmlarea.js'))
+        html.append('<script type="text/javascript" src="%s"></script>'
+                    % (self.app_url + '/_js-lib/xinha_config.js'))
+        return '\n'.join(html)
     
 
 class URL(object):
@@ -145,9 +159,10 @@ class URL(object):
         return self.path_info.split('/')[-1]
 
     def js_set_location(self):
-        return 'location.href = %r' % str(self)
+        return 'location.href = %r; return false' % str(self)
 
-_idgen_count = itertools.count()
+# @@: This repeats numbers after a restart
+_idgen_count = itertools.count(random.randint(0, 15000))
 def idgen():
     return 'node%s' % hex(_idgen_count.next() % 0xffffff)[2:]
         
