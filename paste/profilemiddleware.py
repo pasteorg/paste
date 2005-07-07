@@ -1,13 +1,15 @@
 import sys
+import os
 import hotshot
 import hotshot.stats
 import threading
 import cgi
+import time
 from cStringIO import StringIO
 from paste import wsgilib
 from paste.docsupport import metadata
 
-__all__ = ['ProfileMiddleware']
+__all__ = ['ProfileMiddleware', 'profile_decorator']
 
 class ProfileMiddleware(object):
 
@@ -89,3 +91,110 @@ def capture_output(func, *args, **kw):
     finally:
         sys.stdout = old_stdout
     return out.getvalue()
+
+def profile_decorator(**options):
+
+    """
+    Used around a function, like::
+
+        @profile_decorator(options...)
+        def ...
+
+    All calls to the function will be profiled.  The options are
+    all keywords, and are:
+
+        log_file:
+            The filename to log to (or ``'stdout'`` or ``'stderr'``).
+            Default: stderr.
+        display_limit:
+            Only show the top N items, default: 20.
+        sort_stats:
+            A list of string-attributes to sort on.  Default
+            ``('time', 'calls')``.
+        strip_dirs:
+            Strip directories/module names from files?  Default True.
+        add_info:
+            If given, this info will be added to the report (for your
+            own tracking).  Default: none.
+        prof_filename:
+            The temporary filename to log profiling data to.  Default;
+            ``./tmp_profile_data.log``
+    """
+
+    def decorator(func):
+        def replacement(*args, **kw):
+            return DecoratedProfile(func, **options)(*args, **kw)
+        return replacement
+    return decorator
+
+class DecoratedProfile(object):
+
+    lock = threading.Lock()
+
+    def __init__(self, func, **options):
+        self.func = func
+        self.options = options
+
+    def __call__(self, *args, **kw):
+        self.lock.acquire()
+        try:
+            return self.profile(self.func, *args, **kw)
+        finally:
+            self.lock.release()
+
+    def profile(self, func, *args, **kw):
+        ops = self.options
+        prof_filename = ops.get('prof_filename', 'tmp_profile_data.log')
+        prof = hotshot.Profile(prof_filename)
+        prof.addinfo('Function Call',
+                     self.format_function(func, *args, **kw))
+        if ops.get('add_info'):
+            prof.addinfo('Extra info', ops['add_info'])
+        exc_info = None
+        try:
+            start_time = time.time()
+            try:
+                result = prof.runcall(func, *args, **kw)
+            except:
+                exc_info = sys.exc_info()
+            end_time = time.time()
+        finally:
+            prof.close()
+        stats = hotshot.stats.load(prof_filename)
+        os.unlink(prof_filename)
+        if ops.get('strip_dirs', True):
+            stats.strip_dirs()
+        stats.sort_stats(*ops.get('sort_stats', ('time', 'calls')))
+        display_limit = ops.get('display_limit', 20)
+        output = capture_output(stats.print_stats, display_limit)
+        output_callers = capture_output(
+            stats.print_callers, display_limit)
+        output_file = ops.get('log_file')
+        if output_file in (None, 'stderr'):
+            f = sys.stderr
+        elif output_file in ('-', 'stdout'):
+            f = sys.stdout
+        else:
+            f = open(output_file, 'a')
+            f.write('\n%s\n' % ('-'*60))
+            f.write('Date: %s\n' % time.strftime('%c'))
+        f.write('Function call: %s\n'
+                % self.format_function(func, *args, **kw))
+        f.write('Wall time: %0.2f seconds\n'
+                % (end_time - start_time))
+        f.write(output)
+        f.write(output_callers)
+        if output_file not in (None, '-', 'stdout', 'stderr'):
+            f.close()
+        if exc_info:
+            # We captured an exception earlier, now we re-raise it
+            raise exc_info[0], exc_info[1], exc_info[2]
+        return result
+        
+    def format_function(self, func, *args, **kw):
+        args = map(repr, args)
+        args.extend(
+            ['%s=%r' % (k, v) for k, v in kw.items()])
+        return '%s(%s)' % (func.__name__, ', '.join(args))
+            
+            
