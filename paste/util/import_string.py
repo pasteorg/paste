@@ -23,12 +23,14 @@ def simple_import(s):
     module = import_module(parts[0])
     name = parts[0]
     parts = parts[1:]
+    last_import_error = None
     while parts:
         name += '.' + parts[0]
         try:
             module = import_module(name)
             parts = parts[1:]
-        except ImportError:
+        except ImportError, e:
+            last_import_error = e
             break
     obj = module
     while parts:
@@ -36,7 +38,7 @@ def simple_import(s):
             obj = getattr(module, parts[0])
         except AttributeError:
             raise ImportError(
-                "Cannot find %s in module %r" % (parts[0], module))
+                "Cannot find %s in module %r (stopped importing modules with error %s)" % (parts[0], module, last_import_error))
         parts = parts[1:]
     return obj
 
