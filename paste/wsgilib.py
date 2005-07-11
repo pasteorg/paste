@@ -88,7 +88,12 @@ def catch_errors(application, environ, start_response, error_callback,
     except:
         error_callback(sys.exc_info())
         raise
-    return _wrap_app_iter(app_iter, error_callback, ok_callback)
+    if type(app_iter) in (list, tuple):
+        # These won't produce exceptions
+        ok_callback()
+        return app_iter
+    else:
+        return _wrap_app_iter(app_iter, error_callback, ok_callback)
 
 class _wrap_app_iter(object):
 
