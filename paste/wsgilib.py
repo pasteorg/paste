@@ -11,7 +11,8 @@ import cgi
 __all__ = ['get_cookies', 'add_close', 'raw_interactive',
            'interactive', 'construct_url', 'error_body_response',
            'error_response', 'send_file', 'has_header', 'header_value',
-           'path_info_split', 'path_info_pop', 'capture_output']
+           'path_info_split', 'path_info_pop', 'capture_output',
+           'catch_errors']
 
 def get_cookies(environ):
     """
@@ -72,6 +73,46 @@ class add_close:
         if hasattr(self.app_iterable, 'close'):
             self.app_iterable.close()
         self.close_func()
+
+def catch_errors(application, environ, start_response, error_callback,
+                 ok_callback=None):
+    """
+    Runs the application, and returns the application iterator (which should be
+    passed upstream).  If an error occurs then error_callback will be called with
+    exc_info as its sole argument.  If no errors occur and ok_callback is given,
+    then it will be called with no arguments.
+    """
+    error_occurred = False
+    try:
+        app_iter = application(environ, start_response)
+    except:
+        error_callback(sys.exc_info())
+        raise
+    return _wrap_app_iter(app_iter, error_callback, ok_callback)
+
+class _wrap_app_iter(object):
+
+    def __init__(self, app_iterable, error_callback, ok_callback):
+        self.app_iterable = app_iterable
+        self.app_iter = iter(app_iterable)
+        self.error_callback = error_callback
+        self.ok_callback = ok_callback
+        if hasattr(self.app_iterable, 'close'):
+            self.close = self.app_iterable.close
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        try:
+            return self.app_iter.next()
+        except StopIteration:
+            if self.ok_callback:
+                self.ok_callback()
+            raise
+        except:
+            self.error_callback(sys.exc_info())
+            raise
 
 def raw_interactive(application, path_info='', **environ):
     """
