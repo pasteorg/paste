@@ -1,3 +1,4 @@
+from Cookie import SimpleCookie
 import timeinterval
 
 class Cookie(object):
@@ -24,5 +25,17 @@ class Cookie(object):
                 expires = time.strftime("%a, %d-%b-%Y %H:%M:%S GMT", expires)
         self.expires = expires
 
-    def __str__(self):
-        raise NotImplementedError
+    def __repr__(self):
+        return '<%s %s=%r>' % (
+            self.__class__.__name__, self.name, self.value)
+
+    def header(self):
+        c = SimpleCookie()
+        c[self.name] = value
+        c[self.name]['path'] = self.path
+        if self.expires is not None:
+            c[self.name]['expires'] = expires
+        if self.secure:
+            c[self.name]['secure'] = True
+        return str(c).split(':')[1].strip()
+    
