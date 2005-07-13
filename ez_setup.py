@@ -14,8 +14,8 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 
-DEFAULT_VERSION = "0.5a4"
-DEFAULT_URL     = "http://peak.telecommunity.com/dist/"
+DEFAULT_VERSION = "0.5a12"
+DEFAULT_URL     = "http://www.python.org/packages/source/s/setuptools/"
 
 import sys, os
 
@@ -66,7 +66,7 @@ def use_setuptools(
         egg = download_setuptools(version, download_base, to_dir)
         sys.path.insert(0, egg)
         import setuptools; setuptools.bootstrap_install_from = egg
-        
+
     import pkg_resources
     try:
         pkg_resources.require("setuptools>="+version)
@@ -91,7 +91,7 @@ def download_setuptools(
     """
     import urllib2, shutil
     egg_name = "setuptools-%s-py%s.egg" % (version,sys.version[:3])
-    url = download_base + egg_name
+    url = download_base + egg_name + '.zip'  # XXX
     saveto = os.path.join(to_dir, egg_name)
     src = dst = None
 
@@ -102,7 +102,7 @@ def download_setuptools(
             src = urllib2.urlopen(url)
             # Read/write all in one block, so we don't create a corrupt file
             # if the download is interrupted.
-            data = src.read()           
+            data = src.read()
             dst = open(saveto,"wb")
             dst.write(data)
         finally:
@@ -132,7 +132,7 @@ def main(argv, version=DEFAULT_VERSION):
         try:
             egg = download_setuptools(version, to_dir=tmpdir)
             sys.path.insert(0,egg)
-            from easy_install import main
+            from setuptools.command.easy_install import main
             main(list(argv)+[egg])
         finally:
             shutil.rmtree(tmpdir)
@@ -146,19 +146,19 @@ def main(argv, version=DEFAULT_VERSION):
     try:
         pkg_resources.require(req)
     except pkg_resources.VersionConflict:
-        from easy_install import main
-        main(list(argv)+[req])
+        try:
+            from setuptools.command.easy_install import main
+        except ImportError:
+            from easy_install import main
+        main(list(argv)+[download_setuptools()])
         sys.exit(0) # try to force an exit
     else:
         if argv:
-            from easy_install import main
+            from setuptools.command.easy_install import main
             main(argv)
         else:
-            print "Setuptools successfully installed or upgraded."
-
+            print "Setuptools version",version,"or greater has been installed."
+            print '(Run "ez_setup.py -U setuptools" to reinstall or upgrade.)'
 if __name__=='__main__':
     main(sys.argv[1:])
-
-
-
 
