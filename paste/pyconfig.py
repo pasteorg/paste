@@ -425,33 +425,3 @@ def make_list(option):
             return option
     return [s.strip() for s in option.split(',')]
 
-def make_use_package(conf, relative_to, namespace):
-    def use_package(package_spec, url=None, instdir=None, zip_ok=False,
-                    multi=None, tmpdir=None):
-        import easy_install
-        from pkg_resources import DistributionNotFound, require
-        if instdir is None:
-            instdir = namespace.get('app_packages', 'app-packages')
-        instdir = os.path.join(os.path.dirname(relative_to), instdir)
-        if instdir not in sys.path:
-            sys.path.insert(0, instdir)
-        if not os.path.exists(instdir):
-            os.makedirs(instdir)
-        try:
-            require(package_spec)
-        except DistributionNotFound, e:
-            pass
-        else:
-            return
-        if url is None:
-            url = namespace['package_urls'][package_spec]
-        installer = easy_install.Installer(instdir, zip_ok, multi, tmpdir)
-        try:
-            downloaded = installer.download(url)
-            installer.install_eggs(downloaded)
-        finally:
-            installer.close()
-        require(package_spec)
-    return use_package
-
-Config.builtins['use_package'] = make_use_package
