@@ -1,5 +1,6 @@
 import re
 import urllib
+import traceback
 from paste import httpexceptions
 import time
 import timeinterval
@@ -7,6 +8,7 @@ import cgifields
 import event
 from paste.util import classinit
 from UserDict import UserDict
+from Cookie import SimpleCookie
 
 __all__ = ['Servlet']
 
@@ -60,7 +62,7 @@ class Servlet(object):
         self.headers_out = {
             'content-type': 'text/html; charset=UTF-8'}
         self.status = '200 OK'
-        self.cookies_out = {}
+        self._cookies_out = {}
         self.request_method = environ['REQUEST_METHOD'].upper()
         self.app_url = self.environ.get('%s.base_url' % self.app_name, '')
         self.app_static_url = self.config.get(
@@ -73,6 +75,15 @@ class Servlet(object):
             # distinguish between '' and '/'
             self.path_parts = []
         self.fields = cgifields.Fields(cgifields.parse_fields(environ))
+        self.cookies = {}
+        if 'HTTP_COOKIE' in environ:
+            cookies = SimpleCookie()
+            try:
+                cookies.load(environ['HTTP_COOKIE'])
+            except:
+                traceback.print_exc(file=self._environ['wsgi.errors'])
+            for key in cookies.keys():
+                self.cookies[key] = cookies[key].value
         self.run()
         headers = []
         for name, value in self.headers_out.items():
@@ -81,7 +92,8 @@ class Servlet(object):
                     headers.append((name, v))
             else:
                 headers.append((name, value))
-        # @@: cookies
+        for cookie in self._cookies_out.values():
+            headers.append(('Set-Cookie', cookie.header()))
         return self.status, headers, self._cached_output
 
     @event.wrap_func
