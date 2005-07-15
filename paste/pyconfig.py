@@ -26,7 +26,7 @@ from paste.util.threadinglocal import local
 import threading
 
 def load(filename):
-    conf = Config()
+    conf = Config(with_default=True)
     conf.load(filename)
     return conf
 
