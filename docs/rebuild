@@ -5,9 +5,11 @@ parent=`dirname $here`
 echo "Adding $parent to \$PYTHONPATH"
 export PYTHONPATH=$parent:$PYTHONPATH
 
-NORMAL="DeveloperGuidelines Paste servers StyleGuide web/index \
+NORMAL="DeveloperGuidelines Paste servers StyleGuide index web/index \
         what-is-paste testing-applications url-parsing-with-wsgi \
-        roadmap configuration integration"
+        roadmap configuration integration web/community/mailing-list
+        web/community/repository web/community/index
+        web/download/index"
 DOCTEST_BUILD="blog-tutorial TodoTutorial"
 
 for NAME in $NORMAL ; do
@@ -35,3 +37,5 @@ echo ":extracted: `date`" >> reference.txt
 echo >> reference.txt
 python ../paste/docsupport/extract.py paste >> reference.txt
 rst2html.py reference.txt > reference.html
+python ../paste/docsupport/gensite.py
+chmod +x ~paste/htdocs/index.html
