@@ -1,0 +1,5 @@
+Downloads
+=========
+
+Right now Paste is only available through the `repository
+</community/repository.html>`_.
