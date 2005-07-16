@@ -107,6 +107,17 @@ class RestFile(object):
 
     _start_re = re.compile(r'<div class=".*?" id="contents">')
     _end_re = re.compile(r'</div>[ \n]*</div>[ \n]*</body>')
+    _bad_res = [
+        (re.compile(r'<link rel="stylesheet".*?>'), ''),
+        (re.compile(r'<h1 class="title">.*?</h1>'), ''),
+        (re.compile(r'(<p class=".*?"><a name="contents">.*?</p>)[ \n]*'
+                    r'(<ul class="simple">)'),
+         '<div><ul class="simple contents">'),
+        (re.compile(r'(<th class="docinfo-name">Date:</th>[ \n]*)'
+                    r'(<td>).*?\((.*?)\)'),
+         r'\1\2\3'),
+    ]
+    
     def read_content(self):
         c = self.html
         m = self._start_re.search(c)
@@ -119,6 +130,8 @@ class RestFile(object):
             c = c[:m.start()]
         else:
             print 'Bad ending in %s' % self.filename
+        for regex, sub in self._bad_res:
+            c = regex.sub(sub, c)
         self.content = c
 
     def __repr__(self):
