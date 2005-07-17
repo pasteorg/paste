@@ -41,7 +41,7 @@ class PathContext(object):
             if mimetype:
                 path_class = self.path_classes.get(mimetype)
             if mimetype and not path_class:
-                path_class = self.path_classes.get(mimetype.split('/')[0]+'*')
+                path_class = self.path_classes.get(mimetype.split('/')[0]+'/*')
         if not path_class:
             path_class = self.path_classes['*']
         return path_class(path, filename, self)
@@ -189,7 +189,7 @@ PathContext.register_class(Image)
 
 class TextFile(Path):
 
-    extensions = ['.txt', 'text/plain']
+    extensions = ['.txt', 'text/plain', 'text/*']
     allow_edit = True
     edit_view = 'edit_text.pt'
 
