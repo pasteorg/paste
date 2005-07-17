@@ -40,8 +40,7 @@ There are no files in this directory
 
 <form tal:attributes="action options/upload_url" method="POST"
  enctype="multipart/form-data">
-Upload: <input type="hidden" name="action" value="upload">
-<input type="file" name="file">
+Upload: <input type="file" name="file">
 <input type="submit" value="Upload">
 </form>
 
