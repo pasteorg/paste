@@ -86,6 +86,15 @@ class Path(sitepage.SitePage):
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.path)
 
+    def size_text(self):
+        st = os.stat(self.filename)
+        size = st.st_size
+        if size < 1024:
+            return '%i bytes' % size
+        if size < 1024*1024:
+            return '%iKb' % (size/1024)
+        return '%.1fMb' % (size/1024.0/1024.0)
+
     def setup(self):
         self.title = 'File: %s' % self.basename
         self.options.parent = {
@@ -341,6 +350,9 @@ class Dir(Path):
 
     upload_id = itertools.count(random.randint(0, 15000))
 
+    def size_text(self):
+        return None
+
     def setup_file(self):
         files = []
         for filename in sorted(os.listdir(self.filename)):
@@ -358,15 +370,26 @@ class Dir(Path):
                 files[-1]['name'] += '/'
         self.options.files = files
         self.options.upload_id = self.upload_id.next()
-        self.options.upload_url = self.globalurl(
-            'uploader', upload_id=self.options.upload_id,
-            redirect='/')
+        # With upload progress, something like this will be necessary:
+        #self.options.upload_url = self.globalurl(
+        #    'uploader', upload_id=self.options.upload_id,
+        #    redirect='/')
+        self.options.upload_url = self.pathurl(action='upload')
 
     def action_view_raw(self):
         self.action_view()
 
     def action_view(self):
         self.view = 'directory.pt'
+
+    def action_upload(self):
+        file = self.fields.file
+        filename = file.filename
+        content = file.value
+        f = self.join(filename)
+        f.write_text(content)
+        self.message.write('File %s uploaded' % filename)
+        self.redirect(self.pathurl(f.path, action='view'))
 
 PathContext.register_class(Dir)
 
