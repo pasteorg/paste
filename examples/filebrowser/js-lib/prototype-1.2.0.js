@@ -26,12 +26,10 @@ var Class = {
 var Abstract = new Object();
 
 function extend(ob1, ob2) {
-  return (function(object) {
-    for (property in object) {
-      this[property] = object[property];
-    }
-    return this;
-  }).apply(ob1, [ob2]);
+  for (property in ob2) {
+    ob1[property] = ob2[property];
+  }
+  return ob1;
 }
 
 Function.prototype.bind = function(object) {
