@@ -24,6 +24,11 @@ UserDict = thirdparty.load_new_module('UserDict', (2, 3))
 from paste.reloader import watch_file
 from paste.util.threadinglocal import local
 import threading
+try:
+    import pkg_resources
+    require = pkg_resources.require
+except ImportError:
+    require = None
 
 def load(filename):
     conf = Config(with_default=True)
@@ -177,6 +182,11 @@ class Config(UserDict.DictMixin, object):
 
     def update_sys_path(self):
         update_sys_path(self.get('sys_path'), self.get('verbose'))
+
+if require:
+    def make_require(config, filename, namespace):
+        return require
+    Config.builtins['require'] = make_require
 
 def setup_config(filename, add_config=None, conf=None):
     """
