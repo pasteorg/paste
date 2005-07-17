@@ -13,6 +13,15 @@ xinha_editors = ['txt-content'];
 <form tal:attributes="action options/action" method="POST">
 <input type="hidden" name="action" value="save">
 Edit:<br>
+
+<table tal:condition="options/properties | nothing">
+ <tr tal:repeat="prop options/properties">
+  <td tal:content="prop/description">name</td>
+  <td><input tal:attributes="type prop/type; name prop/input_name;
+       value prop/value"></td>
+ </tr>
+</table>
+
 <textarea name="content" id="txt-content" cols=60 style="width: 100%"
  tal:attributes="rows options/ta_height"
  tal:content="options/content"></textarea>
