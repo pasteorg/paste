@@ -50,7 +50,7 @@ def gen_site(conf):
         template.ns.clear()
         f.update_ns(template.ns)
         content = str(template)
-        print 'Writing %s to %s (%i bytes)' % (source, dest, len(content))
+        print 'Writing %s (%i bytes)' % (os.path.basename(source), len(content))
         dest_dir = os.path.dirname(dest)
         if not os.path.exists(dest_dir):
             print 'Creating %s' % dest_dir
@@ -112,7 +112,8 @@ class RestFile(object):
         (re.compile(r'<h1 class="title">.*?</h1>'), ''),
         (re.compile(r'(<p class=".*?"><a name="contents">.*?</p>)[ \n]*'
                     r'(<ul class="simple">)'),
-         '<div><ul class="simple contents">'),
+         '<div><ul class="simple contents">\n'
+         '<li class="header">Contents</li>\n'),
         (re.compile(r'(<th class="docinfo-name">Date:</th>[ \n]*)'
                     r'(<td>).*?\((.*?)\)'),
          r'\1\2\3'),

@@ -145,18 +145,37 @@ ol.simple, ul.simple {
 
 ul.contents li {
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 ul.contents {
-  float: right;
-  border: 1px #f70 solid;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  background-color: #fd9;
+  border-left: 1px solid #f70;
+  border-bottom: 1px solid #f70;
+  width: 200px;
+  padding: 0;
   margin: 0;
-  padding: 4px;
-  background-color: #feb;
 }
 
 ul.contents a {
+  padding: 2px 1em 2px 1em;
   display: block;
+  text-decoration: none;
+  color: #400;
+}
+
+ul.contents a:hover {
+  background-color: #f80;
+  color: #fff;
+}
+
+ul.contents li.header {
+  padding: 5px 1px 3px 0;
+  font-weight: bold;
 }
 
 ol.arabic {
