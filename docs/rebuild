@@ -9,7 +9,7 @@ NORMAL="DeveloperGuidelines Paste servers StyleGuide index web/index \
         what-is-paste testing-applications url-parsing-with-wsgi \
         roadmap configuration integration web/community/mailing-list
         web/community/repository web/community/index
-        web/download/index"
+        web/download/index web/package_index"
 DOCTEST_BUILD="blog-tutorial TodoTutorial"
 
 for NAME in $NORMAL ; do

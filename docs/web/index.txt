@@ -1,15 +1,6 @@
 Python Paste
 ++++++++++++
 
-News
-====
-
-.. raw:: html
-
-   <div class="news-box">
-   <!--#include virtual="/news/index.html" -->
-   <div>
-
 Introduction
 ============
 
