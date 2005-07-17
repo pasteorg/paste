@@ -213,4 +213,4 @@ class Servlet(object):
         """
         raise ForwardRequest(app)
 
-abs_regex = re.compile(r'^[a-zA-Z]:')
+abs_regex = re.compile(r'^[a-zA-Z]+:')
