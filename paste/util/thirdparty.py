@@ -44,12 +44,12 @@ def add_package(package_name):
     """
     try:
         exec "import %s" % package_name
-    except ImportError:
+    except ImportError, e:
         path = os.path.join(third_party, '%s-files' % package_name)
         if os.path.exists(path):
             sys.path.append(path)
         else:
             raise ImportError(
                 "Cannot load the package %s; expected to find it in "
-                "%s.  Have you run build-pkg.py?"
-                % (package_name, path))
+                "%s.  Have you run build-pkg.py? (import gave error: %s)"
+                % (package_name, path, e))
