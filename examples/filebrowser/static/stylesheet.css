@@ -41,3 +41,7 @@ div.notifyMessage {
     background-color: #007700;
     color: #ffffff;
 }
+
+form.inline {
+    display: inline;
+}
