@@ -1,6 +1,5 @@
+import shutil
 from filebrowser.sitepage import *
-from py.path import local
-import py
 
 class copybin(SitePage):
 
@@ -25,20 +24,21 @@ class copybin(SitePage):
             self.message.write('No items to paste')
             self.redirect(self.fields.back)
             return
-        dest = self.root.join(self.fields.paste)
+        dest = self.pathcontext.path(self.fields.paste)
         copied = 0
         moved = 0
         for filename, copytype in self.copybin.items():
-            path = self.root.join(filename)
+            path = self.pathcontext.path(filename)
+            dest_path = dest.join(path.basename)
             if copytype == 'copy':
                 copied += 1
-                path.copy(dest)
+                shutil.copyfile(path.filename, dest_path.filename)
             elif copytype == 'cut':
                 try:
-                    path.move(dest)
-                except py.error.ENOTEMPTY, e:
+                    shutil.movefile(path.filename, dest_path.filename)
+                except Exception, e:
                     self.message.write(
-                        'Cannot move %s (file by the same name exists' % dest)
+                        'Cannot move to %s (%s)' % (dest, e))
                 else:
                     moved += 1
         msg = []
