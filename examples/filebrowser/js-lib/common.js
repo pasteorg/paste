@@ -1,3 +1,9 @@
+function jump(anchor) {
+  var dest_url = anchor.getAttribute('jumpurl');
+  var name = window.prompt('Jump to what file?')
+  location.href = dest_url + '?name=' + escape(name);
+}
+
 Element.hidden = function() {
   for (var i = 0; i < arguments.length; i++) {
     var element = $(arguments[i]);
