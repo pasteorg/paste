@@ -124,6 +124,8 @@ class URL(object):
         if add and '=' in add:
             name, value = add.split('=', 1)
             vars[name] = value
+        elif add and add.startswith('/'):
+            path_info = add
         elif add:
             if not path_info.endswith('/'):
                 path_info += '/'
