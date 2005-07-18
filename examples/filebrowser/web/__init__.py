@@ -1,6 +1,5 @@
 import os
 import urllib
-from py.path import local
 from paste import CONFIG
 from paste import wsgilib
 from paste import httpexceptions
