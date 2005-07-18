@@ -189,6 +189,7 @@ class Servlet(object):
                 self._cached_output.append(unicode(v).encode('utf-8'))
     
     def redirect(self, url, **query_vars):
+        url = str(url)
         if not url.startswith('/') and not abs_regex.search(url):
             url = self.app_url + '/' + url
         if 'status' in query_vars:
