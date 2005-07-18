@@ -6,6 +6,7 @@ import random
 import urllib
 import cgi
 import htmlentitydefs
+import shutil
 from paste.wareweb import dispatch, public
 from paste.httpexceptions import *
 import sitepage
@@ -140,7 +141,10 @@ class Path(sitepage.SitePage):
                 "The path %r contains '\\', which is illegal" % name)
         name = name.lstrip('/')
         name = re.sub(r'//+', '/', name)
-        new_path = self.path + '/' + name
+        new_path = self.path
+        if not new_path.endswith('/'):
+            new_path += '/'
+        new_path += name
         return self.pathcontext.path(new_path)
 
     bad_regexes = [
@@ -165,7 +169,23 @@ class Path(sitepage.SitePage):
         self.write_text(content)
         self.message.write('%i bytes saved to %s'
                            % (len(content), self.basename))
-        self.redirect(str(self.pathurl(action='view')))
+        self.redirect(str(self.pathurl(action='edit')))
+
+    def action_rename(self):
+        dest = self.fields.get('dest')
+        if dest and ('/' in dest or '\\' in dest):
+            self.message.write('Bad filename (cannot contain / or \\): %r'
+                               % dest)
+            dest = None
+        if not dest:
+            self.options.action = self.pathurl(action='rename')
+            self.view = 'rename.pt'
+            return
+        new_filename = os.path.join(os.path.dirname(self.filename), dest)
+        new_path = os.path.join(os.path.dirname(self.path), dest)
+        shutil.move(self.filename, new_filename)
+        self.message.write('Renamed to %s' % dest)
+        self.redirect(self.pathurl(new_path, action='view'))
 
     def read(self):
         f = open(self.filename, 'rb')
@@ -235,13 +255,15 @@ class HTMLFile(TextFile):
         # Unlike Path.save, this doesn't save the entire contents
         # of the file
         content = self.fields.content
+        assert content is not None, (
+            "No content?: %s" % repr(self.fields.keys()))
         props = {}
         for name, value in self.fields.items():
             if name.startswith('property_'):
                 props[name[len('property_'):]] = value
         self.save(content, props)
         self.message.write('File %s saved' % self.basename)
-        self.redirect(str(self.pathurl(action='view')))
+        self.redirect(str(self.pathurl(action='edit')))
 
     def save(self, content, props):
         current = self.read()
@@ -383,13 +405,60 @@ class Dir(Path):
         self.view = 'directory.pt'
 
     def action_upload(self):
-        file = self.fields.file
-        filename = file.filename
-        content = file.value
+        number = 0
+        for name in self.fields:
+            if name.startswith('file_'):
+                field = self.fields[name]
+                if isinstance(field, str) and not field:
+                    continue
+                assert not isinstance(field, (str, unicode)), (
+                    "Bad field %s (contains %r)" % (name, field))
+                result = self._do_upload(field)
+                number += 1
+        if not number:
+            self.message.write('No files uploaded')
+        if number == 1:                
+            self.redirect(self.pathurl(result.path, action='view'))
+        else:
+            self.redirect(self.pathurl(action='view'))
+                
+    def _do_upload(self, field):
+        filename = field.filename
+        if '/' in filename:
+            filename = filename.split('/')[-1]
+        if '\\' in filename:
+            filename = filename.split('\\')[-1]
+        content = field.value
         f = self.join(filename)
         f.write_text(content)
         self.message.write('File %s uploaded' % filename)
-        self.redirect(self.pathurl(f.path, action='view'))
+        return f
+
+    def action_mkdir(self):
+        dirname = self.fields.dirname
+        dest = self.join(dirname)
+        os.mkdir(dest.filename)
+        self.message.write('Created directory %s' % dest)
+        self.redirect(self.pathurl(dest.path, action='view'))
+
+    def listdir(self):
+        result = []
+        for fn in os.listdir(self.filename):
+            try:
+                result.append(self.join(fn))
+            except BadFilePath:
+                pass
+        return result
+
+    def find_filename(self, filename):
+        results = []
+        for file in self.listdir():
+            if filename.lower() in file.basename.lower():
+                results.append(file)
+            if file.isdir:
+                results.extend(file.find_filename(filename))
+        return results
+            
 
 PathContext.register_class(Dir)
 
