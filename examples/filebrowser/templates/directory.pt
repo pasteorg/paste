@@ -1,4 +1,29 @@
 <html metal:use-macro="here/standard_template.pt/macros/page">
+
+<metal:extra fill-slot="extra_head">
+
+<script type="text/javascript">
+var field_index = 1;
+function add_upload() {
+  var form = $('upload-form');
+  var upload = document.createElement('INPUT');
+  upload.setAttribute('type', 'file');
+  field_index++;
+  upload.setAttribute('name', 'file_' + field_index);
+  form.appendChild(document.createElement('BR'));
+  form.appendChild(document.createTextNode('Upload: '));
+  form.appendChild(upload);
+}
+
+function change_upload_button() {
+  var button = $('upload-button');
+  button.disabled = 'true';
+  button.value = 'Uploading...';
+}
+</script>
+
+</metal:extra>
+
 <metal:body fill-slot="body">
 
 <div class="header">
@@ -10,7 +35,18 @@
  Parent: <a tal:attributes="href options/parent/url"
           tal:content="options/parent/name"/><br>
  </tal:if>
- Files: <span tal:replace="python: len(options['files'])"/>
+ Files: <tt tal:content="python: len(options['files'])"/>
+ | <a href="#" onclick="toggle('mkdir', {link: this}); return false" 
+    shownhtml="&amp;lt;&amp;lt;&amp;lt;"
+    style="text-decoration: none; color: #226">make dir...</a>
+   <span id="mkdir" style="display: none">
+    <form tal:attributes="action servlet/pathurl/action=mkdir"
+     method="POST" class="inline">
+     <input type="text" name="dirname" style="width: 5em">
+     <input type="submit" value="make">
+    </form>
+   </span>
+
 </div>
 
 <tal:for repeat="f options/files">
@@ -39,9 +75,11 @@ There are no files in this directory
 </p>
 
 <form tal:attributes="action options/upload_url" method="POST"
- enctype="multipart/form-data">
-Upload: <input type="file" name="file">
-<input type="submit" value="Upload">
+ enctype="multipart/form-data" id="upload-form"
+ onsubmit="change_upload_button(); return true;">
+Upload: <input type="file" name="file_1">
+<input type="submit" value="Upload" id="upload-button">
+<button onclick="add_upload(); return false;">More...</button>
 </form>
 
 </metal:body>
