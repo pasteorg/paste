@@ -1,0 +1,15 @@
+<html metal:use-macro="here/standard_template.pt/macros/page">
+<metal:body fill-slot="body">
+
+<form tal:attributes="action options/action" method="POST">
+Rename <span tal:replace="servlet/path"/> to:<br>
+<input type="text" name="dest" style="width: 100%"
+ tal:attributes="value servlet/basename">
+<br>
+<input type="submit" value="Rename">
+<button tal:attributes="onclick
+ servlet/pathurl/action=view/js_set_location">Cancel</button>
+</form>
+
+</metal:body>
+</html>
