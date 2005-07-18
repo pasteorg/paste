@@ -23,7 +23,11 @@
 <legend>clipboard <a onclick="toggle('copybin', {link: this})" 
  tal:attributes="hiddenhtml
  servlet/icons/1uparrow.png/alt=show/title=show+clipboard/html"
- tal:content="structure servlet/icons/1downarrow.png/alt=hide/title=hide+clipboard/html"/></legend>
+ tal:content="structure servlet/icons/1downarrow.png/alt=hide/title=hide+clipboard/html"/>
+ <a onclick="jump(this)" 
+  tal:attributes="jumpurl servlet/globalurl/jump"
+  tal:content="structure servlet/icons/goto.png/alt=goto/title=jump+to+file/html"/>
+</legend>
 <div id="copybin">
 <metal:tpl use-macro="here/copybin.pt/macros/copybin">
 </metal:tpl>
