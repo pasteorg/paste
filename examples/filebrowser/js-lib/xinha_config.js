@@ -15,13 +15,9 @@ xinha_init = xinha_init ? xinha_init : function() {
 
   xinha_plugins = xinha_plugins ? xinha_plugins :
   ['CharacterMap',
-   'ContextMenu',
    'FullScreen',
    'ListType',
-   'SpellChecker',
-   'Stylist',
    'SuperClean',
-   'TableOperations'
    ];
   // THIS BIT OF JAVASCRIPT LOADS THE PLUGINS, NO TOUCHING  :)
   if(!HTMLArea.loadPlugins(xinha_plugins, xinha_init)) return;
@@ -50,6 +46,7 @@ xinha_init = xinha_init ? xinha_init : function() {
    *********************************************************************/
 
   xinha_config = xinha_config ? xinha_config() : new HTMLArea.Config();
+  xinha_config.height = '420px';
 
   /** STEP 4 ***********************************************************
    * We first create editors for the textareas.
