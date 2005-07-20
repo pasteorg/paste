@@ -46,7 +46,15 @@ class Fields(UserDict):
     def __getattr__(self, attr):
         # @@: I don't like this.  Should it give a KeyError?
         # should it exist at all?
+        if attr.startswith('_'):
+            raise AttributeError
         return self.data.get(attr)
+
+    def __contains__(self, key):
+        return key in self.data
+        
+    def __iter__(self):
+        return iter(self.data)
 
     def getlist(self, name):
         """
