@@ -40,6 +40,7 @@ div.notifyMessage {
     border: 2px solid black;
     background-color: #007700;
     color: #ffffff;
+    padding: 5px;
 }
 
 form.inline {
