@@ -81,6 +81,10 @@ class SitePage(Servlet):
         html.append('<script type="text/javascript">')
         html.append('_editor_url = %r;' % base_url)
         html.append('_editor_lang = "en";')
+        stylesheets = self.pathcontext.stylesheets()
+        if stylesheets:
+            html.append('xinha_stylesheets = %r;' 
+                        % [str(self.pathurl(s.path)) for s in stylesheets])
         html.append('</script>')
         html.append('<script type="text/javascript" src="%s"></script>'
                     % (base_url + 'htmlarea.js'))
@@ -123,6 +127,8 @@ class URL(object):
         path_info = self.path_info
         if add and '=' in add:
             name, value = add.split('=', 1)
+            if name == 'confirm':
+                return ConfirmLink(self, urllib.unquote_plus(value))
             vars[name] = value
         elif add and add.startswith('/'):
             path_info = add
@@ -205,6 +211,16 @@ class JSToggle(JSRemote):
                            link='this'))
 
     javascript = property(javascript)
+
+class ConfirmLink(object):
+
+    def __init__(self, link, confirm):
+        self.link = link
+        self.confirm = confirm
+    
+    def __str__(self):
+        return ("if (window.confirm(%r)) {location.href=%r}; return false"
+                % (self.confirm, str(self.link)))
 
 def html_attrs(kw):
     if not kw:
