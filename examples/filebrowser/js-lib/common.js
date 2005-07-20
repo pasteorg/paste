@@ -1,7 +1,9 @@
 function jump(anchor) {
   var dest_url = anchor.getAttribute('jumpurl');
-  var name = window.prompt('Jump to what file?')
-  location.href = dest_url + '?name=' + escape(name);
+  var name = window.prompt('Jump where? ("root" for /, "edit:" for edit screen)')
+  if (name) {
+    location.href = dest_url + '?name=' + escape(name);
+  }
 }
 
 Element.hidden = function() {
