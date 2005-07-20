@@ -22,7 +22,8 @@ special_dirs['app'] = urlparser.URLParser(
 
 def application(environ, start_response):
     context = environ['filebrowser.pathcontext'] = pathobj.PathContext(
-        root=environ['paste.config']['browse_path'])
+        root=environ['paste.config']['browse_path'],
+        config=environ['paste.config'])
     if environ.get('filebrowser.resolved'):
         return special_dirs['app'](environ, start_response)
     path_info = environ.get('PATH_INFO', '')

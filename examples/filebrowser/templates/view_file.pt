@@ -17,6 +17,9 @@ Mimetype: <tt tal:content="servlet/mimetype"/>
 <tal:if condition="options/allow_edit"> |
   <a tal:attributes="href servlet/pathurl/action=edit">edit</a></tal:if>
 | <a tal:attributes="href servlet/pathurl/action=rename">rename</a>
+| <a href="#" tal:attributes="onclick 
+   servlet/pathurl/action=delete/confirm=Are+you+sure+you+want+to+delete+this?"
+   >delete</a>
 
 </p>
 
