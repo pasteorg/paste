@@ -47,6 +47,15 @@ function change_upload_button() {
     </form>
    </span>
 
+ | <tal:let define="toggle servlet/globalurl/addfile_form/toggle">
+   <span tal:replace="structure python: toggle.link(
+     'add file...', shownhtml='&amp;lt;&amp;lt;&amp;lt;',
+     style='text-decoration: none; color: #226')"/>
+   <span tal:attributes="id toggle/id" style="display: none">
+     ...
+   </span>
+   </tal:let>
+
 </div>
 
 <tal:for repeat="f options/files">

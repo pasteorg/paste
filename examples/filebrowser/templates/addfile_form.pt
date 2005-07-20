@@ -1,0 +1,13 @@
+<form class="inline" action="" method="POST">
+<input type="hidden" name="action" value="create_from_blank">
+Create from:
+<select name="template">
+ <option value="">select template</option>
+ <option tal:repeat="blank options/blanks"
+  tal:attributes="value blank/path"
+  tal:content="blank/basename"/>
+</select>
+in:
+<input type="text" name="filename" style="width: 5em">
+<input type="submit" value="create">
+</form>

@@ -27,8 +27,9 @@ class PathContext(object):
 
     path_classes = {}
 
-    def __init__(self, root):
+    def __init__(self, root, config):
         self.root = root
+        self.config = config
 
     def path(self, path):
         filename = self.root + '/' + path.lstrip('/')
@@ -56,6 +57,23 @@ class PathContext(object):
                 "extension %r" % (path_class, cls.path_classes[ptype],
                                   ptype))
             cls.path_classes[ptype] = path_class
+
+    def stylesheets(self):
+        if self.config.get('stylesheet'):
+            value = self.config['stylesheet']
+        else:
+            value = []
+        if isinstance(value, (str, unicode)):
+            value = [value]
+        return [self.path(p) for p in value]
+            
+    def translate_path(self, path):
+        possible = self.config.get('live_web_translation', {}).items()
+        possible.sort(lambda a, b: cmp(len(a[0]), len(b[0])))
+        for source, dest in possible:
+            if path.startswith(source):
+                return dest + path[len(source):]
+        return None
 
 class Path(sitepage.SitePage):
 
@@ -126,6 +144,12 @@ class Path(sitepage.SitePage):
         self.write(f.read())
         f.close()
 
+    def action_delete(self):
+        parent = self.pathurl.up()
+        os.unlink(self.filename)
+        self.message.write('%s deleted' % self.basename)
+        self.redirect(parent, action='view')
+
     def join(self, name):
         parts = name.split('/')
         for part in parts:
@@ -146,6 +170,9 @@ class Path(sitepage.SitePage):
             new_path += '/'
         new_path += name
         return self.pathcontext.path(new_path)
+
+    def live_url(self):
+        return self.pathcontext.translate_path(self.path)
 
     bad_regexes = [
         re.compile(r'<script.*?</script>', re.I+re.S),
@@ -440,6 +467,26 @@ class Dir(Path):
         os.mkdir(dest.filename)
         self.message.write('Created directory %s' % dest)
         self.redirect(self.pathurl(dest.path, action='view'))
+
+    def action_create_from_blank(self):
+        tmpl = self.fields.template
+        filename = self.fields.filename
+        good = True
+        if not tmpl:
+            self.message.write('You must select a blank template')
+            good = False
+        if not filename:
+            self.message.write('You must give a filename')
+            good = False
+        if not good:
+            self.redirect(self.pathurl(action='view'))
+        if not os.path.splitext(filename)[1]:
+            filename += os.path.splitext(tmpl)[1]
+        source = self.pathcontext.path(tmpl)
+        dest = self.join(filename)
+        dest.write_text(source.read())
+        self.message.write('%s created' % dest.basename)
+        self.redirect(self.pathurl(dest.path, action='edit'))
 
     def listdir(self):
         result = []

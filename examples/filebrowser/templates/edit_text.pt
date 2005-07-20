@@ -48,7 +48,6 @@ function find_text(txt_id, input_id) {
 
 <form tal:attributes="action options/action" method="POST">
 <input type="hidden" name="action" value="save">
-Edit:<br>
 <textarea name="content" id="txt-content" cols=60 style="width: 100%"
  tal:attributes="rows options/ta_height"
  tal:content="options/content"></textarea>
