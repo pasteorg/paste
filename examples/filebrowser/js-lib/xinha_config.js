@@ -48,6 +48,10 @@ xinha_init = xinha_init ? xinha_init : function() {
   xinha_config = xinha_config ? xinha_config() : new HTMLArea.Config();
   xinha_config.height = '420px';
 
+  if (typeof(xinha_stylesheets) != 'undefined') {
+    xinha_config.pageStyleSheets = xinha_stylesheets;
+  }
+
   /** STEP 4 ***********************************************************
    * We first create editors for the textareas.
    *
