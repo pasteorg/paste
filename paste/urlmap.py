@@ -17,7 +17,11 @@ class URLMap(DictMixin):
     dispatch to.  URLs are matched most-specific-first, i.e., longest
     URL first.  The ``SCRIPT_NAME`` and ``PATH_INFO`` environmental
     variables are adjusted to indicate the new context.
-    """
+    
+    URLs can also include domains, like ``http://blah.com/foo``, or as
+    tuples ``('blah.com', '/foo')``.  This will match domain names; without
+    the ``http://domain`` or with a domain of ``None`` any domain will be
+    matched (so long as no other explicit domain matches).  """
     
     def __init__(self):
         self.applications = []
@@ -31,37 +35,59 @@ class URLMap(DictMixin):
     result.""")
 
     norm_url_re = re.compile('//+')
+    domain_url_re = re.compile('^(http|https)://')
 
     def normalize_url(self, url, trim=True):
-        assert not url or url.startswith('/'), (
-            "URL fragments must start with / (you gave %r)" % url)
+        if isinstance(url, (list, tuple)):
+            domain = url[0]
+            url = self.normalize_url(url[1])[1]
+            return domain, url
+        assert (not url or url.startswith('/') 
+                or self.domain_url_re.search(url)), (
+            "URL fragments must start with / or http:// (you gave %r)" % url)
+        match = self.domain_url_re.search(url)
+        if match:
+            url = url[match.end():]
+            if '/' in url:
+                domain, url = url.split('/', 1)
+                url = '/' + url
+            else:
+                domain, url = url, ''
+        else:
+            domain = None
         url = self.norm_url_re.sub('/', url)
         if trim:
-            return url.rstrip('/')
-        else:
-            return url
+            url = url.rstrip('/')
+        return domain, url
 
     def sort_apps(self):
         """
         Make sure applications are sorted with longest URLs first
         """
-        self.applications.sort(
-            lambda a, b: cmp(len(b[0]), len(a[0])))
+        def key(app_desc):
+            (domain, url), app = app_desc
+            if not domain:
+                # Make sure empty domains sort last:
+                return -len(url), '\xff'
+            else:
+                return -len(url), domain
+        self.applications.sort(key=key)
 
     def __setitem__(self, url, app):
-        url = self.normalize_url(url)
-        if url in self:
-            del self[url]
-        self.applications.append((url, app))
+        dom_url = self.normalize_url(url)
+        if dom_url in self:
+            del self[dom_url]
+        self.applications.append((dom_url, app))
         self.sort_apps()
 
     def __getitem__(self, url):
-        url = self.normalize_url(url)
+        dom_url = self.normalize_url(url)
         for app_url, app in self.applications:
-            if app_url == url:
+            if app_url == dom_url:
                 return app
         raise KeyError(
-            "No application with the url %r" % url)
+            "No application with the url %r (domain: %r; existing: %s)" 
+            % (url[1], url[0] or '*', self.applications))
 
     def __delitem__(self, url):
         url = self.normalize_url(url)
@@ -77,16 +103,14 @@ class URLMap(DictMixin):
         return [app_url for app_url, app in self.applications]
 
     def __call__(self, environ, start_response):
+        host = environ.get('HTTP_HOST', environ.get('SERVER_NAME')).lower()
+        if ':' in host:
+            host = host.split(':', 1)[0]
         path_info = environ.get('PATH_INFO')
-        if not path_info:
-            # Kind of just a fast-track for this one case.
-            last_url, last_app = self.applications[-1]
-            if not last_url:
-                return last_app(environ, start_response)
-            else:
-                return self.not_found_application(environ, start_response)
-        path_info = self.normalize_url(path_info, False)
-        for app_url, app in self.applications:
+        path_info = self.normalize_url(path_info, False)[1]
+        for (domain, app_url), app in self.applications:
+            if domain and domain != host:
+                continue
             if (path_info == app_url
                 or path_info.startswith(app_url + '/')):
                 environ['SCRIPT_NAME'] += app_url
@@ -121,7 +145,11 @@ class PathProxyURLMap(object):
         if isinstance(app, (str, unicode)):
             app_fn = os.path.join(self.base_path, app)
             app = self.builder(app_fn)
-        url = self.base_paste_url + url
+        url = self.map.normalize_url(url)
+        # @@: This means http://foo.com/bar will potentially
+        # match foo.com, but /base_paste_url/bar, which is unintuitive
+        url = (url[0] or self.base_paste_url[0], 
+               self.base_paste_url[1] + url[1])
         self.map[url] = app
 
     def __getattr__(self, attr):
