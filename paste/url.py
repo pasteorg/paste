@@ -4,7 +4,7 @@ This module implements a class for handling URLs.
 import urllib
 import cgi
 
-__all__ = ["URL"]
+__all__ = ["URL", "Image"]
 
 def html_quote(v):
     if v is None:
@@ -117,6 +117,11 @@ class URLResource(object):
         return u
             
     __div__ = addpath
+
+    def become(self, OtherClass):
+        return OtherClass(self.url, vars=self.vars,
+                          attrs=self.attrs,
+                          params=self.original_params)
     
     def href__get(self):
         s = self.url
@@ -192,7 +197,7 @@ class URL(URLResource):
     >>> u['//foo'].param(content='view').html
     '<a href="http://localhost/view/foo">view</a>'
     >>> u.param(confirm='Really?', content='goto').html
-    '<a href="http://localhost/view" onclick="return prompt(&quot;\'Really?\'&quot;)">goto</a>'
+    '<a href="http://localhost/view" onclick="return prompt(\'Really?\')">goto</a>'
     >>> u(title='See "it"', content='goto').html
     '<a href="http://localhost/view?title=See%20%22it%22">goto</a>'
     >>> u('another', var='fuggetaboutit', content='goto').html
@@ -232,14 +237,19 @@ class URL(URLResource):
         attrs = self.attrs.items()
         attrs.insert(0, ('href', self.href))
         if self.params.get('confirm'):
-            attrs.append(('onclick', 'return prompt(%r)'
+            attrs.append(('onclick', 'return prompt(%s)'
                           % js_repr(self.params['confirm'])))
         return attrs
 
     def onclick_goto__get(self):
-        return 'location.href=%r; return false' % js_repr(self.href)
-    
+        return 'location.href=%s; return false' % js_repr(self.href)
+
     onclick_goto = property(onclick_goto__get)
+
+    def button__get(self):
+        return self.become(Button)
+
+    button = property(button__get)
             
 class Image(URLResource):
 
@@ -271,6 +281,50 @@ class Image(URLResource):
     def _html_attrs(self):
         attrs = self.attrs.items()
         attrs.insert(0, ('src', self.href))
+        return attrs
+
+class Button(URLResource):
+
+    r"""
+    >>> u = URL('/')
+    >>> u = u / 'delete'
+    >>> b = u.button['confirm=Sure?'](id=5, content='del')
+    >>> str(b)
+    '<button onclick="if (prompt(\'Sure?\')) {location.href=\'/delete?id=5\'}; return false">del</button>'
+    """
+
+    default_params = {'tag': 'button'}
+
+    def __str__(self):
+        return self.html
+
+    def _get_content(self):
+        if self.params.get('content'):
+            return self.params['content']
+        if self.attrs.get('value'):
+            return self.attrs['content']
+        # @@: Error?
+        return None
+
+    def _add_vars(self, vars):
+        button = self
+        if 'confirm' in vars:
+            button = button.param(confirm=vars.pop('confirm'))
+        if 'content' in vars:
+            button = button.param(content=vars.pop('content'))
+        return button.var(**vars)
+
+    def _add_positional(self, args):
+        return self.addpath(*args)
+
+    def _html_attrs(self):
+        attrs = self.attrs.items()
+        onclick = 'location.href=%s' % js_repr(self.href)
+        if self.params.get('confirm'):
+            onclick = 'if (prompt(%s)) {%s}' % (
+                js_repr(self.params['confirm']), onclick)
+        onclick += '; return false'
+        attrs.insert(0, ('onclick', onclick))
         return attrs
     
 if __name__ == '__main__':
