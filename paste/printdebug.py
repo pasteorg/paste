@@ -32,7 +32,7 @@ class PrintDebugMiddleware(object):
     """
 
     log_template = (
-        '<pre style="width: 40%%; border: 2px solid #000; '
+        '<pre style="width: 40%%; border: 2px solid #000; white-space: normal; '
         'background-color: #ffd; color: #000; float: right;">'
         '<b style="border-bottom: 1px solid #000">Log messages</b><br>'
         '%s</pre>')
@@ -49,6 +49,7 @@ class PrintDebugMiddleware(object):
         logged = StringIO()
         if environ['paste.config'].get('printdebug_print_error'):
             replacement_stdout = TeeFile(environ['wsgi.errors'], logged)
+            environ['paste.config']['show_exceptions_in_error_log'] = False
         else:
             replacement_stdout = logged
         output = StringIO()
@@ -79,7 +80,10 @@ class PrintDebugMiddleware(object):
     def add_log(self, html, log):
         if not log:
             return html
-        log = self.log_template % cgi.escape(log)
+        text = cgi.escape(log)
+        text = text.replace('\n', '<br>\n')
+        text = text.replace('  ', '&nbsp; ')
+        log = self.log_template % text
         match = self._body_re.search(html)
         if not match:
             return log + html
