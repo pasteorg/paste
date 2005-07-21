@@ -9,6 +9,18 @@ def public(func):
 
 class MethodDispatch(object):
 
+    """
+    This is an *abstract* class.  It implements generic dispatching
+    to servlet methods.  See ``ActionDispatch`` and ``PathDispatch``
+    for implementations.
+
+    Methods are considered public if their ``public`` attribute is
+    true (you can use the ``@public`` decorator to set this) or if the
+    method name is prefixed appropriately.  (E.g., if ``prefix`` is
+    ``action_`` then ``action_meth()`` will be considered the public
+    method by the name ``meth`` -- the prefix is added automatically!)
+    """
+
     prefix = None
 
     def __addtoclass__(self, attr, cls):
@@ -45,6 +57,21 @@ class MethodDispatch(object):
     
 class ActionDispatch(MethodDispatch):
 
+    """
+    This dispatches to a method based on a URL variable (GET or POST
+    -- remember that you can also include GET variables in your form's
+    ``action`` even if the form is being POSTed).
+
+    The URL variable indicates a method to run; if no variable is
+    found then ``default_action`` is assumed (if you pass in a default
+    action).
+
+    The URL variable is given with ``action_name`` and defaults to
+    ``'_action_'``.  You can pass in the action either as
+    ``_action_=method_name`` or ``_action_method_name=anything``
+    (useful with submit buttons, where the value is part of the UI).
+    """
+
     prefix = 'action_'
 
     def __init__(self, action_name='_action_', default_action=None):
@@ -78,6 +105,14 @@ class ActionDispatch(MethodDispatch):
         return method()
 
 class PathDispatch(MethodDispatch):
+
+    """
+    This dispatches to a method based on the ``PATH_INFO``.  Thus
+    ``/path/to/servlet/meth`` will call the ``meth`` method.
+
+    @@: This should probably adjust SCRIPT_NAME and PATH_INFO
+    @@: Should these all use the same prefix?
+    """
 
     prefix = 'path_'
 
