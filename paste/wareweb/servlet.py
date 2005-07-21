@@ -1,14 +1,15 @@
 import re
 import urllib
 import traceback
-from paste import httpexceptions
 import time
+from UserDict import UserDict
+from Cookie import SimpleCookie
+from paste.util import classinit
+from paste import httpexceptions
 import timeinterval
 import cgifields
 import event
-from paste.util import classinit
-from UserDict import UserDict
-from Cookie import SimpleCookie
+import cookiewriter
 
 __all__ = ['Servlet']
 
@@ -152,8 +153,8 @@ class Servlet(object):
 
     def set_cookie(self, cookie_name, value, path='/',
                    expires='ONCLOSE', secure=False):
-        c = cookie.Cookie(cookie_name, value, path=path,
-                          expires=expires, secure=secure)
+        c = cookiewriter.Cookie(cookie_name, value, path=path,
+                                expires=expires, secure=secure)
         self._cookies_out[cookie_name] = c
 
     def set_header(self, header_name, header_value):
