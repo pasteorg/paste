@@ -22,9 +22,11 @@ class CommandServlet(app_setup.Command):
         else:
             servlet_name = servlet_fn
         if self.runner.server_conf_fn:
-            output_dir = os.path.dirname(self.runner.server_conf_fn)
-            config = pyconfig.Config()
+            config = pyconfig.Config(with_default=True)
             config.load(self.runner.server_conf_fn)
+            output_dir = config.get('base_dir')
+            if output_dir is None:
+                output_dir = os.path.dirname(self.runner.server_conf_fn)
         else:
             output_dir = os.getcwd()
         source_dir = os.path.join(self.template_dir, 'servlet_template')
