@@ -197,7 +197,7 @@ class URL(URLResource):
     >>> u['//foo'].param(content='view').html
     '<a href="http://localhost/view/foo">view</a>'
     >>> u.param(confirm='Really?', content='goto').html
-    '<a href="http://localhost/view" onclick="return prompt(\'Really?\')">goto</a>'
+    '<a href="http://localhost/view" onclick="return confirm(\'Really?\')">goto</a>'
     >>> u(title='See "it"', content='goto').html
     '<a href="http://localhost/view?title=See%20%22it%22">goto</a>'
     >>> u('another', var='fuggetaboutit', content='goto').html
@@ -237,7 +237,7 @@ class URL(URLResource):
         attrs = self.attrs.items()
         attrs.insert(0, ('href', self.href))
         if self.params.get('confirm'):
-            attrs.append(('onclick', 'return prompt(%s)'
+            attrs.append(('onclick', 'return confirm(%s)'
                           % js_repr(self.params['confirm'])))
         return attrs
 
@@ -290,7 +290,7 @@ class Button(URLResource):
     >>> u = u / 'delete'
     >>> b = u.button['confirm=Sure?'](id=5, content='del')
     >>> str(b)
-    '<button onclick="if (prompt(\'Sure?\')) {location.href=\'/delete?id=5\'}; return false">del</button>'
+    '<button onclick="if (confirm(\'Sure?\')) {location.href=\'/delete?id=5\'}; return false">del</button>'
     """
 
     default_params = {'tag': 'button'}
@@ -321,7 +321,7 @@ class Button(URLResource):
         attrs = self.attrs.items()
         onclick = 'location.href=%s' % js_repr(self.href)
         if self.params.get('confirm'):
-            onclick = 'if (prompt(%s)) {%s}' % (
+            onclick = 'if (confirm(%s)) {%s}' % (
                 js_repr(self.params['confirm']), onclick)
         onclick += '; return false'
         attrs.insert(0, ('onclick', onclick))
