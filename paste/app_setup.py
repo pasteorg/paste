@@ -74,9 +74,14 @@ def find_template_option(args):
     return None, []
 
 def find_template_config(args):
-    conf_fn = os.path.join(os.getcwd(), 'server.conf')
-    if not os.path.exists(conf_fn):
-        return None, None
+    base = os.getcwd()
+    while 1:
+        conf_fn = os.path.join(base, 'server.conf')
+        if os.path.exists(conf_fn):
+            break
+        base, last_base = os.path.dirname(base), base
+        if last_base == base: # Root dir
+            return None, None
     conf = pyconfig.Config(with_default=True)
     conf.load(conf_fn)
     return conf_fn, conf.get('app_template')
