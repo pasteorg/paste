@@ -27,7 +27,7 @@ class MethodDispatch(object):
         if self.__class__ is MethodDispatch:
             raise NotImplementedError(
                 "MethodDispatch is an abstract class, and cannot be "
-                "used directly")
+                "used directly (use one of its subclasses)")
         cls.listeners.append(self.respond_event)
     
     def respond_event(self, name, servlet, *args, **kw):
