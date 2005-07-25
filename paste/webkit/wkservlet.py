@@ -18,6 +18,21 @@ class make_application(object):
             return type()(environ, start_response)
         return application
 
+class ServletSupplement(object):
+
+    def __init__(self, servlet):
+        self.servlet = servlet
+
+    def extraData(self):
+        result = {}
+        result[('normal', 'Servlet variables')] = vars = {}
+        hide = self.servlet.__traceback_supplement_hide_vars__
+        for name, value in self.servlet.__dict__.items():
+            if name in hide:
+                continue
+            vars[name] = value
+        return result
+
 class Servlet(object):
 
     # This is nested in Servlet so that transactions can access it as
@@ -33,6 +48,7 @@ class Servlet(object):
         The core WSGI method, and the core of the servlet execution.
         """
         __traceback_hide__ = 'before_and_this'
+        __traceback_supplement__ = ServletSupplement, self
         trans = Transaction(environ, start_response)
         trans.setServlet(self)
         try:
@@ -46,6 +62,13 @@ class Servlet(object):
             return trans.response().wsgiIterator()
 
     wsgi_app = make_application()
+
+    # These variables are hidden in tracebacks (because they are
+    # boring): (feel free to extend this list in your servlets!)
+    __traceback_supplement_hide_vars__ = [
+        'config', '_session', '_request', '_response',
+        '_methodForRequestType', '_actionDict', '_title',
+        '_transaction']
     
     ## Access ##
 
