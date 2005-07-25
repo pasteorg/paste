@@ -275,13 +275,17 @@ class HTMLFormatter(TextFormatter):
                  % self.quote(title)]
         odd = False
         for name, value in rows:
+            try:
+                value = repr(value)
+            except Exception, e:
+                value = 'Cannot print: %s' % e
             odd = not odd
             table.append(
                 '<tr class="%s"><td>%s</td>'
                 % (odd and 'odd' or 'even', self.quote(name)))
             table.append(
                 '<td><tt>%s</tt></td></tr>'
-                % self.make_wrappable(self.quote(repr(value))))
+                % self.make_wrappable(self.quote(value)))
         table.append('</table>')
         return '\n'.join(table)
 
