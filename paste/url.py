@@ -57,7 +57,7 @@ class URLResource(object):
 
     def __init__(self, url, vars=None, attrs=None,
                  params=None):
-        self.url = url
+        self.url = url or '/'
         self.vars = vars or []
         self.attrs = attrs or {}
         self.params = self.default_params.copy()
