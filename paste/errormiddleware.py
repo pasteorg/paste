@@ -50,7 +50,7 @@ class ErrorMiddleware(object):
     _config_show_exceptions_in_error_log = metadata.Config(
         """
         If true, then write errors to ``wsgi.errors``.
-        """, default=True)
+        """, default=False)
     
     def __init__(self, application):
         self.application = application
@@ -184,22 +184,25 @@ def handle_exception(exc_info, conf, error_stream, html=True):
             smtp_server=conf.get('smtp_server', 'localhost'),
             subject_prefix=conf.get('error_subject_prefix', ''))
         rep_err = send_report(rep, exc_data, html=html)
-        if not rep_err:
+        if rep_err:
             extra_data += rep_err
+        else:
             reported = True
     if conf.get('error_log'):
         rep = reporter.LogReporter(
             filename=conf['error_log'])
         rep_err = send_report(rep, exc_data, html=html)
-        if not rep_err:
+        if rep_err:
             extra_data += rep_err
+        else:
             reported = True
-    if conf.get('show_exceptions_in_error_log', True):
+    if conf.get('show_exceptions_in_error_log', False):
         rep = reporter.FileReporter(
             file=error_stream)
         rep_err = send_report(rep, exc_data, html=html)
-        if not rep_err:
+        if rep_err:
             extra_data += rep_err
+        else:
             reported = True
     else:
         error_stream.write('Error - %s: %s\n' % (
