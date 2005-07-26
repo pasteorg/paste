@@ -431,7 +431,7 @@ class Page(HTTPServlet):
         Sends a redirect back to the client and ends the response. This
         is a very popular pattern.
         """
-        self.response().sendRedirect(url)
+        self.response().sendRedirect(str(url))
         self.endResponse()
 
 
