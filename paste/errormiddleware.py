@@ -65,19 +65,24 @@ class ErrorMiddleware(object):
         environ['paste.throw_errors'] = True
 
         def detect_start_response(status, headers, exc_info=None):
-            started.append(True)
-            return start_response(status, headers, exc_info)
-        
+            try:
+                return start_response(status, headers, exc_info)
+            except:
+                raise
+            else:
+                started.append(True)
         try:
             __traceback_supplement__ = Supplement, self, environ
             app_iter = self.application(environ, detect_start_response)
             return self.catching_iter(app_iter, environ)
         except:
+            exc_info = sys.exc_info()
             if not started:
                 start_response('500 Internal Server Error',
-                               [('content-type', 'text/html')])
+                               [('content-type', 'text/html')],
+                               exc_info)
             # @@: it would be nice to deal with bad content types here
-            response = self.exception_handler(sys.exc_info(), environ)
+            response = self.exception_handler(exc_info, environ)
             return [response]
 
     def catching_iter(self, app_iter, environ):
