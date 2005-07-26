@@ -46,6 +46,10 @@ class HTTPResponse(object):
         Sets a specific header by name.
         """
         assert self._committed==0, "Headers have already been sent"
+        assert type(name) is str, (
+            "Header %r name is not string" % name)
+        assert type(value) is str, (
+            "Header %s value is not string (%r)" % (name, value))
         self._headers[name.lower()] = value
 
     def headers(self):
