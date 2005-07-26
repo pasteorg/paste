@@ -203,7 +203,11 @@ class TextFormatter(AbstractFormatter):
             items = value.items()
             items.sort()
             for n, v in items:
-                lines.append('%s: %s' % (n, repr(v)))
+                try:
+                    v = repr(v)
+                except Exception, e:
+                    v = 'Cannot display: %s' % e
+                lines.append('%s: %s' % (n, v))
             return '\n'.join(lines)
         elif (isinstance(value, (list, tuple))
               and self.long_item_list(value)):
