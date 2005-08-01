@@ -39,6 +39,7 @@ function enable_dropdown(el) {
     return false;
   }
   anchor.onclick = show_hide;
+  show_hide();
 }
 
 function set_sub_li(list, display) {
