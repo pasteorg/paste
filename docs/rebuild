@@ -18,7 +18,7 @@ for NAME in $NORMAL ; do
 	continue
     fi
     echo "Building $NAME."
-    rst2html.py "$NAME.txt" > "$NAME.html"
+    rst2html.py --cloak-email-addresses --no-toc-backlinks "$NAME.txt" > "$NAME.html"
 done
 
 for NAME in $DOCTEST_BUILD ; do
