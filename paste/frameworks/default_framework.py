@@ -12,6 +12,8 @@ def build_application(conf):
             app = import_string.eval_import(app)
         app = makeapp.apply_conf_middleware(app, conf)
         app = makeapp.apply_default_middleware(app, conf)
+    elif conf.get('system_urlmap'):
+        app = None
     else:
         # @@ ianb 2005-03-23: This should be removed sometime
         if conf.get('webkit_dir'):
