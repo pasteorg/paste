@@ -25,8 +25,7 @@ class URLMap(DictMixin):
     
     def __init__(self):
         self.applications = []
-        self.not_found_application = wsgilib.error_response_app(
-            '404 Not Found', 'The resource was not found')
+        self.not_found_application = self.not_found_app
 
     attr_not_found_application = metadata.Attribute("""
     An application that is run when no other application matches
@@ -36,6 +35,21 @@ class URLMap(DictMixin):
 
     norm_url_re = re.compile('//+')
     domain_url_re = re.compile('^(http|https)://')
+
+    def not_found_app(self, environ, start_response):
+        mapper = environ.get('paste.urlmap_object')
+        if mapper:
+            matches = [p for p, a in mapper.applications]
+            extra = 'defined apps: %s' % (
+                ', '.join(map(repr, matches)))
+        else:
+            extra = ''
+        extra += '\nSCRIPT_NAME: %r' % environ.get('SCRIPT_NAME')
+        extra += '\nPATH_INFO: %r' % environ.get('PATH_INFO')
+        app = wsgilib.error_response_app(
+            '404 Not Found', 'The resource was not found\n<!-- %s -->'
+            % extra)
+        return app(environ, start_response)
 
     def normalize_url(self, url, trim=True):
         if isinstance(url, (list, tuple)):
@@ -74,6 +88,12 @@ class URLMap(DictMixin):
         self.applications.sort(key=key)
 
     def __setitem__(self, url, app):
+        if app is None:
+            try:
+                del self[url]
+            except KeyError:
+                pass
+            return
         dom_url = self.normalize_url(url)
         if dom_url in self:
             del self[dom_url]
@@ -97,7 +117,7 @@ class URLMap(DictMixin):
                 break
         else:
             raise KeyError(
-                "No application with the url %r" % url)
+                "No application with the url %r" % (url,))
 
     def keys(self):
         return [app_url for app_url, app in self.applications]
@@ -116,6 +136,7 @@ class URLMap(DictMixin):
                 environ['SCRIPT_NAME'] += app_url
                 environ['PATH_INFO'] = path_info[len(app_url):]
                 return app(environ, start_response)
+        environ['paste.urlmap_object'] = self
         return self.not_found_application(environ, start_response)
     
             
