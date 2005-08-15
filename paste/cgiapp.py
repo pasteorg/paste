@@ -3,6 +3,7 @@ Application that runs a CGI script.
 """
 import os
 import subprocess
+import select
 
 __all__ = ['CGIError', 'CGIApplication']
 
@@ -19,7 +20,8 @@ class CGIApplication(object):
     """
 
     def __init__(self, script, path=None,
-                 include_os_environ=True):
+                 include_os_environ=True,
+                 query_string=None):
         self.script_filename = script
         if isinstance(path, (str, unicode)):
             path = [path]
@@ -39,8 +41,18 @@ class CGIApplication(object):
         else:
             self.script = script
         self.include_os_environ = include_os_environ
+        if '?' in self.script:
+            assert query_string is None, (
+                "You cannot have '?' in your script name (%r) and also "
+                "give a query_string (%r)" % (self.script, query_string))
+            self.script, query_string = self.script.split('?', 1)
+        self.query_string = query_string
 
     def __call__(self, environ, start_response):
+        if 'REQUEST_URI' not in environ:
+            environ['REQUEST_URI'] = (
+                environ.get('SCRIPT_NAME', '')
+                + environ.get('PATH_INFO', ''))
         if self.include_os_environ:
             cgi_environ = os.environ.copy()
         else:
@@ -50,9 +62,16 @@ class CGIApplication(object):
             if (name.upper() == name
                 and isinstance(environ[name], str)):
                 cgi_environ[name] = environ[name]
+        if self.query_string is not None:
+            old = cgi_environ.get('QUERY_STRING', '')
+            if old:
+                old += '&'
+            cgi_environ['QUERY_STRING'] = old + self.query_string
         # Default status in CGI:
         status = '200 OK'
         headers = []
+        import pprint
+        pprint.pprint(cgi_environ)
         proc = subprocess.Popen(
             [self.script],
             stdin=subprocess.PIPE,
@@ -61,28 +80,151 @@ class CGIApplication(object):
             env=cgi_environ,
             cwd=os.path.dirname(self.script),
             )
-        proc.stdin.write(environ['wsgi.input'].read())
-        stdout = proc.stdout
-        while 1:
-            line = stdout.readline()
-            line = line.rstrip('\n').rstrip('\r')
-            if not line:
-                break
-            if ':' not in line:
-                raise CGIError(
-                    "Bad header line: %r" % line)
-            name, value = line.split(':', 1)
-            value = value.lstrip()
-            name = name.strip()
-            if name.lower() == 'status':
-                status = value
-            else:
-                headers.append((name, value))
-        writer = start_response(status, headers)
-        while 1:
-            data = stdout.read(4096)
-            if not data:
-                break
-            writer(data)
-        environ['wsgi.errors'].write(proc.stderr.read())
+        proc_communicate(
+            proc,
+            stdin=StdinReader.from_environ(environ),
+            stdout=CGIWriter(environ, start_response),
+            stderr=environ['wsgi.errors'])
         return []
+
+class CGIWriter(object):
+
+    def __init__(self, environ, start_response):
+        self.environ = environ
+        self.start_response = start_response
+        self.status = '200 OK'
+        self.headers = []
+        self.headers_finished = False
+        self.writer = None
+        self.buffer = ''
+
+    def write(self, data):
+        if self.headers_finished:
+            self.writer(data)
+            return
+        self.buffer += data
+        while '\n' in self.buffer:
+            if '\r\n' in self.buffer:
+                line1, self.buffer = self.buffer.split('\r\n', 1)
+            else:
+                line1, self.buffer = self.buffer.split('\n', 1)
+            if not line1:
+                self.headers_finished = True
+                self.writer = self.start_response(
+                    self.status, self.headers)
+                self.writer(self.buffer)
+                del self.buffer
+                del self.headers
+                del self.status
+                break
+            elif ':' not in line1:
+                raise CGIError(
+                    "Bad header line: %r" % line1)
+            else:
+                name, value = line1.split(':', 1)
+                value = value.lstrip()
+                name = name.strip()
+                if name.lower() == 'status':
+                    self.status = value
+                else:
+                    self.headers.append((name, value))
+
+class StdinReader(object):
+
+    def __init__(self, stdin, content_length):
+        self.stdin = stdin
+        self.content_length = content_length
+
+    def from_environ(cls, environ):
+        length = environ.get('CONTENT_LENGTH')
+        if length:
+            length = int(length)
+        else:
+            length = 0
+        return cls(environ['wsgi.input'], length)
+
+    from_environ = classmethod(from_environ)
+
+    def read(self, size=None):
+        if not self.content_length:
+            return ''
+        if size is None:
+            text = self.stdin.read(self.content_length)
+        else:
+            text = self.stdin.read(min(self.content_length, size))
+        self.content_length -= len(text)
+        return text
+
+def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
+    """
+    Run the given process, piping input/output/errors to the given
+    file-like objects (which need not be actual file objects, unlike
+    the arguments passed to Popen).  Wait for process to terminate.
+
+    Note: this is taken from the posix version of
+    subprocess.Popen.communicate, but made more general through the
+    use of file-like objects.
+    """
+    read_set = []
+    write_set = []
+    input_buffer = ''
+    trans_nl = proc.universal_newlines and hasattr(open, 'newlines')
+
+    if proc.stdin:
+        # Flush stdio buffer.  This might block, if the user has
+        # been writing to .stdin in an uncontrolled fashion.
+        proc.stdin.flush()
+        if input:
+            write_set.append(proc.stdin)
+        else:
+            proc.stdin.close()
+    else:
+        assert stdin is None
+    if proc.stdout:
+        read_set.append(proc.stdout)
+    else:
+        assert stdout is None
+    if proc.stderr:
+        read_set.append(proc.stderr)
+    else:
+        assert stderr is None
+
+    while read_set or write_set:
+        rlist, wlist, xlist = select.select(read_set, write_set, [])
+
+        if proc.stdin in wlist:
+            # When select has indicated that the file is writable,
+            # we can write up to PIPE_BUF bytes without risk
+            # blocking.  POSIX defines PIPE_BUF >= 512
+            next, input_buffer = input_buffer, ''
+            next_len = 512-len(next)
+            if next_len:
+                next += stdin.read(next_len)
+            if not next:
+                proc.stdin.close()
+                write_set.remove(proc.stdin)
+            else:
+                bytes_written = os.write(proc.stdin.fileno(), next)
+                if bytes_written < len(next):
+                    input_buffer = next[bytes_written:]
+
+        if proc.stdout in rlist:
+            data = os.read(proc.stdout.fileno(), 1024)
+            if data == "":
+                proc.stdout.close()
+                read_set.remove(proc.stdout)
+            if trans_nl:
+                data = proc._translate_newlines(data)
+            stdout.write(data)
+
+        if proc.stderr in rlist:
+            data = os.read(proc.stderr.fileno(), 1024)
+            if data == "":
+                proc.stderr.close()
+                read_set.remove(proc.stderr)
+            if trans_nl:
+                data = proc._translate_newlines(data)
+            stderr.write(data)
+
+    proc.wait()
+    
