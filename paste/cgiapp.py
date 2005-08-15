@@ -67,11 +67,6 @@ class CGIApplication(object):
             if old:
                 old += '&'
             cgi_environ['QUERY_STRING'] = old + self.query_string
-        # Default status in CGI:
-        status = '200 OK'
-        headers = []
-        import pprint
-        pprint.pprint(cgi_environ)
         proc = subprocess.Popen(
             [self.script],
             stdin=subprocess.PIPE,
