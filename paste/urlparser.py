@@ -7,7 +7,7 @@ from paste.docsupport import metadata
 class NoDefault:
     pass
 
-__all__ = ['URLParser']
+__all__ = ['URLParser', 'StaticURLParser']
 
 class URLParser(object):
 
@@ -393,3 +393,75 @@ def make_py(environ, filename):
     return None
     
 URLParser.register_constructor('.py', make_py)
+
+
+class StaticURLParser(object):
+    
+    """
+    Like ``URLParser`` but only serves static files.
+    """
+    # @@: Should URLParser subclass from this?
+
+    def __init__(self, directory):
+        if os.path.sep != '/':
+            directory = directory.replace(os.path.sep, '/')
+        self.directory = directory
+
+    def __call__(self, environ, start_response):
+        path_info = environ.get('PATH_INFO', '')
+        if not path_info:
+            return self.add_slash(environ, start_response)
+        if path_info == '/':
+            # @@: This should obviously be configurable
+            filename = 'index.html'
+        else:
+            filename = wsgilib.path_info_pop(environ)
+        full = os.path.join(self.directory, filename)
+        if not os.path.exists(full):
+            return self.not_found(environ, start_response)
+        if os.path.isdir(full):
+            # @@: Cache?
+            return self.__class__(full)(environ, start_response)
+        if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
+            return self.error_extra_path(environ, start_response)
+        return wsgilib.send_file(full)(environ, start_response)
+
+    def add_slash(self, environ, start_response):
+        """
+        This happens when you try to get to a directory
+        without a trailing /
+        """
+        url = wsgilib.construct_url(environ, with_query_string=False)
+        url += '/'
+        if environ.get('QUERY_STRING'):
+            url += '?' + environ['QUERY_STRING']
+        status = '301 Moved Permanently'
+        status, headers, body = wsgilib.error_response(
+            environ,
+            status,
+            '''
+            <p>The resource has moved to <a href="%s">%s</a>.  You
+            should be redirected automatically.</p>''' % (url, url))
+        start_response(status, headers + [('Location', url)])
+        return [body]
+        
+    def not_found(self, environ, start_response, debug_message=None):
+        status, headers, body = wsgilib.error_response(
+            environ,
+            '404 Not Found',
+            'The resource at %s could not be found'
+            % wsgilib.construct_url(environ),
+            debug_message=debug_message)
+        start_response(status, headers)
+        return [body]
+
+    def error_extra_path(self, environ, start_response):
+        status, headers, body = wsgilib.error_response(
+            environ,
+            '500 Bad Request',
+            'The trailing path %r is not allowed' % environ['PATH_INFO'])
+        start_response(status, headers)
+        return [body]
+    
+    def __repr__(self):
+        return '<%s %r>' % (self.__class__.__name__, self.directory)
