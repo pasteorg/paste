@@ -20,8 +20,9 @@ class make_application(object):
 
 class ServletSupplement(object):
 
-    def __init__(self, servlet):
+    def __init__(self, servlet, trans):
         self.servlet = servlet
+        self.trans = trans
 
     def extraData(self):
         result = {}
@@ -31,6 +32,15 @@ class ServletSupplement(object):
             if name in hide:
                 continue
             vars[name] = value
+        result[('extra', 'Form variables')] = form = {}
+        fields = self.trans.request().fields()
+        for name, value in fields.items():
+            value = str(value)
+            if len(value) > 200:
+                value = value[:200] + '...'
+            form[name] = value
+        if not form:
+            form['none?'] = 'No fields submitted'
         return result
 
 class Servlet(object):
@@ -48,8 +58,8 @@ class Servlet(object):
         The core WSGI method, and the core of the servlet execution.
         """
         __traceback_hide__ = 'before_and_this'
-        __traceback_supplement__ = ServletSupplement, self
         trans = Transaction(environ, start_response)
+        __traceback_supplement__ = ServletSupplement, self, trans
         trans.setServlet(self)
         try:
             trans.runTransaction()
