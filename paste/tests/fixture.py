@@ -287,7 +287,8 @@ class TestApp(object):
         return environ
 
     def get(self, url, params=None, headers={},
-            status=None):
+            status=None,
+            expect_errors=False):
         if params:
             if isinstance(params, dict):
                 params = urllib.urlencode(params)
@@ -301,11 +302,11 @@ class TestApp(object):
             environ['HTTP_%s' % header.replace('-', '_').upper()] = value
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
-        req = TestRequest(url, environ)
+        req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
 
     def post(self, url, params=None, headers={}, status=None,
-             upload_files=None):
+             upload_files=None, expect_errors=False):
         environ = self.make_environ()
         if params and isinstance(params, dict):
             params = urllib.urlencode(params)
@@ -319,7 +320,7 @@ class TestApp(object):
         environ['wsgi.input'] = StringIO(params)
         for header, value in headers.items():
             environ['HTTP_%s' % header.replace('-', '_').upper()] = value
-        req = TestRequest(url, environ)
+        req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
             
     def encode_multipart(self, params, files):
@@ -392,8 +393,9 @@ class TestApp(object):
         res.request = req
         if self.namespace is not None:
             self.namespace['res'] = res
-        self.check_status(status, res)
-        self.check_errors(res)
+        if not req.expect_errors:
+            self.check_status(status, res)
+            self.check_errors(res)
         for header in res.all_headers('set-cookie'):
             c = SimpleCookie(header)
             for key, morsel in c.items():
@@ -414,7 +416,7 @@ class TestApp(object):
             raise AppError(
                 "Bad response: %s (not 200 OK or 3xx redirect)"
                 % res.full_status)
-        if status != res.status_int:
+        if status != res.status:
             raise AppError(
                 "Bad response: %s (not %s)" % (res.full_status, status))
 
@@ -549,14 +551,14 @@ class TestRequest(object):
     # for py.test
     disabled = True
 
-    def __init__(self, url, environ):
+    def __init__(self, url, environ, expect_errors=False):
         self.url = url
         self.environ = environ
         if environ.get('QUERY_STRING'):
             self.full_url = url + '?' + environ['QUERY_STRING']
         else:
             self.full_url = url
-
+        self.expect_errors = expect_errors
 
 def setup_module(module=None):
     """
