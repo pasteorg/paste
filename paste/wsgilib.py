@@ -424,7 +424,7 @@ def capture_output(environ, start_response, application):
         data.append(status)
         data.append(headers)
         start_response(status, headers, exc_info)
-        return output
+        return output.write
     app_iter = application(environ, replacement_start_response)
     try:
         for item in app_iter:
