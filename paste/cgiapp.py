@@ -28,6 +28,11 @@ class CGIApplication(object):
         if path is None:
             path = os.environ.get('PATH', '').split(':')
         self.path = path
+        if '?' in script:
+            assert query_string is None, (
+                "You cannot have '?' in your script name (%r) and also "
+                "give a query_string (%r)" % (self.script, query_string))
+            script, query_string = script.split('?', 1)
         if os.path.abspath(script) != script:
             # relative path
             for path_dir in self.path:
@@ -41,11 +46,6 @@ class CGIApplication(object):
         else:
             self.script = script
         self.include_os_environ = include_os_environ
-        if '?' in self.script:
-            assert query_string is None, (
-                "You cannot have '?' in your script name (%r) and also "
-                "give a query_string (%r)" % (self.script, query_string))
-            self.script, query_string = self.script.split('?', 1)
         self.query_string = query_string
 
     def __call__(self, environ, start_response):
@@ -67,6 +67,7 @@ class CGIApplication(object):
             if old:
                 old += '&'
             cgi_environ['QUERY_STRING'] = old + self.query_string
+        cgi_environ['SCRIPT_FILENAME'] = self.script
         proc = subprocess.Popen(
             [self.script],
             stdin=subprocess.PIPE,
@@ -75,11 +76,14 @@ class CGIApplication(object):
             env=cgi_environ,
             cwd=os.path.dirname(self.script),
             )
+        writer = CGIWriter(environ, start_response)
         proc_communicate(
             proc,
             stdin=StdinReader.from_environ(environ),
-            stdout=CGIWriter(environ, start_response),
+            stdout=writer,
             stderr=environ['wsgi.errors'])
+        if not writer.headers_finished:
+            start_response(writer.status, writer.headers)
         return []
 
 class CGIWriter(object):
