@@ -37,8 +37,9 @@ class PrintDebugMiddleware(object):
         '<b style="border-bottom: 1px solid #000">Log messages</b><br>'
         '%s</pre>')
 
-    def __init__(self, subapp):
+    def __init__(self, subapp, force_content_type=False):
         self.subapp = subapp
+        self.force_content_type = force_content_type
 
     def __call__(self, environ, start_response):
         global _threadedprint_installed
@@ -65,7 +66,9 @@ class PrintDebugMiddleware(object):
                 if not body:
                     body = 'An error occurred'
             content_type = wsgilib.header_value(headers, 'content-type')
-            if not content_type or not content_type.startswith('text/html'):
+            if (not self.force_content_type and
+                (not content_type
+                 or not content_type.startswith('text/html'))):
                 if replacement_stdout == logged:
                     # Then the prints will be lost, unless...
                     environ['wsgi.errors'].write(logged.getvalue())
