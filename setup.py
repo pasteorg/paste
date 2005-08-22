@@ -60,6 +60,7 @@ functionality.
         httpexceptions=paste.httpexceptions:middleware
         lint=paste.lint:middleware
         login=paste.login:middleware
+        printdebug=paste.printdebug:PrintDebugMiddleware
         """,
         },
       )
