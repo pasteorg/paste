@@ -48,6 +48,9 @@ functionality.
         'paste.app_factory1': """
         cgi=paste.cgiapp:CGIApplication
         """,
+        'paste.composit_factory1': """
+        urlmap=paste.urlmap:urlmap_factory
+        """,
         'paste.filter_app_factory1': """
         error_catcher=paste.exceptions.errormiddleware:ErrorMiddleware
         """,

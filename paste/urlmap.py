@@ -6,6 +6,17 @@ from docsupport import metadata
 
 __all__ = ['URLMap', 'PathProxyURLMap']
 
+def urlmap_factory(loader, global_conf, **local_conf):
+    if 'not_found_app' in local_conf:
+        not_found_app = local_conf.pop('not_found_app')
+    else:
+        not_found_app = None
+    urlmap = URLMap(global_conf, not_found_app=not_found_app)
+    for path, app_name in local_conf.items():
+        app = loader.get_app(app_name, global_conf=global_conf)
+        urlmap[name] = app
+    return urlmap
+
 class URLMap(DictMixin):
 
     """
@@ -23,15 +34,11 @@ class URLMap(DictMixin):
     the ``http://domain`` or with a domain of ``None`` any domain will be
     matched (so long as no other explicit domain matches).  """
     
-    def __init__(self):
+    def __init__(self, global_conf, not_found_app=None):
         self.applications = []
+        if not_found_app is None:
+            not_found_app = global_conf('not_found_app')
         self.not_found_application = self.not_found_app
-
-    attr_not_found_application = metadata.Attribute("""
-    An application that is run when no other application matches
-    the URL.  (Note that the URL ``""`` is also a catch-all URL.)
-    By default this application returns a simple 404 Not Found
-    result.""")
 
     norm_url_re = re.compile('//+')
     domain_url_re = re.compile('^(http|https)://')
