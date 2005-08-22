@@ -20,6 +20,9 @@ flup_session = flup.middleware.session
 # store type and parameters
 store_cache = {}
 
+class NoDefault:
+    pass
+
 class SessionMiddleware(object):
 
     session_classes = {
@@ -35,42 +38,40 @@ class SessionMiddleware(object):
         }
 
 
-    def __init__(self, application):
-        self.application = application
-        
-    def __call__(self, environ, start_response):
-        conf = environ['paste.config']
-
-        session_type = conf.get('session_type', 'disk')
+    def __init__(self, app,
+                 global_conf,
+                 session_type=NoDefault,
+                 cookie_name=NoDefault
+                 **store_config
+                 ):
+        self.app = app
+        if session_type is NoDefault:
+            session_type = global_conf.get('session_type', 'disk')
+        self.session_type = session_type
         try:
-            store_class, store_args = self.session_classes[session_type]
+            self.store_class, self.store_args = self.session_classes[self.session_type]
         except KeyError:
             raise KeyError(
                 "The session_type %s is unknown (I know about %s)"
-                % (session_type,
+                % (self.session_type,
                    ', '.join(self.session_classes.keys())))
         kw = {}
-        param_tuple = [session_type]
         for config_name, kw_name, coercer, default in store_args:
-            value = coercer(conf.get(config_name, default))
-            param_tuple.append(value)
+            value = coercer(store_config.get(config_name, default))
             kw[kw_name] = value
-        param_tuple = tuple(param_tuple)
-        if param_tuple in store_cache:
-            store = store_cache[param_tuple]
-        else:
-            store = store_cache[param_tuple] = store_class(**kw)
-
-        cookie_name = conf.get('session_cookie', '_SID_')
-
+        self.store = store_class(**kw)
+        if cookie_name is NoDefault:
+            cookie_name = global_conf.get('session_cookie', '_SID_')
+        self.cookie_name = cookie_name
+        
+    def __call__(self, environ, start_response):
         service = flup_session.SessionService(
-            store, environ, cookieName=cookie_name,
-            fieldName=cookie_name)
+            self.store, environ, cookieName=self.cookie_name,
+            fieldName=self.cookie_name)
         environ['paste.flup_session_service'] = service
 
         def cookie_start_response(status, headers, exc_info=None):
             service.addCookie(headers)
-            print "Added headers:", headers
             return start_response(status, headers, exc_info)
 
         try:
