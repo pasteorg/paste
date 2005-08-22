@@ -4,6 +4,7 @@ here=`pwd`
 parent=`dirname $here`
 echo "Adding $parent to \$PYTHONPATH"
 export PYTHONPATH=$parent:$PYTHONPATH
+DEPLOY_BASE="/home/paste/Paste-Deploy"
 
 NORMAL="DeveloperGuidelines Paste servers StyleGuide index web/index \
         what-is-paste testing-applications url-parsing-with-wsgi \
@@ -35,7 +36,12 @@ chmod +x web/index.html
 cp include/reference_header.txt reference.txt
 echo ":extracted: `date`" >> reference.txt
 echo >> reference.txt
-python ../paste/docsupport/extract.py paste >> reference.txt
+python2.4 ../paste/docsupport/extract.py paste >> reference.txt
 rst2html.py reference.txt > reference.html
-python ../paste/docsupport/gensite.py
+
+pushd $DEPLOY_BASE/docs/
+./rebuild
+popd
+
+python2.4 ../paste/docsupport/gensite.py
 chmod +x ~paste/htdocs/index.html
