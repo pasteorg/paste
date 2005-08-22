@@ -91,85 +91,6 @@ def sorted(l):
     l.sort()
     return l
 
-def fake_request(application, path_info='', use_lint=True, **environ):
-    """
-    Runs the application in a fake environment, returning a response object
-    """
-    if use_lint:
-        application = lint.middleware(application)
-    status, headers, body, errors = wsgilib.raw_interactive(
-        application, path_info, **environ)
-    res = FakeResponse(status, headers, body, errors)
-    if res.errors:
-        print 'Errors:'
-        print res.errors
-    return res
-
-class FakeResponse(object):
-
-    def __init__(self, status, headers, body, errors):
-        self.status = status
-        self.headers = headers
-        self.body = body
-        self.errors = errors
-
-    def status_int__get(self):
-        return int(self.status.split()[0])
-    status_int = property(status_int__get)
-
-    def all_ok(self):
-        """
-        Asserts that there were no errors and the status was 200 OK
-        """
-        assert not self.errors, (
-            "Response had errors: %s" % self.errors)
-        assert self.status_int == 200, (
-            "Response did not return 200 OK: %r" % self.status)
-
-    def header(self, name, default=NoDefault):
-        """
-        Returns the named header; an error if there is not exactly one
-        matching header (unless you give a default -- always an error if
-        there is more than one header)
-        """
-        found = None
-        for cur_name, value in self.headers:
-            if cur_name.lower() == name.lower():
-                assert not found, (
-                    "Ambiguous header: %s matches %r and %r"
-                    % (name, found, value))
-                found = value
-        if found is None:
-            if default is NoDefault:
-                raise KeyError(
-                    "No header found: %r (from %s)"
-                    % (name, ', '.join([n for n, v in self.headers])))
-            else:
-                return default
-        return found
-
-    def all_headers(self, name):
-        """
-        Gets all headers, returns as a list
-        """
-        found = []
-        for cur_name, value in self.headers:
-            if cur_name.lower() == name.lower():
-                found.append(value)
-        return found
-
-    def __contains__(self, s):
-        return self.body.find(s) != -1
-    
-    def __repr__(self):
-        return '<Response %s %r>' % (self.status, self.body[:20])
-
-    def __str__(self):
-        return 'Response: %s\n%s\n%s' % (
-            self.status,
-            '\n'.join(['%s: %s' % (n, v) for n, v in self.headers]),
-            self.body)
-
 class Dummy_smtplib(object):
 
     existing = None
@@ -272,17 +193,22 @@ class TestApp(object):
     # for py.test
     disabled = True
 
-    def __init__(self, app, config={}, namespace=None):
+    def __init__(self, app, namespace=None, relative_to=None):
+        if isinstance(app, (str, unicode)):
+            from paste.deploy import loadapp
+            # @@: Should pick up relative_to from calling module's
+            # __file__
+            app = loadapp(app, relative_to=relative_to)
         self.app = app
-        self.config = config
         self.namespace = namespace
+        self.relative_to = relative_to
         self.reset()
 
     def reset(self):
         self.cookies = {}
 
     def make_environ(self):
-        environ = self.config.get('test_environ', {}).copy()
+        environ = {}
         environ['paste.throw_errors'] = True
         return environ
 
@@ -356,9 +282,8 @@ class TestApp(object):
         if len(file_info) == 2:
             # It only has a filename
             filename = file_info[2]
-            if self.config.get('test_file_path'):
-                filename = os.path.join(self.config['test_file_path'],
-                                        filename)
+            if self.relative_to:
+                filename = os.path.join(self.relative_to, filename)
             f = open(filename, 'rb')
             content = f.read()
             f.close()
