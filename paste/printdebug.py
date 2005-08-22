@@ -37,8 +37,8 @@ class PrintDebugMiddleware(object):
         '<b style="border-bottom: 1px solid #000">Log messages</b><br>'
         '%s</pre>')
 
-    def __init__(self, subapp, force_content_type=False):
-        self.subapp = subapp
+    def __init__(self, app, global_conf=None, force_content_type=False):
+        self.app = app
         self.force_content_type = force_content_type
 
     def __call__(self, environ, start_response):
@@ -57,7 +57,7 @@ class PrintDebugMiddleware(object):
         try:
             threadedprint.register(replacement_stdout)
             status, headers, body = wsgilib.capture_output(
-                environ, start_response, self.subapp)
+                environ, start_response, self.app)
             if status is None:
                 # Some error occurred
                 status = '500 Server Error'
