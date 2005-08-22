@@ -20,9 +20,6 @@ else:
     import doctest
 from paste import wsgilib
 from paste import lint
-from paste import pyconfig
-from paste import CONFIG
-from paste import server
 
 def tempnam_no_warning(*args):
     """
@@ -492,10 +489,6 @@ def setup_module(module=None):
     This is used by py.test if it is in the module, so do::
 
         from paste.tests.fixture import setup_module
-
-    to enable this.  This adds an ``app`` and ``CONFIG`` object to the
-    module.  If there is a function ``reset_state`` in your module
-    then that is also called.
     """
     if module is None:
         # The module we were called from must be the module...

@@ -54,6 +54,7 @@ functionality.
         """,
         'paste.filter_app_factory1': """
         error_catcher=paste.exceptions.errormiddleware:ErrorMiddleware
+        cgitb=paste.cgitb_catcher:CgitbMiddleware
         """,
         },
       )
