@@ -64,6 +64,7 @@ functionality.
         printdebug=paste.printdebug:PrintDebugMiddleware
         profile=paste.profilemiddleware:ProfileMiddleware
         recursive=paste.recursive:RecursiveMiddleware
+        paste_session=paste.session:SessionMiddleware
         """,
         },
       )
