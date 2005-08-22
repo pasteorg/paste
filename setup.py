@@ -45,6 +45,9 @@ functionality.
                     },
       zip_safe=False,
       entry_points={
+        'paste.app_factory1': """
+        cgi=paste.cgiapp:CGIApplication
+        """,
         'paste.filter_app_factory1': """
         error_catcher=paste.exceptions.errormiddleware:ErrorMiddleware
         """,
