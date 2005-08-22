@@ -1,83 +1,77 @@
 import os
 from paste.urlparser import *
-from fixture import fake_request
+from paste.fixture import *
 
 def path(name):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         'urlparser_data', name)
 
-def make_parser(name):
-    return URLParser(path(name), name, {'index_names': ['index', 'Main']})
+def make_app(name):
+    app = URLParser(path(name), name, {'index_names': ['index', 'Main']})
+    testapp = TestApp(app)
+    return testapp
 
 def test_find_file():
-    p = make_parser('find_file')
-    res = fake_request(p, '/')
+    app = make_app('find_file')
+    res = app.get('/')
     assert 'index1' in res
     assert res.header('content-type') == 'text/plain'
-    res = fake_request(p, '/index')
+    res = app.get('/index')
     assert 'index1' in res
     assert res.header('content-type') == 'text/plain'
-    res = fake_request(p, '/index.txt')
+    res = app.get('/index.txt')
     assert 'index1' in res
     assert res.header('content-type') == 'text/plain'
-    res = fake_request(p, '/test2.html')
+    res = app.get('/test2.html')
     assert 'test2' in res
     assert res.header('content-type') == 'text/html'
 
 def test_deep():
-    p = make_parser('deep')
-    res = fake_request(p, '/')
+    app = make_app('deep')
+    res = app.get('/')
     assert 'index2' in res
-    res = fake_request(p, '/sub')
-    assert res.status_int == 301
+    res = app.get('/sub')
+    assert res.status == 301
     print res
     assert res.header('location') == 'http://localhost/sub/'
     assert 'href="http://localhost/sub/"' in res
-    res = fake_request(p, '/sub/')
+    res = app.get('/sub/')
     assert 'index3' in res
     
 def test_python():
-    p = make_parser('python')
-    res = fake_request(p, '/simpleapp')
-    res.all_ok()
+    app = make_app('python')
+    res = app.get('/simpleapp')
     assert 'test1' in res
     assert res.header('test-header') == 'TEST!'
     assert res.header('content-type') == 'text/html'
-    res = fake_request(p, '/stream')
-    res.all_ok()
+    res = app.get('/stream')
     assert 'test2' in res
-    res = fake_request(p, '/sub/simpleapp')
-    res.all_ok()
+    res = app.get('/sub/simpleapp')
     assert 'subsimple' in res
     
 def test_hook():
-    p = make_parser('hook')
-    res = fake_request(p, '/bob/app')
-    res.all_ok()
+    app = make_app('hook')
+    res = app.get('/bob/app')
     assert 'user: bob' in res
-    res = fake_request(p, '/tim/')
-    res.all_ok()
+    res = app.get('/tim/')
     assert 'index: tim' in res
     
 def test_not_found_hook():
-    p = make_parser('not_found')
-    res = fake_request(p, '/simple/notfound')
-    assert res.status_int == 200
+    app = make_app('not_found')
+    res = app.get('/simple/notfound')
+    assert res.status == 200
     assert 'not found' in res
-    res = fake_request(p, '/simple/found')
-    res.all_ok()
+    res = app.get('/simple/found')
     assert 'is found' in res
-    res = fake_request(p, '/recur/__notfound')
-    assert res.status_int == 404
+    res = app.get('/recur/__notfound', status=404)
     # @@: It's unfortunate that the original path doesn't actually show up
     assert '/recur/notfound' in res
-    res = fake_request(p, '/recur/__isfound')
-    assert res.status_int == 200
+    res = app.get('/recur/__isfound')
+    assert res.status == 200
     assert 'is found' in res
-    res = fake_request(p, '/user/list')
-    res.all_ok()
+    res = app.get('/user/list')
     assert 'user: None' in res
-    res = fake_request(p, '/user/bob/list')
-    assert res.status_int == 200
+    res = app.get('/user/bob/list')
+    assert res.status == 200
     assert 'user: bob' in res
     
