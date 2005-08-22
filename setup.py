@@ -56,6 +56,7 @@ functionality.
         error_catcher=paste.exceptions.errormiddleware:ErrorMiddleware
         cgitb=paste.cgitb_catcher:CgitbMiddleware
         flup_session=paste.flup_session:SessionMiddleware
+        gzip=paste.gzipper:middleware
         """,
         },
       )
