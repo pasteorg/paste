@@ -58,6 +58,7 @@ functionality.
         flup_session=paste.flup_session:SessionMiddleware
         gzip=paste.gzipper:middleware
         httpexceptions=paste.httpexceptions:middleware
+        lint=paste.lint:middleware
         """,
         },
       )
