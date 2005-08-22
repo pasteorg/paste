@@ -6,9 +6,9 @@ echo "Adding $parent to \$PYTHONPATH"
 export PYTHONPATH=$parent:$PYTHONPATH
 DEPLOY_BASE="/home/paste/Paste-Deploy"
 
-NORMAL="DeveloperGuidelines Paste servers StyleGuide index web/index \
+NORMAL="DeveloperGuidelines Paste StyleGuide index web/index \
         what-is-paste testing-applications url-parsing-with-wsgi \
-        roadmap configuration integration web/community/mailing-list
+        roadmap web/community/mailing-list
         web/community/repository web/community/index
         web/download/index web/package_index"
 DOCTEST_BUILD="blog-tutorial TodoTutorial"
