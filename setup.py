@@ -59,6 +59,7 @@ functionality.
         gzip=paste.gzipper:middleware
         httpexceptions=paste.httpexceptions:middleware
         lint=paste.lint:middleware
+        login=paste.login:middleware
         """,
         },
       )
