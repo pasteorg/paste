@@ -31,21 +31,15 @@ class ProfileMiddleware(object):
     style = ('background-color: #ff9; color: #000; '
              'border: 2px solid #000; padding: 5px;')
 
-    config_profile_log_filename = metadata.Config("""
-    The filename to write profiling data to.
-    """, default='profile.log')
-    config_profile_limit = metadata.Config("""
-    Only this number of function calls will be displayed.
-    """, default=40)
-
-    def __init__(self, application):
-        self.application = application
+    def __init__(self, app, global_conf,
+                 log_filename='profile.log.tmp',
+                 limit=40):
+        self.app = app
         self.lock = threading.Lock()
+        self.log_filename = log_filename
+        self.limit = limit
 
     def __call__(self, environ, start_response):
-        prof_filename = environ['paste.config'].get(
-            'profile_log_filename', 'profile.log')
-        display_limit = environ['paste.config'].get('profile_limit', 40)
         response = []
         body = []
         def replace_start_response(status, headers):
@@ -53,10 +47,10 @@ class ProfileMiddleware(object):
             start_response(status, headers)
             return body.append
         def run_app():
-            body.extend(self.application(environ, replace_start_response))
+            body.extend(self.app(environ, replace_start_response))
         self.lock.acquire()
         try:
-            prof = hotshot.Profile(prof_filename)
+            prof = hotshot.Profile(self.log_filename)
             prof.addinfo('URL', environ.get('PATH_INFO', ''))
             try:
                 prof.runcall(run_app)
@@ -68,12 +62,12 @@ class ProfileMiddleware(object):
             if not content_type.startswith('text/html'):
                 # We can't add info to non-HTML output
                 return [body]
-            stats = hotshot.stats.load(prof_filename)
+            stats = hotshot.stats.load(self.log_filename)
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
-            output = capture_output(stats.print_stats, display_limit)
+            output = capture_output(stats.print_stats, self.limit)
             output_callers = capture_output(
-                stats.print_callers, display_limit)
+                stats.print_callers, self.limit)
             body += '<pre style="%s">%s\n%s</pre>' % (
                 self.style, cgi.escape(output), cgi.escape(output_callers))
             return [body]
@@ -116,9 +110,9 @@ def profile_decorator(**options):
         add_info:
             If given, this info will be added to the report (for your
             own tracking).  Default: none.
-        prof_filename:
+        log_filename:
             The temporary filename to log profiling data to.  Default;
-            ``./tmp_profile_data.log``
+            ``./profile_data.log.tmp``
     """
 
     def decorator(func):
@@ -144,7 +138,7 @@ class DecoratedProfile(object):
 
     def profile(self, func, *args, **kw):
         ops = self.options
-        prof_filename = ops.get('prof_filename', 'tmp_profile_data.log')
+        prof_filename = ops.get('log_filename', 'profile_data.log.tmp')
         prof = hotshot.Profile(prof_filename)
         prof.addinfo('Function Call',
                      self.format_function(func, *args, **kw))
