@@ -6,6 +6,7 @@ Reference
 
 * `Paste Reference Documentation 
   <http://pythonpaste.org/docs/reference.html>`_
+* `paste.deploy <http://pythonpaste.org/deploy/paste-deploy.html>`_
 * `Configuration <configuration.html>`_
 * `Integrating Frameworks Info Paste <integration.html>`_
 * `Roadmap for Paste <roadmap.html>`_
