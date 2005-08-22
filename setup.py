@@ -63,6 +63,7 @@ functionality.
         login=paste.login:middleware
         printdebug=paste.printdebug:PrintDebugMiddleware
         profile=paste.profilemiddleware:ProfileMiddleware
+        recursive=paste.recursive:RecursiveMiddleware
         """,
         },
       )
