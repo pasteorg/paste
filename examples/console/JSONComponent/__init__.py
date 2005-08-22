@@ -1,2 +1,0 @@
-from jsoncomponent import JSONComponent
-
