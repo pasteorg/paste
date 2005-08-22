@@ -4,6 +4,7 @@ Application that runs a CGI script.
 import os
 import subprocess
 import select
+from paste.deploy import converters
 
 __all__ = ['CGIError', 'CGIApplication']
 
@@ -19,15 +20,18 @@ class CGIApplication(object):
     a path, then ``$PATH`` will be used.
     """
 
-    def __init__(self, script, path=None,
+    def __init__(self, global_conf,
+                 script,
+                 path=None,
                  include_os_environ=True,
                  query_string=None):
         self.script_filename = script
-        if isinstance(path, (str, unicode)):
-            path = [path]
+        if path is None:
+            path = (global_conf.get('path')
+                    or global_conf.get('PATH'))
         if path is None:
             path = os.environ.get('PATH', '').split(':')
-        self.path = path
+        self.path = converters.aslist(path, ':')
         if '?' in script:
             assert query_string is None, (
                 "You cannot have '?' in your script name (%r) and also "
@@ -45,7 +49,7 @@ class CGIApplication(object):
                     % (script, self.path))
         else:
             self.script = script
-        self.include_os_environ = include_os_environ
+        self.include_os_environ = converters.asbool(include_os_environ)
         self.query_string = query_string
 
     def __call__(self, environ, start_response):
