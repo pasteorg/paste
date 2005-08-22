@@ -1,6 +1,5 @@
 from paste.urlmap import *
-from fixture import *
-del setup_module
+from paste.fixture import *
 
 def make_app(response_text):
     def app(environ, start_response):
