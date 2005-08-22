@@ -1,6 +1,6 @@
 from paste import wsgilib
 from paste import login
-from fixture import *
+from paste.fixture import *
 
 from_cmdline = 0
 
@@ -26,45 +26,41 @@ def mk_basic_auth_app(**kw):
     kw['http_login'] = True
     kw['authenticator'] =  AuthTest
     app = login.middleware(application, **kw)
-    return app
+    testapp = TestApp(app)
+    return testapp
     
 def test_basicauth_noauth():
-    res = fake_request(mk_basic_auth_app(), '/')
-    assert res.status_int == 401
+    res = mk_basic_auth_app().get('/', status=401)
     report(res)
 
-def run_userpass(user, password):
+def run_userpass(user, password, status=200):
     userpass = user + ':' + password
-    env = {'HTTP_AUTHORIZATION' : 'Basic ' + userpass.encode('base64')}
-    return fake_request(mk_basic_auth_app(), '/', **env)
+    env = {'AUTHORIZATION' : 'Basic ' + userpass.encode('base64')}
+    return mk_basic_auth_app().get('/', headers=env, status=status)
 
 def test_basicauth_okuser():
     res = run_userpass('test', 'test') # should succeed
-    assert res.status_int == 200
     report(res)
 
 def test_basicauth_baduser():
-    res = run_userpass('test', 'badpass') # should succeed
-    assert res.status_int == 401
+    res = run_userpass('test', 'badpass',
+                       status=401) # should succeed
     report(res)
 
 def test_basicauth_cookie():
     res = run_userpass('test', 'test') # should succeed
-    assert res.status_int == 200
     report(res)
     cookie_val = res.header('SET-COOKIE')
     print "cookie value", cookie_val
     app = mk_basic_auth_app()
-    env = {'HTTP_COOKIE': cookie_val}
-    res = fake_request(mk_basic_auth_app(), '/', **env)
+    env = {'Cookie': cookie_val}
+    res = app.get('/', headers=env)
     report(res)
-    assert res.status_int == 200
     
     # ensure that secret is actually used
-    res = fake_request(mk_basic_auth_app(secret='bogus'),
-                       '/', **env)
+    res = mk_basic_auth_app(secret='bogus').get(
+        '/', headers=env, status=401, expect_errors=True)
     report(res)
-    assert res.status_int == 401
 
 if __name__ == '__main__':
     from_cmdline = 1
