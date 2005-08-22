@@ -1,4 +1,0 @@
-Wareweb and Zope Page Template framework
-
-This sets up a basic Wareweb application, using Zope Page Templates
-(with ZPTKit).
