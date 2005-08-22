@@ -30,15 +30,11 @@ class WDGValidateMiddleware(object):
         middleware.append('paste.wdg_validate.WDGValidateMiddleware')
     """
 
-    _config_wdg_path = metadata.Config(
-    """
-    The path to the ``validate`` executable.  ($PATH will be searched)
-    """, default='validate')
-
     _end_body_regex = re.compile(r'</body>', re.I)
 
-    def __init__(self, app):
+    def __init__(self, app, global_conf=None, wdg_path='validate'):
         self.app = app
+        self.wdg_path = wdg_path
 
     def __call__(self, environ, start_response):
         output = StringIO()
@@ -68,9 +64,8 @@ class WDGValidateMiddleware(object):
         if v.startswith('text/xhtml+xml'):
             ops.append('--xml')
         # @@: Should capture encoding too
-        conf = environ['paste.config']
         html_errors = self.call_wdg_validate(
-            conf.get('wdg_path', 'validate'), ops, page)
+            self.wdg_path, ops, page)
         if not html_errors:
             return [page]
         return self.add_error(page, html_errors)
