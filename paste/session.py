@@ -29,7 +29,7 @@ import wsgilib
 
 class SessionMiddleware(object):
 
-    def __init__(self, application, **factory_kw):
+    def __init__(self, application, global_conf=None, **factory_kw):
         self.application = application
         self.factory_kw = factory_kw
 
