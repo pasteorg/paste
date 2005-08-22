@@ -3,10 +3,15 @@ from paste.errormiddleware import ErrorMiddleware
 from paste import lint
 
 def do_request(app, expect_status=500):
-    res = fake_request(ErrorMiddleware(lint.middleware(app)),
-                       **{'paste.config': {'debug': True}})
-    assert res.status_int == expect_status
+    app = lint.middleware(app)
+    app = ErrorMiddleware(app, {}, debug=True)
+    testapp = TestApp(app)
+    res = TestApp.get('', status=expect_status)
     return res
+
+############################################################
+## Applications that raise exceptions
+############################################################
 
 def bad_app():
     "No argument list!"
@@ -29,6 +34,10 @@ def yielder(args):
         if arg is None:
             raise ValueError("None raises error")
         yield arg
+
+############################################################
+## Tests
+############################################################
 
 def test_makes_exception():
     res = do_request(bad_app)

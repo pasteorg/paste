@@ -44,11 +44,11 @@ functionality.
                     'paste.app_templates': ['*.*_tmpl'],
                     },
       zip_safe=False,
-      extras_require={'Examples': ['SQLObject', 'ZopePageTemplates', 'Component',
-                                   'ZPTKit', 'SQLObject', 'pysqlite'],
-                      'HTTP': ['WSGI_Utils'],
-                      'SCGI': ['flup'],
-                      }
+      entry_points={
+        'paste.filter_app_factory1': """
+        error_catcher=paste.exceptions.errormiddleware:ErrorMiddleware
+        """,
+        },
       )
 
 # Send announce to:

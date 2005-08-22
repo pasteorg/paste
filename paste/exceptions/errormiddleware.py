@@ -1,5 +1,5 @@
 """
-Error handler middleware, and paste.config reporter integration
+Error handler middleware
 """
 import sys
 import traceback
@@ -11,8 +11,13 @@ except ImportError:
 from paste.exceptions import formatter, collector, reporter
 from paste import wsgilib
 from paste.docsupport import metadata
+import pkg_resources
+from paste.deploy import converters
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
+
+class NoDefault:
+    pass
 
 class ErrorMiddleware(object):
 
@@ -37,24 +42,38 @@ class ErrorMiddleware(object):
     want errors to be caught and transformed.
     """
 
-    _config_debug = metadata.Config(
-        """If true, show errors in the browser""", default=False)
-    _config_error_email = metadata.Config(
-        """
-        The email address to send errors to (defining this enables
-        the emailing of errors)""", default=None)
-    _config_error_log = metadata.Config(
-        """
-        A filename to write errors to.
-        """, default=None)
-    _config_show_exceptions_in_error_log = metadata.Config(
-        """
-        If true, then write errors to ``wsgi.errors``.
-        """, default=False)
-    
-    def __init__(self, application):
+    def __init__(self, application, global_conf,
+                 debug=NoDefault,
+                 error_email=None,
+                 error_log=None,
+                 show_exceptions_in_wsgi_errors=False,
+                 from_address=None,
+                 smtp_server=None,
+                 error_subject_prefix=None,
+                 error_message=None):
         self.application = application
-    
+        if debug is NoDefault:
+            debug = global_conf.get('debug')
+        self.debug_mode = converters.asbool(debug)
+        if error_email is None:
+            error_email = (global_conf.get('error_email')
+                           or global_conf.get('admin_email')
+                           or global_conf.get('webmaster_email')
+                           or global_conf.get('sysadmin_email'))
+        self.error_email = converters.aslist(error_email)
+        self.error_log = error_log
+        self.show_exceptions_in_wsgi_errors = show_exceptions_in_wsgi_errors
+        if from_address is None:
+            from_address = global_conf.get('error_from_address', 'errors@localhost')
+        self.from_address = from_address
+        if smtp_server is None:
+            smtp_server = global_conf.get('smtp_server', 'localhost')
+        self.smtp_server = smtp_server
+        self.error_subject_prefix = error_subject_prefix or ''
+        if error_message is None:
+            error_message = global_conf.get('error_message')
+        self.error_message = error_message
+            
     def __call__(self, environ, start_response):
         # We want to be careful about not sending headers twice,
         # and the content type that the app has committed to (if there
@@ -111,8 +130,16 @@ class ErrorMiddleware(object):
 
     def exception_handler(self, exc_info, environ):
         return handle_exception(
-            exc_info, environ['paste.config'], environ['wsgi.errors'],
-            html=True)
+            exc_info, environ['wsgi.errors'],
+            html=True,
+            debug_mode=self.debug_mode,
+            error_email=self.error_email,
+            error_log=self.error_log,
+            show_exceptions_in_wsgi_errors=self.show_exceptions_in_wsgi_errors,
+            error_email_from=self.error_email_from,
+            smtp_server=self.smtp_server,
+            error_subject_prefix=self.error_subject_prefix,
+            error_message=self.error_message)
 
 class Supplement(object):
     def __init__(self, middleware, environ):
@@ -156,7 +183,15 @@ class Supplement(object):
         (1, 1, 1): 'Multi thread/process CGI (?)',
         }
     
-def handle_exception(exc_info, conf, error_stream, html=True):
+def handle_exception(exc_info, error_stream, html=True,
+                     debug_mode=False,
+                     error_email=None,
+                     error_log=None,
+                     show_exceptions_in_wsgi_errors=False
+                     error_email_from='errors@localhost',
+                     smtp_server='localhost',
+                     error_subject_prefix='',
+                     ):
     """
     You can also use exception handling outside of a web context,
     like::
@@ -177,26 +212,26 @@ def handle_exception(exc_info, conf, error_stream, html=True):
     reported = False
     exc_data = collector.collect_exception(*exc_info)
     extra_data = ''
-    if conf.get('error_email'):
+    if error_email:
         rep = reporter.EmailReporter(
-            to_addresses=conf['error_email'],
-            from_address=conf.get('error_email_from', 'errors@localhost'),
-            smtp_server=conf.get('smtp_server', 'localhost'),
-            subject_prefix=conf.get('error_subject_prefix', ''))
+            to_addresses=error_email,
+            from_address=error_email_from,
+            smtp_server=smtp_server,
+            subject_prefix=error_subject_prefix)
         rep_err = send_report(rep, exc_data, html=html)
         if rep_err:
             extra_data += rep_err
         else:
             reported = True
-    if conf.get('error_log'):
+    if error_log:
         rep = reporter.LogReporter(
-            filename=conf['error_log'])
+            filename=error_log)
         rep_err = send_report(rep, exc_data, html=html)
         if rep_err:
             extra_data += rep_err
         else:
             reported = True
-    if conf.get('show_exceptions_in_error_log', False):
+    if show_exceptions_in_wsgi_errors:
         rep = reporter.FileReporter(
             file=error_stream)
         rep_err = send_report(rep, exc_data, html=html)
@@ -208,7 +243,7 @@ def handle_exception(exc_info, conf, error_stream, html=True):
         error_stream.write('Error - %s: %s\n' % (
             exc_data.exception_type, exc_data.exception_value))
     if html:
-        if conf.get('debug', False):
+        if debug_mode:
             error_html = formatter.format_html(exc_data,
                                                include_hidden_frames=True)
             return_error = error_template(
@@ -216,7 +251,6 @@ def handle_exception(exc_info, conf, error_stream, html=True):
             extra_data = ''
             reported = True
         else:
-            error_message = conf.get('error_message')
             return_error = error_template(
             error_message or '''
             An error occurred.  See the error logs for more information.
