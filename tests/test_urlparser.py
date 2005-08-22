@@ -7,7 +7,7 @@ def path(name):
                         'urlparser_data', name)
 
 def make_app(name):
-    app = URLParser(path(name), name, {'index_names': ['index', 'Main']})
+    app = URLParser({}, path(name), name, index_names=['index', 'Main'])
     testapp = TestApp(app)
     return testapp
 

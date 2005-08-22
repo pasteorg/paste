@@ -3,6 +3,8 @@ import sys
 import imp
 import wsgilib
 from paste.docsupport import metadata
+from paste.util import import_string
+from paste.deploy import converters
 
 class NoDefault:
     pass
@@ -61,66 +63,59 @@ class URLParser(object):
         searched in any way.
     """
 
-    _config_index_name = metadata.Config(
-        """
-        A list of allowed names for the index file (the file served
-        for requests that end in ``/``).
-        """, default=['index', 'Index', 'main', 'Main'])
-
-    _config_hide_extensions = metadata.Config(
-        """
-        A list of extensions (with leading ``.``) that should not ever
-        be served.""", default=['.pyc', '.bak', '.py~'])
-
-    _config_ignore_extensions = metadata.Config(
-        """
-        Extensions that will be ignored when searching for a file.  If
-        the extension is given explicitly, files with these extensions
-        will still be served.""", default=[])
-
-    _config_constructors = metadata.Config(
-        """
-        A dictionary of extensions as keys, and application constructors
-        as values.  Also the key ``dir`` for directories, and ``*`` when
-        no other constructor is found.
-
-        Each constructor is called like ``constructor(environ, filename)``
-        and should return an application or ``None``.
-        """)
-
-    default_options = {
-        'index_names': ['index', 'Index', 'main', 'Main'],
-        'hide_extensions': ['.pyc', '.bak', '.py~'],
-        'ignore_extensions': [],
-        'constructors': {},
-        }
-
     parsers_by_directory = {}
 
     # This is lazily initialized
     init_module = NoDefault
 
-    def __init__(self, directory, base_python_name, add_options=None):
+    global_constructors = {}
+
+    def __init__(self, global_conf,
+                 directory, base_python_name,
+                 index_names=NoDefault,
+                 hide_extensions=NoDefault,
+                 ignore_extensions=NoDefault,
+                 constructors=None,
+                 **constructor_conf):
         """
         Create a URLParser object that looks at `directory`.
         `base_python_name` is the package that this directory
         represents, thus any Python modules in this directory will
         be given names under this package.
-
-        `add_options` overrides individual configuration options for
-        this instance.
         """
         if os.path.sep != '/':
             directory = directory.replace(os.path.sep, '/')
         self.directory = directory
-        self.add_options = add_options
         self.base_python_name = base_python_name
+        if index_names is NoDefault:
+            index_names = global_conf.get(
+                'index_names', ('index', 'Index', 'main', 'Main'))
+        self.index_names = converters.aslist(index_names)
+        if hide_extensions is NoDefault:
+            hide_extensions = global_conf.get(
+                'hide_extensions', ('.pyc', 'bak', 'py~'))
+        self.hide_extensions = converters.aslist(hide_extensions)
+        if ignore_extensions is NoDefault:
+            ignore_extensions = global_conf.get(
+                'ignore_extensions', ())
+        self.ignore_extensions = converters.aslist(ignore_extensions)
+        self.constructors = self.global_constructors.copy()
+        if constructors:
+            self.constructors.update(constructors)
+        # @@: Should we also check the global options for constructors?
+        for name, value in constructor_conf.items():
+            if not name.startswith('constructor '):
+                raise ValueError(
+                    "Only extra configuration keys allowed are "
+                    "'constructor .ext = import_expr'; you gave %r "
+                    "(=%r)" % (name, value))
+            ext = name[len('constructor '):].strip()
+            if isinstance(value, (str, unicode)):
+                value = import_string.eval_import(value)
+            self.constructors[ext] = value
 
     def __call__(self, environ, start_response):
         environ['paste.urlparser.base_python_name'] = self.base_python_name
-        if self.add_options:
-            environ.setdefault('paste.urlparser.options', {}).update(
-                self.add_options)
         if self.init_module is NoDefault:
             self.init_module = self.find_init_module(environ)
         path_info = environ.get('PATH_INFO', '')
@@ -145,7 +140,7 @@ class URLParser(object):
                 name, rest_of_path = wsgilib.path_info_split(environ['PATH_INFO'])
                 if not name:
                     name = 'one of %s' % ', '.join(
-                        self.option(environ, 'index_names') or
+                        self.index_names or
                         ['(no index_names defined)'])
 
                 return self.not_found(
@@ -178,7 +173,7 @@ class URLParser(object):
         if name is not None:
             environ['SCRIPT_NAME'] = environ.get('SCRIPT_NAME', '') + '/' + name
         if not name:
-            names = self.option(environ, 'index_names') or []
+            names = self.index_names
             for index_name in names:
                 filename = self.find_file(environ, index_name)
                 if filename:
@@ -203,10 +198,6 @@ class URLParser(object):
         start_response(status, headers)
         return [body]
 
-    def option(self, environ, name):
-        return environ.get('paste.urlparser.options', {}).get(
-            name, self.default_options.get(name))
-
     def add_slash(self, environ, start_response):
         """
         This happens when you try to get to a directory
@@ -229,18 +220,16 @@ class URLParser(object):
     def find_file(self, environ, base_filename):
         possible = []
         """Cache a few values to reduce function call overhead"""
-        ignore_extensions = self.option(environ, 'ignore_extensions')
-        hide_extensions = self.option(environ, 'hide_extensions')
         for filename in os.listdir(self.directory):
             base, ext = os.path.splitext(filename)
             full_filename = os.path.join(self.directory, filename)
-            if (ext in hide_extensions
+            if (ext in self.hide_extensions
                 or not base):
                 continue
             if filename == base_filename:
                 possible.append(full_filename)
                 continue
-            if ext in ignore_extensions:
+            if ext in self.ignore_extensions:
                 continue
             if base == base_filename:
                 possible.append(full_filename)
@@ -258,17 +247,16 @@ class URLParser(object):
         return possible[0]
 
     def get_application(self, environ, filename):
-        constructors = self.option(environ, 'constructors')
         if os.path.isdir(filename):
             t = 'dir'
         else:
             t = os.path.splitext(filename)[1]
-        constructor = constructors.get(t, constructors.get('*'))
+        constructor = self.constructors.get(t, self.constructors.get('*'))
         if constructor is None:
             #environ['wsgi.errors'].write(
             #    'No constructor found for %s\n' % t)
             return constructor
-        app = constructor(environ, filename)
+        app = constructor(self, environ, filename)
         if app is None:
             #environ['wsgi.errors'].write(
             #    'Constructor %s return None for %s\n' %
@@ -287,7 +275,7 @@ class URLParser(object):
         `constructor` must be a callable that takes two arguments:
         ``environ`` and ``filename``, and returns a WSGI application.
         """
-        d = cls.default_options['constructors']
+        d = cls.global_constructors
         assert not d.has_key(extension), (
             "A constructor already exists for the extension %r (%r) "
             "when attemption to register constructor %r"
@@ -295,18 +283,25 @@ class URLParser(object):
         d[extension] = constructor
     register_constructor = classmethod(register_constructor)
 
-    def get_parser(cls, directory, base_python_name):
+    def get_parser(self, directory, base_python_name):
         """
         Get a parser for the given directory, or create one if
         necessary.  This way parsers can be cached and reused.
+
+        # @@: settings are inherited from the first caller
         """
         try:
-            return cls.parsers_by_directory[(directory, base_python_name)]
+            return self.parsers_by_directory[(directory, base_python_name)]
         except KeyError:
-            parser = cls(directory, base_python_name)
-            cls.parsers_by_directory[(directory, base_python_name)] = parser
+            parser = self.__class__(
+                {},
+                directory, base_python_name,
+                index_names=self.index_names,
+                hide_extensions=self.hide_extensions,
+                ignore_extensions=self.ignore_extensions,
+                constructors=self.constructors)
+            self.parsers_by_directory[(directory, base_python_name)] = parser
             return parser
-    get_parser = classmethod(get_parser)
 
     def find_init_module(self, environ):
         filename = os.path.join(self.directory, '__init__.py')
@@ -321,17 +316,17 @@ class URLParser(object):
             self.base_python_name,
             hex(abs(id(self))))
 
-def make_directory(environ, filename):
+def make_directory(parser, environ, filename):
     base_python_name = environ['paste.urlparser.base_python_name']
     if base_python_name:
         base_python_name += "." + os.path.basename(filename)
     else:
         base_python_name = os.path.basename(filename)
-    return URLParser.get_parser(filename, base_python_name)
+    return parser.get_parser(filename, base_python_name)
 
 URLParser.register_constructor('dir', make_directory)
 
-def make_unknown(environ, filename):
+def make_unknown(parser, environ, filename):
     return wsgilib.send_file(filename)
 
 URLParser.register_constructor('*', make_unknown)
@@ -378,7 +373,7 @@ def load_module_from_name(environ, filename, module_name, errors):
             fp.close()
     return module
 
-def make_py(environ, filename):
+def make_py(parser, environ, filename):
     module = load_module(environ, filename)
     if not module:
         return None
