@@ -500,24 +500,6 @@ def setup_module(module=None):
         module = sys._getframe().f_back.f_globals['__name__']
     if isinstance(module, (str, unicode)):
         module = sys.modules[module]
-    try:
-        CONFIG.current_config()
-    except AttributeError:
-        # No config setup yet
-        start_dir = os.path.abspath(os.path.dirname(module.__file__))
-        while 1:
-            if not start_dir or start_dir == os.sep:
-                break
-            if os.path.exists(os.path.join(start_dir, 'server.conf')):
-                server_conf_path = os.path.join(start_dir, 'server.conf')
-                conf = pyconfig.setup_config(
-                    server_conf_path, add_config={'testing': True})
-                app = TestApp(server.make_app(CONFIG.current_conf()),
-                              CONFIG.current_conf())
-                module.app = app
-                module.CONFIG = CONFIG
-                break
-            start_dir = os.path.dirname(start_dir)
     if hasattr(module, 'reset_state'):
         module.reset_state()
 
