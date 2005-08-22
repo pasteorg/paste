@@ -1,8 +1,7 @@
 import os
 import py.test
 from paste.cgiapp import CGIApplication, CGIError
-from fixture import *
-del setup_module
+from paste.fixture import *
 
 data_dir = os.path.join(os.path.dirname(__file__), 'cgiapp_data')
 
