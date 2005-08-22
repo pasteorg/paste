@@ -37,7 +37,7 @@ class URLMap(DictMixin):
     def __init__(self, global_conf, not_found_app=None):
         self.applications = []
         if not_found_app is None:
-            not_found_app = global_conf('not_found_app')
+            not_found_app = global_conf.get('not_found_app')
         self.not_found_application = self.not_found_app
 
     norm_url_re = re.compile('//+')

@@ -9,7 +9,7 @@ def make_app(response_text):
     return app
 
 def test_map():
-    mapper = URLMap()
+    mapper = URLMap({})
     app = TestApp(mapper)
     text = '%s script_name="%%(SCRIPT_NAME)s" path_info="%%(PATH_INFO)s"'
     mapper[''] = make_app(text % 'root')
