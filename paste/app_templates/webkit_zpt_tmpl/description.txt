@@ -1,4 +1,0 @@
-WebKit and Zope Page Template framework
-
-This sets up a basic Webware/WebKit application, using Zope Page
-Templates, Webware Components, and ZPTKit.
