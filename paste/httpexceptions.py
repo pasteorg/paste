@@ -211,7 +211,7 @@ def get_exception(code):
 ## Middleware implementation:
 ############################################################
 
-def middleware(application):
+def middleware(application, global_conf):
 
     """
     This middleware catches any exceptions (which are subclasses of
