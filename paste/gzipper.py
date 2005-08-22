@@ -12,9 +12,9 @@ class GzipOutput(object):
 
 class middleware(object):
 
-    def __init__(self, application, compress_level=5):
+    def __init__(self, application, global_conf, compress_level=5):
         self.application = application
-        self.compress_level = compress_level
+        self.compress_level = int(compress_level)
 
     def __call__(self, environ, start_response):
         if 'gzip' not in environ.get('HTTP_ACCEPT_ENCODING'):
