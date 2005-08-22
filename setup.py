@@ -61,6 +61,7 @@ functionality.
         lint=paste.lint:middleware
         login=paste.login:middleware
         printdebug=paste.printdebug:PrintDebugMiddleware
+        profile=paste.profilemiddleware:ProfileMiddleware
         """,
         },
       )
