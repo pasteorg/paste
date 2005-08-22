@@ -47,6 +47,7 @@ functionality.
       entry_points={
         'paste.app_factory1': """
         cgi=paste.cgiapp:CGIApplication
+        pycgi=paste.pycgiwrapper:CGIWrapper
         """,
         'paste.composit_factory1': """
         urlmap=paste.urlmap:urlmap_factory

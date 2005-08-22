@@ -32,7 +32,7 @@ class CGIWrapper(object):
     if threading:
         threading_lock = threading.Lock()
 
-    def __init__(self, cgi_filename):
+    def __init__(self, global_conf, cgi_filename):
         self.cgi_filename = cgi_filename
 
     def __call__(self, environ, start_response):
