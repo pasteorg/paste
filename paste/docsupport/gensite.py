@@ -107,7 +107,7 @@ class RestFile(object):
 
     #_start_re = re.compile(r'<div class=".*?" id="contents">')
     _start_re = re.compile(r'<body>[ \n]*(?:<div.*?>[ \n]*)?<h1.*?>.*?</h1>')
-    _end_re = re.compile(r'(?:</div>[ \n]*)?</div>[ \n]*</body>')
+    _end_re = re.compile(r'(?:</div>[ \n]*)?</div>[ \n]*</body>[\n\r ]*</html>[\n\r ]*$')
     _bad_res = [
         (re.compile(r'<link rel="stylesheet".*?>'), ''),
         (re.compile(r'<h1 class="title">.*?</h1>'), ''),
