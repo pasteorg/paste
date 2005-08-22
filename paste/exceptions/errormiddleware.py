@@ -26,20 +26,10 @@ class ErrorMiddleware(object):
 
         error_caching_wsgi_app = ErrorMiddleware(wsgi_app)
 
-    These configuration keys are used:
-
-    ``debug``:
-        show the errors in the browser
-    ``error_email``:
-        if present, send errors to this email address
-    ``error_log``:
-        if present, write errors to this file
-    ``show_exceptions_in_error_log``:
-        if true (the default) then write errors to wsgi.errors
-
-    By setting 'paste.throw_errors' to a true value, this middleware is
-    disabled.  This can be useful in a testing environment where you don't
-    want errors to be caught and transformed.
+    By setting 'paste.throw_errors' in the request environment to a
+    true value, this middleware is disabled.  This can be useful in a
+    testing environment where you don't want errors to be caught and
+    transformed.
     """
 
     def __init__(self, application, global_conf,
@@ -136,7 +126,7 @@ class ErrorMiddleware(object):
             error_email=self.error_email,
             error_log=self.error_log,
             show_exceptions_in_wsgi_errors=self.show_exceptions_in_wsgi_errors,
-            error_email_from=self.error_email_from,
+            error_email_from=self.from_address,
             smtp_server=self.smtp_server,
             error_subject_prefix=self.error_subject_prefix,
             error_message=self.error_message)
@@ -187,10 +177,11 @@ def handle_exception(exc_info, error_stream, html=True,
                      debug_mode=False,
                      error_email=None,
                      error_log=None,
-                     show_exceptions_in_wsgi_errors=False
+                     show_exceptions_in_wsgi_errors=False,
                      error_email_from='errors@localhost',
                      smtp_server='localhost',
                      error_subject_prefix='',
+                     error_message=None,
                      ):
     """
     You can also use exception handling outside of a web context,
