@@ -64,6 +64,7 @@ functionality.
         printdebug=paste.printdebug:PrintDebugMiddleware
         profile=paste.profilemiddleware:ProfileMiddleware
         recursive=paste.recursive:RecursiveMiddleware
+        # This isn't good enough to deserve the name egg:Paste#session:
         paste_session=paste.session:SessionMiddleware
         """,
         },
