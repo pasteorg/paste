@@ -11,7 +11,7 @@ from paste.util import import_string
 
 def middleware(
     application,
-    global_conf,
+    global_conf=None,
     http_login=False,
     http_realm='Secure Website',
     http_overwrite_realm=True,
@@ -84,6 +84,7 @@ def middleware(
           relative, else undefined.  Used where?
     """
     
+    global_conf = global_conf or {}
     http_login = converters.asbool(http_login)
     http_overwrite_realm = converters.asbool(http_overwrite_realm)
     http_and_cookie = converters.asbool(http_and_cookie)
