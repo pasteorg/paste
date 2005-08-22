@@ -15,7 +15,7 @@ class RecursiveMiddleware(object):
     ``paste.recursive.include`` environmental keys.
     """
 
-    def __init__(self, application):
+    def __init__(self, application, global_conf=None):
         self.application = application
 
     def __call__(self, environ, start_response):
