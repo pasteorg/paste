@@ -14,8 +14,6 @@ import rfc822
 from cStringIO import StringIO
 from paste import server
 from paste import wsgilib
-from paste.util.thirdparty import add_package
-add_package('PySourceColor')
 import PySourceColor
 
 

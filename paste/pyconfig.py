@@ -19,8 +19,10 @@ __all__ = ['Config', 'setup_config', 'parse_commandline',
 import types
 import os
 import sys
-from paste.util import thirdparty
-UserDict = thirdparty.load_new_module('UserDict', (2, 3))
+if sys.version_info < (2, 3):
+    from paste.util import UserDict24 as UserDict
+else:
+    import UserDict
 from paste.reloader import watch_file
 from paste.util.threadinglocal import local
 import threading

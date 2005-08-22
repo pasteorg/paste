@@ -14,8 +14,10 @@ except ImportError:
     # Not available on Windows?
     pass
 
-from paste.util.thirdparty import load_new_module
-string = load_new_module('string', (2, 4))
+if sys.version < (2, 4):
+    from paste.util import string24 as string
+else:
+    import string
 
 from paste import pyconfig
 from paste import urlparser

@@ -13,8 +13,6 @@ data.
 
 import httpexceptions
 import wsgilib
-from paste.util import thirdparty
-thirdparty.add_package('flup')
 import flup.middleware.session
 flup_session = flup.middleware.session
 
