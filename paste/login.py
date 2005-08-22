@@ -6,9 +6,12 @@ NOT YET FINISHED
 
 import wsgilib
 import sha
+from paste.deploy import converters
+from paste.util import import_string
 
 def middleware(
     application,
+    global_conf,
     http_login=False,
     http_realm='Secure Website',
     http_overwrite_realm=True,
@@ -81,10 +84,18 @@ def middleware(
           relative, else undefined.  Used where?
     """
     
+    http_login = converters.asbool(http_login)
+    http_overwrite_realm = converters.asbool(http_overwrite_realm)
+    http_and_cookie = converters.asbool(http_and_cookie)
+    if authenticator and isinstance(authenticator, (str, unicode)):
+        authenticator = import_string.eval_import(authenticator)
+        
     if http_login:
         assert authenticator, (
             "You must provide an authenticator argument if you "
             "are using http_login")
+    if secret is None:
+        secret = global_conf.get('secret')
     if secret is None:
         secret = create_secret()
     cookie_name = cookie_prefix + '_login_auth'
@@ -157,21 +168,22 @@ def middleware(
     return login_application
 
     
-def encodestrip (s):
-    return s.encode('base64').strip ('\n')
+def encodestrip(s):
+    return s.encode('base64').strip('\n')
 
 class UsernameSigner(object):
 
     def __init__(self, secret):
         self.secret = secret
-    def digest (self, username):
+
+    def digest(self, username):
         return sha.new(self.secret+username).digest()        
 
     def __call__(self, username):
-        return encodestrip (self.digest(username))
+        return encodestrip(self.digest(username))
 
     def check_signature(self, b64value, errors):
-        value = b64value.decode ('base64')
+        value = b64value.decode('base64')
         if ' ' not in value:
             errors.write('Badly formatted cookie: %r\n' % value)
             return None
@@ -182,8 +194,8 @@ class UsernameSigner(object):
         errors.write('Bad signature: %r\n' % value)
         return None
     
-    def make_signature (self, username):
-        return encodestrip (self.digest(username) + " " + username)
+    def make_signature(self, username):
+        return encodestrip(self.digest(username) + " " + username)
 
     def login_user(self, username, environ):
         """
@@ -193,11 +205,12 @@ class UsernameSigner(object):
         environ['paste.login._dologin'] = username
 
 class SimpleCookie(object):
-    def __init__ (self, cookie_name, signed_val, path):
+    def __init__(self, cookie_name, signed_val, path):
         self.cookie_name = cookie_name
         self.signed_val = signed_val
         self.path = '/'
-    def __str__ (self):
+
+    def __str__(self):
         return "%s=%s; Path=%s" % (self.cookie_name,
                                    self.signed_val, self.path)
     
@@ -214,7 +227,7 @@ class Authenticator(object):
         type, auth = auth.split()
         auth = auth.strip().decode('base64')
         username, password = auth.split(':')
-        if self.check_auth (username, password):
+        if self.check_auth(username, password):
             return username
         return None
 
