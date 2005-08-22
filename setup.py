@@ -50,6 +50,7 @@ functionality.
         """,
         'paste.composit_factory1': """
         urlmap=paste.urlmap:urlmap_factory
+        cascade=paste.cascade:make_cascade
         """,
         'paste.filter_app_factory1': """
         error_catcher=paste.exceptions.errormiddleware:ErrorMiddleware

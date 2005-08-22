@@ -3,9 +3,36 @@ Cascades through several applications, so long as applications
 return ``404 Not Found``.
 """
 import httpexceptions
+from paste.deploy import converters
 
 __all__ = ['Cascade']
 
+def make_cascade(loader, global_conf, catch='404', **local_conf):
+    """
+    Expects configuration like:
+
+    [composit:cascade]
+    use = egg:Paste#cascade
+    # all start with 'app' and are sorted alphabetically
+    app1 = foo
+    app2 = bar
+    ...
+    catch = 404 500 ...
+    """
+    catch = map(int, converters.aslist(catch))
+    apps = []
+    for name, value in local_conf.items():
+        if not name.startswith('app'):
+            raise ValueError(
+                "Bad configuration key %r (=%r); all configuration keys "
+                "must start with 'app'"
+                % (name, value))
+        app = loader.get_app(value, global_conf=global_conf)
+        apps.append((name, app))
+    apps.sort()
+    apps = [app for name, app in apps]
+    return Cascade(apps, catch=catch)
+    
 class Cascade(object):
 
     """
