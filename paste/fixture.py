@@ -14,8 +14,10 @@ except ImportError:
     from StringIO import StringIO
 import re
 #from py.test.collect import Module, PyCollector
-from paste.util import thirdparty
-doctest = thirdparty.load_new_module('doctest', (2, 4))
+if sys.version < (2, 4):
+    from paste.util import doctest24 as doctest
+else:
+    import doctest
 from paste import wsgilib
 from paste import lint
 from paste import pyconfig
