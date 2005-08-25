@@ -38,7 +38,6 @@ functionality.
       url="http://pythonpaste.org",
       license="PSF",
       packages=find_packages(exclude=['ez_setup', 'examples', 'packages']),
-      scripts=['scripts/paster'],
       download_url="",
       package_data={'': ['*.txt', '*.html', '*.conf'],
                     'paste.app_templates': ['*.*_tmpl'],
