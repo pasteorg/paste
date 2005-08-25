@@ -44,15 +44,15 @@ functionality.
                     },
       zip_safe=False,
       entry_points={
-        'paste.app_factory1': """
+        'paste.app_factory': """
         cgi=paste.cgiapp:CGIApplication
         pycgi=paste.pycgiwrapper:CGIWrapper
         """,
-        'paste.composit_factory1': """
+        'paste.composit_factory': """
         urlmap=paste.urlmap:urlmap_factory
         cascade=paste.cascade:make_cascade
         """,
-        'paste.filter_app_factory1': """
+        'paste.filter_app_factory': """
         error_catcher=paste.exceptions.errormiddleware:ErrorMiddleware
         cgitb=paste.cgitb_catcher:CgitbMiddleware
         flup_session=paste.flup_session:SessionMiddleware
