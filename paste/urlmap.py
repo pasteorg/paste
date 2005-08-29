@@ -14,7 +14,7 @@ def urlmap_factory(loader, global_conf, **local_conf):
     urlmap = URLMap(global_conf, not_found_app=not_found_app)
     for path, app_name in local_conf.items():
         app = loader.get_app(app_name, global_conf=global_conf)
-        urlmap[name] = app
+        urlmap[path] = app
     return urlmap
 
 class URLMap(DictMixin):
