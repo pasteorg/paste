@@ -1,6 +1,6 @@
-# @@: There are too many imports here; this shouldn't have much
-# overhead except during extraction, but everything in this
-# module has to be imported regardless.
+# (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+
 import sys
 import copy
 import types

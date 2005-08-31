@@ -1,3 +1,6 @@
+# (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+
 """
 Creates a human-readable identifier, using numbers and digits,
 avoiding ambiguous numbers and letters.  hash_identifier can be used
