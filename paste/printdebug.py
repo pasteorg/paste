@@ -7,6 +7,7 @@ import re
 import cgi
 from paste.util import threadedprint
 from paste import wsgilib
+from paste.deploy.converters import asbool
 
 _threadedprint_installed = False
 
@@ -26,12 +27,7 @@ class PrintDebugMiddleware(object):
     """
     This middleware captures all the printed statements, and inlines
     them in HTML pages, so that you can see all the (debug-intended)
-    print statements in the page itself.  Install like::
-
-        important_middleware.append(
-            'paste.printdebug.PrintDebugMiddleware')
-
-    In your configuration file.
+    print statements in the page itself.
     """
 
     log_template = (
@@ -40,9 +36,11 @@ class PrintDebugMiddleware(object):
         '<b style="border-bottom: 1px solid #000">Log messages</b><br>'
         '%s</pre>')
 
-    def __init__(self, app, global_conf=None, force_content_type=False):
+    def __init__(self, app, global_conf=None, force_content_type=False,
+                 print_wsgi_errors=True):
         self.app = app
         self.force_content_type = force_content_type
+        self.print_wsgi_errors = asbool(print_wsgi_errors)
 
     def __call__(self, environ, start_response):
         global _threadedprint_installed
@@ -51,9 +49,8 @@ class PrintDebugMiddleware(object):
             _threadedprint_installed = True
             threadedprint.install(leave_stdout=True)
         logged = StringIO()
-        if environ['paste.config'].get('printdebug_print_error'):
+        if self.print_wsgi_errors:
             replacement_stdout = TeeFile(environ['wsgi.errors'], logged)
-            environ['paste.config']['show_exceptions_in_error_log'] = False
         else:
             replacement_stdout = logged
         output = StringIO()
