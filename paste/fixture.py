@@ -678,6 +678,22 @@ class FoundFile(object):
         self.stat = os.stat(self.full)
         self.mtime = self.stat.st_mtime
         self.size = self.stat.st_size
+        self._bytes = None
+
+    def bytes__get(self):
+        if self._bytes is None:
+            f = open(self.full, 'rb')
+            self._bytes = f.read()
+            f.close()
+        return self._bytes
+    bytes = property(bytes__get)
+
+    def __contain__(self, s):
+        return s in self.bytes
+
+    def mustcontain(self, s):
+        bytes = self.bytes
+        assert s in bytes
 
 class FoundDir(object):
 
