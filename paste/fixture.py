@@ -502,10 +502,12 @@ class TestFileEnvironment(object):
     # for py.test
     disabled = True
 
-    def __init__(self, base_path, script_path=None,
+    def __init__(self, base_path, template_path=None,
+                 script_path=None,
                  environ=None, cwd=None, start_clear=True,
                  ignore_paths=None, ignore_hidden=True):
         self.base_path = base_path
+        self.template_path = template_path
         if environ is None:
             environ = os.environ.copy()
         self.environ = environ
@@ -525,7 +527,7 @@ class TestFileEnvironment(object):
     def run(self, script, *args, **kw):
         __tracebackhide__ = True
         expect_error = _popget(kw, 'expect_error', False)
-        expect_stderr = _popget(kw, 'expect_stderr', False)
+        expect_stderr = _popget(kw, 'expect_stderr', expect_error)
         stdin = _popget(kw, 'stdin', None)
         printresult = _popget(kw, 'printresult', True)
         args = map(str, args)
@@ -601,6 +603,21 @@ class TestFileEnvironment(object):
         if os.path.exists(self.base_path):
             shutil.rmtree(self.base_path)
         os.mkdir(self.base_path)
+
+    def writefile(self, path, content=None,
+                  frompath=None):
+        full = os.path.join(self.base_path, path)
+        f = open(full, 'wb')
+        if content is not None:
+            f.write(content)
+        if frompath is not None:
+            if self.template_path:
+                frompath = os.path.join(self.template_path, frompath)
+            f2 = open(frompath, 'rb')
+            f.write(f2.read())
+            f2.close()
+        f.close()
+        return FoundFile(self.base_path, path)
 
 class ProcResult(object):
 
