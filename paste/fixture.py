@@ -8,6 +8,7 @@ import mimetypes
 import time
 import cgi
 import os
+import shutil
 import webbrowser
 import smtplib
 from Cookie import SimpleCookie
@@ -16,7 +17,11 @@ try:
 except ImportError:
     from StringIO import StringIO
 import re
-#from py.test.collect import Module, PyCollector
+try:
+    import subprocess
+except ImportError:
+    pass
+
 if sys.version < (2, 4):
     from paste.util import doctest24 as doctest
 else:
@@ -486,6 +491,238 @@ class TestRequest(object):
         else:
             self.full_url = url
         self.expect_errors = expect_errors
+
+class TestFileEnvironment(object):
+
+    """
+    This represents an environment in which files will be written, and
+    scripts will be run.
+    """
+
+    # for py.test
+    disabled = True
+
+    def __init__(self, base_path, script_path=None,
+                 environ=None, cwd=None, start_clear=True,
+                 ignore_paths=None, ignore_hidden=True):
+        self.base_path = base_path
+        if environ is None:
+            environ = os.environ.copy()
+        self.environ = environ
+        if script_path is None:
+            script_path = environ.get('PATH', '').split(':')
+        self.script_path = script_path
+        if cwd is None:
+            cwd = base_path
+        self.cwd = cwd
+        if start_clear:
+            self.clear()
+        elif not os.path.exists(base_path):
+            os.makedirs(base_path)
+        self.ignore_paths = ignore_paths or []
+        self.ignore_hidden = ignore_hidden
+
+    def run(self, script, *args, **kw):
+        __tracebackhide__ = True
+        expect_error = _popget(kw, 'expect_error', False)
+        expect_stderr = _popget(kw, 'expect_stderr', False)
+        stdin = _popget(kw, 'stdin', None)
+        printresult = _popget(kw, 'printresult', True)
+        args = map(str, args)
+        assert not kw, (
+            "Arguments not expected: %s" % ', '.join(kw.keys()))
+        script = self.find_exe(script)
+        all = [script] + args
+        files_before = self.find_files()
+        proc = subprocess.Popen(all, stdin=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                cwd=self.cwd,
+                                env=self.environ)
+        stdout, stderr = proc.communicate(stdin)
+        files_after = self.find_files()
+        result = ProcResult(
+            self, all, stdin, stdout, stderr,
+            returncode=proc.returncode,
+            files_before=files_before,
+            files_after=files_after)
+        if printresult:
+            print result
+            print '-'*40
+        if not expect_error:
+            result.assert_no_error()
+        if not expect_stderr:
+            result.assert_no_stderr()
+        return result
+
+    def find_exe(self, script_name):
+        if self.script_path is None:
+            script_name = os.path.join(self.cwd, script_name)
+            if not os.path.exists(script_name):
+                raise OSError(
+                    "Script %s does not exist" % script_name)
+            return script_name
+        for path in self.script_path:
+            fn = os.path.join(path, script_name)
+            if os.path.exists(fn):
+                return fn
+        raise OSError(
+            "Script %s could not be found in %s"
+            % (script_name, ':'.join(self.script_path)))
+
+    def find_files(self):
+        result = {}
+        for fn in os.listdir(self.base_path):
+            if self._ignore_file(fn):
+                continue
+            self._find_traverse(fn, result)
+        return result
+
+    def _ignore_file(self, fn):
+        if fn in self.ignore_paths:
+            return True
+        if self.ignore_hidden and os.path.basename(fn).startswith('.'):
+            return True
+        return False
+
+    def _find_traverse(self, path, result):
+        full = os.path.join(self.base_path, path)
+        if os.path.isdir(full):
+            result[path] = FoundDir(self.base_path, path)
+            for fn in os.listdir(full):
+                fn = os.path.join(path, fn)
+                if self._ignore_file(fn):
+                    continue
+                self._find_traverse(fn, result)
+        else:
+            result[path] = FoundFile(self.base_path, path)
+
+    def clear(self):
+        if os.path.exists(self.base_path):
+            shutil.rmtree(self.base_path)
+        os.mkdir(self.base_path)
+
+class ProcResult(object):
+
+    def __init__(self, test_env, args, stdin, stdout, stderr,
+                 returncode, files_before, files_after):
+        self.test_env = test_env
+        self.args = args
+        self.stdin = stdin
+        self.stdout = stdout
+        self.stderr = stderr
+        self.returncode = returncode
+        self.files_before = files_before
+        self.files_after = files_after
+        self.files_created = {}
+        self.files_deleted = {}
+        self.files_updated = {}
+        self.files_created = files_after.copy()
+        for path, f in files_before.items():
+            if path not in files_after:
+                self.files_deleted[path] = f
+                continue
+            del self.files_created[path]
+            if f.mtime < files_after[path].mtime:
+                self.files_updated[path] = files_after[path]
+
+    def assert_no_error(self):
+        __tracebackhide__ = True
+        assert self.returncode is 0, (
+            "Script returned code: %s" % self.returncode)
+
+    def assert_no_stderr(self):
+        __tracebackhide__ = True
+        if self.stderr:
+            print 'Error output:'
+            print self.stderr
+            raise AssertionError("stderr output not expected")
+
+    def __str__(self):
+        s = ['Script result: %s' % ' '.join(self.args)]
+        if self.returncode:
+            s.append('  return code: %s' % self.returncode)
+        if self.stderr:
+            s.append('-- stderr: --------------------')
+            s.append(self.stderr)
+        if self.stdout:
+            s.append('-- stdout: --------------------')
+            s.append(self.stdout)
+        for name, files, show_size in [
+            ('created', self.files_created, True),
+            ('deleted', self.files_deleted, True),
+            ('updated', self.files_updated, True)]:
+            if files:
+                s.append('-- %s: -------------------' % name)
+                files = files.items()
+                files.sort()
+                last = ''
+                for path, f in files:
+                    t = '  %s' % _space_prefix(last, path, indent=4,
+                                               include_sep=False)
+                    last = path
+                    if show_size and f.size != 'N/A':
+                        t += '  (%s bytes)' % f.size
+                    s.append(t)
+        return '\n'.join(s)
+
+class FoundFile(object):
+
+    file = True
+    dir = False
+
+    def __init__(self, base_path, path):
+        self.base_path = base_path
+        self.path = path
+        self.full = os.path.join(base_path, path)
+        self.stat = os.stat(self.full)
+        self.mtime = self.stat.st_mtime
+        self.size = self.stat.st_size
+
+class FoundDir(object):
+
+    file = False
+    dir = True
+
+    def __init__(self, base_path, path):
+        self.base_path = base_path
+        self.path = path
+        self.full = os.path.join(base_path, path)
+        self.size = 'N/A'
+        self.mtime = 'N/A'
+
+def _popget(d, key, default=None):
+    """
+    Pop the key if found (else return default)
+    """
+    if key in d:
+        return d.pop(key)
+    return default
+
+def _space_prefix(pref, full, sep=None, indent=None, include_sep=True):
+    """
+    Anything shared by pref and full will be replaced with spaces
+    in full, and full returned.
+    """
+    if sep is None:
+        sep = os.path.sep
+    pref = pref.split(sep)
+    full = full.split(sep)
+    padding = []
+    while pref and full and pref[0] == full[0]:
+        if indent is None:
+            padding.append(' ' * (len(full[0]) + len(sep)))
+        else:
+            padding.append(' ' * indent)
+        full.pop(0)
+        pref.pop(0)
+    if padding:
+        if include_sep:
+            return ''.join(padding) + sep + sep.join(full)
+        else:
+            return ''.join(padding) + sep.join(full)
+    else:
+        return sep.join(full)
 
 def setup_module(module=None):
     """
