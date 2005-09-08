@@ -11,6 +11,7 @@ import os
 import shutil
 import webbrowser
 import smtplib
+import shlex
 from Cookie import SimpleCookie
 try:
     from cStringIO import StringIO
@@ -525,6 +526,24 @@ class TestFileEnvironment(object):
         self.ignore_hidden = ignore_hidden
 
     def run(self, script, *args, **kw):
+        """
+        Run the command, with the given arguments.  The ``script``
+        argument can have space-separated arguments, or you can use
+        the positional arguments.
+
+        Keywords allowed are:
+
+        ``expect_error``: (default False)
+            Don't raise an exception in case of errors
+        ``expect_stderr``: (default ``expect_error``)
+            Don't raise an exception if anything is printed to stderr
+        ``stdin``: (default ``""``)
+            Input to the script
+        ``printresult``: (default True)
+            Print the result after running
+
+        Returns a ``ProcResponse`` object.
+        """
         __tracebackhide__ = True
         expect_error = _popget(kw, 'expect_error', False)
         expect_stderr = _popget(kw, 'expect_stderr', expect_error)
@@ -533,6 +552,12 @@ class TestFileEnvironment(object):
         args = map(str, args)
         assert not kw, (
             "Arguments not expected: %s" % ', '.join(kw.keys()))
+        if ' ' in script:
+            assert not args, (
+                "You cannot give a multi-argument script (%r) "
+                "and arguments (%s)" % (script, args))
+            script, args = script.split(None, 1)
+            args = shlex.split(args)
         script = self.find_exe(script)
         all = [script] + args
         files_before = self.find_files()
@@ -600,12 +625,20 @@ class TestFileEnvironment(object):
             result[path] = FoundFile(self.base_path, path)
 
     def clear(self):
+        """
+        Delete all the files in the base directory.
+        """
         if os.path.exists(self.base_path):
             shutil.rmtree(self.base_path)
         os.mkdir(self.base_path)
 
     def writefile(self, path, content=None,
                   frompath=None):
+        """
+        Write a file to the given path.  If ``content`` is given then
+        that text is written, otherwise the file in ``frompath`` is
+        used.  ``frompath`` is relative to ``self.template_path``
+        """
         full = os.path.join(self.base_path, path)
         f = open(full, 'wb')
         if content is not None:
@@ -621,6 +654,20 @@ class TestFileEnvironment(object):
 
 class ProcResult(object):
 
+    """
+    Represents the results of running a command in
+    ``TestFileEnvironment``.
+
+    Attributes to pay particular attention to:
+
+    ``stdout``, ``stderr``:
+        What is produced
+        
+    ``files_created``, ``files_deleted``, ``files_updated``:
+        Dictionaries mapping filenames (relative to the ``base_dir``)
+        to ``FoundFile`` or ``FoundDir`` objects.
+    """
+
     def __init__(self, test_env, args, stdin, stdout, stderr,
                  returncode, files_before, files_after):
         self.test_env = test_env
@@ -631,7 +678,6 @@ class ProcResult(object):
         self.returncode = returncode
         self.files_before = files_before
         self.files_after = files_after
-        self.files_created = {}
         self.files_deleted = {}
         self.files_updated = {}
         self.files_created = files_after.copy()
@@ -705,7 +751,7 @@ class FoundFile(object):
         return self._bytes
     bytes = property(bytes__get)
 
-    def __contain__(self, s):
+    def __contains__(self, s):
         return s in self.bytes
 
     def mustcontain(self, s):
