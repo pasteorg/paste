@@ -220,9 +220,10 @@ class TestApp(object):
         environ['paste.throw_errors'] = True
         return environ
 
-    def get(self, url, params=None, headers={},
-            status=None,
-            expect_errors=False):
+    def get(self, url, params=None, headers={}, extra_environ={},
+            status=None, expect_errors=False):
+        # Hide from py.test:
+        __tracebackhide__ = True
         if params:
             if isinstance(params, dict):
                 params = urllib.urlencode(params)
@@ -236,11 +237,12 @@ class TestApp(object):
             environ['HTTP_%s' % header.replace('-', '_').upper()] = value
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
+        environ.update(extra_environ)
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
 
-    def post(self, url, params=None, headers={}, status=None,
-             upload_files=None, expect_errors=False):
+    def post(self, url, params=None, headers={}, extra_environ={},
+             status=None, upload_files=None, expect_errors=False):
         environ = self.make_environ()
         if params and isinstance(params, dict):
             params = urllib.urlencode(params)
@@ -254,6 +256,7 @@ class TestApp(object):
         environ['wsgi.input'] = StringIO(params)
         for header, value in headers.items():
             environ['HTTP_%s' % header.replace('-', '_').upper()] = value
+        environ.update(extra_environ)
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
             
@@ -306,11 +309,13 @@ class TestApp(object):
                 % repr(file_info)[:100])
 
     def do_request(self, req, status):
+        __tracebackhide__ = True
         if self.cookies:
             c = SimpleCookie()
             for name, value in self.cookies.items():
                 c[name] = value
             req.environ['HTTP_COOKIE'] = str(c).split(': ', 1)[1]
+        req.environ['paste.testing'] = True
         app = lint.middleware(self.app)
         old_stdout = sys.stdout
         out = StringIO()
@@ -340,6 +345,7 @@ class TestApp(object):
             return res
 
     def check_status(self, status, res):
+        __tracebackhide__ = True
         if status == '*':
             return
         if status is None:
@@ -640,6 +646,8 @@ class TestFileEnvironment(object):
         used.  ``frompath`` is relative to ``self.template_path``
         """
         full = os.path.join(self.base_path, path)
+        if not os.path.exists(os.path.dirname(full)):
+            os.makedirs(os.path.dirname(full))
         f = open(full, 'wb')
         if content is not None:
             f.write(content)
