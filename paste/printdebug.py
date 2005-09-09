@@ -19,6 +19,9 @@ class TeeFile(object):
         self.files = files
 
     def write(self, v):
+        if isinstance(v, unicode):
+            # WSGI is picky in this case
+            v = str(v)
         for file in self.files:
             file.write(v)
 
@@ -44,6 +47,10 @@ class PrintDebugMiddleware(object):
 
     def __call__(self, environ, start_response):
         global _threadedprint_installed
+        if environ.get('paste.testing'):
+            # In a testing environment this interception isn't
+            # useful:
+            return self.app(environ, start_response)
         if not _threadedprint_installed:
             # @@: Not strictly threadsafe
             _threadedprint_installed = True
