@@ -9,8 +9,9 @@ def find_package(dir):
     Given a directory, finds the equivalent package name.  If it
     is directly in sys.path, returns ''.
     """
+    dir = os.path.abspath(dir)
     orig_dir = dir
-    path = sys.path
+    path = map(os.path.abspath, sys.path)
     packages = []
     last_dir = None
     while 1:
