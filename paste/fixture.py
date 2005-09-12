@@ -763,8 +763,17 @@ class FoundFile(object):
         return s in self.bytes
 
     def mustcontain(self, s):
+        __tracebackhide__ = True
         bytes = self.bytes
-        assert s in bytes
+        if s not in bytes:
+            print 'Could not find %r in:' % s
+            print bytes
+            assert s in bytes
+
+    def __repr__(self):
+        return '<%s %s:%s>' % (
+            self.__class__.__name__,
+            self.base_path, self.path)
 
 class FoundDir(object):
 
@@ -777,6 +786,11 @@ class FoundDir(object):
         self.full = os.path.join(base_path, path)
         self.size = 'N/A'
         self.mtime = 'N/A'
+
+    def __repr__(self):
+        return '<%s %s:%s>' % (
+            self.__class__.__name__,
+            self.base_path, self.path)
 
 def _popget(d, key, default=None):
     """
