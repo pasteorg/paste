@@ -196,7 +196,10 @@ class URLParser(object):
             environ,
             '404 Not Found',
             'The resource at %s could not be found'
-            % wsgilib.construct_url(environ),
+            '<!-- SCRIPT_NAME=%r; PATH_INFO=%r; looking in %r -->'
+            % (wsgilib.construct_url(environ),
+               environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
+               self.directory),
             debug_message=debug_message)
         start_response(status, headers)
         return [body]
