@@ -10,7 +10,6 @@ import cgi
 import time
 from cStringIO import StringIO
 from paste import wsgilib
-from paste.docsupport import metadata
 
 __all__ = ['ProfileMiddleware', 'profile_decorator']
 

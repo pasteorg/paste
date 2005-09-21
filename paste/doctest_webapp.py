@@ -16,7 +16,6 @@ import cgi
 import rfc822
 from cStringIO import StringIO
 from paste import server
-from paste import wsgilib
 import PySourceColor
 
 
@@ -423,7 +422,6 @@ class LongFormDocTestParser(doctest.DocTestParser):
 
 
 if __name__ == '__main__':
-    import sys
     if sys.argv[1:] and sys.argv[1] == 'doctest':
         doctest.testmod()
         sys.exit()

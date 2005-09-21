@@ -7,7 +7,6 @@ This is a very basic script to generate a site from a set of ReST
 documents.
 """
 
-import sys
 import os
 import re
 import shutil
