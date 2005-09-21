@@ -73,8 +73,9 @@ class Cascade(object):
             return start_response(status, headers, exc_info)
 
         for app in self.apps[:-1]:
+            environ_copy = environ.copy()
             try:
-                return app(environ, repl_start_response)
+                return app(environ_copy, repl_start_response)
             except self.catch_exceptions:
                 pass
         return self.apps[-1](environ, start_response)
