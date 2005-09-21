@@ -47,6 +47,7 @@ functionality.
         'paste.app_factory': """
         cgi=paste.cgiapp:CGIApplication
         pycgi=paste.pycgiwrapper:CGIWrapper
+        static=paste.urlparser:make_static
         """,
         'paste.composit_factory': """
         urlmap=paste.urlmap:urlmap_factory

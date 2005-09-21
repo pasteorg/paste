@@ -466,3 +466,6 @@ class StaticURLParser(object):
     
     def __repr__(self):
         return '<%s %r>' % (self.__class__.__name__, self.directory)
+
+def make_static(global_conf, document_root):
+    return StaticURLParser(document_root)
