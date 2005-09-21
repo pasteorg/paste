@@ -23,10 +23,6 @@ try:
 except ImportError:
     pass
 
-if sys.version < (2, 4):
-    from paste.util import doctest24 as doctest
-else:
-    import doctest
 from paste import wsgilib
 from paste import lint
 

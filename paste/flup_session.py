@@ -44,7 +44,7 @@ class SessionMiddleware(object):
     def __init__(self, app,
                  global_conf,
                  session_type=NoDefault,
-                 cookie_name=NoDefault
+                 cookie_name=NoDefault,
                  **store_config
                  ):
         self.app = app
@@ -59,10 +59,10 @@ class SessionMiddleware(object):
                 % (self.session_type,
                    ', '.join(self.session_classes.keys())))
         kw = {}
-        for config_name, kw_name, coercer, default in store_args:
+        for config_name, kw_name, coercer, default in self.store_args:
             value = coercer(store_config.get(config_name, default))
             kw[kw_name] = value
-        self.store = store_class(**kw)
+        self.store = self.store_class(**kw)
         if cookie_name is NoDefault:
             cookie_name = global_conf.get('session_cookie', '_SID_')
         self.cookie_name = cookie_name

@@ -8,7 +8,6 @@ except ImportError:
     # Don't want this to be unimportable in older Python's
     subprocess = None
 from paste import wsgilib
-from paste.docsupport import metadata
 import re
 import cgi
 

@@ -122,4 +122,4 @@ class WSGIAppReporter(Reporter):
 
     def __call__(self, environ, start_response):
         start_response('500 Server Error', [('Content-type', 'text/html')])
-        return [formatter.format_html(exc_data)]
+        return [formatter.format_html(self.exc_data)]

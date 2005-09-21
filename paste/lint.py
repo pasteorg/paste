@@ -3,7 +3,7 @@
 
 import re
 import sys
-from types import *
+from types import DictType, StringType, TupleType, ListType
 
 header_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9\-_]*$')
 bad_header_value_re = re.compile(r'[\000-\037]')

@@ -5,7 +5,6 @@ import os
 import sys
 import imp
 import wsgilib
-from paste.docsupport import metadata
 from paste.util import import_string
 from paste.deploy import converters
 

@@ -19,7 +19,6 @@ supplements
 """
 
 import sys
-import cgi
 import traceback
 import time
 try:

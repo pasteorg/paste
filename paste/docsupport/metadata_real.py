@@ -2,14 +2,10 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
 import sys
-import copy
-import types
 import inspect
-import new
 from itertools import count
 from paste.util import import_string
 from paste.util.classinit import ClassInitMeta
-from paste.util.classinstance import classinstancemethod
 
 doc_count = count()
 

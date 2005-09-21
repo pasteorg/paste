@@ -10,6 +10,7 @@ from cStringIO import StringIO
 import mimetypes
 import os
 import cgi
+import sys
 
 __all__ = ['get_cookies', 'add_close', 'raw_interactive',
            'interactive', 'construct_url', 'error_body_response',

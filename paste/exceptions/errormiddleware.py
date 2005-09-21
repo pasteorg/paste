@@ -13,8 +13,6 @@ except ImportError:
     from StringIO import StringIO
 from paste.exceptions import formatter, collector, reporter
 from paste import wsgilib
-from paste.docsupport import metadata
-import pkg_resources
 from paste.deploy import converters
 
 __all__ = ['ErrorMiddleware', 'handle_exception']

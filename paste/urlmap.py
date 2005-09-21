@@ -5,7 +5,6 @@ from UserDict import DictMixin
 import re
 import os
 import wsgilib
-from docsupport import metadata
 
 __all__ = ['URLMap', 'PathProxyURLMap']
 
