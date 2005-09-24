@@ -15,7 +15,6 @@ import re
 import cgi
 import rfc822
 from cStringIO import StringIO
-from paste import server
 import PySourceColor
 
 
