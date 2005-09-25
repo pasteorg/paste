@@ -2,7 +2,6 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
 from cStringIO import StringIO
-from paste.docsupport import metadata
 
 __all__ = ['RecursiveMiddleware']
 
@@ -27,11 +26,6 @@ class RecursiveMiddleware(object):
         environ['paste.recursive.include'] = Includer(
             self.application, environ, start_response)
         return self.application(environ, start_response)
-
-    _wsgi_add1 = metadata.WSGIKey('paste.recursive.forward',
-                                  interface='Forwarder')
-    _wsgi_add2 = metadata.WSGIKey('paste.recursive.include',
-                                  interface='Includer')
 
 class Recursive(object):
 
@@ -122,16 +116,6 @@ class IncludedResponse(object):
         self.status = None
         self.output = StringIO()
         self.str = None
-
-    _attr_headers = metadata.Attribute("""
-    A list of ``[(header_name), (header_value)]``
-    """)
-    _attr_status = metadata.Attribute("""
-    The status code returned (a string), like ``'200 OK'``
-    """)
-    _attr_body = metadata.Attribute("""
-    The body of the response.
-    """)
 
     def close(self):
         self.str = self.output.getvalue()
