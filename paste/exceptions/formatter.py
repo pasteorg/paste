@@ -162,7 +162,7 @@ class TextFormatter(AbstractFormatter):
     def emphasize(self, s):
         return s
     def format_sup_object(self, obj):
-        return 'In object: %s' % self.quote(repr(obj))
+        return 'In object: %s' % self.emphasize(self.quote(repr(obj)))
     def format_sup_url(self, url):
         return 'URL: %s' % self.quote(url)
     def format_sup_line_pos(self, line, column):
