@@ -94,7 +94,8 @@ def catch_errors(application, environ, start_response, error_callback,
         raise
     if type(app_iter) in (list, tuple):
         # These won't produce exceptions
-        ok_callback()
+        if ok_callback:
+            ok_callback()
         return app_iter
     else:
         return _wrap_app_iter(app_iter, error_callback, ok_callback)
