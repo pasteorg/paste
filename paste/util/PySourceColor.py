@@ -2,19 +2,26 @@
 # -*- coding: Latin-1 -*-
 """
  PySourceColor.py
+
 ----------------------------------------------------------------------------
+
  A python source to colorized html/css/xhtml converter.
  Hacked by M.E.Farmer Jr. 2004, 2005
  Python license
+
 ----------------------------------------------------------------------------
+
  - HTML markup does not create w3c valid html, but it works on every
    browser i've tried so far.(I.E.,Mozilla/Firefox,Opera,Konqueror,wxHTML).
  - CSS markup is w3c validated html 4.01 strict,
    but will not render correctly on all browsers.
  - XHTML markup is w3c validated xhtml 1.0 strict,
    like html 4.01, will not render correctly on all browsers.
+
 ----------------------------------------------------------------------------
- Features:
+
+Features:
+
  -Three types of markup:
     html (default) 
     css/html 4.01 strict
@@ -62,6 +69,7 @@
     Defaults to NAME if not defined.
 
  Style options
+ 
  -ALL markups support these text styles:
          b = bold
          i = italic
@@ -100,17 +108,18 @@
      NAME, ERRORTOKEN, PAGEBACKGROUND
 
 ----------------------------------------------------------------------------
- Example usage:
-----------------------------------------------------------------------------
+
+Example usage::
+
  # import
  import PySourceColor as psc
  psc.convert('c:/Python22/PySourceColor.py', colors=psc.idle, show=1)
-----------------------------------------------------------------------------
+
  # from module import *
  from PySourceColor import *
  convert('c:/Python22/Lib', colors=lite, markup="css",
           header='#$#<b>This is a simpe heading</b><hr/>')
-----------------------------------------------------------------------------
+
  # How to use a custom colorscheme, and most of the 'features'
  from PySourceColor import *
  new = {
@@ -149,7 +158,7 @@
              linenumbers=1)
      convert(sys.argv[1], './html.html', colors=new, markup='html', show=1,
              linenumbers=1)
-----------------------------------------------------------------------------
+
 """
 
 __all__ = ['ERRORTOKEN','DECORATOR_NAME', 'DECORATOR', 'ARGS', 'EXTRASPACE',
@@ -554,7 +563,7 @@ viewcvs = {
 defaultColors = lite
 
 def Usage():
-    """
+    doc = """
  -----------------------------------------------------------------------------
   PySourceColor.py ver: %s
  -----------------------------------------------------------------------------
@@ -656,7 +665,7 @@ def Usage():
       python PySourceColor.py -i- -o c:/pydoc.py.html -s < c:/Python22/my.py
  _____________________________________________________________________________
  """
-    print Usage.__doc__% (__version__)
+    print doc % (__version__)
     sys.exit(1)
 
 ###################################################### Command line interface
