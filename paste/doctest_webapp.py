@@ -15,7 +15,7 @@ import re
 import cgi
 import rfc822
 from cStringIO import StringIO
-import PySourceColor
+from paste.util import PySourceColor
 
 
 here = os.path.abspath(__file__)
