@@ -86,7 +86,7 @@ Debugging Filters
 * Capture ``print`` output and present it in the browser for
   debugging, in ``paste.printdebug``
 
-* Validate all HTML output from applications using the ``WDG Validator
+* Validate all HTML output from applications using the `WDG Validator
   <http://www.htmlhelp.com/tools/validator/>`_, appending any errors
   or warnings to the page, in ``paste.wdg_validator``
 
