@@ -75,3 +75,23 @@ def test_not_found_hook():
     assert res.status == 200
     assert 'user: bob' in res
     
+def test_static_parser():
+    app = StaticURLParser(path('find_file'))
+    testapp = TestApp(app)
+    res = testapp.get('', status=301)
+    res = testapp.get('/', status=404)
+    res = testapp.get('/index.txt')
+    assert res.body.strip() == 'index1'
+    res = testapp.get('/index.txt/foo', status=500)
+    
+def test_egg_parser():
+    app = PkgResourcesParser('Paste', 'paste')
+    testapp = TestApp(app)
+    res = testapp.get('', status=301)
+    res = testapp.get('/', status=404)
+    res = testapp.get('/flup_session', status=404)
+    res = testapp.get('/util/classinit.py')
+    assert 'ClassInitMeta' in res
+    res = testapp.get('/util/classinit', status=404)
+    res = testapp.get('/util', status=301)
+    res = testapp.get('/util/classinit.py/foo', status=500)

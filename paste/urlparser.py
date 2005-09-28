@@ -4,6 +4,8 @@
 import os
 import sys
 import imp
+import pkg_resources
+import mimetypes
 import wsgilib
 from paste.util import import_string
 from paste.deploy import converters
@@ -11,7 +13,7 @@ from paste.deploy import converters
 class NoDefault:
     pass
 
-__all__ = ['URLParser', 'StaticURLParser']
+__all__ = ['URLParser', 'StaticURLParser', 'PkgResourcesParser']
 
 class URLParser(object):
 
@@ -468,3 +470,53 @@ class StaticURLParser(object):
 
 def make_static(global_conf, document_root):
     return StaticURLParser(document_root)
+
+class PkgResourcesParser(StaticURLParser):
+
+    def __init__(self, egg_or_spec, resource_name, manager=None):
+        if isinstance(egg_or_spec, (str, unicode)):
+            self.egg = pkg_resources.get_distribution(egg_or_spec)
+        else:
+            self.egg = egg_or_spec
+        self.resource_name = resource_name
+        if manager is None:
+            manager = pkg_resources.ResourceManager()
+        self.manager = manager
+
+    def __repr__(self):
+        return '<%s for %s:%r>' % (
+            self.__class__.__name__,
+            self.egg.project_name,
+            self.resource_name)
+
+    def __call__(self, environ, start_response):
+        path_info = environ.get('PATH_INFO', '')
+        if not path_info:
+            return self.add_slash(environ, start_response)
+        if path_info == '/':
+            # @@: This should obviously be configurable
+            filename = 'index.html'
+        else:
+            filename = wsgilib.path_info_pop(environ)
+        resource = self.resource_name + '/' + filename
+        if not self.egg.has_resource(resource):
+            return self.not_found(environ, start_response)
+        if self.egg.resource_isdir(resource):
+            # @@: Cache?
+            return self.__class__(self.egg, resource, self.manager)(environ, start_response)
+        if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
+            return self.error_extra_path(environ, start_response)
+        
+        type, encoding = mimetypes.guess_type(resource)
+        # @@: I don't know what to do with the encoding.
+        try:
+            file = self.egg.get_resource_stream(self.manager, resource)
+        except (IOError, OSError), e:
+            status, headers, body = wsgilib.error_response(
+                '403 Forbidden',
+                'You are not permitted to view this file (%s)' % e)
+            start_response(status, headers)
+            return [body]
+        start_response('200 OK',
+                       [('content-type', type)])
+        return wsgilib._FileIter(file)
