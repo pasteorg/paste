@@ -126,6 +126,9 @@ class SessionFactory(object):
 class FileSession(object):
     
     def __init__(self, sid, create=False, session_file_path='/tmp'):
+        if not sid:
+            # Invalid...
+            raise KeyError
         self.session_file_path = session_file_path
         self.sid = sid
         if not create:
