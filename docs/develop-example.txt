@@ -2,12 +2,14 @@ Development With Paste: An Example
 ++++++++++++++++++++++++++++++++++
 
 This example uses `WebKit </webkit/>`_, `SQLObject
-<http://sqlobject.org>`_, and `Zope Page Templates <>`_, but it's all
-pluggable for other frameworks and tools.  
+<http://sqlobject.org>`_, and `Zope Page Templates
+<http://www.zope.org/DevHome/Wikis/DevSite/Projects/ZPT/>`_, but it's
+all pluggable for other frameworks and tools.
 
 Paste enabled applications are all proper Python packages, and even
-moreso they are installable by `easy_install <>`_, including Paste
-itself::
+moreso they are installable by `easy_install
+<http://peak.telecommunity.com/DevCenter/EasyInstall>`_, including
+Paste itself::
 
     $ easy_install PasteScript PasteWebKit SQLObject ZPTKit 
     ... messages fly by ...
@@ -34,8 +36,10 @@ test everything is working by running::
     ... now your new app is served on http://localhost:8080/ ...
     ... ^C to quit
 
-It also has set up a `py.test <>`_ fixture for you, so you can run the
-first test (which just tests that the front page loads up properly):
+It also has set up a `py.test
+<http://codespeak.net/py/current/doc/test.html>`_ fixture for you, so
+you can run the first test (which just tests that the front page loads
+up properly):
 
     $ py.test -v
     ... test results ...
@@ -57,7 +61,8 @@ develop and record your updates, and then apply them to old versions
 of the database.
 
 Once you've made something you are ready to deploy, you can use
-`buildutils <>`_ to tag it for release::
+`buildutils <http://buildutils.lesscode.org/>`_ to tag it for
+release::
 
     $ python setup.py svntag --version=0.1 -b ../Wiki01
     $ cd ../Wiki01

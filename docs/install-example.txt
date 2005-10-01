@@ -4,7 +4,7 @@ Paste Installation
 Installation of Paste-enabled applications is consistent and reliable;
 you don't have to understand what technologies those applications
 used.  Paste-enabled applications are installable with `easy_install
-<>`_, like::
+<http://peak.telecommunity.com/DevCenter/EasyInstall>`_, like::
 
     $ easy_install FileBrowser
     ... messages ...

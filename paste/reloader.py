@@ -1,4 +1,6 @@
 """
+A file monitor and server restarter.
+
 Use this like::
 
     import reloader
