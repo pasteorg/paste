@@ -1,5 +1,5 @@
 Python Paste
-============
+++++++++++++
 
 Python Paste -- 50% tastier than Elmer's!  
 Paste: making the web sticky.  
@@ -51,40 +51,22 @@ Paste for Web Developers
 Documentation
 =============
 
-Tutorials and Introduction
-==========================
+* `Contributing developer guidelines <DeveloperGuidelines>`_
+* `Style guide <StyleGuide.html>`_
+* `Testing applications with Paste <testing-applications.html>`_
+* `URL parsing with WSGI <url-parsing-with-wsgi.html>`_
 
-* `To-Do Tutorial <http://pythonpaste.org/todo/TodoTutorial.html>`_
+Components
+==========
 
-The core Paste package is a set of tools that use `WSGI
-<http://www.python.org/peps/pep-0333.html>`_ heavily as the means of
-communication.  WSGI is an in-process CGI-like communication protocol.
-
-Right now the best way to see the various tools available in Paste is
-to `look through the source <module-index.html>`_.
-
-Related Projects
-================
-
-Closely related packages:
-
-* `Paste Deploy <http://pythonpaste.org/deploy/>`_
-* `Paste Script <http://pythonpaste.org/script/>`_
-* `Paste WebKit <http://pythonpaste.org/webkit/>`_
-* `Wareweb <http://pythonpaste.org/wareweb/>`_
-
-Developer Documentation
-=======================
-
-* `Developer Guidelines <DeveloperGuidelines.html>`_
-* `Style Guide <StyleGuide.html>`_
-
-Reference Documentation
-=======================
-
-* `Testing Applications With Paste <testing-applications.html>`_
-* `URL Parsing with WSGI and Paste <url-parsing-with-wsgi.html>`_
-
+* `Paste Deploy <./deploy/>`_
+* `Paste Script <./script/>`_
+* `Paste Module Index <module-index.html>`_
+* `Paste WebKit <./webkit/>`_
+* `Wareweb <./wareweb/>`_
+* `WSGI specification <http://www.python.org/peps/pep-0333.html>`_
+* `Example application: to-do <./todo/>`_
+* `Example application: FileBrowser <./filebrowser/>`_
 
 License
 =======
@@ -93,89 +75,3 @@ Paste is distributed under the `Python Software Foundation`__
 license.  This is a BSD/MIT-style license.
 
 .. __: http://www.python.org/psf/license.html
-
-Overview
-========
-
-If you don't want to look through source, here's a quick overview of
-what there is here:
-
-Testing
--------
-
-* A fixture for testing WSGI applications conveniently and in-process,
-  in ``paste.fixture``
-
-* A fixture for testing command-line applications, also in
-  ``paste.fixture``
-
-* Check components for WSGI-compliance in ``paste.lint``
-
-Dispatching
------------
-
-* Chain and cascade WSGI applications (returning the first non-error
-  response) in ``paste.cascade``
-
-* Dispatch to several WSGI applications based on URL prefixes, in
-  ``paste.urlmap``
-
-* Allow applications to make subrequests and forward requests
-  internally, in ``paste.recursive``
-
-Web Application
----------------
-
-* Run CGI programs as WSGI applications in ``paste.cgiapp`` (and
-  Python-sepcific CGI programs with ``paste.pycgiwrapper``)
-
-* Traverse files and load WSGI applications from ``.py`` files (or
-  static files), in ``paste.urlparser``
-
-* Serve static directories of files, also in ``paste.urlparser``
-
-Tools
------
-
-* Catch HTTP-related exceptions (e.g., ``HTTPNotFound``) and turn them
-  into proper responses in ``paste.httpexceptions``
-
-* Check for signed cookies for authentication, setting ``REMOTE_USER``
-  in ``paste.login``
-
-* Create sessions in ``paste.session`` and ``paste.flup_session``
-
-* Gzip responses in ``paste.gzip``
-
-* A wide variety of routines for manipulating WSGI requests and
-  producing responses, in ``paste.wsgilib``
-
-Debugging Filters
------------------
-
-* Catch (optionally email) errors with extended tracebacks (using
-  Zope/ZPT conventions) in ``paste.exceptions``
-
-* Catch errors presenting a `cgitb
-  <http://python.org/doc/current/lib/module-cgitb.html>`_-based
-  output, in ``paste.cgitb_catcher``.
-
-* Profile each request and append profiling information to the HTML,
-  in ``paste.profilemiddleware``
-
-* Capture ``print`` output and present it in the browser for
-  debugging, in ``paste.printdebug``
-
-* Validate all HTML output from applications using the `WDG Validator
-  <http://www.htmlhelp.com/tools/validator/>`_, appending any errors
-  or warnings to the page, in ``paste.wdg_validator``
-
-Other Tools
------------
-
-* A file monitor to allow restarting the server when files have been
-  updated (for automatic restarting when editing code) in
-  ``paste.reloader``
-
-* A class for generating and traversing URLs, and creating associated
-  HTML code, in ``paste.url``
