@@ -26,8 +26,10 @@ Paste for Administrators
 
 * Manage and install web applications system-wide for easy maintenance
 
-* `See an installation example <install-example.html>`_ or `read more
-  about what Paste-enabled means... <enabled.html>`_
+.. comment:
+
+  * `See an installation example <install-example.html>`_ or `read more
+    about what Paste-enabled means... <enabled.html>`_
 
 Paste for Web Developers
 ------------------------
@@ -44,9 +46,14 @@ Paste for Web Developers
   converting old projects, updating and deploying projects -- using a
   set of `complimentary packages and tools <related-projects.html>`_
 
-* `See a development example <develop-example.html>`_ or `read more
-  about using Paste in your
-  applications... <developer-features.html>`_
+* `read more about some of the available features
+  <developer-features.html>`_
+
+.. comment:
+
+  * `See a development example <develop-example.html>`_ or `read more
+    about using Paste in your
+    applications... <developer-features.html>`_
 
 Documentation
 =============
@@ -60,13 +67,22 @@ Components
 ==========
 
 * `Paste Deploy <./deploy/>`_
+
 * `Paste Script <./script/>`_
+
 * `Paste Module Index <module-index.html>`_
+
 * `Paste WebKit <./webkit/>`_
+
 * `Wareweb <./wareweb/>`_
+
 * `WSGI specification <http://www.python.org/peps/pep-0333.html>`_
-* `Example application: to-do <./todo/>`_
-* `Example application: FileBrowser <./filebrowser/>`_
+
+* `Example application: to-do
+  <http://svn.pythonpaste.org/Paste/apps/Todo_SQLObject_ZPT/trunk/>`_.
+
+* `Example application: FileBrowser
+  <http://svn.pythonpaste.org/Paste/apps/FileBrowser/trunk/>`_
 
 License
 =======
