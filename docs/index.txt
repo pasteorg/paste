@@ -1,17 +1,20 @@
 Python Paste
 ++++++++++++
 
-Python Paste -- 50% tastier than Elmer's!  
-Paste: making the web sticky.  
-Fix broken websites by applying a Paste liberally.
-Paste: paper over your inconsistencies. 
-Paste: a soft mixture of malleable consistency.  
-Paste: a tasty mixture to be spread on bread or crackers.  
-Paste: the glue that won't hurt you when you eat it.
-Python Paste: the web extruded into the form of a snake.
-Paste: the vinegar eel.
-Paste: you bring the cut.
-Paste: a doughy substance from which to make metaphorical web cupcakes.
+.. comment:
+
+   I want to put these somewhere sometime, but not place for them now...
+   Python Paste -- 50% tastier than Elmer's!  
+   Paste: making the web sticky.  
+   Fix broken websites by applying a Paste liberally.
+   Paste: paper over your inconsistencies. 
+   Paste: a soft mixture of malleable consistency.  
+   Paste: a tasty mixture to be spread on bread or crackers.  
+   Paste: the glue that won't hurt you when you eat it.
+   Python Paste: the web extruded into the form of a snake.
+   Paste: the vinegar eel.
+   Paste: you bring the cut.
+   Paste: a doughy substance from which to make metaphorical web cupcakes.
 
 Python Paste brings consistency to Python web development and web
 application installation, providing tools for both developers and
