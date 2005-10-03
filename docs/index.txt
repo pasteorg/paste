@@ -47,7 +47,7 @@ Paste for Web Developers
 
 * Attention payed to the full development cycle -- starting projects,
   converting old projects, updating and deploying projects -- using a
-  set of `complimentary packages and tools <related-projects.html>`_
+  set of `complementary packages and tools <related-projects.html>`_
 
 * `read more about some of the available features
   <developer-features.html>`_
