@@ -1,4 +1,41 @@
 Related Projects
 ++++++++++++++++
 
-(Sorry, not written yet)
+These are all actually in the same package (``setuptools``):
+
+* `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
+  for generation of packages.
+
+* `easy_install
+  <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ for
+  installation of packages (``easy_install`` is a kind of front-end
+  for setuptools, and Python software installation in general).
+
+* `Python Eggs <http://peak.telecommunity.com/DevCenter/PythonEggs>`_
+  for introspection of packages and general "pluggability".
+  (``setuptools`` creates and installs Eggs)
+
+Other packages are used in Paste, and development may bleed into those
+projects.  Though you don't have to use those projects to use Paste or
+to have a Paste-enabled package, I think these are quality tools that
+form a more complete development experience:
+
+* `Subversion <http://subversion.tigris.org/>`_ for version control.
+
+* `buildutils <http://buildutils.lesscode.org>`_ for some common
+  maintenance tasks.
+
+* `Pudge <http://pudge.lesscode.org>`_ for documentation generation
+  (at least this website is generated using Pudge).
+
+* `py.test <http://codespeak.net/py/current/doc/test.html>`_ for
+  testing.  ``paste.fixture`` is entirely usable from within `unittest
+  <http://python.org/doc/current/lib/module-unittest.html>`_, but the
+  experience is more streamlined in ``py.test``.
+
+* `INITools <http://pythonpaste.org/initools/>`_ for .INI-file
+  parsing.  Paste only partially uses this package, but probably will
+  more in the future.
+
+* `Cheetah <http://cheetahtemplate.org>`_ for file generation,
+  especially generating startup file layouts and configuration files.
