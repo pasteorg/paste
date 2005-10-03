@@ -2,7 +2,7 @@
 # revision (set to True for real releases)
 RELEASE = False
 
-__version__ = "0.1"
+__version__ = "0.4"
 
 from ez_setup import use_setuptools
 use_setuptools()
