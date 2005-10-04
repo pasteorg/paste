@@ -5,12 +5,9 @@ This page lists packages used in Paste that aren't in PyPI for some reason.
 
 * `ZopePageTemplates </download/ZopePageTemplates-1.4.1.tar.gz>`_
 * `flup <http://svn.saddi.com/flup/trunk#egg=flup>`_
-* `Paste <http://svn.pythonpaste.org/Paste/trunk#egg=Paste>`_
-* `WSGI Utils
-  <http://www.owlfish.com/software/wsgiutils/downloads/WSGI Utils-0.5.tar.gz>`_
+* `WSGIUtils
+  <http://pylons.groovie.org/files/WSGIUtils-0.6-py2.4.egg>`_
 * `LoginKit <http://svn.w4py.org/LoginKit/trunk#egg=LoginKit>`_
 * `Component <http://svn.w4py.org/Component/trunk#egg=Component>`_
-* `ZPTKit <http://svn.w4py.org/ZPTKit/trunk#egg=ZPTKit>`_
-* `SQLObject <http://svn.colorstudy.com/trunk/SQLObject#egg=SQLObject>`_
 * `ElementTree
   <http://effbot.org/downloads/elementtree-1.2.6-20050316.zip>`_
