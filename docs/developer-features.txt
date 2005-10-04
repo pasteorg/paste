@@ -1,55 +1,6 @@
 Documentation
 =============
 
-Tutorials and Introduction
-==========================
-
-* `To-Do Tutorial <http://pythonpaste.org/todo/TodoTutorial.html>`_
-
-The core Paste package is a set of tools that use `WSGI
-<http://www.python.org/peps/pep-0333.html>`_ heavily as the means of
-communication.  WSGI is an in-process CGI-like communication protocol.
-
-Right now the best way to see the various tools available in Paste is
-to `look through the source <module-index.html>`_.
-
-Related Projects
-================
-
-Closely related packages:
-
-* `Paste Deploy <http://pythonpaste.org/deploy/>`_
-* `Paste Script <http://pythonpaste.org/script/>`_
-* `Paste WebKit <http://pythonpaste.org/webkit/>`_
-* `Wareweb <http://pythonpaste.org/wareweb/>`_
-
-Developer Documentation
-=======================
-
-* `Developer Guidelines <DeveloperGuidelines.html>`_
-* `Style Guide <StyleGuide.html>`_
-
-Reference Documentation
-=======================
-
-* `Testing Applications With Paste <testing-applications.html>`_
-* `URL Parsing with WSGI and Paste <url-parsing-with-wsgi.html>`_
-
-
-License
-=======
-
-Paste is distributed under the `Python Software Foundation`__
-license.  This is a BSD/MIT-style license.
-
-.. __: http://www.python.org/psf/license.html
-
-Overview
-========
-
-If you don't want to look through source, here's a quick overview of
-what there is here:
-
 Testing
 -------
 
