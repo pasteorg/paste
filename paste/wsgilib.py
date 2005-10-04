@@ -292,6 +292,8 @@ def send_file(filename):
     def application(environ, start_response):
         type, encoding = mimetypes.guess_type(filename)
         # @@: I don't know what to do with the encoding.
+        if not type:
+            type = 'application/octet-stream'
         size = os.stat(filename).st_size
         try:
             file = open(filename, 'rb')
@@ -426,6 +428,8 @@ def capture_output(environ, start_response, application):
     data = []
     output = StringIO()
     def replacement_start_response(status, headers, exc_info=None):
+        if data:
+            data[:] = []
         data.append(status)
         data.append(headers)
         start_response(status, headers, exc_info)
