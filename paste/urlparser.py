@@ -508,6 +508,8 @@ class PkgResourcesParser(StaticURLParser):
             return self.error_extra_path(environ, start_response)
         
         type, encoding = mimetypes.guess_type(resource)
+        if not type:
+            type = 'application/octet-stream'
         # @@: I don't know what to do with the encoding.
         try:
             file = self.egg.get_resource_stream(self.manager, resource)
