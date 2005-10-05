@@ -7,7 +7,7 @@ from fnmatch import fnmatchcase
 from distutils.util import convert_path
 
 def find_package_data(where='.', package='', wildcards=(),
-                      exclude=('.*', 'CVS', '_darcs'),
+                      exclude_directories=('.*', 'CVS', '_darcs'),
                       only_in_packages=True):
     """
     Return a dictionary suitable for use in ``package_data``
@@ -29,9 +29,9 @@ def find_package_data(where='.', package='', wildcards=(),
     are not packages won't be included (but directories under packages
     will).
 
-    Directories matching any pattern in ``exclude`` will be ignored;
-    by default directories with leading ``.``, ``CVS``, and ``_darcs``
-    will be ignored.
+    Directories matching any pattern in ``exclude_directories`` will
+    be ignored; by default directories with leading ``.``, ``CVS``,
+    and ``_darcs`` will be ignored.
     """
     out = {}
     stack = [(convert_path(where), '', package, only_in_packages)]
@@ -42,23 +42,24 @@ def find_package_data(where='.', package='', wildcards=(),
                 prefix + wildcard
                 for wildcard in wildcards])
         for name in os.listdir(where):
+            if not os.path.isdir(fn):
+                continue
             bad_name = False
-            for pattern in exclude:
+            for pattern in exclude_directories:
                 if fnmatchcase(name, pattern):
                     bad_name = True
                     break
             if bad_name:
                 continue
             fn = os.path.join(where, name)
-            if os.path.isdir(fn):
-                if os.path.isfile(os.path.join(fn, '__init__.py')):
-                    if not package:
-                        new_package = name
-                    else:
-                        new_package = package + '.' + name
-                    stack.append((fn, '', new_package, False))
+            if os.path.isfile(os.path.join(fn, '__init__.py')):
+                if not package:
+                    new_package = name
                 else:
-                    stack.append((fn, prefix + name + '/', package, only_in_packages))
+                    new_package = package + '.' + name
+                stack.append((fn, '', new_package, False))
+            else:
+                stack.append((fn, prefix + name + '/', package, only_in_packages))
     return out
 
 if __name__ == '__main__':
