@@ -11,7 +11,7 @@ from distutils.util import convert_path
 # of replicating them:
 standard_exclude = ('*.py', '*.pyc', '*~', '.*', '*.bak')
 standard_exclude_directories = ('.*', 'CVS', '_darcs', './build',
-                                './dist')
+                                './dist', 'EGG-INFO', '*.egg-info')
 
 def find_package_data(
     where='.', package='',
