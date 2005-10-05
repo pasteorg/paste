@@ -3,74 +3,22 @@
 # that package is installed yet.
 
 import os
+import sys
 from fnmatch import fnmatchcase
 from distutils.util import convert_path
-
-def find_package_data(where='.', package='', wildcards=(),
-                      exclude_directories=('.*', 'CVS', '_darcs'),
-                      only_in_packages=True):
-    """
-    Return a dictionary suitable for use in ``package_data``
-    in a distutils ``setup.py`` file.
-
-    The dictionary looks like::
-
-        {'package': [wildcards]}
-
-    Except for any directories under the package (that aren't
-    themselves subpackages) it will expand the wildcards.  So if you
-    have a package ``pygo`` and a subdirectory ``static`` (with no
-    ``__init__.py`` file, hence not a subpackages) and
-    ``wildcards=('*.css', '*.js')``, then you'll get::
-
-        {'pygo': ['*.css', '*.js', 'static/*.css', 'static/*.js']}
-
-    If ``only_in_packages`` is true, then top-level directories that
-    are not packages won't be included (but directories under packages
-    will).
-
-    Directories matching any pattern in ``exclude_directories`` will
-    be ignored; by default directories with leading ``.``, ``CVS``,
-    and ``_darcs`` will be ignored.
-    """
-    out = {}
-    stack = [(convert_path(where), '', package, only_in_packages)]
-    while stack:
-        where, prefix, package, only_in_packages = stack.pop(0)
-        if package or not only_in_packages:
-            out.setdefault(package, []).extend([
-                prefix + wildcard
-                for wildcard in wildcards])
-        for name in os.listdir(where):
-            fn = os.path.join(where, name)
-            if not os.path.isdir(fn):
-                continue
-            bad_name = False
-            for pattern in exclude_directories:
-                if fnmatchcase(name, pattern):
-                    bad_name = True
-                    break
-            if bad_name:
-                continue
-            if os.path.isfile(os.path.join(fn, '__init__.py')):
-                if not package:
-                    new_package = name
-                else:
-                    new_package = package + '.' + name
-                stack.append((fn, '', new_package, False))
-            else:
-                stack.append((fn, prefix + name + '/', package, only_in_packages))
-    return out
 
 # Provided as an attribute, so you can append to these instead
 # of replicating them:
 standard_exclude = ('*.py', '*.pyc', '*~', '.*', '*.bak')
+standard_exclude_directories = ('.*', 'CVS', '_darcs', './build',
+                                './dist')
 
-def enumerate_package_data(
+def find_package_data(
     where='.', package='',
     exclude=standard_exclude,
-    exclude_directories=('.*', 'CVS', '_darcs'),
-    only_in_packages=True):
+    exclude_directories=standard_exclude_directories,
+    only_in_packages=True,
+    show_ignored=False):
     """
     Return a dictionary suitable for use in ``package_data``
     in a distutils ``setup.py`` file.
@@ -89,6 +37,10 @@ def enumerate_package_data(
     Directories matching any pattern in ``exclude_directories`` will
     be ignored; by default directories with leading ``.``, ``CVS``,
     and ``_darcs`` will be ignored.
+
+    If ``show_ignored`` is true, then all the files that aren't
+    included in package data are shown on stderr (for debugging
+    purposes).
     """
     out = {}
     stack = [(convert_path(where), '', package, only_in_packages)]
@@ -99,8 +51,13 @@ def enumerate_package_data(
             if os.path.isdir(fn):
                 bad_name = False
                 for pattern in exclude_directories:
-                    if fnmatchcase(name, pattern):
+                    if (fnmatchcase(name, pattern)
+                        or fn.lower() == pattern.lower()):
                         bad_name = True
+                        if show_ignored:
+                            print >> sys.stderr, (
+                                "Directory %s ignored by pattern %s"
+                                % (fn, pattern))
                         break
                 if bad_name:
                     continue
@@ -116,8 +73,13 @@ def enumerate_package_data(
                 # is a file
                 bad_name = False
                 for pattern in exclude:
-                    if fnmatchcase(name, pattern):
+                    if (fnmatchcase(name, pattern)
+                        or fn.lower() == pattern.lower()):
                         bad_name = True
+                        if show_ignored:
+                            print >> sys.stderr, (
+                                "File %s ignored by pattern %s"
+                                % (fn, pattern))
                         break
                 if bad_name:
                     continue
@@ -126,9 +88,5 @@ def enumerate_package_data(
 
 if __name__ == '__main__':
     import sys, pprint
-    if sys.argv[1] == 'enumerate':
-        pprint.pprint(
-            enumerate_package_data())
-    else:
-        pprint.pprint(
-            find_package_data(wildcards=sys.argv[1:]))
+    pprint.pprint(
+        find_package_data(show_ignored=True))
