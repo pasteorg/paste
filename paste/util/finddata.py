@@ -41,7 +41,11 @@ def find_package_data(
     If ``show_ignored`` is true, then all the files that aren't
     included in package data are shown on stderr (for debugging
     purposes).
+
+    Note patterns use wildcards, or can be exact paths (including
+    leading ``./``), and all searching is case-insensitive.
     """
+    
     out = {}
     stack = [(convert_path(where), '', package, only_in_packages)]
     while stack:
