@@ -17,12 +17,16 @@ from paste.deploy import converters
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
 
-class NoDefault:
-    pass
+class _NoDefault:
+    def __repr__(self):
+        return '<NoDefault>'
+NoDefault = _NoDefault()
 
 class ErrorMiddleware(object):
 
     """
+    Error handling middleware
+    
     Usage::
 
         error_caching_wsgi_app = ErrorMiddleware(wsgi_app)
@@ -31,9 +35,31 @@ class ErrorMiddleware(object):
     true value, this middleware is disabled.  This can be useful in a
     testing environment where you don't want errors to be caught and
     transformed.
+
+    Settings:
+
+    ``debug``:
+        If true, then tracebacks will be shown in the browser.
+
+    ``error_email``:
+        An email address (or list of addresses) to send exception reports
+        to.
+
+    ``error_log``:
+        A filename to append tracebacks to.
+
+    ``show_exceptions_in_wsgi_errors``:
+        If true, then errors will be printed to ``wsgi.errors`` (frequently
+        a server error log, or stderr).
+
+    ``from_address``, ``smtp_server``, ``error_subject_prefix``:
+        Variables to control the emailed exception reports.
+
+    ``error_message``:
+        When debug mode is off, the error message to show to users.
     """
 
-    def __init__(self, application, global_conf,
+    def __init__(self, application, global_conf=None,
                  debug=NoDefault,
                  error_email=None,
                  error_log=None,
@@ -43,6 +69,8 @@ class ErrorMiddleware(object):
                  error_subject_prefix=None,
                  error_message=None):
         self.application = application
+        if global_conf is None:
+            global_conf = {}
         if debug is NoDefault:
             debug = global_conf.get('debug')
         self.debug_mode = converters.asbool(debug)
@@ -66,6 +94,9 @@ class ErrorMiddleware(object):
         self.error_message = error_message
             
     def __call__(self, environ, start_response):
+        """
+        The WSGI application interface.
+        """
         # We want to be careful about not sending headers twice,
         # and the content type that the app has committed to (if there
         # is an exception in the iterator body of the response)
@@ -133,10 +164,17 @@ class ErrorMiddleware(object):
             error_message=self.error_message)
 
 class Supplement(object):
+
+    """
+    This is a supplement used to display standard WSGI information in
+    the traceback.
+    """
+
     def __init__(self, middleware, environ):
         self.middleware = middleware
         self.environ = environ
         self.source_url = wsgilib.construct_url(environ)
+
     def extraData(self):
         data = {}
         cgi_vars = data[('extra', 'CGI Variables')] = {}
@@ -186,8 +224,9 @@ def handle_exception(exc_info, error_stream, html=True,
                      error_message=None,
                      ):
     """
-    You can also use exception handling outside of a web context,
-    like::
+    For exception handling outside of a web context
+
+    Use like::
 
         import sys
         import paste

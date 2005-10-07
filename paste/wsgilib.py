@@ -253,8 +253,9 @@ def error_body_response(error_code, message):
 def error_response(environ, error_code, message,
                    debug_message=None):
     """
-    Returns the status, headers, and body of an error response.  Use
-    like::
+    Returns the status, headers, and body of an error response.
+
+    Use like::
 
         status, headers, body = wsgilib.error_response(
             '301 Moved Permanently', 'Moved to <a href="%s">%s</a>'
@@ -372,7 +373,9 @@ def path_info_split(path_info):
 def path_info_pop(environ):
     """
     'Pops' off the next segment of PATH_INFO, pushing it onto
-    SCRIPT_NAME, and returning that segment.  For instance::
+    SCRIPT_NAME, and returning that segment.
+
+    For instance::
 
         >>> def call_it(script_name, path_info):
         ...     env = {'SCRIPT_NAME': script_name, 'PATH_INFO': path_info}
@@ -409,9 +412,10 @@ def path_info_pop(environ):
 def capture_output(environ, start_response, application):
     """
     Runs application with environ and start_response, and captures
-    status, headers, and body.  Sends status and header, but *not*
-    body.  Returns (status, headers, body).  Typically this is used
-    like::
+    status, headers, and body.
+
+    Sends status and header, but *not* body.  Returns (status,
+    headers, body).  Typically this is used like::
 
         def dehtmlifying_middleware(application):
             def replacement_app(environ, start_response):

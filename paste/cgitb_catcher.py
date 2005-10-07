@@ -4,9 +4,9 @@
 """
 WSGI middleware
 
-Captures any exceptions and prints a pretty report.  See the cgitb
-documentation for more:
-  http://python.org/doc/current/lib/module-cgitb.html
+Captures any exceptions and prints a pretty report.  See the `cgitb
+documentation <http://python.org/doc/current/lib/module-cgitb.html>`_
+for more.
 """
 
 import cgitb

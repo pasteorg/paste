@@ -85,7 +85,7 @@ class ExceptionCollector:
     The actually interpretation of these values is largely up to the
     reporters and formatters.
     
-    collect_exception(*sys.exc_info()) will return an object with
+    ``collect_exception(*sys.exc_info())`` will return an object with
     several attributes:
 
     ``frames``:
@@ -464,11 +464,13 @@ col = ExceptionCollector()
 
 def collect_exception(t, v, tb, limit=None):
     """
-    Use like:
+    Collection an exception from ``sys.exc_info()``.
+    
+    Use like::
 
-    try:
-        blah blah
-    except:
-        exc_data = collect_exception(*sys.exc_info())
+      try:
+          blah blah
+      except:
+          exc_data = collect_exception(*sys.exc_info())
     """
     return col.collectException(t, v, tb, limit=limit)
