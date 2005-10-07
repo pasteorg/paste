@@ -447,7 +447,9 @@ class TestResponse(object):
     def mustcontain(self, *strings):
         """
         Assert that the response contains all of the strings passed
-        in as arguments.  Equivalent to::
+        in as arguments.
+
+        Equivalent to::
 
             assert string in res
         """
@@ -823,7 +825,10 @@ def _space_prefix(pref, full, sep=None, indent=None, include_sep=True):
 
 def setup_module(module=None):
     """
-    This is used by py.test if it is in the module, so do::
+    This is used by py.test if it is in the module, so you can
+    import this directly.
+
+    Use like::
 
         from paste.tests.fixture import setup_module
     """
