@@ -41,7 +41,7 @@ class EmailReporter(Reporter):
         msg = self.assemble_email(exc_data)
         server = smtplib.SMTP(self.smtp_server)
         server.sendmail(self.from_address,
-                        self.to_addresses, str(msg))
+                        self.to_addresses, msg.as_string())
         server.quit()
 
     def check_params(self):
