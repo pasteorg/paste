@@ -115,6 +115,7 @@ Other Tools
       url="http://pythonpaste.org",
       license="MIT",
       packages=find_packages(exclude=['ez_setup', 'examples', 'packages']),
+      namespace_packages=['paste'],
       zip_safe=True,
       extras_require={
         'subprocess': [],
