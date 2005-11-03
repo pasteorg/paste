@@ -312,6 +312,7 @@ class TestApp(object):
                 c[name] = value
             req.environ['HTTP_COOKIE'] = str(c).split(': ', 1)[1]
         req.environ['paste.testing'] = True
+        req.environ['paste.testing_variables'] = {}
         app = lint.middleware(self.app)
         old_stdout = sys.stdout
         out = StringIO()
@@ -334,6 +335,8 @@ class TestApp(object):
             c = SimpleCookie(header)
             for key, morsel in c.items():
                 self.cookies[key] = morsel.value
+        for name, value in req.environ['paste.testing_variables']:
+            setattr(res, name, value)
         if self.namespace is None:
             # It's annoying to return the response in doctests, as it'll
             # be printed, so we only return it is we couldn't assign
