@@ -8,6 +8,9 @@ Processes Python exceptions that relate to HTTP exceptions.  This
 defines a set of extensions, all subclasses of HTTPException, and a
 middleware (`middleware`) that catches these exceptions and turns them
 into proper responses.
+
+Note: if ``'paste.debug_suppress_httpexceptions'`` is in the request
+and is true, then this middleware will be skipped.
 """
 
 import types
@@ -230,6 +233,8 @@ def middleware(application, global_conf=None):
         try:
             return application(environ, checked_start_response)
         except HTTPException, e:
+            if environ.get('paste.debug_suppress_httpexceptions'):
+                raise
             if app_started:
                 # They've already started the response, so we can't
                 # do the right thing anymore.
