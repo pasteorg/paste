@@ -9,8 +9,7 @@ Formatters for the exception data that comes from ExceptionCollector.
 
 import cgi
 import re
-
-whitespace_re = re.compile(r'  +')
+from paste.util import PySourceColor
 
 def html_quote(s):
     return cgi.escape(s, True)
@@ -246,22 +245,12 @@ class HTMLFormatter(TextFormatter):
             filename, modname, lineno, name)
         return 'File %r, line %s in <tt>%s</tt>' % (filename, lineno, name)
     def format_long_source(self, source, long_source):
-        q_long_source = self.quote(long_source).rstrip()
-        #q_long_source = re.sub('^[\n\r]*', '', q_long_source)
-        lines = q_long_source.splitlines()
-        for i in range(1, len(lines)):
-            lines[i] = '    '+lines[i]
-            if lines[i].strip() == source.strip():
-                lines[i] = '<span class="source-highlight">%s</span>' % lines[i]
-        q_long_source = '<br>\n'.join(lines)
-        q_long_source = whitespace_re.sub(
-            lambda m: '&nbsp;'*(len(m.group(0))-1)+' ',
-            q_long_source)
-        
+        q_long_source = str2html(long_source, False, 4)
+        q_source = str2html(source, True, 0)
         return ('<code style="display: none" class="source" source-type="long"><a class="switch_source" onclick="return switch_source(this, \'long\')" href="#">&lt;&lt;&nbsp; </a>%s</code>'
                 '<code class="source" source-type="short"><a onclick="return switch_source(this, \'short\')" class="switch_source" href="#">&gt;&gt;&nbsp; </a>%s</code>'
                 % (q_long_source,
-                   self.quote(source.strip())))
+                   q_source))
     def format_source(self, source_line):
         return '&nbsp;&nbsp;<code class="source">%s</code>' % self.quote(source_line.strip())
     def format_traceback_info(self, info):
@@ -480,3 +469,28 @@ def format_html(exc_data, include_hidden_frames=False, **ops):
         
 def format_text(exc_data, **ops):
     return TextFormatter(**ops).format_collected_data(exc_data)
+
+whitespace_re = re.compile(r'  +')
+pre_re = re.compile(r'</?pre.*?>')
+error_re = re.compile(r'<h3>ERROR: .*?</h3>')
+
+def str2html(src, strip=False, indent_subsequent=0):
+    if strip:
+        src = src.strip()
+    src = PySourceColor.str2html(src, form='snip')
+    src = error_re.sub('', src)
+    src = pre_re.sub('', src)
+    src = re.sub(r'^[\n\r]{0,1}', '', src)
+    src = re.sub(r'[\n\r]{0,1}$', '', src)
+    lines = src.splitlines()
+    if len(lines) == 1:
+        return lines[0]
+    indent = ' '*indent_subsequent
+    for i in range(1, len(lines)):
+        lines[i] = indent+lines[i]
+        if i == len(lines)/2:
+            lines[i] = '<span class="source-highlight">%s</span>' % lines[i]
+    src = '<br>\n'.join(lines)
+    src = whitespace_re.sub(
+        lambda m: '&nbsp;'*(len(m.group(0))-1) + ' ', src)
+    return src

@@ -875,6 +875,9 @@ A Møøse once bit my sister...
     else:
         Usage()
     return
+
+# emacs wants this: '
+
 ####################################################### User funtctions
 
 def str2stdout(sourcestring, colors=None, title='', markup='html',
