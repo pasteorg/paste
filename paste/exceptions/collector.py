@@ -447,15 +447,21 @@ class ExceptionFrame(Bunch):
     # The value of __traceback_hide__
     traceback_hide = False
 
-    def get_source_line(self):
+    def get_source_line(self, context=0):
         """
         Return the source of the current line of this frame.  You
         probably want to .strip() it as well, as it is likely to have
         leading whitespace.
+
+        If context is given, then that many lines on either side will
+        also be returned.  E.g., context=1 will give 3 lines.
         """
         if not self.filename or not self.lineno:
             return None
-        return linecache.getline(self.filename, self.lineno)
+        lines = []
+        for lineno in range(self.lineno-context, self.lineno+context+1):
+            lines.append(linecache.getline(self.filename, lineno))
+        return ''.join(lines)
         
 if hasattr(sys, 'tracebacklimit'):
     limit = min(limit, sys.tracebacklimit)

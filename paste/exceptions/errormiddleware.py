@@ -276,10 +276,13 @@ def handle_exception(exc_info, error_stream, html=True,
             exc_data.exception_type, exc_data.exception_value))
     if html:
         if debug_mode:
-            error_html = formatter.format_html(exc_data,
-                                               include_hidden_frames=True)
+            error_html = formatter.format_html(
+                exc_data,
+                include_hidden_frames=True,
+                include_reusable=False)
+            head_html = formatter.error_css + formatter.hide_display_js
             return_error = error_template(
-                error_html, extra_data)
+                head_html, error_html, extra_data)
             extra_data = ''
             reported = True
         else:
@@ -318,15 +321,16 @@ def send_report(rep, exc_data, html=True):
     else:
         return ''
 
-def error_template(exception, extra):
+def error_template(head_html, exception, extra):
     return '''
     <html>
     <head>
     <title>Server Error</title>
+    %s
     </head>
     <body>
     <h1>Server Error</h1>
     %s
     %s
     </body>
-    </html>''' % (exception, extra)
+    </html>''' % (head_html, exception, extra)
