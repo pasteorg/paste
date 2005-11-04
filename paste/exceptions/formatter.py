@@ -8,6 +8,9 @@ Formatters for the exception data that comes from ExceptionCollector.
 # Use this: http://www.zope.org/Members/tino/VisualTraceback/VisualTracebackNews
 
 import cgi
+import re
+
+whitespace_re = re.compile(r'  +')
 
 def html_quote(s):
     return cgi.escape(s, True)
@@ -66,11 +69,14 @@ class AbstractFormatter:
                         break
             lines.append(self.format_source_line(
                 filename or '?',
+                frame.modname or '?',
                 frame.lineno or '?',
                 frame.name or '?'))
             source = frame.get_source_line()
+            long_source = frame.get_source_line(2)
             if source:
-                lines.append(self.format_source(source))
+                lines.append(self.format_long_source(
+                    source, long_source))
         exc_info = self.format_exception_info(
             exc_data.exception_type,
             exc_data.exception_value)
@@ -176,8 +182,10 @@ class TextFormatter(AbstractFormatter):
         return 'Warning: %s' % self.quote(warning)
     def format_sup_info(self, info):
         return [self.quote_long(info)]
-    def format_source_line(self, filename, lineno, name):
+    def format_source_line(self, filename, modname, lineno, name):
         return 'File %r, line %s in %s' % (filename, lineno, name)
+    def format_long_source(self, source, long_source):
+        return self.format_source(source)
     def format_source(self, source_line):
         return '  ' + self.quote(source_line.strip())
     def format_exception_info(self, etype, evalue):
@@ -233,10 +241,29 @@ class HTMLFormatter(TextFormatter):
         return 'URL: <a href="%s">%s</a>' % (url, url)
     def format_combine_lines(self, lines):
         return '<br>\n'.join(lines)
-    def format_source_line(self, filename, lineno, name):
+    def format_source_line(self, filename, modname, lineno, name):
+        return 'Module <span class="module" title="%s">%s</span>:<b>%s</b> in <code>%s</code>' % (
+            filename, modname, lineno, name)
         return 'File %r, line %s in <tt>%s</tt>' % (filename, lineno, name)
+    def format_long_source(self, source, long_source):
+        q_long_source = self.quote(long_source).rstrip()
+        #q_long_source = re.sub('^[\n\r]*', '', q_long_source)
+        lines = q_long_source.splitlines()
+        for i in range(1, len(lines)):
+            lines[i] = '    '+lines[i]
+            if lines[i].strip() == source.strip():
+                lines[i] = '<span class="source-highlight">%s</span>' % lines[i]
+        q_long_source = '<br>\n'.join(lines)
+        q_long_source = whitespace_re.sub(
+            lambda m: '&nbsp;'*(len(m.group(0))-1)+' ',
+            q_long_source)
+        
+        return ('<code style="display: none" class="source" source-type="long"><a class="switch_source" onclick="return switch_source(this, \'long\')" href="#">&lt;&lt;&nbsp; </a>%s</code>'
+                '<code class="source" source-type="short"><a onclick="return switch_source(this, \'short\')" class="switch_source" href="#">&gt;&gt;&nbsp; </a>%s</code>'
+                % (q_long_source,
+                   self.quote(source.strip())))
     def format_source(self, source_line):
-        return '&nbsp;&nbsp;<tt>%s</tt>' % self.quote(source_line.strip())
+        return '&nbsp;&nbsp;<code class="source">%s</code>' % self.quote(source_line.strip())
     def format_traceback_info(self, info):
         return '<pre>%s</pre>' % self.quote(info)
 
@@ -321,28 +348,68 @@ class HTMLFormatter(TextFormatter):
 hide_display_js = r'''
 <script type="text/javascript">
 function hide_display(id) {
-  var el = document.getElementById(id);
-  if (el.className == "hidden-data") {
-    el.className = "";
-    return true;
-  } else {
-    el.className = "hidden-data";
-    return false;
-  }
+    var el = document.getElementById(id);
+    if (el.className == "hidden-data") {
+        el.className = "";
+        return true;
+    } else {
+        el.className = "hidden-data";
+        return false;
+    }
 }
 document.write('<style type="text/css">\n');
 document.write('.hidden-data {display: none}\n');
 document.write('</style>\n');
 function show_button(toggle_id, name) {
-  document.write('<a href="#' + toggle_id
-      + '" onclick="javascript:hide_display(\'' + toggle_id
-      + '\')" class="button">' + name + '</a><br>');
+    document.write('<a href="#' + toggle_id
+        + '" onclick="javascript:hide_display(\'' + toggle_id
+        + '\')" class="button">' + name + '</a><br>');
 }
+
+function switch_source(el, hide_type) {
+    while (el) {
+        if (el.getAttribute &&
+            el.getAttribute('source-type') == hide_type) {
+            break;
+        }
+        el = el.parentNode;
+    }
+    if (! el) {
+        return false;
+    }
+    el.style.display = 'none';
+    if (hide_type == 'long') {
+        while (el) {
+            if (el.getAttribute &&
+                el.getAttribute('source-type') == 'short') {
+                break;
+            }
+            el = el.nextSibling;
+        }
+    } else {
+        while (el) {
+            if (el.getAttribute &&
+                el.getAttribute('source-type') == 'long') {
+                break;
+            }
+            el = el.previousSibling;
+        }
+    }
+    if (el) {
+        el.style.display = '';
+    }
+    return false;
+}
+
 </script>'''
     
 
 error_css = """
 <style type="text/css">
+body {
+  font-family: Helvetica, sans-serif;
+}
+
 table {
   width: 100%;
 }
@@ -371,6 +438,24 @@ a.button {
 a.button:hover {
   background-color: #ddd;
 }
+
+code.source {
+  color: #006;
+}
+
+a.switch_source {
+  color: #0990;
+  text-decoration: none;
+}
+
+a.switch_source:hover {
+  background-color: #ddd;
+}
+
+.source-highlight {
+  background-color: #ff9;
+}
+
 </style>
 """
 
@@ -380,8 +465,8 @@ def format_html(exc_data, include_hidden_frames=False, **ops):
     short_er = format_html(exc_data, show_hidden_frames=False, **ops)
     # @@: This should have a way of seeing if the previous traceback
     # was actually trimmed at all
-    long_er = format_html(exc_data, show_hidden_frames=True,
-                          include_reusable=False, **ops)
+    ops['include_reusable'] = False
+    long_er = format_html(exc_data, show_hidden_frames=True, **ops)
     return """
     %s
     <br>
