@@ -2,6 +2,11 @@ from paste.fixture import *
 from paste.exceptions.errormiddleware import ErrorMiddleware
 from paste import lint
 
+def strip_html(s):
+    s = re.sub('<.*?>', '', s)
+    s = s.replace('&nbsp;', ' ').replace('&lt;', '<').replace('&gt;', '>')
+    return s
+
 def do_request(app, expect_status=500):
     app = lint.middleware(app)
     app = ErrorMiddleware(app, {}, debug=True)
@@ -57,25 +62,28 @@ def yielder(args):
 
 def test_makes_exception():
     res = do_request(bad_app)
-    print res
     assert '<html' in res
+    res = strip_html(str(res))
+    print res
     assert 'bad_app() takes no arguments (2 given' in res
     assert 'iterator = application(environ, start_response_wrapper)' in res
-    assert 'lint.py' in res
-    assert 'errormiddleware.py' in res
+    assert 'paste.lint' in res
+    assert 'paste.exceptions.errormiddleware' in res
 
 def test_start_res():
     res = do_request(start_response_app)
+    res = strip_html(str(res))
     print res
     assert 'ValueError: hi' in res
-    assert 'test_error_middleware.py' in res
-    assert 'line 38 in <tt>start_response_app</tt>' in res
+    assert 'test_error_middleware' in res
+    assert ':43 in start_response_app' in res
 
 def test_after_start():
     res = do_request(after_start_response_app, 200)
+    res = strip_html(str(res))
     print res
     assert 'ValueError: error2' in res
-    assert 'line 42' in res
+    assert ':47' in res
 
 def test_iter_app():
     res = do_request(iter_app, 200)
