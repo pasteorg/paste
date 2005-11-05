@@ -1316,7 +1316,7 @@ class Parser(object):
             line = ex[1][0]
             self.out.write("<h3>ERROR: %s</h3>%s\n"%
                             (msg, self.raw[self.lines[line]:]))
-            traceback.print_exc()
+            #traceback.print_exc()
 
         # Markup end
         if self.addEnds:
