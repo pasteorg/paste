@@ -57,6 +57,13 @@ class ErrorMiddleware(object):
 
     ``error_message``:
         When debug mode is off, the error message to show to users.
+
+    This also looks for a special key ``'paste.expected_exceptions``,
+    which should be a list of exception classes.  When an exception is
+    raised, if it is found in this list then it will be re-raised
+    instead of being caught.  This should generally be set by
+    middleware that may (but probably shouldn't be) installed above
+    this middleware, and wants to get certain exceptions.
     """
 
     def __init__(self, application, global_conf=None,
@@ -118,6 +125,9 @@ class ErrorMiddleware(object):
             return self.catching_iter(app_iter, environ)
         except:
             exc_info = sys.exc_info()
+            for expected in environ.get('paste.expected_exceptions', []):
+                if issubclass(exc_info[0], expected):
+                    raise
             if not started:
                 start_response('500 Internal Server Error',
                                [('content-type', 'text/html')],

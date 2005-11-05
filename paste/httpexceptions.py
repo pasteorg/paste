@@ -225,13 +225,17 @@ def middleware(application, global_conf=None):
     """
 
     def start_application(environ, start_response):
+        environ.setdefault('paste.expected_exceptions', []).append(
+            HTTPException)
         app_started = []
         def checked_start_response(status, headers, exc_info=None):
             app_started.append(None)
             return start_response(status, headers, exc_info)
         
         try:
-            return application(environ, checked_start_response)
+            v = application(environ, checked_start_response)
+            environ['paste.expected_exceptions'].remove(HTTPException)
+            return v
         except HTTPException, e:
             if environ.get('paste.debug_suppress_httpexceptions'):
                 raise
