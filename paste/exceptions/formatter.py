@@ -475,13 +475,27 @@ pre_re = re.compile(r'</?pre.*?>')
 error_re = re.compile(r'<h3>ERROR: .*?</h3>')
 
 def str2html(src, strip=False, indent_subsequent=0):
+    """
+    Convert a string to HTML.  Try to be really safe about it,
+    returning a quoted version of the string if nothing else works.
+    """
+    try:
+        return _str2html(src, strip=strip, indent_subsequent=indent_subsequent)
+    except:
+        return html_quote(src)
+
+def _str2html(src, strip=False, indent_subsequent=0):
     if strip:
         src = src.strip()
-    src = PySourceColor.str2html(src, form='snip')
-    src = error_re.sub('', src)
-    src = pre_re.sub('', src)
-    src = re.sub(r'^[\n\r]{0,1}', '', src)
-    src = re.sub(r'[\n\r]{0,1}$', '', src)
+    orig_src = src
+    try:
+        src = PySourceColor.str2html(src, form='snip')
+        src = error_re.sub('', src)
+        src = pre_re.sub('', src)
+        src = re.sub(r'^[\n\r]{0,1}', '', src)
+        src = re.sub(r'[\n\r]{0,1}$', '', src)
+    except:
+        src = html_quote(orig_src)
     lines = src.splitlines()
     if len(lines) == 1:
         return lines[0]
@@ -494,3 +508,5 @@ def str2html(src, strip=False, indent_subsequent=0):
     src = whitespace_re.sub(
         lambda m: '&nbsp;'*(len(m.group(0))-1) + ' ', src)
     return src
+
+        

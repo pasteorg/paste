@@ -3,6 +3,7 @@ from paste.exceptions import collector
 import sys
 import os
 import difflib
+import re
 
 class Mock(object):
     def __init__(self, **kw):
@@ -26,6 +27,11 @@ class BadSupplement(Supplement):
 
     def getInfo(self):
         raise ValueError("This supplemental info is buggy")
+
+def strip_html(s):
+    s = re.sub('<.*?>', '', s)
+    s = s.replace('&nbsp;', ' ').replace('&lt;', '<').replace('&gt;', '>')
+    return s
 
 def call_error(sup):
     1 + 2
@@ -117,7 +123,7 @@ def test_hide_supppressed():
     When an error occurs and __traceback_stop__ is true for the
     erroneous frame, then that setting should be ignored.
     """
-    for f in formats:
+    for f in ['html']: #formats:
         results = []
         for hide_value in (False, 'after'):
             try:
@@ -143,11 +149,15 @@ def test_hide_after():
                 'AABB',
                 hide, 'after',
                 pass_through, 'CCDD',
+                # A little whitespace to keep this line out of the
+                # content part of the report
+
+                
                 hide, 'reset',
                 raise_error)
         except:
             result = format(f)
-            print result
+            print strip_html(result)
             assert 'AABB' in result
             assert 'CCDD' not in result
             assert 'raise_error' in result
