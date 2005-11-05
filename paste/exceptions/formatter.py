@@ -20,21 +20,24 @@ class AbstractFormatter:
 
     def __init__(self, show_hidden_frames=False,
                  include_reusable=True,
+                 show_extra_data=True,
                  trim_source_paths=()):
         self.show_hidden_frames = show_hidden_frames
         self.trim_source_paths = trim_source_paths
         self.include_reusable = include_reusable
+        self.show_extra_data = show_extra_data
 
     def format_collected_data(self, exc_data):
         general_data = {}
-        for name, value_list in exc_data.extra_data.items():
-            if isinstance(name, tuple):
-                importance, title = name
-            else:
-                importance, title = 'normal', name
-            for value in value_list:
-                general_data[(importance, name)] = self.format_extra_data(
-                    importance, title, value)
+        if self.show_extra_data:
+            for name, value_list in exc_data.extra_data.items():
+                if isinstance(name, tuple):
+                    importance, title = name
+                else:
+                    importance, title = 'normal', name
+                for value in value_list:
+                    general_data[(importance, name)] = self.format_extra_data(
+                        importance, title, value)
         lines = []
         frames = self.filter_frames(exc_data.frames)
         for frame in frames:
@@ -455,6 +458,7 @@ def format_html(exc_data, include_hidden_frames=False, **ops):
     # @@: This should have a way of seeing if the previous traceback
     # was actually trimmed at all
     ops['include_reusable'] = False
+    ops['show_extra_data'] = False
     long_er = format_html(exc_data, show_hidden_frames=True, **ops)
     return """
     %s
