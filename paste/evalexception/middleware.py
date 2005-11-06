@@ -25,7 +25,6 @@ def html_quote(v):
 def _repl_nbsp(match):
     if len(match.group(2)) == 1:
         return '&nbsp;'
-    print [match.group(0), match.group(1), match.group(2)]
     return match.group(1) + '&nbsp;' * (len(match.group(2))-1) + ' '
 
 def preserve_whitespace(v, quote=True):
@@ -206,7 +205,9 @@ class EvalException(object):
             html = format_eval_html(exc_data, base_path, count)
             head_html = (formatter.error_css + formatter.hide_display_js)
             head_html += self.eval_javascript(base_path, count)
+            repost_button = make_repost_button(environ)
             page = error_template % {
+                'repost_button': repost_button,
                 'head_html': head_html,
                 'body': html}
             return [page]
@@ -291,13 +292,18 @@ def make_table(items):
         out = StringIO()
         pprint.pprint(value, out)
         value = html_quote(out.getvalue())
-        value = formatter.make_pre_wrappable(value)
+        if len(value) > 100:
+            # @@: This can actually break the HTML :(
+            # should I truncate before quoting?
+            value = value[:100] + '<span style="background-color: #999">...</span>'
+        value = formatter.make_wrappable(value)
         if i % 2:
             attr = ' class="even"'
         else:
             attr = ' class="odd"'
-        rows.append('<tr%s style="vertical-align: top;"><td><b>%s</b></td><td><pre style="overflow: auto">%s</pre><td></tr>'
-                    % (attr, html_quote(name), value))
+        rows.append('<tr%s style="vertical-align: top;"><td><b>%s</b></td><td style="overflow: auto">%s<td></tr>'
+                    % (attr, html_quote(name),
+                       preserve_whitespace(value, quote=False)))
     return '<table>%s</table>' % (
         '\n'.join(rows))
 
@@ -323,6 +329,28 @@ def format_eval_html(exc_data, base_path, counter):
     </div>
     """ % (short_er, long_er)
 
+def make_repost_button(environ):
+    url = wsgilib.construct_url(environ)
+    if environ['REQUEST_METHOD'] == 'GET':
+        return ('<button onclick="window.location.href=%r">'
+                'Re-GET Page</button><br>' % url)
+    fields = []
+    for name, value_list in wsgilib.parse_formvars(
+        environ, all_as_list=True, include_get_vars=False):
+        for value in value_list:
+            if hasattr(value, 'filename'):
+                # @@: Arg, we'll just submit the body, and leave out
+                # the filename :(
+                value = value.value
+            fields.append(
+                '<input type="hidden" name="%s" value="%s">'
+                % (html_quote(name), html_quote(value)))
+    return '''
+<form action="%s" method="POST">
+%s
+<input type="submit" value="Re-POST Page">
+</form>''' % (url, '\n'.join(fields))
+    
 
 def input_form(framecount, debug_info):
     return '''
@@ -356,6 +384,8 @@ error_template = '''
 <div id="error-container"></div>
 <button onclick="return clearError()">clear this</button>
 </div>
+
+%(repost_button)s
 
 %(body)s
 
