@@ -313,29 +313,9 @@ class HTMLFormatter(TextFormatter):
                 % (odd and 'odd' or 'even', self.quote(name)))
             table.append(
                 '<td><tt>%s</tt></td></tr>'
-                % self.make_wrappable(self.quote(value)))
+                % make_wrappable(self.quote(value)))
         table.append('</table>')
         return '\n'.join(table)
-
-    def make_wrappable(self, html, wrap_limit=60,
-                       split_on=';?&@!$#-/\\"\''):
-        # Currently using <wbr>, maybe should use &#8203;
-        #   http://www.cs.tut.fi/~jkorpela/html/nobr.html
-        words = html.split()
-        new_words = []
-        for word in words:
-            if len(word) > wrap_limit:
-                for char in split_on:
-                    if char in word:
-                        words = [
-                            self.make_wrappable(w, wrap_limit=wrap_limit,
-                                                split_on=split_on)
-                            for w in word.split(char, 1)]
-                        new_words.append('<wbr>'.join(words))
-                        break
-            else:
-                new_words.append(word)
-        return ' '.join(new_words)
 
 hide_display_js = r'''
 <script type="text/javascript">
@@ -513,4 +493,40 @@ def _str2html(src, strip=False, indent_subsequent=0):
         lambda m: '&nbsp;'*(len(m.group(0))-1) + ' ', src)
     return src
 
-        
+def make_wrappable(html, wrap_limit=60,
+                   split_on=';?&@!$#-/\\"\''):
+    # Currently using <wbr>, maybe should use &#8203;
+    #   http://www.cs.tut.fi/~jkorpela/html/nobr.html
+    words = html.split()
+    new_words = []
+    for word in words:
+        if len(word) > wrap_limit:
+            for char in split_on:
+                if char in word:
+                    words = [
+                        make_wrappable(w, wrap_limit=wrap_limit,
+                                            split_on=split_on)
+                        for w in word.split(char, 1)]
+                    new_words.append('<wbr>'.join(words))
+                    break
+        else:
+            new_words.append(word)
+    return ' '.join(new_words)
+
+def make_pre_wrappable(html, wrap_limit=60,
+                       split_on=';?&@!$#-/\\"\''):
+    """
+    Like ``make_wrappable()`` but intended for text that will
+    go in a ``<pre>`` block, so wrap on a line-by-line basis.
+    """
+    lines = html.splitlines()
+    new_lines = []
+    for line in lines:
+        if len(line) > wrap_limit:
+            for char in split_on:
+                if char in line:
+                    parts = line.split(char)
+                    line = '<wbr>'.join(parts)
+                    break
+        new_lines.append(line)
+    return '\n'.join(lines)
