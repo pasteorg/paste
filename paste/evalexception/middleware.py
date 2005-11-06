@@ -8,6 +8,7 @@ import pprint
 import itertools
 import time
 import cgi
+import re
 from paste.exceptions import errormiddleware, formatter, collector
 from paste import wsgilib
 from paste import urlparser
@@ -21,12 +22,44 @@ def html_quote(v):
         return ''
     return cgi.escape(str(v), 1)
 
+def _repl_nbsp(match):
+    if len(match.group(2)) == 1:
+        return '&nbsp;'
+    print [match.group(0), match.group(1), match.group(2)]
+    return match.group(1) + '&nbsp;' * (len(match.group(2))-1) + ' '
+
+def preserve_whitespace(v, quote=True):
+    if quote:
+        v = html_quote(v)
+    v = v.replace('\n', '<br>\n')
+    v = re.sub(r'()(  +)', _repl_nbsp, v)
+    v = re.sub(r'(\n)( +)', _repl_nbsp, v)
+    v = re.sub(r'^()( +)', _repl_nbsp, v)
+    return '<code>%s</code>' % v
+
+def simplecatcher(application):
+    def simplecatcher_app(environ, start_response):
+        try:
+            return application(environ, start_response)
+        except:
+            out = StringIO()
+            traceback.print_exc(file=out)
+            start_response('500 Server Error',
+                           [('content-type', 'text/html')],
+                           sys.exc_info())
+            res = out.getvalue()
+            return ['<h3>Error</h3><pre>%s</pre>'
+                    % html_quote(out.getvalue())]
+    return simplecatcher_app
+
 def wsgiapp():
     """
-    Turns a function or method into a 
+    Turns a function or method into a WSGI application.
     """
     def decorator(func):
-        def application(*args):
+        def app_wrapper(*args):
+            # we get 3 args when this is a method, two when it is
+            # a function :(
             if len(args) == 3:
                 environ = args[1]
                 start_response = args[2]
@@ -34,33 +67,22 @@ def wsgiapp():
             else:
                 environ, start_response = args
                 args = []
-            fs = cgi.FieldStorage(
-                fp=environ['wsgi.input'],
-                environ=environ,
-                keep_blank_values=1)
-            form = {}
-            for name in fs.keys():
-                value = fs[name]
-                if not value.filename:
-                    value = value.value
-                if name in form:
-                    if isinstance(form[name], list):
-                        form[name].append(value)
-                    else:
-                        form[name] = [form[name], value]
-                else:
-                    form[name] = value
-            headers = HeaderDict({'content-type': 'text/html',
-                                  'status': '200 OK'})
-            form['environ'] = environ
-            form['headers'] = headers
-            res = func(*args, **form)
-            status = headers['status']
-            del headers['status']
-            start_response(status, headers.headeritems())
-            return [res]
-        application.exposed = True
-        return application
+            def application(environ, start_response):
+                form = wsgilib.parse_formvars(environ)
+                headers = wsgilib.ResponseHeaderDict(
+                    {'content-type': 'text/html',
+                     'status': '200 OK'})
+                form['environ'] = environ
+                form['headers'] = headers
+                res = func(*args, **form)
+                status = headers.pop('status')
+                start_response(status, headers.headeritems())
+                return [res]
+            app = httpexceptions.middleware(application)
+            app = simplecatcher(app)
+            return app(environ, start_response)
+        app_wrapper.exposed = True
+        return app_wrapper
     return decorator
 
 def get_debug_info(func):
@@ -82,38 +104,6 @@ def get_debug_info(func):
             return '<html>There was an error: %s</html>' % e
     return replacement
             
-
-class HeaderDict(dict):
-
-    def __getitem__(self, key):
-        return dict.__getitem__(self, key.lower())
-
-    def __setitem__(self, key, value):
-        dict.__setitem__(self, key.lower(), value)
-
-    def __delitem__(self, key):
-        dict.__delitem__(self, key.lower())
-
-    def add(self, key, value):
-        key = key.lower()
-        if key in self:
-            if isinstance(self[key], list):
-                self[key].append(value)
-            else:
-                self[key] = [self[key], value]
-        else:
-            self[key] = value
-
-    def headeritems(self):
-        result = []
-        for key in self:
-            if isinstance(self[key], list):
-                for v in self[key]:
-                    result.append((key, v))
-            else:
-                result.append((key, self[key]))
-        return result
-
 debug_counter = itertools.count(int(time.time()))
 
 class EvalException(object):
@@ -165,16 +155,23 @@ class EvalException(object):
             local_vars = make_table(vars)
         else:
             local_vars = 'No local vars'
-        return local_vars + input_form(framecount, debug_info)
+        return input_form(framecount, debug_info) + local_vars
 
     @wsgiapp()
     @get_debug_info
     def exec_input(self, framecount, debug_info, input, **kw):
+        if not input.strip():
+            return ''
+        input = input.rstrip() + '\n'
         frame = debug_info.frames[int(framecount)]
         vars = frame.tb_frame.f_locals
         context = evalcontext.EvalContext(vars)
         output = context.exec_expr(input)
-        return '>>> %s\n%s' % (input, output)
+        input_html = formatter.str2html(input)
+        return ('<code style="color: #060">&gt;&gt;&gt;</code> '
+                '<code>%s</code><br>\n%s'
+                % (preserve_whitespace(input_html, quote=False),
+                   preserve_whitespace(output)))
 
     def respond(self, environ, start_response):
         base_path = environ['SCRIPT_NAME']
@@ -277,22 +274,31 @@ class EvalHTMLFormatter(formatter.HTMLFormatter):
             self, filename, modname, lineno, name)
         self.framecount += 1
         return (line +
-                '  <a href="#" framecount="%s" onClick="show_frame(this)">[+]</a>'
-                % self.framecount)
+                '  <a href="#" class="switch_source" '
+                'framecount="%s" onClick="return showFrame(this)">&nbsp; &nbsp; '
+                '<img src="%s/_debug/media/plus.jpg" border=0 width=9 '
+                'height=9> &nbsp; &nbsp;</a>'
+                % (self.framecount, self.base_path))
 
 def make_table(items):
     if isinstance(items, dict):
         items = items.items()
         items.sort()
     rows = []
+    i = 0
     for name, value in items:
+        i += 1
         out = StringIO()
         pprint.pprint(value, out)
         value = html_quote(out.getvalue())
         value = formatter.make_pre_wrappable(value)
-        rows.append('<tr><td>%s</td><td><pre style="overflow: auto">%s</pre><td></tr>'
-                    % (html_quote(name), value))
-    return '<table border="1">%s</table>' % (
+        if i % 2:
+            attr = ' class="even"'
+        else:
+            attr = ' class="odd"'
+        rows.append('<tr%s style="vertical-align: top;"><td><b>%s</b></td><td><pre style="overflow: auto">%s</pre><td></tr>'
+                    % (attr, html_quote(name), value))
+    return '<table>%s</table>' % (
         '\n'.join(rows))
 
 def format_eval_html(exc_data, base_path, counter):
@@ -321,20 +327,24 @@ def format_eval_html(exc_data, base_path, counter):
 def input_form(framecount, debug_info):
     return '''
 <form action="#" method="POST"
- onsubmit="return submit_input($(\'submit_%(framecount)s\'), %(framecount)s)">
-<textarea disabled="disabled" rows=5 cols=60 style="width: 100%%"
- id="debug_output_%(framecount)s"></textarea><br>
+ onsubmit="return submitInput($(\'submit_%(framecount)s\'), %(framecount)s)">
+<div id="exec-output-%(framecount)s" style="width: 95%%;
+ padding: 5px; margin: 5px; border: 2px solid #000;
+ display: none"></div>
 <input type="text" name="input" id="debug_input_%(framecount)s"
- style="width: 100%%"><br>
-<input type="submit" value="Execute"
- onclick="return submit_input(this, %(framecount)s)"
+ style="width: 100%%"
+ autocomplete="off"><br>
+<input type="submit" value="Execute" name="submitbutton"
+ onclick="return submitInput(this, %(framecount)s)"
  id="submit_%(framecount)s"
  input-from="debug_input_%(framecount)s"
- output-to="debug_output_%(framecount)s">
+ output-to="exec-output-%(framecount)s">
+<input type="submit" value="Expand"
+ onclick="return expandInput(this)">
 </form>
  ''' % {'framecount': framecount}
 
-error_template = """
+error_template = '''
 <html>
 <head>
  <title>Server Error</title>
@@ -342,8 +352,13 @@ error_template = """
 </head>
 <body>
 
+<div id="error-area" style="display: none; background-color: #600; color: #fff; border: 2px solid black">
+<div id="error-container"></div>
+<button onclick="return clearError()">clear this</button>
+</div>
+
 %(body)s
 
 </body>
 </html>
-"""
+'''
