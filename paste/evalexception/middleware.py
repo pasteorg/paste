@@ -7,11 +7,12 @@ from cStringIO import StringIO
 import pprint
 import itertools
 import time
+import cgi
 from paste.exceptions import errormiddleware, formatter, collector
 from paste import wsgilib
 from paste import urlparser
 from paste import httpexceptions
-import cgi
+import evalcontext
 
 limit = 200
 
@@ -164,7 +165,16 @@ class EvalException(object):
             local_vars = make_table(vars)
         else:
             local_vars = 'No local vars'
-        return local_vars
+        return local_vars + input_form(framecount, debug_info)
+
+    @wsgiapp()
+    @get_debug_info
+    def exec_input(self, framecount, debug_info, input, **kw):
+        frame = debug_info.frames[int(framecount)]
+        vars = frame.tb_frame.f_locals
+        context = evalcontext.EvalContext(vars)
+        output = context.exec_expr(input)
+        return '>>> %s\n%s' % (input, output)
 
     def respond(self, environ, start_response):
         base_path = environ['SCRIPT_NAME']
@@ -307,6 +317,22 @@ def format_eval_html(exc_data, base_path, counter):
     </div>
     """ % (short_er, long_er)
 
+
+def input_form(framecount, debug_info):
+    return '''
+<form action="#" method="POST"
+ onsubmit="return submit_input($(\'submit_%(framecount)s\'), %(framecount)s)">
+<textarea disabled="disabled" rows=5 cols=60 style="width: 100%%"
+ id="debug_output_%(framecount)s"></textarea><br>
+<input type="text" name="input" id="debug_input_%(framecount)s"
+ style="width: 100%%"><br>
+<input type="submit" value="Execute"
+ onclick="return submit_input(this, %(framecount)s)"
+ id="submit_%(framecount)s"
+ input-from="debug_input_%(framecount)s"
+ output-to="debug_output_%(framecount)s">
+</form>
+ ''' % {'framecount': framecount}
 
 error_template = """
 <html>
