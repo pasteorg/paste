@@ -56,6 +56,58 @@ def parse_querystring(environ):
     environ['paste.parsed_querystring'] = (parsed, source)
     return parsed
 
+def parse_formvars(environ, all_as_list=False, include_get_vars=True):
+    """
+    Parses the request, returning a dictionary of the keys.
+
+    If ``all_as_list`` is true, then all values will be lists.  If
+    not, then only values that show up multiple times will be lists.
+
+    If ``include_get_vars`` is true and this was a POST request, then
+    GET (query string) variables will also be folded into the
+    dictionary.
+
+    All values should be strings, except for file uploads which are
+    left as FieldStorage instances.
+    """
+    source = (environ.get('QUERY_STRING', ''),
+              environ['wsgi.input'], environ['REQUEST_METHOD'],
+              all_as_list, include_get_vars)
+    if 'paste.parsed_formvars' in environ:
+        parsed, check_source = environ['paste.parsed_formvars']
+        if check_source == source:
+            return parsed
+    fs = cgi.FieldStorage(fp=environ['wsgi.input'],
+                          environ=environ,
+                          keep_blank_values=1)
+    formvars = {}
+    for name in fs.keys():
+        value = fs[name]
+        if not value.filename:
+            value = value.value
+        if name in formvars:
+            if isinstance(formvars[name], list):
+                formvars[name].append(value)
+            else:
+                formvars[name] = [formvars[name], value]
+        elif all_as_list:
+            formvars[name] = [value]
+        else:
+            formvars[name] = value
+    if environ['REQUEST_METHOD'] == 'POST' and include_get_vars:
+        for name, value in parse_querystring(environ):
+            if name in formvars:
+                if isinstance(formvars[name], list):
+                    formvars[name].append(value)
+                else:
+                    formvars[name] = [formvars[name], value]
+            elif all_as_list:
+                formvars[name] = [value]
+            else:
+                formvars[name] = value
+    environ['paste.parsed_formvars'] = (formvars, source)
+    return formvars
+
 class add_close:
     """
     An an iterable that iterates over app_iter, then calls
@@ -451,6 +503,70 @@ def capture_output(environ, start_response, application):
         data.append(None)
     data.append(output.getvalue())
     return data
+
+class ResponseHeaderDict(dict):
+
+    """
+    This represents response headers.  It handles the normal case
+    of headers as a dictionary, with case-insensitive keys.
+
+    Also there is an ``.add(key, value)`` method, which sets the key,
+    or adds the value to the current value (turning it into a list if
+    necessary).
+
+    For passing to WSGI there is a ``.headerdict()`` method which is
+    like ``.items()`` but unpacks those value lists.  It also handles
+    encoding -- all headers are encoded in ASCII (if they are
+    unicode).
+
+    @@: Should that be ISO-8859-1 or UTF-8?  I'm not sure what the
+    spec says.
+    """
+
+    def __getitem__(self, key):
+        return dict.__getitem__(self, self.normalize(key))
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, self.normalize(key), value)
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, self.normalize(key))
+
+    def __contains__(self, key):
+        return dict.__contains__(self, self.normalize(key))
+
+    has_key = __contains__
+
+    def pop(self, key):
+        return dict.pop(self, self.normalize(key))
+
+    def update(self, other):
+        for key in other:
+            self[self.normalize(key)] = other[key]
+
+    def normalize(self, key):
+        return str(key).lower().strip()
+        
+    def add(self, key, value):
+        key = self.normalize(key)
+        if key in self:
+            if isinstance(self[key], list):
+                self[key].append(value)
+            else:
+                self[key] = [self[key], value]
+        else:
+            self[key] = value
+
+    def headeritems(self):
+        result = []
+        for key in self:
+            if isinstance(self[key], list):
+                for v in self[key]:
+                    result.append((key, str(v)))
+            else:
+                result.append((key, str(self[key])))
+        return result
+
         
 
 if __name__ == '__main__':
