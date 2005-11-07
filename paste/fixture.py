@@ -4,6 +4,7 @@
 import sys
 import random
 import urllib
+import urlparse
 import mimetypes
 import time
 import cgi
@@ -428,6 +429,135 @@ class TestResponse(object):
         # @@: We should test that it's not a remote redirect
         return self.test_app.get(location, **kw)
 
+    _anchor_re = re.compile(r'<a\s+(.*?)>(.*?)</a>', re.I+re.S)
+    _attr_re = re.compile(r'([^= \n\r\t]*)[ \n\r\t]*=[ \n\r\t]*(?:"([^"]*)"|([^"][^ \n\r\t>]*))', re.S)
+
+    def click(self, description=None, linkid=None, href=None,
+              anchor=None, index=None, verbose=False):
+        """
+        Click the link as described.  Each of ``description``,
+        ``linkid``, and ``url`` are *patterns*, meaning that they are
+        either strings (regular expressions), compiled regular
+        expressions (objects with a ``search`` method), or callables
+        returning true or false.
+
+        All the given patterns are ANDed together:
+
+        * ``description`` is a pattern that matches the contents of the
+          anchor (HTML and all -- everything between ``<a...>`` and
+          ``</a>``)
+
+        * ``linkid`` is a pattern that matches the ``id`` attribute of
+          the anchor.  It will receive the empty string if no id is
+          given.
+
+        * ``href`` is a pattern that matches the ``href`` of the anchor;
+          the literal content of that attribute, not the fully qualified
+          attribute.
+
+        * ``anchor`` is a pattern that matches the entire anchor, with
+          its contents.
+
+        If more than one link matches, then the ``index`` link is
+        followed.  If ``index`` is not given and more than one link
+        matches, or if no link matches, then ``IndexError`` will be
+        raised.
+
+        If you give ``verbose`` then messages will be printed about
+        each link, and why it does or doesn't match.  If you use
+        ``app.click(verbose=True)`` you'll see a list of all the
+        links.
+
+        You can use multiple criteria to essentially assert multiple
+        aspects about the link, e.g., where the link's destination is.
+        """
+        description = make_pattern(description)
+        linkid = make_pattern(linkid)
+        href = make_pattern(href)
+        anchor = make_pattern(anchor)
+
+        def printlog(s):
+            if verbose:
+                print s
+
+        found_links = []
+        total_links = 0
+        for match in self._anchor_re.finditer(self.body):
+            link_anchor = match.group(0)
+            link_attr = match.group(1)
+            link_desc = match.group(2)
+            attrs = {}
+            for match in self._attr_re.finditer(link_attr):
+                attr_name = match.group(1).lower()
+                attr_body = match.group(2) or match.group(3)
+                attr_body = html_unquote(attr_body)
+                attrs[attr_name] = attr_body
+            if verbose:
+                printlog('Link: %r' % link_anchor)
+            if not attrs.get('href'):
+                printlog('  Skipped: no href attribute')
+                continue
+            if attrs['href'].startswith('#'):
+                printlog('  Skipped: only internal fragment href')
+                continue
+            if attrs['href'].startswith('javascript:'):
+                printlog('  Skipped: cannot follow javascript:')
+                continue
+            total_links += 1
+            if description and not description(link_desc):
+                printlog("  Skipped: doesn't match description")
+                continue
+            if linkid and not linkid(attrs.get('id', '')):
+                printlog("  Skipped: doesn't match linkid")
+                continue
+            if href and not href(attrs['href']):
+                printlog("  Skipped: doesn't match href")
+                continue
+            if anchor and not anchor(link_anchor):
+                printlog("  Skipped: doesn't match anchor")
+                continue
+            printlog("  Accepted")
+            found_links.append((link_anchor, link_desc, attrs))
+        if not found_links:
+            raise IndexError(
+                "No matching links found (from %s possible links)"
+                % total_links)
+        if index is None:
+            if len(found_links) > 1:
+                raise IndexError(
+                    "Multiple links match: %s"
+                    % ', '.join([repr(anc) for anc, d, attr in found_links]))
+            found_link = found_links[0]
+        else:
+            try:
+                found_link = found_links[index]
+            except IndexError:
+                raise IndexError(
+                    "Only %s (out of %s) links match; index %s out of range"
+                    % (len(found_links), total_links, index))
+        return self.goto(found_link[2]['href'])
+            
+    def goto(self, href, method='get', **args):
+        """
+        Go to the (potentially relative) link ``href``, using the
+        given method (``'get'`` or ``'post'``) and any extra arguments
+        you want to pass to the ``app.get()`` or ``app.post()``
+        methods.
+
+        All hostnames and schemes will be ignored.
+        """
+        scheme, host, path, query, fragment = urlparse.urlsplit(href)
+        # We
+        scheme = host = fragment = ''
+        href = urlparse.urlunsplit((scheme, host, path, query, fragment))
+        href = urlparse.urljoin(self.request.url, href)
+        method = method.lower()
+        assert method in ('get', 'post'), (
+            'Only "get" or "post" are allowed for method (you gave %r)'
+            % method)
+        method = getattr(self.test_app, method)
+        return method(href, **args)
+
     _normal_body_regex = re.compile(r'[ \n\r\t]+')
 
     def normal_body__get(self):
@@ -826,6 +956,18 @@ def _space_prefix(pref, full, sep=None, indent=None, include_sep=True):
     else:
         return sep.join(full)
 
+def make_pattern(pat):
+    if pat is None:
+        return None
+    if isinstance(pat, (str, unicode)):
+        pat = re.compile(pat)
+    if hasattr(pat, 'search'):
+        return pat.search
+    if callable(pat):
+        return pat
+    assert 0, (
+        "Cannot make callable pattern object out of %r" % path)
+
 def setup_module(module=None):
     """
     This is used by py.test if it is in the module, so you can
@@ -843,3 +985,9 @@ def setup_module(module=None):
     if hasattr(module, 'reset_state'):
         module.reset_state()
 
+def html_unquote(v):
+    for ent, repl in [('&nbsp;', ' '), ('&gt;', '>'),
+                      ('&lt;', '<'), ('&quot;', '"'),
+                      ('&amp;', '&')]:
+        v = v.replace(ent, repl)
+    return v
