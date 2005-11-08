@@ -671,6 +671,28 @@ class TestRequest(object):
 
 class Form(object):
 
+    """
+    This object represents a form that has been found in a page.
+    This has a couple useful attributes:
+
+    ``text``:
+        the full HTML of the form.
+
+    ``action``:
+        the relative URI of the action.
+
+    ``method``:
+        the method (e.g., ``'GET'``).
+
+    ``id``:
+        the id, or None if not given.
+
+    ``fields``:
+        a dictionary of fields, each value is a list of fields by
+        that name.  ``<input type=\"radio\">`` and ``<select>`` are
+        both represented as single fields with multiple options.
+    """
+
     # @@: This really should be using Mechanize/ClientForm or
     # something...
 
@@ -679,10 +701,10 @@ class Form(object):
     def __init__(self, response, text):
         self.response = response
         self.text = text
-        self.parse_fields()
-        self.parse_action()
+        self._parse_fields()
+        self._parse_action()
 
-    def parse_fields(self):
+    def _parse_fields(self):
         in_select = None
         in_textarea = None
         fields = {}
@@ -743,7 +765,7 @@ class Form(object):
             fields.setdefault(name, []).append(field)
         self.fields = fields
 
-    def parse_action(self):
+    def _parse_action(self):
         self.action = None
         for match in self._tag_re.finditer(self.text):
             end = match.group(1) == '/'
@@ -763,6 +785,18 @@ class Form(object):
             "No <form> tag found")
 
     def __setitem__(self, name, value):
+        """
+        Set the value of the named field.  If there is 0 or multiple
+        fields by that name, it is an error.
+
+        Setting the value of a ``<select>`` selects the given option
+        (and confirms it is an option).  Setting radio fields does the
+        same.  Checkboxes get boolean values.  You cannot set hidden
+        fields or buttons.
+
+        Use ``.set()`` if there is any ambiguity and you must provide
+        an index.
+        """
         fields = self.fields.get(name)
         assert fields is not None, (
             "No field by the name %r found (fields: %s)"
@@ -773,6 +807,9 @@ class Form(object):
         fields[0].value = value
 
     def __getitem__(self, name):
+        """
+        Get the named field object (ambiguity is an error).
+        """
         fields = self.fields.get(name)
         assert field is not None, (
             "No field by the name %r found" % name)
@@ -782,6 +819,9 @@ class Form(object):
         return fields[0]
 
     def set(self, name, value, index=None):
+        """
+        Set the given name, using ``index`` to disambiguate.
+        """
         if index is None:
             self[name] = value
         else:
@@ -792,6 +832,10 @@ class Form(object):
             field.value = value
 
     def get(self, name, index=None, default=NoDefault):
+        """
+        Get the named/indexed field object, or ``default`` if no field
+        is found.
+        """
         fields = self.fields.get(namet)
         if fields is None and default is not NoDefault:
             return default
@@ -805,16 +849,31 @@ class Form(object):
             return field
 
     def select(self, name, value, index=None):
+        """
+        Like ``.set()``, except also confirms the target is a
+        ``<select>``.
+        """
         field = self.get(name, index=index)
         assert isinstance(field, Select)
         field.value = value
 
     def submit(self, name=None, index=None, **args):
+        """
+        Submits the form.  If ``name`` is given, then also select that
+        button (using ``index`` to disambiguate)``.
+
+        Any extra keyword arguments are passed to the ``.get()`` or
+        ``.post()`` method.
+        """
         fields = self.submit_fields(name, index=index)
         return self.response.goto(self.action, method=self.method,
                                   params=fields, **args)
 
     def submit_fields(self, name=None, index=None):
+        """
+        Return a list of ``[(name, value), ...]`` for the current
+        state of the form.
+        """
         submit = []
         if name is not None:
             field = self.get(name, index=index)
@@ -841,6 +900,11 @@ def _parse_attrs(text):
 
 class Field(object):
 
+    """
+    Field object.
+    """
+
+    # Dictionary of field types (select, radio, etc) to classes
     classes = {}
 
     settable = True
