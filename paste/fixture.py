@@ -222,7 +222,7 @@ class TestApp(object):
         # Hide from py.test:
         __tracebackhide__ = True
         if params:
-            if isinstance(params, dict):
+            if not isinstance(params, (str, unicode)):
                 params = urllib.urlencode(params)
             if '?' in url:
                 url += '&'
@@ -241,7 +241,8 @@ class TestApp(object):
     def post(self, url, params=None, headers={}, extra_environ={},
              status=None, upload_files=None, expect_errors=False):
         environ = self.make_environ()
-        if params and isinstance(params, dict):
+        # @@: Should this be all non-strings?
+        if params and isinstance(params, (list, tuple, dict)):
             params = urllib.urlencode(params)
         if upload_files:
             params = cgi.parse_qsl(params, keep_blank_values=True)
@@ -383,6 +384,46 @@ class TestResponse(object):
         self.errors = errors
         self._normal_body = None
         self.time = total_time
+        self._forms_indexed = None
+
+    def forms__get(self):
+        """
+        Returns a dictionary of ``Form`` objects.  Indexes are both in
+        order (from zero) and by form id (if the form is given an id).
+        """
+        if self._forms_indexed is None:
+            self._parse_forms()
+        return self._forms_indexed
+
+    forms = property(forms__get)
+
+    _tag_re = re.compile(r'<(/?)([a-z0-9_\-]*)(.*?)>')
+
+    def _parse_forms(self):
+        forms = self._forms_indexed = {}
+        form_texts = []
+        started = None
+        for match in self._tag_re.finditer(self.body):
+            end = match.group(1) == '/'
+            tag = match.group(2).lower()
+            if tag != 'form':
+                continue
+            if end:
+                assert started, (
+                    "</form> unexpected at %s" % match.start())
+                form_texts.append(self.body[started:match.end()])
+                started = None
+            else:
+                assert not started, (
+                    "Nested form tags at %s" % match.start())
+                started = match.start()
+        assert not started, (
+            "Danging form: %r" % self.body[started:])
+        for i, text in enumerate(form_texts):
+            form = Form(self, text)
+            forms[i] = form
+            if form.id:
+                forms[form.id] = form
         
     def header(self, name, default=NoDefault):
         """
@@ -430,7 +471,6 @@ class TestResponse(object):
         return self.test_app.get(location, **kw)
 
     _anchor_re = re.compile(r'<a\s+(.*?)>(.*?)</a>', re.I+re.S)
-    _attr_re = re.compile(r'([^= \n\r\t]*)[ \n\r\t]*=[ \n\r\t]*(?:"([^"]*)"|([^"][^ \n\r\t>]*))', re.S)
 
     def click(self, description=None, linkid=None, href=None,
               anchor=None, index=None, verbose=False):
@@ -486,12 +526,7 @@ class TestResponse(object):
             link_anchor = match.group(0)
             link_attr = match.group(1)
             link_desc = match.group(2)
-            attrs = {}
-            for match in self._attr_re.finditer(link_attr):
-                attr_name = match.group(1).lower()
-                attr_body = match.group(2) or match.group(3)
-                attr_body = html_unquote(attr_body)
-                attrs[attr_name] = attr_body
+            attrs = _parse_attrs(link_attr)
             if verbose:
                 printlog('Link: %r' % link_anchor)
             if not attrs.get('href'):
@@ -555,7 +590,10 @@ class TestResponse(object):
         assert method in ('get', 'post'), (
             'Only "get" or "post" are allowed for method (you gave %r)'
             % method)
-        method = getattr(self.test_app, method)
+        if method == 'get':
+            method = self.test_app.get
+        else:
+            method = self.test_app.post
         return method(href, **args)
 
     _normal_body_regex = re.compile(r'[ \n\r\t]+')
@@ -629,6 +667,298 @@ class TestRequest(object):
         else:
             self.full_url = url
         self.expect_errors = expect_errors
+
+
+class Form(object):
+
+    # @@: This really should be using Mechanize/ClientForm or
+    # something...
+
+    _tag_re = re.compile(r'<(/?)([a-z0-9_\-]*)([^>]*?)>')
+
+    def __init__(self, response, text):
+        self.response = response
+        self.text = text
+        self.parse_fields()
+        self.parse_action()
+
+    def parse_fields(self):
+        in_select = None
+        in_textarea = None
+        fields = {}
+        for match in self._tag_re.finditer(self.text):
+            end = match.group(1) == '/'
+            tag = match.group(2).lower()
+            if tag not in ('input', 'select', 'option', 'textarea',
+                           'button'):
+                continue
+            if tag == 'select' and end:
+                assert in_select, (
+                    '%r without starting select' % match.group(0))
+                in_select = None
+                continue
+            if tag == 'textarea' and end:
+                assert in_textarea, (
+                    "</textarea> with no <textarea> at %s" % match.start())
+                in_textarea[0].value = html_unquote(self.text[in_textarea[1]:match.start()])
+                in_textarea = None
+                continue
+            if end:
+                continue
+            attrs = _parse_attrs(match.group(3))
+            if 'name' in attrs:
+                name = attrs.pop('name')
+            else:
+                name = None
+            if tag == 'option':
+                in_select.options.append((attrs.get('value'),
+                                          attrs.get('selected')))
+                continue
+            if tag == 'input' and attrs.get('type') == 'radio':
+                field = self.fields.get(name)
+                if not field:
+                    field = Radio(self, tag, name, match.start(), **attrs)
+                    fields.setdefault(name, []).append(field)
+                else:
+                    field = field[0]
+                    assert isinstance(field, Radio)
+                field.options.append((attrs.get('value'),
+                                      attrs.get('checked')))
+                continue
+            tag_type = tag
+            if tag == 'input':
+                tag_type = attrs.get('type', 'text').lower()
+            FieldClass = Field.classes.get(tag_type, Field)
+            field = FieldClass(self, tag, name, match.start(), **attrs)
+            if tag == 'textarea':
+                assert not in_textarea, (
+                    "Nested textareas: %r and %r"
+                    % (in_textarea, match.group(0)))
+                in_textarea = field, match.end()
+            elif tag == 'select':
+                assert not in_select, (
+                    "Nested selects: %r and %r"
+                    % (in_select, match.group(0)))
+                in_select = field
+            fields.setdefault(name, []).append(field)
+        self.fields = fields
+
+    def parse_action(self):
+        self.action = None
+        for match in self._tag_re.finditer(self.text):
+            end = match.group(1) == '/'
+            tag = match.group(2).lower()
+            if tag != 'form':
+                continue
+            attrs = _parse_attrs(match.group(3))
+            self.action = attrs.get('action', '')
+            self.method = attrs.get('method', 'GET')
+            self.id = attrs.get('id')
+            # @@: enctype?
+            if end:
+                break
+        else:
+            assert 0, "No </form> tag found"
+        assert self.action is not None, (
+            "No <form> tag found")
+
+    def __setitem__(self, name, value):
+        fields = self.fields.get(name)
+        assert fields is not None, (
+            "No field by the name %r found (fields: %s)"
+            % (name, ', '.join(map(repr, self.fields.keys()))))
+        assert len(fields) == 1, (
+            "Multiple fields match %r: %s"
+            % (name, ', '.join(map(repr, fields))))
+        fields[0].value = value
+
+    def __getitem__(self, name):
+        fields = self.fields.get(name)
+        assert field is not None, (
+            "No field by the name %r found" % name)
+        assert len(fields) == 1, (
+            "Multiple fields match %r: %s"
+            % (name, ', '.join(map(repr, fields))))
+        return fields[0]
+
+    def set(self, name, value, index=None):
+        if index is None:
+            self[name] = value
+        else:
+            fields = self.fields.get(name)
+            assert fields is not None, (
+                "No fields found matching %r" % name)
+            field = fields[index]
+            field.value = value
+
+    def get(self, name, index=None, default=NoDefault):
+        fields = self.fields.get(namet)
+        if fields is None and default is not NoDefault:
+            return default
+        if index is None:
+            return self[name]
+        else:
+            fields = self.fields.get(name)
+            assert fields is not None, (
+                "No fields found matching %r" % name)
+            field = fields[index]
+            return field
+
+    def select(self, name, value, index=None):
+        field = self.get(name, index=index)
+        assert isinstance(field, Select)
+        field.value = value
+
+    def submit(self, name=None, index=None, **args):
+        fields = self.submit_fields(name, index=index)
+        return self.response.goto(self.action, method=self.method,
+                                  params=fields, **args)
+
+    def submit_fields(self, name=None, index=None):
+        submit = []
+        if name is not None:
+            field = self.get(name, index=index)
+            submit.append((field.name, field.value_if_submitted()))
+        for name, fields in self.fields.items():
+            for field in fields:
+                value = field.value
+                if value is None:
+                    continue
+                submit.append((name, value))
+        return submit
+            
+
+_attr_re = re.compile(r'([^= \n\r\t]*)[ \n\r\t]*=[ \n\r\t]*(?:"([^"]*)"|([^"][^ \n\r\t>]*))', re.S)
+
+def _parse_attrs(text):
+    attrs = {}
+    for match in _attr_re.finditer(text):
+        attr_name = match.group(1).lower()
+        attr_body = match.group(2) or match.group(3)
+        attr_body = html_unquote(attr_body or '')
+        attrs[attr_name] = attr_body
+    return attrs
+
+class Field(object):
+
+    classes = {}
+
+    settable = True
+
+    def __init__(self, form, tag, name, pos,
+                 value=None, id=None, **attrs):
+        self.form = form
+        self.tag = tag
+        self.name = name
+        self.pos = pos
+        self._value = value
+        self.id = id
+        self.attrs = attrs
+
+    def value__set(self, value):
+        if not self.settable:
+            raise Attribute("You cannot set the value")
+        self._value = value
+
+    def value__get(self):
+        return self._value
+
+    value = property(value__get, value__set)
+
+class Select(Field):
+
+    def __init__(self, *args, **attrs):
+        super(Select, self).__init__(*args, **attrs)
+        self.options = []
+        self.multiple = attrs.get('multiple')
+        assert not self.multiple, (
+            "<select multiple> not yet supported")
+        # Undetermined yet:
+        self.selectedIndex = None
+
+    def value__set(self, value):
+        for i, (option, checked) in enumerate(self.options):
+            if option == value:
+                self.selectedIndex = i
+                break
+        else:
+            raise ValueError(
+                "Option %r not found (from %s)"
+                % (value, ', '.join(
+                [repr(o) for o, c in self.options])))
+
+    def value__get(self):
+        if self.selectedIndex is not None:
+            return self.options[self.selectedIndex][0]
+        else:
+            for option, checked in self.options:
+                if checked:
+                    return option
+            else:
+                return self.options[0][0]
+
+    value = property(value__get, value__set)
+
+Field.classes['select'] = Select
+
+class Radio(Select):
+    pass
+
+Field.classes['radio'] = Radio
+
+class Checkbox(Field):
+
+    def __init__(self, *args, **attrs):
+        super(Checkbox, self).__init__(*args, **attrs)
+        self.checked = attrs.get('checked') is not None
+
+    def value__set(self, value):
+        self.checked = not not value
+
+    def value__get(self):
+        if self.checked:
+            return self._value
+        else:
+            return None
+
+    value = property(value__get, value__set)
+
+Field.classes['checkbox'] = Checkbox
+
+class Text(Field):
+    pass
+
+Field.classes['text'] = Text
+
+class Textarea(Text):
+    pass
+
+Field.classes['textarea'] = Textarea
+
+class Hidden(Text):
+    settable = False
+
+Field.classes['hidden'] = Hidden
+
+class Submit(Field):
+    settable = False
+
+    def value__get(self):
+        return None
+
+    value = property(value__get)
+
+    def value_if_submitted(self):
+        return self._value
+
+Field.classes['submit'] = Submit
+
+Field.classes['button'] = Submit
+
+############################################################
+## Command-line testing
+############################################################
+
 
 class TestFileEnvironment(object):
 
