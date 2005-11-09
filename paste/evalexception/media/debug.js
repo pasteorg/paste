@@ -15,7 +15,7 @@ function showFrame(anchor) {
         return false;
     }
     var url = debug_base
-        + '/_debug/show_frame?framecount=' + framecount
+        + '/show_frame?framecount=' + framecount
         + '&debugcount=' + debug_count;
     var d = MochiKit.Async.doSimpleXMLHttpRequest(url);
     d.addCallbacks(function (data) {
@@ -38,14 +38,14 @@ function _swapImage(anchor) {
     } else {
         var img = 'plus.jpg';
     }
-    el.src = debug_base + '/_debug/media/' + img;
+    el.src = debug_base + '/media/' + img;
 }
 
 function submitInput(button, framecount) {
     var input = $(button.getAttribute('input-from'));
     var output = $(button.getAttribute('output-to'));
     var url = debug_base
-        + '/_debug/exec_input';
+        + '/exec_input';
     var vars = {
         framecount: framecount,
         debugcount: debug_count,
