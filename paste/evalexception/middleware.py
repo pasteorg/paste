@@ -161,7 +161,8 @@ class EvalException(object):
         method = getattr(self, next_part, None)
         if not method:
             return wsgilib.error_response_app(
-                '404 Not Found', '%r not found' % next_part)(
+                '404 Not Found', '%r not found when parsing %r'
+                % (next_part, wsgilib.construct_url(environ)))(
                 environ, start_response)
         if not getattr(method, 'exposed', False):
             return wsgilib.error_response_app(
