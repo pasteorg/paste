@@ -1,13 +1,28 @@
+"""
+Exception-catching middleware that allows interactive debugging.
+
+This middleware catches all unexpected exceptions.  A normal
+traceback, like produced by
+``paste.exceptions.errormiddleware.ErrorMiddleware`` is given, plus
+controls to see local variables and evaluate expressions in a local
+context.
+
+This can only be used in single-process environments, because
+subsequent requests must go back to the same process that the
+exception originally occurred in.  Threaded or non-concurrent
+environments both work.
+
+This shouldn't be used in production in any way.  That would just be
+silly.
+"""
 import sys
 import os
-import threading
 import cgi
 import traceback
 from cStringIO import StringIO
 import pprint
 import itertools
 import time
-import cgi
 import re
 from paste.exceptions import errormiddleware, formatter, collector
 from paste import wsgilib
@@ -18,16 +33,20 @@ import evalcontext
 limit = 200
 
 def html_quote(v):
+    """
+    Escape HTML characters, plus translate None to ''
+    """
     if v is None:
         return ''
     return cgi.escape(str(v), 1)
 
-def _repl_nbsp(match):
-    if len(match.group(2)) == 1:
-        return '&nbsp;'
-    return match.group(1) + '&nbsp;' * (len(match.group(2))-1) + ' '
-
 def preserve_whitespace(v, quote=True):
+    """
+    Quote a value for HTML, preserving whitespace (translating
+    newlines to ``<br>`` and multiple spaces to use ``&nbsp;``).
+
+    If ``quote`` is true, then the value will be HTML quoted first.
+    """
     if quote:
         v = html_quote(v)
     v = v.replace('\n', '<br>\n')
@@ -36,7 +55,16 @@ def preserve_whitespace(v, quote=True):
     v = re.sub(r'^()( +)', _repl_nbsp, v)
     return '<code>%s</code>' % v
 
+def _repl_nbsp(match):
+    if len(match.group(2)) == 1:
+        return '&nbsp;'
+    return match.group(1) + '&nbsp;' * (len(match.group(2))-1) + ' '
+
 def simplecatcher(application):
+    """
+    A simple middleware that catches errors and turns them into simple
+    tracebacks.
+    """
     def simplecatcher_app(environ, start_response):
         try:
             return application(environ, start_response)
@@ -48,7 +76,7 @@ def simplecatcher(application):
                            sys.exc_info())
             res = out.getvalue()
             return ['<h3>Error</h3><pre>%s</pre>'
-                    % html_quote(out.getvalue())]
+                    % html_quote(res)]
     return simplecatcher_app
 
 def wsgiapp():
@@ -56,7 +84,7 @@ def wsgiapp():
     Turns a function or method into a WSGI application.
     """
     def decorator(func):
-        def app_wrapper(*args):
+        def wsgiapp_wrapper(*args):
             # we get 3 args when this is a method, two when it is
             # a function :(
             if len(args) == 3:
@@ -80,12 +108,17 @@ def wsgiapp():
             app = httpexceptions.middleware(application)
             app = simplecatcher(app)
             return app(environ, start_response)
-        app_wrapper.exposed = True
-        return app_wrapper
+        wsgiapp_wrapper.exposed = True
+        return wsgiapp_wrapper
     return decorator
 
 def get_debug_info(func):
-    def replacement(self, **form):
+    """
+    A decorator (meant to be used under ``wsgiapp()``) that resolves
+    the ``debugcount`` variable to a ``DebugInfo`` object (or gives an
+    error if it can't be found).
+    """
+    def debug_info_replacement(self, **form):
         try:
             if 'debugcount' not in form:
                 raise ValueError('You must provide a debugcount parameter')
@@ -95,13 +128,15 @@ def get_debug_info(func):
             except ValueError:
                 raise ValueError('Bad value for debugcount')
             if debugcount not in self.debug_infos:
-                raise ValueError('Debug %s no longer found (maybe it has expired?)' % debugcount)
+                raise ValueError(
+                    'Debug %s no longer found (maybe it has expired?)'
+                    % debugcount)
             debug_info = self.debug_infos[debugcount]
             return func(self, debug_info=debug_info, **form)
         except ValueError, e:
             form['headers']['status'] = '500 Server Error'
             return '<html>There was an error: %s</html>' % e
-    return replacement
+    return debug_info_replacement
             
 debug_counter = itertools.count(int(time.time()))
 
@@ -113,7 +148,8 @@ class EvalException(object):
 
     def __call__(self, environ, start_response):
         assert not environ['wsgi.multiprocess'], (
-            "The EvalException middleware is not usable in a multi-process environment")
+            "The EvalException middleware is not usable in a "
+            "multi-process environment")
         if environ.get('PATH_INFO', '').startswith('/_debug/'):
             return self.debug(environ, start_response)
         else:
@@ -237,13 +273,17 @@ class EvalException(object):
             yield response
 
     def eval_javascript(self, base_path, counter):
-        return ('<script type="text/javascript" src="%s/_debug/mochikit/MochiKit.js"></script>\n'
-                '<script type="text/javascript" src="%s/_debug/media/debug.js"></script>\n'
-                '<script type="text/javascript">\n'
-                'debug_base = %r;\n'
-                'debug_count = %r;\n'
-                '\n</script>\n'
-                % (base_path, base_path, base_path, counter))
+        base_path += '/_debug'
+        return (
+            '<script type="text/javascript" src="%s/mochikit/MochiKit.js">'
+            '</script>\n'
+            '<script type="text/javascript" src="%s/media/debug.js">'
+            '</script>\n'
+            '<script type="text/javascript">\n'
+            'debug_base = %r;\n'
+            'debug_count = %r;\n'
+            '</script>\n'
+            % (base_path, base_path, base_path, counter))
 
 class DebugInfo(object):
 
@@ -295,13 +335,15 @@ def make_table(items):
         if len(value) > 100:
             # @@: This can actually break the HTML :(
             # should I truncate before quoting?
-            value = value[:100] + '<span style="background-color: #999">...</span>'
+            value = value[:100]
+            value += '<span style="background-color: #999">...</span>'
         value = formatter.make_wrappable(value)
         if i % 2:
             attr = ' class="even"'
         else:
             attr = ' class="odd"'
-        rows.append('<tr%s style="vertical-align: top;"><td><b>%s</b></td><td style="overflow: auto">%s<td></tr>'
+        rows.append('<tr%s style="vertical-align: top;"><td>'
+                    '<b>%s</b></td><td style="overflow: auto">%s<td></tr>'
                     % (attr, html_quote(name),
                        preserve_whitespace(value, quote=False)))
     return '<table>%s</table>' % (
