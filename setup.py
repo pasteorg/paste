@@ -8,14 +8,9 @@ from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup, find_packages
 import sys, os
-sys.path.insert(0, os.path.dirname(__file__))
-print "Current modules:"
-for name, mod in sys.modules.items():
-    print name, mod and getattr(mod, '__file__', '(unknown)')
-print 'PATH:', sys.path
-import paste
-print 'Paste PATH:', paste.__file__
-from paste.util import finddata
+sys.path.insert(0, os.path.join(os.path.dirname(__file__),
+                                'paste', 'util'))
+import finddata
 
 setup(name="Paste",
       version=__version__,
