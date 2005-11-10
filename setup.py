@@ -120,7 +120,7 @@ Other Tools
       packages=find_packages(exclude=['ez_setup', 'examples', 'packages']),
       package_data=finddata.find_package_data(),
       namespace_packages=['paste'],
-      zip_safe=True,
+      zip_safe=False,
       extras_require={
         'subprocess': [],
         'hotshot': [],
