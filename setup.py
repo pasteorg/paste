@@ -7,6 +7,9 @@ __version__ = "0.4"
 from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup, find_packages
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))
+from paste.util import finddata
 
 setup(name="Paste",
       version=__version__,
@@ -115,6 +118,7 @@ Other Tools
       url="http://pythonpaste.org",
       license="MIT",
       packages=find_packages(exclude=['ez_setup', 'examples', 'packages']),
+      package_data=finddata.find_package_data(),
       namespace_packages=['paste'],
       zip_safe=True,
       extras_require={
