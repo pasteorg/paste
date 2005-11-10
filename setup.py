@@ -9,6 +9,9 @@ use_setuptools()
 from setuptools import setup, find_packages
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
+print 'PATH:', sys.path
+import paste
+print 'Paste PATH:', paste.__file__
 from paste.util import finddata
 
 setup(name="Paste",
