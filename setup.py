@@ -11,7 +11,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 print "Current modules:"
 for name, mod in sys.modules.items():
-    print name, mod and mod.__file__
+    print name, mod and getattr(mod, '__file__', '(unknown)')
 print 'PATH:', sys.path
 import paste
 print 'Paste PATH:', paste.__file__
