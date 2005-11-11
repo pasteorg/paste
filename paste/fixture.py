@@ -820,7 +820,7 @@ class Form(object):
         Get the named field object (ambiguity is an error).
         """
         fields = self.fields.get(name)
-        assert field is not None, (
+        assert fields is not None, (
             "No field by the name %r found" % name)
         assert len(fields) == 1, (
             "Multiple fields match %r: %s"
