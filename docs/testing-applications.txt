@@ -117,9 +117,8 @@ The response object:
 ``str(res)``:
     Gives a slightly-compacted version of the response.
 
-``click(description=None, linkid=None, href=None, anchor=None,
-    index=None, verbose=False)``: Clicks the described link (`see
-    docstring for more
+``click(description=None, linkid=None, href=None, anchor=None, index=None, verbose=False)``: 
+    Clicks the described link (`see docstring for more
     <./class-paste.fixture.TestResponse.html#click>`_)
 
 ``forms``:
@@ -141,6 +140,8 @@ Request objects:
 
 Form Submissions
 ================
+
+*New in svn trunk*
 
 You can fill out and submit forms from your tests.  First you get the
 form::

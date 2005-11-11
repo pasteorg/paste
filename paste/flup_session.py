@@ -2,7 +2,9 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
 """
-Creates a session object; then in your application, use::
+Creates a session object.
+
+In your application, use::
 
     environ['paste.flup_session_service'].session
 
