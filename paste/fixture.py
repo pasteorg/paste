@@ -354,8 +354,8 @@ class TestApp(object):
                 res.status >= 300 and res.status < 400):
                 return
             raise AppError(
-                "Bad response: %s (not 200 OK or 3xx redirect)"
-                % res.full_status)
+                "Bad response: %s (not 200 OK or 3xx redirect for %s)"
+                % (res.full_status, res.request.url))
         if status != res.status:
             raise AppError(
                 "Bad response: %s (not %s)" % (res.full_status, status))
@@ -396,6 +396,11 @@ class TestResponse(object):
         return self._forms_indexed
 
     forms = property(forms__get)
+
+    def form__get(self):
+        return self.forms[0]
+
+    form = property(form__get)
 
     _tag_re = re.compile(r'<(/?)([a-z0-9_\-]*)(.*?)>')
 
@@ -612,6 +617,8 @@ class TestResponse(object):
         of the response.  Whitespace is normalized when searching
         for a string.
         """
+        if not isinstance(s, (str, unicode)):
+            s = str(s)
         return (self.body.find(s) != -1
                 or self.normal_body.find(s) != -1)
 
@@ -660,6 +667,8 @@ class TestRequest(object):
     disabled = True
 
     def __init__(self, url, environ, expect_errors=False):
+        if url.startswith('http://localhost'):
+            url = url[len('http://localhost'):]
         self.url = url
         self.environ = environ
         if environ.get('QUERY_STRING'):
