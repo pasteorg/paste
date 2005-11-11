@@ -16,6 +16,8 @@ __all__ = ['ProfileMiddleware', 'profile_decorator']
 class ProfileMiddleware(object):
 
     """
+    Middleware that profiles all requests.
+    
     You can enable this middleware by adding this to your
     configuration::
 
@@ -91,6 +93,8 @@ def capture_output(func, *args, **kw):
 def profile_decorator(**options):
 
     """
+    Profile a single function call.
+    
     Used around a function, like::
 
         @profile_decorator(options...)
