@@ -336,8 +336,10 @@ def make_table(items):
         if len(value) > 100:
             # @@: This can actually break the HTML :(
             # should I truncate before quoting?
+            orig_value = value
             value = value[:100]
-            value += '<span style="background-color: #999">...</span>'
+            value += '<a class="switch_source" style="background-color: #999" href="#" onclick="return expandLong(this)">...</a>'
+            value += '<span style="display: none">%s</span>' % orig_value[100:]
         value = formatter.make_wrappable(value)
         if i % 2:
             attr = ' class="even"'
@@ -404,7 +406,7 @@ def input_form(framecount, debug_info):
  display: none"></div>
 <input type="text" name="input" id="debug_input_%(framecount)s"
  style="width: 100%%"
- autocomplete="off"><br>
+ autocomplete="off" onkeypress="upArrow(this, event)"><br>
 <input type="submit" value="Execute" name="submitbutton"
  onclick="return submitInput(this, %(framecount)s)"
  id="submit_%(framecount)s"
