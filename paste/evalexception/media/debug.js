@@ -46,6 +46,12 @@ function submitInput(button, framecount) {
     var output = $(button.getAttribute('output-to'));
     var url = debug_base
         + '/exec_input';
+    var history = input.form.history;
+    input.historyPosition = 0;
+    if (! history) {
+        history = input.form.history = [];
+    }
+    history.push(input.value);
     var vars = {
         framecount: framecount,
         debugcount: debug_count,
@@ -92,6 +98,7 @@ function expandInput(button) {
         var text = 'Contract';
     } else {
         stdops['type'] = 'text';
+        stdops['onkeypress'] = 'upArrow(this)';
         var newEl = MochiKit.DOM.INPUT(stdops);
         var text = 'Expand';
     }
@@ -100,5 +107,55 @@ function expandInput(button) {
     MochiKit.DOM.swapDOM(input, newEl);
     newEl.focus();
     button.value = text;
+    return false;
+}
+
+function upArrow(input, event) {
+    if (window.event) {
+        event = window.event;
+    }
+    if (event.keyCode != 38 && event.keyCode != 40) {
+        // not an up- or down-arrow
+        return true;
+    }
+    var dir = event.keyCode == 38 ? 1 : -1;
+    var history = input.form.history;
+    if (! history) {
+        history = input.form.history = [];
+    }
+    var pos = input.historyPosition || 0;
+    if (! pos && dir == -1) {
+        return true;
+    }
+    if (! pos && input.value) {
+        history.push(input.value);
+        pos = 1;
+    }
+    pos += dir;
+    if (history.length-pos < 0) {
+        pos = 1;
+    }
+    if (history.length-pos > history.length-1) {
+        input.value = '';
+        return true;
+    }
+    input.historyPosition = pos;
+    var line = history[history.length-pos];
+    input.value = line;
+}
+
+function expandLong(anchor) {
+    var span = anchor;
+    while (span) {
+        if (span.style && span.style.display == 'none') {
+            break;
+        }
+        span = span.nextSibling;
+    }
+    if (! span) {
+        return false;
+    }
+    MochiKit.DOM.showElement(span);
+    MochiKit.DOM.hideElement(anchor);
     return false;
 }
