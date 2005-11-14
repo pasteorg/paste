@@ -951,7 +951,7 @@ class Select(Field):
 
     def value__set(self, value):
         for i, (option, checked) in enumerate(self.options):
-            if option == value:
+            if option == str(value):
                 self.selectedIndex = i
                 break
         else:
