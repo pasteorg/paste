@@ -385,17 +385,21 @@ def make_py(parser, environ, filename):
     if not module:
         return None
     if hasattr(module, 'application') and module.application:
-        return module.application
+        return getattr(module.application, 'wsgi_application', module.application)
     base_name = module.__name__.split('.')[-1]
     if hasattr(module, base_name):
-        return getattr(module, base_name)()
+        obj = getattr(module, base_name)
+        if hasattr(obj, 'wsgi_application'):
+            return obj.wsgi_application
+        else:
+            # @@: Old behavior; should probably be deprecated eventually:
+            return getattr(module, base_name)()
     environ['wsgi.errors'].write(
         "Cound not find application or %s in %s\n"
         % (base_name, module))
     return None
-    
-URLParser.register_constructor('.py', make_py)
 
+URLParser.register_constructor('.py', make_py)
 
 class StaticURLParser(object):
     
