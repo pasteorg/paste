@@ -90,15 +90,6 @@ def ls(dir=None, recurse=False, indent=0):
         if os.path.isdir(full) and recurse:
             ls(dir=full, recurse=True, indent=indent+2)
 
-def make_app(dir):
-    os.chdir(dir)
-    sys.path.append(os.path.dirname(dir))
-    conf, app = server.load_commandline((), allow_reload=False)
-    assert conf is not None, (
-        "server.load_commandline requested exit with code %r"
-        % app)
-    return app
-
 default_app = None
 default_url = None
 

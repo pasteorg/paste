@@ -91,6 +91,6 @@ def find_package_data(
     return out
 
 if __name__ == '__main__':
-    import sys, pprint
+    import pprint
     pprint.pprint(
         find_package_data(show_ignored=True))

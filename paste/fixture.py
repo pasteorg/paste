@@ -845,7 +845,7 @@ class Form(object):
         Get the named/indexed field object, or ``default`` if no field
         is found.
         """
-        fields = self.fields.get(namet)
+        fields = self.fields.get(name)
         if fields is None and default is not NoDefault:
             return default
         if index is None:
@@ -930,7 +930,7 @@ class Field(object):
 
     def value__set(self, value):
         if not self.settable:
-            raise Attribute("You cannot set the value")
+            raise AttributeError("You cannot set the value")
         self._value = value
 
     def value__get(self):
@@ -1369,7 +1369,7 @@ def make_pattern(pat):
     if callable(pat):
         return pat
     assert 0, (
-        "Cannot make callable pattern object out of %r" % path)
+        "Cannot make callable pattern object out of %r" % pat)
 
 def setup_module(module=None):
     """

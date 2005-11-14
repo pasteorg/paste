@@ -225,10 +225,10 @@ class EvalException(object):
             app_iter = self.application(environ, detect_start_response)
             return self.catching_iter(app_iter, environ)
         except:
+            exc_info = sys.exc_info()
             for expected in environ.get('paste.expected_exceptions', []):
                 if issubclass(exc_info[0], expected):
                     raise
-            exc_info = sys.exc_info()
             count = debug_counter.next()
             debug_info = DebugInfo(count, exc_info)
             assert count not in self.debug_infos
