@@ -5,8 +5,7 @@ from cStringIO import StringIO
 try:
     import subprocess
 except ImportError:
-    # Don't want this to be unimportable in older Python's
-    subprocess = None
+    from paste.util import subprocess24 as subprocess
 from paste import wsgilib
 import re
 import cgi

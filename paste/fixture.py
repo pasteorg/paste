@@ -22,7 +22,7 @@ import re
 try:
     import subprocess
 except ImportError:
-    pass
+    from paste.util import subprocess24 as subprocess
 
 from paste import wsgilib
 from paste import lint
