@@ -193,7 +193,7 @@ class EvalException(object):
             local_vars = 'No local vars'
         return input_form(framecount, debug_info) + local_vars
 
-    show_frame = wsgiapp()(get_debug_info)(show_frame)
+    show_frame = wsgiapp()(get_debug_info(show_frame))
 
     #@wsgiapp()
     #@get_debug_info
@@ -211,7 +211,7 @@ class EvalException(object):
                 % (preserve_whitespace(input_html, quote=False),
                    preserve_whitespace(output)))
 
-    exec_input = wsgiapp()(get_debug_info)(exec_input)
+    exec_input = wsgiapp()(get_debug_info(exec_input))
 
     def respond(self, environ, start_response):
         base_path = environ['SCRIPT_NAME']
