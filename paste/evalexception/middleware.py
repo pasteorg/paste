@@ -182,8 +182,8 @@ class EvalException(object):
         return app(environ, start_response)
     mochikit.exposed = True
 
-    @wsgiapp()
-    @get_debug_info
+    #@wsgiapp()
+    #@get_debug_info
     def show_frame(self, framecount, debug_info, **kw):
         frame = debug_info.frames[int(framecount)]
         vars = frame.tb_frame.f_locals
@@ -193,8 +193,10 @@ class EvalException(object):
             local_vars = 'No local vars'
         return input_form(framecount, debug_info) + local_vars
 
-    @wsgiapp()
-    @get_debug_info
+    show_frame = wsgiapp()(get_debug_info)(show_frame)
+
+    #@wsgiapp()
+    #@get_debug_info
     def exec_input(self, framecount, debug_info, input, **kw):
         if not input.strip():
             return ''
@@ -208,6 +210,8 @@ class EvalException(object):
                 '<code>%s</code><br>\n%s'
                 % (preserve_whitespace(input_html, quote=False),
                    preserve_whitespace(output)))
+
+    exec_input = wsgiapp()(get_debug_info)(exec_input)
 
     def respond(self, environ, start_response):
         base_path = environ['SCRIPT_NAME']
