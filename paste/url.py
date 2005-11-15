@@ -6,6 +6,7 @@ This module implements a class for handling URLs.
 """
 import urllib
 import cgi
+from paste import wsgilib
 
 __all__ = ["URL", "Image"]
 
@@ -68,6 +69,29 @@ class URLResource(object):
         if params:
             self.params.update(params)
 
+    #@classmethod
+    def from_environ(cls, environ, with_query_string=True,
+                     with_path_info=True, script_name=None,
+                     path_info=None, querystring=None):
+        url = wsgilib.construct_url(
+            environ, with_query_string=False,
+            with_path_info=with_path_info, script_name=script_name,
+            path_info=path_info)
+        if with_query_string:
+            if querystring is None:
+                vars = wsgilib.parse_querystring(environ)
+            else:
+                vars = cgi.parse_qsl(
+                    querystring,
+                    keep_blank_values=True,
+                    strict_parsing=False)
+        else:
+            vars = None
+        v = cls(url, vars=vars)
+        return v
+
+    from_environ = classmethod(from_environ)
+
     def __call__(self, *args, **kw):
         res = self._add_positional(args)
         res = res._add_vars(kw)
@@ -107,6 +131,26 @@ class URLResource(object):
                               attrs=self.attrs,
                               params=self.original_params)
 
+    def setvar(self, **kw):
+        """
+        Like ``.var(...)``, except overwrites keys, where .var simply
+        extends the keys.  Setting a variable to None here will
+        effectively delete it.
+        """
+        for key in kw.keys():
+            if key.endswith('_'):
+                kw[key[:-1]] = kw[key]
+                del kw[key]
+        new_vars = []
+        for name, values in self.vars:
+            if name in kw:
+                continue
+            new_vars.append((name, values))
+        new_vars.extend(kw.items())
+        return self.__class__(self.url, vars=new_vars,
+                              attrs=self.attrs,
+                              params=self.original_params)
+
     def addpath(self, *paths):
         u = self
         for path in paths:
@@ -130,8 +174,14 @@ class URLResource(object):
         s = self.url
         if self.vars:
             s += '?'
-            s += '&'.join(['%s=%s' % (url_quote(n), url_quote(v))
-                           for n, v in self.vars])
+            vars = []
+            for name, val in self.vars:
+                if isinstance(val, (list, tuple)):
+                    val = [v for v in val if v is not None]
+                elif val is None:
+                    continue
+                vars.append((name, val))
+            s += urllib.urlencode(vars, True)
         return s
 
     href = property(href__get)
@@ -202,7 +252,7 @@ class URL(URLResource):
     >>> u.param(confirm='Really?', content='goto').html
     '<a href="http://localhost/view" onclick="return confirm(\'Really?\')">goto</a>'
     >>> u(title='See "it"', content='goto').html
-    '<a href="http://localhost/view?title=See%20%22it%22">goto</a>'
+    '<a href="http://localhost/view?title=See+%22it%22">goto</a>'
     >>> u('another', var='fuggetaboutit', content='goto').html
     '<a href="http://localhost/view/another?var=fuggetaboutit">goto</a>'
     >>> u.attr(content='goto').html
@@ -210,7 +260,7 @@ class URL(URLResource):
         ....
     ValueError: You must give a content param to <URL http://localhost/view attrs(content="goto")> generate anchor tags
     >>> str(u['foo=bar%20stuff'])
-    'http://localhost/view?foo=bar%20stuff'
+    'http://localhost/view?foo=bar+stuff'
     """
 
     default_params = {'tag': 'a'}
@@ -227,10 +277,11 @@ class URL(URLResource):
 
     def _add_vars(self, vars):
         url = self
-        if 'confirm' in vars:
-            url = url.param(confirm=vars.pop('confirm'))
-        if 'content' in vars:
-            url = url.param(content=vars.pop('content'))
+        for name in ('confirm', 'content'):
+            if name in vars:
+                url = url.param(**{name: vars.pop(name)})
+        if 'target' in vars:
+            url = url.attr(target=vars.pop('target'))
         return url.var(**vars)
 
     def _add_positional(self, args):
@@ -253,6 +304,11 @@ class URL(URLResource):
         return self.become(Button)
 
     button = property(button__get)
+
+    def js_popup__get(self):
+        return self.become(JSPopup)
+
+    js_popup = property(js_popup__get)
             
 class Image(URLResource):
 
@@ -329,7 +385,69 @@ class Button(URLResource):
         onclick += '; return false'
         attrs.insert(0, ('onclick', onclick))
         return attrs
-    
+
+class JSPopup(URLResource):
+
+    r"""
+    >>> u = URL('/')
+    >>> u = u / 'view'
+    >>> j = u.js_popup(content='view')
+    >>> j.html
+    '<a href="/view" onclick="window.open(\'/view\', \'_blank\'); return false" target="_blank">view</a>'
+    """
+
+    default_params = {'tag': 'a', 'target': '_blank'}
+
+    def _add_vars(self, vars):
+        button = self
+        for var in ('width', 'height', 'stripped', 'content'):
+            if var in vars:
+                button = button.param(**{var: vars.pop(var)})
+        return button.var(**vars)
+
+    def _window_args(self):
+        p = self.params
+        features = []
+        if p.get('stripped'):
+            p['location'] = p['status'] = p['toolbar'] = '0'
+        for param in 'channelmode directories fullscreen location menubar resizable scrollbars status titlebar'.split():
+            if param not in p:
+                continue
+            v = p[param]
+            if v not in ('yes', 'no', '1', '0'):
+                if v:
+                    v = '1'
+                else:
+                    v = '0'
+            features.append('%s=%s' % (param, v))
+        for param in 'height left top width':
+            if not p.get(param):
+                continue
+            features.append('%s=%s' % (param, p[param]))
+        args = [self.href, p['target']]
+        if features:
+            args.append(','.join(features))
+        return ', '.join(map(js_repr, args))
+
+    def _html_attrs(self):
+        attrs = self.attrs.items()
+        onclick = ('window.open(%s); return false'
+                   % self._window_args())
+        attrs.insert(0, ('target', self.params['target']))
+        attrs.insert(0, ('onclick', onclick))
+        attrs.insert(0, ('href', self.href))
+        return attrs
+
+    def _get_content(self):
+        if not self.params.get('content'):
+            raise ValueError(
+                "You must give a content param to %r generate anchor tags"
+                % self)
+        return self.params['content']
+
+    def _add_positional(self, args):
+        return self.addpath(*args)
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
