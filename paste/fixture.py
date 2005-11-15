@@ -475,8 +475,6 @@ class TestResponse(object):
         # @@: We should test that it's not a remote redirect
         return self.test_app.get(location, **kw)
 
-    _anchor_re = re.compile(r'<a\s+(.*?)>(.*?)</a>', re.I+re.S)
-
     def click(self, description=None, linkid=None, href=None,
               anchor=None, index=None, verbose=False):
         """
@@ -516,10 +514,45 @@ class TestResponse(object):
         You can use multiple criteria to essentially assert multiple
         aspects about the link, e.g., where the link's destination is.
         """
-        description = make_pattern(description)
-        linkid = make_pattern(linkid)
-        href = make_pattern(href)
-        anchor = make_pattern(anchor)
+        found_html, found_desc, found_attrs = self._find_element(
+            tag='a', href_attr='href',
+            href_extract=None,
+            content=description,
+            id=linkid, 
+            href_pattern=href,
+            html_pattern=anchor,
+            index=index, verbose=verbose)
+        return self.goto(found_attrs['uri'])
+
+    def clickbutton(self, description=None, buttonid=None, href=None,
+                    button=None, index=None, verbose=False):
+        """
+        Like ``.click()``, except looks for link-like buttons.
+        This kind of button should look like
+        ``<button onclick="...location.href='url'...">``.
+        """
+        found_html, found_desc, found_attrs = self._find_element(
+            tag='button', href_attr='onclick',
+            href_extract=re.compile(r"location\.href='(.*?)'"),
+            content=description,
+            id=buttonid,
+            href_pattern=href,
+            html_pattern=button,
+            index=index, verbose=verbose)
+        return self.goto(found_attrs['uri'])
+
+    def _find_element(self, tag, href_attr, href_extract,
+                      content, id,
+                      href_pattern,
+                      html_pattern,
+                      index, verbose):
+        content_pat = make_pattern(content)
+        id_pat = make_pattern(id)
+        href_pat = make_pattern(href_pattern)
+        html_pat = make_pattern(html_pattern)
+
+        _tag_re = re.compile(r'<%s\s+(.*?)>(.*?)</%s>' % (tag, tag),
+                             re.I+re.S)
 
         def printlog(s):
             if verbose:
@@ -527,40 +560,48 @@ class TestResponse(object):
 
         found_links = []
         total_links = 0
-        for match in self._anchor_re.finditer(self.body):
-            link_anchor = match.group(0)
-            link_attr = match.group(1)
-            link_desc = match.group(2)
-            attrs = _parse_attrs(link_attr)
+        for match in _tag_re.finditer(self.body):
+            el_html = match.group(0)
+            el_attr = match.group(1)
+            el_content = match.group(2)
+            attrs = _parse_attrs(el_attr)
             if verbose:
-                printlog('Link: %r' % link_anchor)
-            if not attrs.get('href'):
-                printlog('  Skipped: no href attribute')
+                printlog('Element: %r' % el_html)
+            if not attrs.get(href_attr):
+                printlog('  Skipped: no %s attribute' % href_attr)
                 continue
-            if attrs['href'].startswith('#'):
+            el_href = attrs[href_attr]
+            if href_extract:
+                m = href_extract.search(el_href)
+                if not m:
+                    printlog("  Skipped: doesn't match extract pattern")
+                    continue
+                el_href = m.group(1)
+            attrs['uri'] = el_href
+            if el_href.startswith('#'):
                 printlog('  Skipped: only internal fragment href')
                 continue
-            if attrs['href'].startswith('javascript:'):
+            if el_href.startswith('javascript:'):
                 printlog('  Skipped: cannot follow javascript:')
                 continue
             total_links += 1
-            if description and not description(link_desc):
+            if content_pat and not content_pat(el_content):
                 printlog("  Skipped: doesn't match description")
                 continue
-            if linkid and not linkid(attrs.get('id', '')):
-                printlog("  Skipped: doesn't match linkid")
+            if id_pat and not id_pat(attrs.get('id', '')):
+                printlog("  Skipped: doesn't match id")
                 continue
-            if href and not href(attrs['href']):
+            if href_pat and not href_pat(el_href):
                 printlog("  Skipped: doesn't match href")
                 continue
-            if anchor and not anchor(link_anchor):
-                printlog("  Skipped: doesn't match anchor")
+            if html_pat and not html_pat(link_anchor):
+                printlog("  Skipped: doesn't match html")
                 continue
             printlog("  Accepted")
-            found_links.append((link_anchor, link_desc, attrs))
+            found_links.append((el_html, el_content, attrs))
         if not found_links:
             raise IndexError(
-                "No matching links found (from %s possible links)"
+                "No matching elements found (from %s possible)"
                 % total_links)
         if index is None:
             if len(found_links) > 1:
@@ -575,8 +616,8 @@ class TestResponse(object):
                 raise IndexError(
                     "Only %s (out of %s) links match; index %s out of range"
                     % (len(found_links), total_links, index))
-        return self.goto(found_link[2]['href'])
-            
+        return found_link
+
     def goto(self, href, method='get', **args):
         """
         Go to the (potentially relative) link ``href``, using the

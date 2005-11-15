@@ -51,8 +51,8 @@ def parse_querystring(environ):
         parsed, check_source = environ['paste.parsed_querystring']
         if check_source == source:
             return parsed
-    parsed = cgi.parse_qs(source, keep_blank_values=True,
-                          strict_parsing=False)
+    parsed = cgi.parse_qsl(source, keep_blank_values=True,
+                           strict_parsing=False)
     environ['paste.parsed_querystring'] = (parsed, source)
     return parsed
 
