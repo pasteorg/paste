@@ -135,7 +135,7 @@ def get_debug_info(func):
             return func(self, debug_info=debug_info, **form)
         except ValueError, e:
             form['headers']['status'] = '500 Server Error'
-            return '<html>There was an error: %s</html>' % e
+            return '<html>There was an error: %s</html>' % html_quote(e)
     return debug_info_replacement
             
 debug_counter = itertools.count(int(time.time()))
@@ -184,24 +184,24 @@ class EvalException(object):
 
     #@wsgiapp()
     #@get_debug_info
-    def show_frame(self, framecount, debug_info, **kw):
-        frame = debug_info.frames[int(framecount)]
+    def show_frame(self, tbid, debug_info, **kw):
+        frame = debug_info.frame(int(tbid))
         vars = frame.tb_frame.f_locals
         if vars:
             local_vars = make_table(vars)
         else:
             local_vars = 'No local vars'
-        return input_form(framecount, debug_info) + local_vars
+        return input_form(tbid, debug_info) + local_vars
 
     show_frame = wsgiapp()(get_debug_info(show_frame))
 
     #@wsgiapp()
     #@get_debug_info
-    def exec_input(self, framecount, debug_info, input, **kw):
+    def exec_input(self, tbid, debug_info, input, **kw):
         if not input.strip():
             return ''
         input = input.rstrip() + '\n'
-        frame = debug_info.frames[int(framecount)]
+        frame = debug_info.frame(int(tbid))
         vars = frame.tb_frame.f_locals
         context = evalcontext.EvalContext(vars)
         output = context.exec_expr(input)
@@ -307,24 +307,30 @@ class DebugInfo(object):
             tb = tb.tb_next
             n += 1
 
+    def frame(self, tbid):
+        for frame in self.frames:
+            if id(frame) == tbid:
+                return frame
+        else:
+            raise ValueError, (
+                "No frame by id %s found from %r" % (tbid, self.frames))
+
 class EvalHTMLFormatter(formatter.HTMLFormatter):
 
     def __init__(self, base_path, counter, **kw):
         super(EvalHTMLFormatter, self).__init__(**kw)
         self.base_path = base_path
         self.counter = counter
-        self.framecount = -1
     
-    def format_source_line(self, filename, modname, lineno, name):
+    def format_source_line(self, filename, frame):
         line = formatter.HTMLFormatter.format_source_line(
-            self, filename, modname, lineno, name)
-        self.framecount += 1
+            self, filename, frame)
         return (line +
                 '  <a href="#" class="switch_source" '
-                'framecount="%s" onClick="return showFrame(this)">&nbsp; &nbsp; '
+                'tbid="%s" onClick="return showFrame(this)">&nbsp; &nbsp; '
                 '<img src="%s/_debug/media/plus.jpg" border=0 width=9 '
                 'height=9> &nbsp; &nbsp;</a>'
-                % (self.framecount, self.base_path))
+                % (frame.tbid, self.base_path))
 
 def make_table(items):
     if isinstance(items, dict):
@@ -401,25 +407,25 @@ def make_repost_button(environ):
 </form>''' % (url, '\n'.join(fields))
     
 
-def input_form(framecount, debug_info):
+def input_form(tbid, debug_info):
     return '''
 <form action="#" method="POST"
- onsubmit="return submitInput($(\'submit_%(framecount)s\'), %(framecount)s)">
-<div id="exec-output-%(framecount)s" style="width: 95%%;
+ onsubmit="return submitInput($(\'submit_%(tbid)s\'), %(tbid)s)">
+<div id="exec-output-%(tbid)s" style="width: 95%%;
  padding: 5px; margin: 5px; border: 2px solid #000;
  display: none"></div>
-<input type="text" name="input" id="debug_input_%(framecount)s"
+<input type="text" name="input" id="debug_input_%(tbid)s"
  style="width: 100%%"
  autocomplete="off" onkeypress="upArrow(this, event)"><br>
 <input type="submit" value="Execute" name="submitbutton"
- onclick="return submitInput(this, %(framecount)s)"
- id="submit_%(framecount)s"
- input-from="debug_input_%(framecount)s"
- output-to="exec-output-%(framecount)s">
+ onclick="return submitInput(this, %(tbid)s)"
+ id="submit_%(tbid)s"
+ input-from="debug_input_%(tbid)s"
+ output-to="exec-output-%(tbid)s">
 <input type="submit" value="Expand"
  onclick="return expandInput(this)">
 </form>
- ''' % {'framecount': framecount}
+ ''' % {'tbid': tbid}
 
 error_template = '''
 <html>
