@@ -265,6 +265,7 @@ class ExceptionCollector:
         data['lineno'] = lineno
         data['revision'] = self.getRevision(globals)
         data['name'] = name
+        data['tbid'] = id(tb)
 
         # Output a traceback supplement, if any.
         if locals.has_key('__traceback_supplement__'):
@@ -446,6 +447,9 @@ class ExceptionFrame(Bunch):
     traceback_info = None
     # The value of __traceback_hide__
     traceback_hide = False
+    # The id() of the traceback scope, can be used to reference the
+    # scope for use elsewhere
+    tbid = None
 
     def get_source_line(self, context=0):
         """

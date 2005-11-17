@@ -1,5 +1,5 @@
 function showFrame(anchor) {
-    var framecount = anchor.getAttribute('framecount');
+    var tbid = anchor.getAttribute('tbid');
     var expanded = anchor.expanded;
     if (expanded) {
         MochiKit.DOM.hideElement(anchor.expandedElement);
@@ -11,11 +11,11 @@ function showFrame(anchor) {
     if (anchor.expandedElement) {
         MochiKit.DOM.showElement(anchor.expandedElement);
         _swapImage(anchor);
-        $('debug_input_'+framecount).focus();
+        $('debug_input_'+tbid).focus();
         return false;
     }
     var url = debug_base
-        + '/show_frame?framecount=' + framecount
+        + '/show_frame?tbid=' + tbid
         + '&debugcount=' + debug_count;
     var d = MochiKit.Async.doSimpleXMLHttpRequest(url);
     d.addCallbacks(function (data) {
@@ -24,7 +24,7 @@ function showFrame(anchor) {
         el.innerHTML = data.responseText;
         anchor.expandedElement = el;
         _swapImage(anchor);
-        $('debug_input_'+framecount).focus();
+        $('debug_input_'+tbid).focus();
     }, function (error) {
         showError(error.req.responseText);
     });
@@ -41,7 +41,7 @@ function _swapImage(anchor) {
     el.src = debug_base + '/media/' + img;
 }
 
-function submitInput(button, framecount) {
+function submitInput(button, tbid) {
     var input = $(button.getAttribute('input-from'));
     var output = $(button.getAttribute('output-to'));
     var url = debug_base
@@ -53,7 +53,7 @@ function submitInput(button, framecount) {
     }
     history.push(input.value);
     var vars = {
-        framecount: framecount,
+        tbid: tbid,
         debugcount: debug_count,
         input: input.value
     };

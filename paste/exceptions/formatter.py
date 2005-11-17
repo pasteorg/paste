@@ -69,11 +69,7 @@ class AbstractFormatter(object):
                     if filename.startswith(path):
                         filename = repl + filename[len(path):]
                         break
-            lines.append(self.format_source_line(
-                filename or '?',
-                frame.modname or '?',
-                frame.lineno or '?',
-                frame.name or '?'))
+            lines.append(self.format_source_line(filename or '?', frame))
             source = frame.get_source_line()
             long_source = frame.get_source_line(2)
             if source:
@@ -184,8 +180,9 @@ class TextFormatter(AbstractFormatter):
         return 'Warning: %s' % self.quote(warning)
     def format_sup_info(self, info):
         return [self.quote_long(info)]
-    def format_source_line(self, filename, modname, lineno, name):
-        return 'File %r, line %s in %s' % (filename, lineno, name)
+    def format_source_line(self, filename, frame):
+        return 'File %r, line %s in %s' % (
+            filename, frame.lineno or '?', frame.name or '?')
     def format_long_source(self, source, long_source):
         return self.format_source(source)
     def format_source(self, source_line):
@@ -243,9 +240,10 @@ class HTMLFormatter(TextFormatter):
         return 'URL: <a href="%s">%s</a>' % (url, url)
     def format_combine_lines(self, lines):
         return '<br>\n'.join(lines)
-    def format_source_line(self, filename, modname, lineno, name):
+    def format_source_line(self, filename, frame):
         return 'Module <span class="module" title="%s">%s</span>:<b>%s</b> in <code>%s</code>' % (
-            filename, modname, lineno, name)
+            filename, frame.modname or '?', frame.lineno or '?',
+            frame.name or '?')
         return 'File %r, line %s in <tt>%s</tt>' % (filename, lineno, name)
     def format_long_source(self, source, long_source):
         q_long_source = str2html(long_source, False, 4, True)
