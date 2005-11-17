@@ -328,6 +328,8 @@ class TestApp(object):
             sys.stderr.write(out.getvalue())
         res = self.make_response(raw_res, end_time - start_time)
         res.request = req
+        for name, value in req.environ['paste.testing_variables'].items():
+            setattr(res, name, value)
         if self.namespace is not None:
             self.namespace['res'] = res
         if not req.expect_errors:
@@ -337,8 +339,6 @@ class TestApp(object):
             c = SimpleCookie(header)
             for key, morsel in c.items():
                 self.cookies[key] = morsel.value
-        for name, value in req.environ['paste.testing_variables']:
-            setattr(res, name, value)
         if self.namespace is None:
             # It's annoying to return the response in doctests, as it'll
             # be printed, so we only return it is we couldn't assign
@@ -514,6 +514,7 @@ class TestResponse(object):
         You can use multiple criteria to essentially assert multiple
         aspects about the link, e.g., where the link's destination is.
         """
+        __tracebackhide__ = True
         found_html, found_desc, found_attrs = self._find_element(
             tag='a', href_attr='href',
             href_extract=None,
@@ -531,6 +532,7 @@ class TestResponse(object):
         This kind of button should look like
         ``<button onclick="...location.href='url'...">``.
         """
+        __tracebackhide__ = True
         found_html, found_desc, found_attrs = self._find_element(
             tag='button', href_attr='onclick',
             href_extract=re.compile(r"location\.href='(.*?)'"),
