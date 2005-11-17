@@ -248,7 +248,7 @@ class EvalException(object):
             head_html += self.eval_javascript(base_path, count)
             repost_button = make_repost_button(environ)
             page = error_template % {
-                'repost_button': repost_button,
+                'repost_button': repost_button or '',
                 'head_html': head_html,
                 'body': html}
             return [page]
@@ -389,9 +389,14 @@ def make_repost_button(environ):
     if environ['REQUEST_METHOD'] == 'GET':
         return ('<button onclick="window.location.href=%r">'
                 'Re-GET Page</button><br>' % url)
+    else:
+        # @@: I'd like to reconstruct this, but I can't because
+        # the POST body is probably lost at this point, and
+        # I can't get it back :(
+        return None
     fields = []
     for name, value_list in wsgilib.parse_formvars(
-        environ, all_as_list=True, include_get_vars=False):
+        environ, all_as_list=True, include_get_vars=False).items():
         for value in value_list:
             if hasattr(value, 'filename'):
                 # @@: Arg, we'll just submit the body, and leave out
