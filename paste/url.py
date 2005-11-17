@@ -7,6 +7,8 @@ This module implements a class for handling URLs.
 import urllib
 import cgi
 from paste import wsgilib
+# Imported lazily from FormEncode:
+variabledecode = None
 
 __all__ = ["URL", "Image"]
 
@@ -121,11 +123,24 @@ class URLResource(object):
                               attrs=self.attrs,
                               params=new_params)
 
-    def var(self, **kw):
-        for key in kw.keys():
+    def coerce_vars(self, vars):
+        global variabledecode
+        need_variable_encode = False
+        for key, value in vars.items():
+            if isinstance(value, dict):
+                need_variable_encode = True
             if key.endswith('_'):
-                kw[key[:-1]] = kw[key]
-                del kw[key]
+                vars[key[:-1]] = vars[key]
+                del vars[key]
+        if need_variable_encode:
+            if variabledecode is None:
+                from formencode import variabledecode
+            vars = variabledecode.variable_encode(vars)
+        return vars
+
+    
+    def var(self, **kw):
+        kw = self.coerce_vars(kw)
         new_vars = self.vars + kw.items()
         return self.__class__(self.url, vars=new_vars,
                               attrs=self.attrs,
@@ -137,10 +152,7 @@ class URLResource(object):
         extends the keys.  Setting a variable to None here will
         effectively delete it.
         """
-        for key in kw.keys():
-            if key.endswith('_'):
-                kw[key[:-1]] = kw[key]
-                del kw[key]
+        kw = self.coerce_vars(kw)
         new_vars = []
         for name, values in self.vars:
             if name in kw:
