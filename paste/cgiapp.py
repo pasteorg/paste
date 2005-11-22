@@ -6,7 +6,10 @@ Application that runs a CGI script.
 """
 import os
 import subprocess
-import select
+try:
+    import select
+except ImportError:
+    select = None
 from paste.deploy import converters
 
 __all__ = ['CGIError', 'CGIApplication']
@@ -84,11 +87,17 @@ class CGIApplication(object):
             cwd=os.path.dirname(self.script),
             )
         writer = CGIWriter(environ, start_response)
-        proc_communicate(
-            proc,
-            stdin=StdinReader.from_environ(environ),
-            stdout=writer,
-            stderr=environ['wsgi.errors'])
+        if select:
+            proc_communicate(
+                proc,
+                stdin=StdinReader.from_environ(environ),
+                stdout=writer,
+                stderr=environ['wsgi.errors'])
+        else:
+            stdout, stderr = proc.communicate(StdinReader.from_environ(environ).read())
+            if stderr:
+                environ['wsgi.errors'].write(stderr)
+            writer(stdout)
         if not writer.headers_finished:
             start_response(writer.status, writer.headers)
         return []
