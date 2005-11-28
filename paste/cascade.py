@@ -54,7 +54,7 @@ class Cascade(object):
         self.catch_exceptions = []
         for error in catch:
             if isinstance(error, str):
-                error = int(error.split(None, 1))
+                error = int(error.split(None, 1)[0])
             if isinstance(error, httpexceptions.HTTPException):
                 exc = error
                 code = error.code
