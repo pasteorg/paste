@@ -92,7 +92,7 @@ class Includer(Recursive):
     """
     
     def activate(self, environ):
-        response = IncludedResponse
+        response = IncludedResponse()
         def start_response(status, headers, exc_info=None):
             if exc_info:
                 raise exc_info[0], exc_info[1], exc_info[2]
@@ -122,11 +122,11 @@ class IncludedResponse(object):
         self.output.close()
         self.output = None
 
-    def write(self):
+    def write(self, s):
         assert self.output is not None, (
             "This response has already been closed and no further data "
             "can be written.")
-        self.output.write()
+        self.output.write(s)
 
     def __str__(self):
         return self.body
