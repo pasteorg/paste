@@ -397,12 +397,30 @@ def header_value(headers, name):
     header appears more than once, all the values of the headers
     are joined with ','
     """
+    name = name.lower()
     result = [value for header, value in headers
               if header.lower() == name]
     if result:
         return ','.join(result)
     else:
         return None
+
+def remove_header(headers, name):
+    """
+    Removes the named header from the list of headers.  Returns the
+    value of that header, or None if no header found.  If multiple
+    headers are found, only the last one is returned.
+    """
+    name = name.lower()
+    i = 0
+    result = None
+    while i < len(headers):
+        if headers[i][0].lower() == name:
+            result = headers[i][1]
+            del headers[i]
+            continue
+        i += 1
+    return result
 
 def path_info_split(path_info):
     """
@@ -489,6 +507,48 @@ def capture_output(environ, start_response, application):
         data.append(status)
         data.append(headers)
         start_response(status, headers, exc_info)
+        return output.write
+    app_iter = application(environ, replacement_start_response)
+    try:
+        for item in app_iter:
+            output.write(item)
+    finally:
+        if hasattr(app_iter, 'close'):
+            app_iter.close()
+    if not data:
+        data.append(None)
+    if len(data) < 2:
+        data.append(None)
+    data.append(output.getvalue())
+    return data
+
+def intercept_output(environ, application):
+    """
+    Runs application with environ and captures status, headers, and
+    body.  None are sent on; you must send them on yourself (unlike
+    ``capture_output``)
+
+    Typically this is used like::
+
+        def dehtmlifying_middleware(application):
+            def replacement_app(environ, start_response):
+                status, headers, body = capture_output(
+                    environ, start_response, application)
+                content_type = header_value(headers, 'content-type')
+                if (not content_type
+                    or not content_type.startswith('text/html')):
+                    return [body]
+                body = re.sub(r'<.*?>', '', body)
+                return [body]
+            return replacement_app
+    """
+    data = []
+    output = StringIO()
+    def replacement_start_response(status, headers, exc_info=None):
+        if data:
+            data[:] = []
+        data.append(status)
+        data.append(headers)
         return output.write
     app_iter = application(environ, replacement_start_response)
     try:
