@@ -350,7 +350,11 @@ import traceback
 if mswindows:
     import threading
     import msvcrt
-    if 0: # <-- change this to use pywin32 instead of the _subprocess driver
+    ## @@: Changed in Paste
+    ## Since this module is only used on pre-python-2.4 systems, they probably
+    ## don't have _subprocess installed, but hopefully have the win32 stuff
+    ## installed.
+    if 1: # <-- change this to use pywin32 instead of the _subprocess driver
         import pywintypes
         from win32api import GetStdHandle, STD_INPUT_HANDLE, \
                              STD_OUTPUT_HANDLE, STD_ERROR_HANDLE
