@@ -438,6 +438,7 @@ def format_html(exc_data, include_hidden_frames=False, **ops):
     ops['include_reusable'] = False
     ops['show_extra_data'] = False
     long_er = format_html(exc_data, show_hidden_frames=True, **ops)
+    text_er = format_text(exc_data, show_hidden_frames=True, **ops)
     return """
     %s
     <br>
@@ -447,7 +448,14 @@ def format_html(exc_data, include_hidden_frames=False, **ops):
     <div id="full_traceback" class="hidden-data">
     %s
     </div>
-    """ % (short_er, long_er)
+    <br>
+    <script type="text/javascript">
+    show_button('text_version', 'text version')
+    </script>
+    <div id="text_version" class="hidden-data">
+    <textarea style="width: 100%%" rows=10 cols=60>%s</textarea>
+    </div>
+    """ % (short_er, long_er, cgi.escape(text_er))
         
 def format_text(exc_data, **ops):
     return TextFormatter(**ops).format_collected_data(exc_data)
