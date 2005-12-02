@@ -824,13 +824,13 @@ class Form(object):
             tag = match.group(2).lower()
             if tag != 'form':
                 continue
+            if end:
+                break
             attrs = _parse_attrs(match.group(3))
             self.action = attrs.get('action', '')
             self.method = attrs.get('method', 'GET')
             self.id = attrs.get('id')
             # @@: enctype?
-            if end:
-                break
         else:
             assert 0, "No </form> tag found"
         assert self.action is not None, (
