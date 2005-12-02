@@ -455,8 +455,13 @@ class StaticURLParser(object):
         status, headers, body = wsgilib.error_response(
             environ,
             '404 Not Found',
-            'The resource at %s could not be found'
-            % wsgilib.construct_url(environ),
+            'The resource at %s could not be found\n'
+            '<!-- SCRIPT_NAME: %r\n'
+            '     PATH_INFO: %r\n'
+            '     Looked in: %r\n'
+            % (wsgilib.construct_url(environ),
+               environ['SCRIPT_NAME'], environ['PATH_INFO'],
+               self),
             debug_message=debug_message)
         start_response(status, headers)
         return [body]
