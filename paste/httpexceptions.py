@@ -75,7 +75,7 @@ class HTTPNotModified(HTTPException):
     message = ''
     # @@: should include date header, optionally other headers
 
-class HTTPUserProxy(_HTTPMove):
+class HTTPUseProxy(_HTTPMove):
     # @@: OK, not a move, but looks a little like one
     code = 305
     title = 'Use Proxy'
