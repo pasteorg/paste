@@ -82,18 +82,21 @@ def parse_formvars(environ, all_as_list=False, include_get_vars=True):
                           keep_blank_values=1)
     formvars = {}
     for name in fs.keys():
-        value = fs[name]
-        if not value.filename:
-            value = value.value
-        if name in formvars:
-            if isinstance(formvars[name], list):
-                formvars[name].append(value)
+        values = fs[name]
+        if not isinstance(values, list):
+            values = [values]
+        for value in values:
+            if not value.filename:
+                value = value.value
+            if name in formvars:
+                if isinstance(formvars[name], list):
+                    formvars[name].append(value)
+                else:
+                    formvars[name] = [formvars[name], value]
+            elif all_as_list:
+                formvars[name] = [value]
             else:
-                formvars[name] = [formvars[name], value]
-        elif all_as_list:
-            formvars[name] = [value]
-        else:
-            formvars[name] = value
+                formvars[name] = value
     if environ['REQUEST_METHOD'] == 'POST' and include_get_vars:
         for name, value in parse_querystring(environ):
             if name in formvars:
