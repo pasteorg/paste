@@ -58,6 +58,13 @@ class ErrorMiddleware(object):
     ``error_message``:
         When debug mode is off, the error message to show to users.
 
+    ``xmlhttp_key``:
+    
+        When this key (default ``_``) is in the request GET variables
+        (not POST!), expect that this is an XMLHttpRequest, and the
+        response should be more minimal; it should not be a complete
+        HTML page.
+
     This also looks for a special key ``'paste.expected_exceptions``,
     which should be a list of exception classes.  When an exception is
     raised, if it is found in this list then it will be re-raised
@@ -74,7 +81,8 @@ class ErrorMiddleware(object):
                  from_address=None,
                  smtp_server=None,
                  error_subject_prefix=None,
-                 error_message=None):
+                 error_message=None,
+                 xmlhttp_key=None):
         self.application = application
         if global_conf is None:
             global_conf = {}
@@ -99,6 +107,9 @@ class ErrorMiddleware(object):
         if error_message is None:
             error_message = global_conf.get('error_message')
         self.error_message = error_message
+        if xmlhttp_key is None:
+            xmlhttp_key = global_conf.get('xmlhttp_key', '_')
+        self.xmlhttp_key = xmlhttp_key
             
     def __call__(self, environ, start_response):
         """
@@ -161,6 +172,11 @@ class ErrorMiddleware(object):
             yield response
 
     def exception_handler(self, exc_info, environ):
+        simple_html_error = False
+        if self.xmlhttp_key:
+            get_vars = wsgilib.parse_querystring(environ)
+            if dict(get_vars).get(self.xmlhttp_key):
+                simple_html_error = True
         return handle_exception(
             exc_info, environ['wsgi.errors'],
             html=True,
@@ -171,7 +187,8 @@ class ErrorMiddleware(object):
             error_email_from=self.from_address,
             smtp_server=self.smtp_server,
             error_subject_prefix=self.error_subject_prefix,
-            error_message=self.error_message)
+            error_message=self.error_message,
+            simple_html_error=simple_html_error)
 
 class Supplement(object):
 
@@ -232,6 +249,7 @@ def handle_exception(exc_info, error_stream, html=True,
                      smtp_server='localhost',
                      error_subject_prefix='',
                      error_message=None,
+                     simple_html_error=False,
                      ):
     """
     For exception handling outside of a web context
@@ -285,7 +303,12 @@ def handle_exception(exc_info, error_stream, html=True,
         error_stream.write('Error - %s: %s\n' % (
             exc_data.exception_type, exc_data.exception_value))
     if html:
-        if debug_mode:
+        if debug_mode and simple_html_error:
+            return_error = formatter.format_html(
+                exc_data, include_hidden_frames=False,
+                include_reusable=False, show_extra_data=False)
+            reported = True
+        elif debug_mode and not simple_html_error:
             error_html = formatter.format_html(
                 exc_data,
                 include_hidden_frames=True,

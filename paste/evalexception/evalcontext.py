@@ -17,8 +17,9 @@ class EvalContext(object):
     doctest.
     """
 
-    def __init__(self, namespace):
+    def __init__(self, namespace, globs):
         self.namespace = namespace
+        self.globs = globs
 
     def exec_expr(self, s):
         out = StringIO()
@@ -31,7 +32,7 @@ class EvalContext(object):
             sys.stdout = out
             try:
                 code = compile(s, '<web>', "single", 0, 1)
-                exec code in self.namespace
+                exec code in self.namespace, self.globs
                 debugger.set_continue()
             except KeyboardInterrupt:
                 raise

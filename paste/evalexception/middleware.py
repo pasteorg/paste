@@ -142,9 +142,13 @@ debug_counter = itertools.count(int(time.time()))
 
 class EvalException(object):
 
-    def __init__(self, application, global_conf=None):
+    def __init__(self, application, global_conf=None,
+                 xmlhttp_key=None):
         self.application = application
         self.debug_infos = {}
+        if xmlhttp_key is None:
+            xmlhttp_key = global_conf.get('xmlhttp_key', '_')
+        self.xmlhttp_key = xmlhttp_key
 
     def __call__(self, environ, start_response):
         assert not environ['wsgi.multiprocess'], (
@@ -203,7 +207,8 @@ class EvalException(object):
         input = input.rstrip() + '\n'
         frame = debug_info.frame(int(tbid))
         vars = frame.tb_frame.f_locals
-        context = evalcontext.EvalContext(vars)
+        glob_vars = frame.tb_frame.f_globals
+        context = evalcontext.EvalContext(vars, glob_vars)
         output = context.exec_expr(input)
         input_html = formatter.str2html(input)
         return ('<code style="color: #060">&gt;&gt;&gt;</code> '
@@ -233,14 +238,25 @@ class EvalException(object):
             for expected in environ.get('paste.expected_exceptions', []):
                 if issubclass(exc_info[0], expected):
                     raise
-            count = debug_counter.next()
-            debug_info = DebugInfo(count, exc_info)
-            assert count not in self.debug_infos
-            self.debug_infos[count] = debug_info
+                
             if not started:
                 start_response('500 Internal Server Error',
                                [('content-type', 'text/html')],
                                exc_info)
+
+            if self.xmlhttp_key:
+                get_vars = wsgilib.parse_querystring(environ)
+                if dict(get_vars).get(self.xmlhttp_key):
+                    exc_data = collector.collect_exception(*exc_info)
+                    html = formatter.format_html(
+                        exc_data, include_hidden_frames=False,
+                        include_reusable=False, show_extra_data=False)
+                    return [html]
+
+            count = debug_counter.next()
+            debug_info = DebugInfo(count, exc_info)
+            assert count not in self.debug_infos
+            self.debug_infos[count] = debug_info
             # @@: it would be nice to deal with bad content types here
             exc_data = collector.collect_exception(*exc_info)
             html = format_eval_html(exc_data, base_path, count)
