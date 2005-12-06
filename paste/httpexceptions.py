@@ -176,7 +176,7 @@ class HTTPServerError(HTTPException):
     message = ('An internal server error occurred.')
 
 class HTTPNotImplemented(HTTPException):
-    coded = 501
+    code = 501
     title = 'Not Implemented'
     message = ('The request method %(REQUEST_METHOD)s is not implemented '
                'for this server.')
