@@ -31,7 +31,7 @@ class HTTPException(Exception):
         message = self.message
         args = environ.copy()
         if self.headers:
-            environ.update(self.headers)
+            args.update(self.headers)
         message = message % args
         return ('<html><head><title>%(title)s</title></head>\n'
                 '<body>\n'
