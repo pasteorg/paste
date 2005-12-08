@@ -122,7 +122,7 @@ class HTTPNotAcceptable(HTTPException):
     message = ('The resource could not be generated that was acceptable '
                'to your browser (content of type %(HTTP_ACCEPT)s).')
 
-class HTTPConfict(HTTPException):
+class HTTPConflict(HTTPException):
     code = 409
     title = 'Conflict'
     message = ('There was a conflict when trying to complete your '
