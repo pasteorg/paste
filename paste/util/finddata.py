@@ -65,7 +65,8 @@ def find_package_data(
                         break
                 if bad_name:
                     continue
-                if os.path.isfile(os.path.join(fn, '__init__.py')):
+                if (os.path.isfile(os.path.join(fn, '__init__.py'))
+                    and not prefix):
                     if not package:
                         new_package = name
                     else:
