@@ -566,7 +566,7 @@ def middleware(*args, **kw):
                   DeprecationWarning, 1)
     return make_middleware(*args, **kw)
 
-def make_middleware(app, global_conf, warning_level=None):
+def make_middleware(app, global_conf=None, warning_level=None):
     """
     ``httpexceptions`` middleware; this catches any
     ``paste.httpexceptions.HTTPException`` exceptions (exceptions like
