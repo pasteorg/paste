@@ -531,3 +531,12 @@ class PkgResourcesParser(StaticURLParser):
         start_response('200 OK',
                        [('content-type', type)])
         return wsgilib._FileIter(file)
+
+def make_pkg_resources(global_conf, egg, resource_name=''):
+    """
+    A static file parser that loads data from an egg using
+    ``pkg_resources``.  Takes a configuration value ``egg``, which is
+    an egg spec, and a base ``resource_name`` (default empty string)
+    which is the path in the egg that this starts at.
+    """
+    return PkgResourcesParser(egg, resource_name)

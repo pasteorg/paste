@@ -133,6 +133,7 @@ Other Tools
       cgi = paste.cgiapp:CGIApplication [subprocess]
       pycgi = paste.pycgiwrapper:CGIWrapper
       static = paste.urlparser:make_static
+      pkg_resources = paste.urlparser:make_pkg_resources
 
       [paste.composit_factory]
       urlmap = paste.urlmap:urlmap_factory
