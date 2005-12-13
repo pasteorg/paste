@@ -105,7 +105,7 @@ def wsgiapp():
                 status = headers.pop('status')
                 start_response(status, headers.headeritems())
                 return [res]
-            app = httpexceptions.middleware(application)
+            app = httpexceptions.make_middleware(application)
             app = simplecatcher(app)
             return app(environ, start_response)
         wsgiapp_wrapper.exposed = True
