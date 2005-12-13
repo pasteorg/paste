@@ -28,6 +28,7 @@ from paste.exceptions import errormiddleware, formatter, collector
 from paste import wsgilib
 from paste import urlparser
 from paste import httpexceptions
+from paste import request
 import evalcontext
 
 limit = 200
@@ -160,8 +161,8 @@ class EvalException(object):
             return self.respond(environ, start_response)
 
     def debug(self, environ, start_response):
-        assert wsgilib.path_info_pop(environ) == '_debug'
-        next_part = wsgilib.path_info_pop(environ)
+        assert request.path_info_pop(environ) == '_debug'
+        next_part = request.path_info_pop(environ)
         method = getattr(self, next_part, None)
         if not method:
             exc = httpexceptions.HTTPNotFound(
@@ -401,7 +402,7 @@ def format_eval_html(exc_data, base_path, counter):
     """ % (short_er, long_er)
 
 def make_repost_button(environ):
-    url = wsgilib.construct_url(environ)
+    url = request.construct_url(environ)
     if environ['REQUEST_METHOD'] == 'GET':
         return ('<button onclick="window.location.href=%r">'
                 'Re-GET Page</button><br>' % url)

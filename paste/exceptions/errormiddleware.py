@@ -13,6 +13,7 @@ except ImportError:
     from StringIO import StringIO
 from paste.exceptions import formatter, collector, reporter
 from paste import wsgilib
+from paste import request
 from paste.deploy import converters
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
@@ -208,7 +209,7 @@ class Supplement(object):
     def __init__(self, middleware, environ):
         self.middleware = middleware
         self.environ = environ
-        self.source_url = wsgilib.construct_url(environ)
+        self.source_url = request.construct_url(environ)
 
     def extraData(self):
         data = {}
