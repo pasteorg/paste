@@ -9,6 +9,7 @@ import mimetypes
 import wsgilib
 from paste.util import import_string
 from paste.deploy import converters
+import httpexceptions
 
 class NoDefault:
     pass
@@ -193,17 +194,13 @@ class URLParser(object):
             return self.get_application(environ, filename), filename
 
     def not_found(self, environ, start_response, debug_message=None):
-        status, headers, body = wsgilib.error_response(
-            environ,
-            '404 Not Found',
+        exc = httpexceptions.HTTPNotFound(
             'The resource at %s could not be found'
-            '<!-- SCRIPT_NAME=%r; PATH_INFO=%r; looking in %r -->'
-            % (wsgilib.construct_url(environ),
-               environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
-               self.directory),
-            debug_message=debug_message)
-        start_response(status, headers)
-        return [body]
+            % wsgilib.construct_url(environ),
+            comment='SCRIPT_NAME=%r; PATH_INFO=%r; looking in %r; debug: %s'
+            % (environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
+               self.directory, debug_message or '(none)'))
+        return exc.wsgi_application(environ, start_response)
 
     def add_slash(self, environ, start_response):
         """
@@ -214,15 +211,11 @@ class URLParser(object):
         url += '/'
         if environ.get('QUERY_STRING'):
             url += '?' + environ['QUERY_STRING']
-        status = '301 Moved Permanently'
-        status, headers, body = wsgilib.error_response(
-            environ,
-            status,
-            '''
-            <p>The resource has moved to <a href="%s">%s</a>.  You
-            should be redirected automatically.</p>''' % (url, url))
-        start_response(status, headers + [('Location', url)])
-        return [body]
+        exc = httpexceptions.HTTPMovedPermanently(
+            'The resource has moved to %s - you should be redirected '
+            'automatically.''' % url,
+            headers=[('location', url)])
+        return exc.wsgi_application(environ, start_response)
 
     def find_file(self, environ, base_filename):
         possible = []
@@ -441,38 +434,25 @@ class StaticURLParser(object):
         url += '/'
         if environ.get('QUERY_STRING'):
             url += '?' + environ['QUERY_STRING']
-        status = '301 Moved Permanently'
-        status, headers, body = wsgilib.error_response(
-            environ,
-            status,
-            '''
-            <p>The resource has moved to <a href="%s">%s</a>.  You
-            should be redirected automatically.</p>''' % (url, url))
-        start_response(status, headers + [('Location', url)])
-        return [body]
+        exc = httpexceptions.HTTPMovedPermanently(
+            'The resource has moved to %s - you should be redirected '
+            'automatically.''' % url,
+            headers=[('location', url)])
+        return exc.wsgi_application(environ, start_response)
         
     def not_found(self, environ, start_response, debug_message=None):
-        status, headers, body = wsgilib.error_response(
-            environ,
-            '404 Not Found',
-            'The resource at %s could not be found\n'
-            '<!-- SCRIPT_NAME: %r\n'
-            '     PATH_INFO: %r\n'
-            '     Looked in: %r\n'
-            % (wsgilib.construct_url(environ),
-               environ['SCRIPT_NAME'], environ['PATH_INFO'],
-               self),
-            debug_message=debug_message)
-        start_response(status, headers)
-        return [body]
+        exc = httpexceptions.HTTPNotFound(
+            'The resource at %s could not be found'
+            % wsgilib.construct_url(environ),
+            comment='SCRIPT_NAME=%r; PATH_INFO=%r; looking in %r; debug: %s'
+            % (environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
+               self.directory, debug_message or '(none)'))
+        return exc.wsgi_application(environ, start_response)
 
     def error_extra_path(self, environ, start_response):
-        status, headers, body = wsgilib.error_response(
-            environ,
-            '500 Bad Request',
+        exc = httpexceptions.HTTPBadRequest(
             'The trailing path %r is not allowed' % environ['PATH_INFO'])
-        start_response(status, headers)
-        return [body]
+        return exc.wsgi_application(environ, start_response)
     
     def __repr__(self):
         return '<%s %r>' % (self.__class__.__name__, self.directory)
@@ -523,14 +503,21 @@ class PkgResourcesParser(StaticURLParser):
         try:
             file = self.egg.get_resource_stream(self.manager, resource)
         except (IOError, OSError), e:
-            status, headers, body = wsgilib.error_response(
-                '403 Forbidden',
+            exc = httpexceptions.HTTPForbidden(
                 'You are not permitted to view this file (%s)' % e)
-            start_response(status, headers)
-            return [body]
+            return exc.wsgi_application(environ, start_response)
         start_response('200 OK',
                        [('content-type', type)])
         return wsgilib._FileIter(file)
+        
+    def not_found(self, environ, start_response, debug_message=None):
+        exc = httpexceptions.HTTPNotFound(
+            'The resource at %s could not be found'
+            % wsgilib.construct_url(environ),
+            comment='SCRIPT_NAME=%r; PATH_INFO=%r; looking in egg:%s#%r; debug: %s'
+            % (environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
+               self.egg, self.resource_name, debug_message or '(none)'))
+        return exc.wsgi_application(environ, start_response)
 
 def make_pkg_resources(global_conf, egg, resource_name=''):
     """

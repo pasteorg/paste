@@ -4,6 +4,7 @@
 from UserDict import DictMixin
 import re
 import os
+import httpexceptions
 import wsgilib
 
 __all__ = ['URLMap', 'PathProxyURLMap']
@@ -55,9 +56,9 @@ class URLMap(DictMixin):
             extra = ''
         extra += '\nSCRIPT_NAME: %r' % environ.get('SCRIPT_NAME')
         extra += '\nPATH_INFO: %r' % environ.get('PATH_INFO')
-        app = wsgilib.error_response_app(
-            '404 Not Found', 'The resource was not found\n<!-- %s -->'
-            % extra)
+        app = httpexceptions.HTTPNotFound(
+            'The resource was not found',
+            comment=extra).wsgi_application
         return app(environ, start_response)
 
     def normalize_url(self, url, trim=True):

@@ -34,7 +34,7 @@ def test_deep():
     assert res.status == 301
     print res
     assert res.header('location') == 'http://localhost/sub/'
-    assert 'href="http://localhost/sub/"' in res
+    assert 'http://localhost/sub/' in res
     res = app.get('/sub/')
     assert 'index3' in res
     
@@ -82,7 +82,7 @@ def test_static_parser():
     res = testapp.get('/', status=404)
     res = testapp.get('/index.txt')
     assert res.body.strip() == 'index1'
-    res = testapp.get('/index.txt/foo', status=500)
+    res = testapp.get('/index.txt/foo', status=400)
     
 def test_egg_parser():
     app = PkgResourcesParser('Paste', 'paste')
@@ -94,4 +94,4 @@ def test_egg_parser():
     assert 'ClassInitMeta' in res
     res = testapp.get('/util/classinit', status=404)
     res = testapp.get('/util', status=301)
-    res = testapp.get('/util/classinit.py/foo', status=500)
+    res = testapp.get('/util/classinit.py/foo', status=400)

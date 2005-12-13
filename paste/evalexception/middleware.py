@@ -164,14 +164,14 @@ class EvalException(object):
         next_part = wsgilib.path_info_pop(environ)
         method = getattr(self, next_part, None)
         if not method:
-            return wsgilib.error_response_app(
-                '404 Not Found', '%r not found when parsing %r'
-                % (next_part, wsgilib.construct_url(environ)))(
-                environ, start_response)
+            exc = httpexceptions.HTTPNotFound(
+                '%r not found when parsing %r'
+                % (next_part, wsgilib.construct_url(environ)))
+            return exc.wsgi_application(environ, start_response)
         if not getattr(method, 'exposed', False):
-            return wsgilib.error_response_app(
-                '403 Forbidden', '%r not allowed' % next_part)(
-                environ, start_response)
+            exc = httpexceptions.HTTPForbidden(
+                '%r not allowed' % next_part)
+            return exc.wsgi_application(environ, start_response)
         return method(environ, start_response)
 
     def media(self, environ, start_response):
