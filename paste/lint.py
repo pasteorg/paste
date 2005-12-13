@@ -192,7 +192,8 @@ def check_environ(environ):
     check_errors(environ['wsgi.errors'])
 
     # @@: these need filling out:
-    assert environ['REQUEST_METHOD'] in ('GET', 'HEAD', 'POST'), (
+    assert environ['REQUEST_METHOD'] in ('GET', 'HEAD', 'POST',
+            'OPTIONS','PUT','DELETE','TRACE'), (
         "Unknown REQUEST_METHOD: %r" % environ['REQUEST_METHOD'])
 
     assert (not environ.get('SCRIPT_NAME')
@@ -262,16 +263,17 @@ def check_headers(headers):
 
 def check_content_type(status, headers):
     code = int(status.split(None, 1)[0])
-    if code == 204:
-        # 204 No Content is the only code where there's no body,
-        # and so it doesn't need a content-type header.
-        # @@: Not 100% sure this is the only case where a content-type
-        # header can be left out
-        return
+    # @@: need one more person to verify this interpretation of RFC 2616
+    #     http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+    NO_MESSAGE_BODY = (204,304)
     for name, value in headers:
         if name.lower() == 'content-type':
-            return
-    assert 0, "No Content-Type header found in headers (%s)" % headers
+            if code not in NO_MESSAGE_BODY:
+                return
+            assert 0, (("Content-Type header found in a %s response, "
+                        "which must not return content.") % code)
+    if code not in NO_MESSAGE_BODY:
+        assert 0, "No Content-Type header found in headers (%s)" % headers
 
 def check_exc_info(exc_info):
     assert not exc_info or type(exc_info) is type(()), (

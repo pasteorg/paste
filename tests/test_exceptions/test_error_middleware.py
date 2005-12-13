@@ -1,11 +1,11 @@
 from paste.fixture import *
 from paste.exceptions.errormiddleware import ErrorMiddleware
 from paste import lint
-
-def strip_html(s):
-    s = re.sub('<.*?>', '', s)
-    s = s.replace('&nbsp;', ' ').replace('&lt;', '<').replace('&gt;', '>')
-    return s
+from paste.util.quoting import strip_html
+#
+# For some strange reason, these 4 lines cannot be removed or the regression
+# test breaks; is it counting the number of lines in the file somehow?
+#
 
 def do_request(app, expect_status=500):
     app = lint.middleware(app)
@@ -19,10 +19,16 @@ def do_request(app, expect_status=500):
 def clear_middleware(app):
     """
     The fixture sets paste.throw_errors, which suppresses exactly what
-    we want to test in this case.
+    we want to test in this case. This wrapper also strips exc_info 
+    on the *first* call to start_response (but not the second, or
+    subsequent calls.
     """
     def clear_throw_errors(environ, start_response):
+        headers_sent = []
         def replacement(status, headers, exc_info=None):
+            if headers_sent:
+                return start_response(status, headers, exc_info)
+            headers_sent.append(True)
             return start_response(status, headers)
         if 'paste.throw_errors' in environ:
             del environ['paste.throw_errors']
@@ -64,7 +70,7 @@ def test_makes_exception():
     res = do_request(bad_app)
     assert '<html' in res
     res = strip_html(str(res))
-    print res
+    #print res
     assert 'bad_app() takes no arguments (2 given' in res
     assert 'iterator = application(environ, start_response_wrapper)' in res
     assert 'paste.lint' in res
@@ -73,21 +79,21 @@ def test_makes_exception():
 def test_start_res():
     res = do_request(start_response_app)
     res = strip_html(str(res))
-    print res
+    #print res
     assert 'ValueError: hi' in res
     assert 'test_error_middleware' in res
-    assert ':43 in start_response_app' in res
+    assert ':49 in start_response_app' in res
 
 def test_after_start():
     res = do_request(after_start_response_app, 200)
     res = strip_html(str(res))
-    print res
+    #print res
     assert 'ValueError: error2' in res
-    assert ':47' in res
+    assert ':53' in res
 
 def test_iter_app():
     res = do_request(iter_app, 200)
-    print res
+    #print res
     assert 'None raises error' in res
     assert 'yielder' in res
     

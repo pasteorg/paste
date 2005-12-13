@@ -1,5 +1,6 @@
 from paste.exceptions import formatter
 from paste.exceptions import collector
+from paste.util.quoting import strip_html
 import sys
 import os
 import difflib
@@ -27,11 +28,6 @@ class BadSupplement(Supplement):
 
     def getInfo(self):
         raise ValueError("This supplemental info is buggy")
-
-def strip_html(s):
-    s = re.sub('<.*?>', '', s)
-    s = s.replace('&nbsp;', ' ').replace('&lt;', '<').replace('&gt;', '>')
-    return s
 
 def call_error(sup):
     1 + 2

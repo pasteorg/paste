@@ -6,7 +6,8 @@ import htmlentitydefs
 import urllib
 import re
 
-__all__ = ['html_quote', 'html_unquote', 'url_quote', 'url_unquote']
+__all__ = ['html_quote', 'html_unquote', 'url_quote', 'url_unquote',
+           'strip_html']
 
 default_encoding = 'UTF-8'
 
@@ -58,6 +59,13 @@ def html_unquote(s, encoding=None):
     if isinstance(s, str):
         s = s.decode(encoding or default_encoding)
     return _unquote_re.sub(_entity_subber, s)
+
+def strip_html(s):
+    # should this use html_unquote?
+    s = re.sub('<.*?>', '', s)
+    s = s.replace('&nbsp;', ' ').replace('&lt;', '<')
+    s = s.replace('&gt;', '>').replace('&amp;','&')
+    return s
 
 url_quote = urllib.quote
 url_unquote = urllib.unquote
