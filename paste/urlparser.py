@@ -7,6 +7,7 @@ import imp
 import pkg_resources
 import mimetypes
 import wsgilib
+import request
 from paste.util import import_string
 from paste.deploy import converters
 import httpexceptions
@@ -420,7 +421,7 @@ class StaticURLParser(object):
             # @@: This should obviously be configurable
             filename = 'index.html'
         else:
-            filename = wsgilib.path_info_pop(environ)
+            filename = request.path_info_pop(environ)
         full = os.path.join(self.directory, filename)
         if not os.path.exists(full):
             return self.not_found(environ, start_response)
@@ -449,7 +450,7 @@ class StaticURLParser(object):
     def not_found(self, environ, start_response, debug_message=None):
         exc = httpexceptions.HTTPNotFound(
             'The resource at %s could not be found'
-            % wsgilib.construct_url(environ),
+            % request.construct_url(environ),
             comment='SCRIPT_NAME=%r; PATH_INFO=%r; looking in %r; debug: %s'
             % (environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
                self.directory, debug_message or '(none)'))
