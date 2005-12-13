@@ -11,7 +11,7 @@ where using raw_interactive won't do.
 
 """
 import time
-from paste.util.testserver import *
+from paste.util.baseserver import *
 
 class WSGIRegressionServer(WSGIServer):
     """
@@ -63,11 +63,7 @@ class WSGIRegressionServer(WSGIServer):
 def serve(application, host=None, port=None, handler=None):
     server = WSGIRegressionServer(application,host,port,handler)
     print "serving on %s:%s" % server.server_address
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        # allow CTRL+C to shutdown
-        pass
+    server.serve_forever()
     return server
 
 if __name__ == '__main__':

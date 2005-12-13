@@ -267,7 +267,7 @@ class _HTTPMove(HTTPRedirection):
     template = (
         '%(explanation)s <a href="%(location)s">%(location)s</a>;\n'
         'you should be redirected automatically.\n'
-        '%(detail)s\n')
+        '%(detail)s\n<!-- %(comment)s -->')
 
     def __init__(self, detail=None, headers=None, comment=None):
         assert isinstance(headers, (type(None), list))
