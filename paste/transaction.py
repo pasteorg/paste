@@ -5,7 +5,11 @@
 Middleware related to transactions and database connections.
 
 At this time it is very basic; but will eventually sprout all that
-two-phase commit goodness that I don't need. 
+two-phase commit goodness that I don't need.
+
+.. note::
+
+   This is experimental, and will change in the future.
 """
 from paste.httpexceptions import HTTPError, HTTPException
 
