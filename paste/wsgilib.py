@@ -210,10 +210,15 @@ def dump_environ(environ,start_response):
     start_response("200 OK",headers)
     return [output]
 
-def error_body_response(error_code, message):
+def error_body_response(error_code, message, __warn=True):
     """
     Returns a standard HTML response page for an HTTP error.
     """
+    if __warn:
+        warnings.warn(
+            'wsgilib.error_body_response is deprecated; use the '
+            'wsgi_application method on an HTTPException object '
+            'instead', DeprecationWarning, 1)
     return '''\
 <html>
   <head>
@@ -229,7 +234,7 @@ def error_body_response(error_code, message):
         }
 
 def error_response(environ, error_code, message,
-                   debug_message=None):
+                   debug_message=None, __warn=True):
     """
     Returns the status, headers, and body of an error response.
 
@@ -241,21 +246,32 @@ def error_response(environ, error_code, message,
         start_response(status, headers)
         return [body]
     """
+    if __warn:
+        warnings.warn(
+            'wsgilib.error_response is deprecated; use the '
+            'wsgi_application method on an HTTPException object '
+            'instead', DeprecationWarning, 1)
     if debug_message and environ.get('paste.config', {}).get('debug'):
         message += '\n\n<!-- %s -->' % debug_message
-    body = error_body_response(error_code, message)
+    body = error_body_response(error_code, message, __warn=False)
     headers = [('content-type', 'text/html'),
                ('content-length', str(len(body)))]
     return error_code, headers, body
 
-def error_response_app(error_code, message, debug_message=None):
+def error_response_app(error_code, message, debug_message=None,
+                       __warn=True):
     """
     An application that emits the given error response.
     """
+    if __warn:
+        warnings.warn(
+            'wsgilib.error_response_app is deprecated; use the '
+            'wsgi_application method on an HTTPException object '
+            'instead', DeprecationWarning, 1)
     def application(environ, start_response):
         status, headers, body = error_response(
             environ, error_code, message,
-            debug_message=debug_message)
+            debug_message=debug_message, __warn=False)
         start_response(status, headers)
         return [body]
     return application

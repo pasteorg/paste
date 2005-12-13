@@ -214,10 +214,11 @@ class HTTPException(Exception):
         if isinstance(content, unicode):
             content = content.encode('utf8')
             headers['content_type'] += '; charset=utf8'
+        print "all good", environ, start_response
         start_response('%s %s' % (self.code, self.title),
                        headers.items(),
                        exc_info)
-        yield content
+        return [content]
 
 
     def __repr__(self):
