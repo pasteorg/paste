@@ -66,16 +66,30 @@ class Cascade(object):
         self.catch_exceptions = tuple(self.catch_exceptions)
                 
     def __call__(self, environ, start_response):
+        failed = []
         def repl_start_response(status, headers, exc_info=None):
             code = int(status.split(None, 1)[0])
             if code in self.catch_codes:
-                raise self.catch_codes[code]
+                failed.append(None)
+                return _consuming_writer
             return start_response(status, headers, exc_info)
 
         for app in self.apps[:-1]:
             environ_copy = environ.copy()
+            failed = []
             try:
-                return app(environ_copy, repl_start_response)
-            except self.catch_exceptions:
+                v = app(environ_copy, repl_start_response)
+                if not failed:
+                    return v
+                else:
+                    if hasattr(v, 'close'):
+                        # Exhaust the iterator first:
+                        list(v)
+                        # then close:
+                        v.close()
+            except self.catch_exceptions, e:
                 pass
         return self.apps[-1](environ, start_response)
+
+def _consuming_writer(s):
+    pass
