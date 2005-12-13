@@ -143,7 +143,7 @@ Other Tools
       cgitb = paste.cgitb_catcher:CgitbMiddleware
       flup_session = paste.flup_session:SessionMiddleware [Flup]
       gzip = paste.gzipper:middleware
-      httpexceptions = paste.httpexceptions:middleware
+      httpexceptions = paste.httpexceptions:make_middleware
       lint = paste.lint:middleware
       login = paste.login:middleware
       printdebug = paste.printdebug:PrintDebugMiddleware 
