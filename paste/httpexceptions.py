@@ -214,7 +214,6 @@ class HTTPException(Exception):
         if isinstance(content, unicode):
             content = content.encode('utf8')
             headers['content_type'] += '; charset=utf8'
-        print "all good", environ, start_response
         start_response('%s %s' % (self.code, self.title),
                        headers.items(),
                        exc_info)
@@ -563,9 +562,9 @@ def middleware(*args, **kw):
     import warnings
     # deprecated 13 dec 2005
     warnings.warn('httpexceptions.middleware is deprecated; use '
-                  'HTTPExceptionHandler instead',
+                  'make_middleware or HTTPExceptionHandler instead',
                   DeprecationWarning, 1)
-    return HTTPExceptionHandler(*args, **kw)
+    return make_middleware(*args, **kw)
 
 def make_middleware(app, global_conf, warning_level=None):
     """
