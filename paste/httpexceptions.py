@@ -525,7 +525,7 @@ class HTTPExceptionHandler:
 
     """
 
-    def __init__(self, application, global_conf=None, warning_level=None):
+    def __init__(self, application, warning_level=None):
         assert not warning_level or ( warning_level > 99 and
                                       warning_level < 600)
         self.warning_level = warning_level or 500
@@ -558,7 +558,28 @@ class HTTPExceptionHandler:
             for chunk in result:
                 yield chunk
 
-middleware = HTTPExceptionHandler
+def middleware(*args, **kw):
+    import warnings
+    # deprecated 13 dec 2005
+    warnings.warn('httpexceptions.middleware is deprecated; use '
+                  'HTTPExceptionHandler instead',
+                  DeprecationWarning, 1)
+    return HTTPExceptionHandler(*args, **kw)
+
+def make_middleware(app, global_conf, warning_level=None):
+    """
+    ``httpexceptions`` middleware; this catches any
+    ``paste.httpexceptions.HTTPException`` exceptions (exceptions like
+    ``HTTPNotFound``, ``HTTPMovedPermanently``, etc) and turns them
+    into proper HTTP responses.
+
+    ``warning_level`` can be an integer corresponding to an HTTP code.
+    Any code over that value will be passed 'up' the chain, potentially
+    reported on by another piece of middleware.
+    """
+    if warning_level:
+        warning_level = int(warning_level)
+    return HTTPExceptionHandler(app, warning_level=warning_level)
 
 __all__.extend(['HTTPExceptionHandler', 'get_exception'])
 
