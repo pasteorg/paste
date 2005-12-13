@@ -5,111 +5,26 @@
 A module of many disparate routines.
 """
 
+# functions which moved to paste.request
+from request import get_cookies, parse_querystring, parse_formvars
+from request import construct_url, path_info_split, path_info_pop
+
 from Cookie import SimpleCookie
 from cStringIO import StringIO
 import mimetypes
 import os
 import cgi
 import sys
+import re
+from urlparse import urlsplit
+import warnings
 
 __all__ = ['get_cookies', 'add_close', 'raw_interactive',
            'interactive', 'construct_url', 'error_body_response',
            'error_response', 'send_file', 'has_header', 'header_value',
            'path_info_split', 'path_info_pop', 'capture_output',
-           'catch_errors']
+           'catch_errors', 'dump_environ']
 
-def get_cookies(environ):
-    """
-    Gets a cookie object (which is a dictionary-like object) from the
-    request environment; caches this value in case get_cookies is
-    called again for the same request.
-    """
-    header = environ.get('HTTP_COOKIE', '')
-    if environ.has_key('paste.cookies'):
-        cookies, check_header = environ['paste.cookies']
-        if check_header == header:
-            return cookies
-    cookies = SimpleCookie()
-    cookies.load(header)
-    environ['paste.cookies'] = (cookies, header)
-    return cookies
-
-def parse_querystring(environ):
-    """
-    Parses a query string into a list like ``[(name, value)]``.
-    Caches this value in case parse_querystring is called again
-    for the same request.
-
-    You can pass the result to ``dict()``, but be aware that keys that
-    appear multiple times will be lost (only the last value will be
-    preserved).
-    """
-    source = environ.get('QUERY_STRING', '')
-    if not source:
-        return []
-    if 'paste.parsed_querystring' in environ:
-        parsed, check_source = environ['paste.parsed_querystring']
-        if check_source == source:
-            return parsed
-    parsed = cgi.parse_qsl(source, keep_blank_values=True,
-                           strict_parsing=False)
-    environ['paste.parsed_querystring'] = (parsed, source)
-    return parsed
-
-def parse_formvars(environ, all_as_list=False, include_get_vars=True):
-    """
-    Parses the request, returning a dictionary of the keys.
-
-    If ``all_as_list`` is true, then all values will be lists.  If
-    not, then only values that show up multiple times will be lists.
-
-    If ``include_get_vars`` is true and this was a POST request, then
-    GET (query string) variables will also be folded into the
-    dictionary.
-
-    All values should be strings, except for file uploads which are
-    left as FieldStorage instances.
-    """
-    source = (environ.get('QUERY_STRING', ''),
-              environ['wsgi.input'], environ['REQUEST_METHOD'],
-              all_as_list, include_get_vars)
-    if 'paste.parsed_formvars' in environ:
-        parsed, check_source = environ['paste.parsed_formvars']
-        if check_source == source:
-            return parsed
-    fs = cgi.FieldStorage(fp=environ['wsgi.input'],
-                          environ=environ,
-                          keep_blank_values=1)
-    formvars = {}
-    for name in fs.keys():
-        values = fs[name]
-        if not isinstance(values, list):
-            values = [values]
-        for value in values:
-            if not value.filename:
-                value = value.value
-            if name in formvars:
-                if isinstance(formvars[name], list):
-                    formvars[name].append(value)
-                else:
-                    formvars[name] = [formvars[name], value]
-            elif all_as_list:
-                formvars[name] = [value]
-            else:
-                formvars[name] = value
-    if environ['REQUEST_METHOD'] == 'POST' and include_get_vars:
-        for name, value in parse_querystring(environ):
-            if name in formvars:
-                if isinstance(formvars[name], list):
-                    formvars[name].append(value)
-                else:
-                    formvars[name] = [formvars[name], value]
-            elif all_as_list:
-                formvars[name] = [value]
-            else:
-                formvars[name] = value
-    environ['paste.parsed_formvars'] = (formvars, source)
-    return formvars
 
 class add_close:
     """
@@ -179,38 +94,64 @@ class _wrap_app_iter(object):
             self.error_callback(sys.exc_info())
             raise
 
-def raw_interactive(application, path_info='', **environ):
+def raw_interactive(application, path='', **environ):
     """
     Runs the application in a fake environment.
     """
+    assert "path_info" not in environ, "argument list changed"
     errors = StringIO()
     basic_environ = {
-        'PATH_INFO': str(path_info),
-        'SCRIPT_NAME': '',
-        'SERVER_NAME': 'localhost',
-        'SERVER_PORT': '80',
-        'REQUEST_METHOD': 'GET',
-        'HTTP_HOST': 'localhost:80',
-        'CONTENT_LENGTH': '0',
-        'REMOTE_ADDR': '127.0.0.1',
+        # mandatory CGI variables
+        'REQUEST_METHOD': 'GET',     # always mandatory
+        'SCRIPT_NAME': '',           # may be empty if app is at the root
+        'PATH_INFO': '',             # may be empty if at root of app
+        'SERVER_NAME': 'localhost',  # always mandatory
+        'SERVER_PORT': '80',         # always mandatory 
+        'SERVER_PROTOCOL': 'HTTP/1.0',
+        # mandatory wsgi variables
+        'wsgi.version': (1, 0),
+        'wsgi.url_scheme': 'http',
         'wsgi.input': StringIO(''),
         'wsgi.errors': errors,
-        'wsgi.version': (1, 0),
         'wsgi.multithread': False,
         'wsgi.multiprocess': False,
         'wsgi.run_once': False,
-        'wsgi.url_scheme': 'http',
         }
+    if path:
+        (_,_,path_info,query,fragment) = urlsplit(str(path))
+        basic_environ['PATH_INFO'] = path_info
+        if query:
+            basic_environ['QUERY_STRING'] = query
     for name, value in environ.items():
         name = name.replace('__', '.')
         basic_environ[name] = value
-    if isinstance(basic_environ['wsgi.input'], str):
-        basic_environ['wsgi.input'] = StringIO(basic_environ['wsgi.input'])
-    output = StringIO()
+    istream = basic_environ['wsgi.input']
+    if isinstance(istream, str):
+        basic_environ['wsgi.input'] = StringIO(istream)
+        basic_environ['CONTENT_LENGTH'] = len(istream)
     data = {}
+    output = StringIO()
+    headers_set = []
+    headers_sent = []
     def start_response(status, headers, exc_info=None):
         if exc_info:
-            raise exc_info[0], exc_info[1], exc_info[2]
+            try:
+                if headers_sent:
+                    # Re-raise original exception only if headers sent
+                    raise exc_info[0], exc_info[1], exc_info[2]
+                else:
+                    # We assume that the sender, who is probably setting
+                    # the headers a second time /w a 500 has produced
+                    # a more appropriate response.
+                    pass
+            finally:
+                # avoid dangling circular reference
+                exc_info = None
+        elif headers_set:
+            # You cannot set the headers more than once, unless the
+            # exc_info is provided.
+            raise AssertionError("Headers already set and no exc_info!")
+        headers_set.append(True)
         data['status'] = status
         data['headers'] = headers
         return output.write
@@ -218,6 +159,9 @@ def raw_interactive(application, path_info='', **environ):
     try:
         try:
             for s in app_iter:
+                headers_sent.append(True)
+                if not headers_set:
+                    raise AssertionError("Content sent w/o headers!")
                 output.write(s)
         except TypeError, e:
             # Typically "iteration over non-sequence", so we want
@@ -249,43 +193,22 @@ def interactive(*args, **kw):
     return full.getvalue()
 interactive.proxy = 'raw_interactive'
 
-def construct_url(environ, with_query_string=True, with_path_info=True,
-                  script_name=None, path_info=None, querystring=None):
+def dump_environ(environ,start_response):
+    """ 
+    Application which simply dumps the current environment
+    variables out as a plain text response.
     """
-    Reconstructs the URL from the WSGI environment.  You may override
-    SCRIPT_NAME, PATH_INFO, and QUERYSTRING with the keyword
-    arguments.
-    """
-    url = environ['wsgi.url_scheme']+'://'
-
-    if environ.get('HTTP_HOST'):
-        url += environ['HTTP_HOST'].split(':')[0]
-    else:
-        url += environ['SERVER_NAME']
-
-    if environ['wsgi.url_scheme'] == 'https':
-        if environ['SERVER_PORT'] != '443':
-            url += ':' + environ['SERVER_PORT']
-    else:
-        if environ['SERVER_PORT'] != '80':
-            url += ':' + environ['SERVER_PORT']
-
-    if script_name is None:
-        url += environ.get('SCRIPT_NAME','')
-    else:
-        url += script_name
-    if with_path_info:
-        if path_info is None:
-            url += environ.get('PATH_INFO','')
-        else:
-            url += path_info
-    if with_query_string:
-        if querystring is None:
-            if environ.get('QUERY_STRING'):
-                url += '?' + environ['QUERY_STRING']
-        elif querystring:
-            url += '?' + querystring
-    return url
+    output = []
+    keys = environ.keys()
+    keys.sort()
+    for k in keys:
+        v = str(environ[k]).replace("\n","\n    ")
+        output.append("%s: %s\n" % (k,v))
+    output = "".join(output)
+    headers = [('Content-Type', 'text/plain'),
+               ('Content-Length', len(output))]
+    start_response("200 OK",headers)
+    return [output]
 
 def error_body_response(error_code, message):
     """
@@ -425,62 +348,6 @@ def remove_header(headers, name):
         i += 1
     return result
 
-def path_info_split(path_info):
-    """
-    Splits off the first segment of the path.  Returns (first_part,
-    rest_of_path).  first_part can be None (if PATH_INFO is empty), ''
-    (if PATH_INFO is '/'), or a name without any /'s.  rest_of_path
-    can be '' or a string starting with /.
-    """
-    if not path_info:
-        return None, ''
-    assert path_info.startswith('/'), (
-        "PATH_INFO should start with /: %r" % path_info)
-    path_info = path_info.lstrip('/')
-    if '/' in path_info:
-        first, rest = path_info.split('/', 1)
-        return first, '/' + rest
-    else:
-        return path_info, ''
-
-def path_info_pop(environ):
-    """
-    'Pops' off the next segment of PATH_INFO, pushing it onto
-    SCRIPT_NAME, and returning that segment.
-
-    For instance::
-
-        >>> def call_it(script_name, path_info):
-        ...     env = {'SCRIPT_NAME': script_name, 'PATH_INFO': path_info}
-        ...     result = path_info_pop(env)
-        ...     print 'SCRIPT_NAME=%r; PATH_INFO=%r; returns=%r' % (
-        ...         env['SCRIPT_NAME'], env['PATH_INFO'], result)
-        >>> call_it('/foo', '/bar')
-        SCRIPT_NAME='/foo/bar'; PATH_INFO=''; returns='bar'
-        >>> call_it('/foo/bar', '')
-        SCRIPT_NAME='/foo/bar'; PATH_INFO=''; returns=None
-        >>> call_it('/foo/bar', '/')
-        SCRIPT_NAME='/foo/bar/'; PATH_INFO=''; returns=''
-        >>> call_it('', '/1/2/3')
-        SCRIPT_NAME='/1'; PATH_INFO='/2/3'; returns='1'
-        >>> call_it('', '//1/2')
-        SCRIPT_NAME='//1'; PATH_INFO='/2'; returns='1'
-    """
-    path = environ.get('PATH_INFO', '')
-    if not path:
-        return None
-    while path.startswith('/'):
-        environ['SCRIPT_NAME'] += '/'
-        path = path[1:]
-    if '/' not in path:
-        environ['SCRIPT_NAME'] += path
-        environ['PATH_INFO'] = ''
-        return path
-    else:
-        segment, path = path.split('/', 1)
-        environ['PATH_INFO'] = '/' + path
-        environ['SCRIPT_NAME'] += segment
-        return segment
 
 def capture_output(environ, start_response, application):
     """
@@ -502,6 +369,10 @@ def capture_output(environ, start_response, application):
                 return [body]
             return replacement_app
     """
+    warnings.warn(
+        'wsgilib.capture_output has been deprecated in favor '
+        'of wsgilib.intercept_output',
+        DeprecationWarning, 1)
     data = []
     output = StringIO()
     def replacement_start_response(status, headers, exc_info=None):
@@ -629,8 +500,28 @@ class ResponseHeaderDict(dict):
             else:
                 result.append((key, str(self[key])))
         return result
-
         
+
+def _warn_deprecated(new_func):
+    new_name = new_func.func_name
+    new_path = new_func.func_globals['__name__'] + '.' + new_name
+    def replacement(*args, **kw):
+        warnings.warn(
+            "The function wsgilib.%s has been moved to %s"
+            % (new_name, new_path),
+            DeprecationWarning, 2)
+        return new_func(*args, **kw)
+    replacement.func_name = new_func.func_name
+    return replacement
+
+# Put warnings wrapper in place for all public functions that
+# were imported from elsewhere:
+
+for _name in __all__:
+    _func = globals()[_name]
+    if (hasattr(_func, 'func_globals')
+        and _func.func_globals['__name__'] != __name__):
+        globals()[_name] = _warn_deprecated(_func)
 
 if __name__ == '__main__':
     import doctest

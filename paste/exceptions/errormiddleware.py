@@ -31,46 +31,51 @@ class ErrorMiddleware(object):
 
         error_caching_wsgi_app = ErrorMiddleware(wsgi_app)
 
-    By setting 'paste.throw_errors' in the request environment to a
-    true value, this middleware is disabled.  This can be useful in a
-    testing environment where you don't want errors to be caught and
-    transformed.
-
     Settings:
 
     ``debug``:
         If true, then tracebacks will be shown in the browser.
 
     ``error_email``:
-        An email address (or list of addresses) to send exception reports
-        to.
+        an email address (or list of addresses) to send exception 
+        reports to
 
     ``error_log``:
-        A filename to append tracebacks to.
+        a filename to append tracebacks to
 
     ``show_exceptions_in_wsgi_errors``:
-        If true, then errors will be printed to ``wsgi.errors`` (frequently
-        a server error log, or stderr).
+        If true, then errors will be printed to ``wsgi.errors`` 
+        (frequently a server error log, or stderr).
 
     ``from_address``, ``smtp_server``, ``error_subject_prefix``:
-        Variables to control the emailed exception reports.
+        variables to control the emailed exception reports
 
     ``error_message``:
         When debug mode is off, the error message to show to users.
 
     ``xmlhttp_key``:
-    
         When this key (default ``_``) is in the request GET variables
         (not POST!), expect that this is an XMLHttpRequest, and the
         response should be more minimal; it should not be a complete
         HTML page.
 
-    This also looks for a special key ``'paste.expected_exceptions``,
-    which should be a list of exception classes.  When an exception is
-    raised, if it is found in this list then it will be re-raised
-    instead of being caught.  This should generally be set by
-    middleware that may (but probably shouldn't be) installed above
-    this middleware, and wants to get certain exceptions.
+    Environment Configuration:
+    
+    ``paste.throw_errors``:
+        If this setting in the request environment is true, then this
+        middleware is disabled. This can be useful in a testing situation
+        where you don't want errors to be caught and transformed.
+
+    ``paste.expected_exceptions``:
+        When this middleware encounters an exception listed in this
+        environment variable and when the ``start_response`` has not 
+        yet occurred, the exception will be re-raised instead of being
+        caught.  This should generally be set by middleware that may 
+        (but probably shouldn't be) installed above this middleware, 
+        and wants to get certain exceptions.  Exceptions raised after
+        ``start_response`` have been called are always caught since
+        by definition they are no longer expected.
+
     """
 
     def __init__(self, application, global_conf=None,
@@ -124,28 +129,31 @@ class ErrorMiddleware(object):
         environ['paste.throw_errors'] = True
 
         def detect_start_response(status, headers, exc_info=None):
-            try:
-                return start_response(status, headers, exc_info)
-            except:
-                raise
-            else:
-                started.append(True)
+            started.append(True)
+            return start_response(status, headers, exc_info)
+
         try:
             __traceback_supplement__ = Supplement, self, environ
             app_iter = self.application(environ, detect_start_response)
             return self.catching_iter(app_iter, environ)
         except:
             exc_info = sys.exc_info()
-            for expected in environ.get('paste.expected_exceptions', []):
-                if issubclass(exc_info[0], expected):
-                    raise
-            if not started:
-                start_response('500 Internal Server Error',
-                               [('content-type', 'text/html')],
-                               exc_info)
-            # @@: it would be nice to deal with bad content types here
-            response = self.exception_handler(exc_info, environ)
-            return [response]
+            try:
+                if not started:
+                    # Only delegate expected exceptions if the response
+                    # has not been started.
+                    for expect in environ.get('paste.expected_exceptions', []):
+                        if issubclass(exc_info[0], expect):
+                            raise
+                    start_response('500 Internal Server Error',
+                                   [('content-type', 'text/html')],
+                                   exc_info)
+                # @@: it would be nice to deal with bad content types here
+                response = self.exception_handler(exc_info, environ)
+                return [response]
+            finally:
+                # clean up locals...
+                exc_info = None
 
     def catching_iter(self, app_iter, environ):
         __traceback_supplement__ = Supplement, self, environ
