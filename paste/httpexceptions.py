@@ -384,11 +384,7 @@ class HTTPNotAcceptable(HTTPClientError):
                 'acceptable to your browser (content\nof type '
                 '%(HTTP_ACCEPT)s).\n%(detail)s')
 
-<<<<<<< .working
-class HTTPConflict(HTTPException):
-=======
 class HTTPConflict(HTTPClientError):
->>>>>>> .merge-right.r4008
     code = 409
     title = 'Conflict'
     explanation = ('There was a conflict when trying to complete '
@@ -460,15 +456,10 @@ class HTTPServerError(HTTPError):
     title = 'Internal Server Error'
     explanation = ('An internal server error occurred.')
 
-<<<<<<< .working
-class HTTPNotImplemented(HTTPException):
-    code = 501
-=======
 HTTPInternalServerError = HTTPServerError
        
 class HTTPNotImplemented(HTTPServerError):
     code = 501
->>>>>>> .merge-right.r4008
     title = 'Not Implemented'
     # override template since we need an environment variable
     template = ('The request method %(REQUEST_METHOD)s is not implemented '
