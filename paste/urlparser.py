@@ -239,10 +239,16 @@ class URLParser(object):
             #    % (base_filename, self.directory))
             return None
         if len(possible) > 1:
-            environ['wsgi.errors'].write(
-                'Ambiguous URL: %s; matches files %s\n'
-                % (wsgilib.construct_url(environ),
-                   ', '.join(possible)))
+            # If there is an exact match, this isn't 'ambiguous'
+            # per se; it might mean foo.gif and foo.gif.back for
+            # instance
+            if full_filename in possible:
+                return full_filename
+            else:
+                environ['wsgi.errors'].write(
+                    'Ambiguous URL: %s; matches files %s\n'
+                    % (wsgilib.construct_url(environ),
+                       ', '.join(possible)))
             return None
         return possible[0]
 
