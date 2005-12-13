@@ -6,7 +6,7 @@ Python Paste
    I want to put these somewhere sometime, but not place for them now...
    Python Paste -- 50% tastier than Elmer's!  
    Paste: making the web sticky.  
-   Fix broken websites by applying a Paste liberally.
+   Fix broken websites by applying Paste liberally.
    Paste: paper over your inconsistencies. 
    Paste: a soft mixture of malleable consistency.  
    Paste: a tasty mixture to be spread on bread or crackers.  
