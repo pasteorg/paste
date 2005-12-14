@@ -88,7 +88,7 @@ __all__ = ['CASLoginFailure', 'CASAuthenticate', 'AuthCASHandler' ]
 if '__main__' == __name__:
     authority = "https://secure.its.yale.edu/cas/servlet/"
     from paste.wsgilib import dump_environ
-    from paste.util.baseserver import serve
+    from paste.util.httpserver import serve
     from paste.httpexceptions import *
     serve(HTTPExceptionHandler(
              AuthCASHandler(dump_environ, authority)))

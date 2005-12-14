@@ -61,7 +61,7 @@ if '__main__' == __name__:
     def userfunc(username, password):
         return username == password
     from paste.wsgilib import dump_environ
-    from paste.util.baseserver import serve
+    from paste.util.httpserver import serve
     from paste.httpexceptions import *
     serve(HTTPExceptionHandler(
               AuthBasicHandler(dump_environ, realm, userfunc)))
