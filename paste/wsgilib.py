@@ -388,7 +388,7 @@ def capture_output(environ, start_response, application):
     warnings.warn(
         'wsgilib.capture_output has been deprecated in favor '
         'of wsgilib.intercept_output',
-        DeprecationWarning, 1)
+        DeprecationWarning, 2)
     data = []
     output = StringIO()
     def replacement_start_response(status, headers, exc_info=None):
