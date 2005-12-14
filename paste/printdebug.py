@@ -62,8 +62,8 @@ class PrintDebugMiddleware(object):
         output = StringIO()
         try:
             threadedprint.register(replacement_stdout)
-            status, headers, body = wsgilib.capture_output(
-                environ, start_response, self.app)
+            status, headers, body = wsgilib.intercept_output(
+                environ, self.app)
             if status is None:
                 # Some error occurred
                 status = '500 Server Error'
@@ -78,8 +78,11 @@ class PrintDebugMiddleware(object):
                 if replacement_stdout == logged:
                     # Then the prints will be lost, unless...
                     environ['wsgi.errors'].write(logged.getvalue())
+                start_response(status, headers)
                 return [body]
+            wsgilib.remove_header(headers, 'content-length')
             body = self.add_log(body, logged.getvalue())
+            start_response(status, headers)
             return [body]
         finally:
             threadedprint.deregister()
