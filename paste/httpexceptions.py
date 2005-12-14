@@ -541,8 +541,6 @@ class HTTPExceptionHandler:
             return start_response(status, headers, exc_info)
         try:
             result = self.application(environ, httpexce_start_response)
-            for chunk in result:
-                yield chunk
         except HTTPException, e:
             if environ.get('paste.debug_suppress_httpexceptions'):
                 raise
@@ -555,8 +553,9 @@ class HTTPExceptionHandler:
             finally:
                 # clean up
                 exc_info = None
-            for chunk in result:
-                yield chunk
+            return result
+        else:
+            return result
 
 def middleware(*args, **kw):
     import warnings
