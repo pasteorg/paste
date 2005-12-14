@@ -563,7 +563,7 @@ def middleware(*args, **kw):
     # deprecated 13 dec 2005
     warnings.warn('httpexceptions.middleware is deprecated; use '
                   'make_middleware or HTTPExceptionHandler instead',
-                  DeprecationWarning, 1)
+                  DeprecationWarning, 2)
     return make_middleware(*args, **kw)
 
 def make_middleware(app, global_conf=None, warning_level=None):
