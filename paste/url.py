@@ -6,7 +6,7 @@ This module implements a class for handling URLs.
 """
 import urllib
 import cgi
-from paste import wsgilib
+from paste import request
 # Imported lazily from FormEncode:
 variabledecode = None
 
@@ -75,13 +75,13 @@ class URLResource(object):
     def from_environ(cls, environ, with_query_string=True,
                      with_path_info=True, script_name=None,
                      path_info=None, querystring=None):
-        url = wsgilib.construct_url(
+        url = request.construct_url(
             environ, with_query_string=False,
             with_path_info=with_path_info, script_name=script_name,
             path_info=path_info)
         if with_query_string:
             if querystring is None:
-                vars = wsgilib.parse_querystring(environ)
+                vars = request.parse_querystring(environ)
             else:
                 vars = cgi.parse_qsl(
                     querystring,

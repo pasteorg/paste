@@ -143,7 +143,7 @@ class URLParser(object):
                 environ['SCRIPT_NAME'] = orig_script_name
                 return not_found_hook(environ, start_response)
             if filename is None:
-                name, rest_of_path = wsgilib.path_info_split(environ['PATH_INFO'])
+                name, rest_of_path = request.path_info_split(environ['PATH_INFO'])
                 if not name:
                     name = 'one of %s' % ', '.join(
                         self.index_names or
@@ -174,7 +174,7 @@ class URLParser(object):
             and not environ.get('paste.urlparser.init_application') == environ['SCRIPT_NAME']):
             environ['paste.urlparser.init_application'] = environ['SCRIPT_NAME']
             return self.init_module.application, None
-        name, rest_of_path = wsgilib.path_info_split(environ['PATH_INFO'])
+        name, rest_of_path = request.path_info_split(environ['PATH_INFO'])
         environ['PATH_INFO'] = rest_of_path
         if name is not None:
             environ['SCRIPT_NAME'] = environ.get('SCRIPT_NAME', '') + '/' + name
@@ -197,7 +197,7 @@ class URLParser(object):
     def not_found(self, environ, start_response, debug_message=None):
         exc = httpexceptions.HTTPNotFound(
             'The resource at %s could not be found'
-            % wsgilib.construct_url(environ),
+            % request.construct_url(environ),
             comment='SCRIPT_NAME=%r; PATH_INFO=%r; looking in %r; debug: %s'
             % (environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
                self.directory, debug_message or '(none)'))
@@ -208,7 +208,7 @@ class URLParser(object):
         This happens when you try to get to a directory
         without a trailing /
         """
-        url = wsgilib.construct_url(environ, with_query_string=False)
+        url = request.construct_url(environ, with_query_string=False)
         url += '/'
         if environ.get('QUERY_STRING'):
             url += '?' + environ['QUERY_STRING']
@@ -248,7 +248,7 @@ class URLParser(object):
             else:
                 environ['wsgi.errors'].write(
                     'Ambiguous URL: %s; matches files %s\n'
-                    % (wsgilib.construct_url(environ),
+                    % (request.construct_url(environ),
                        ', '.join(possible)))
             return None
         return possible[0]
@@ -430,14 +430,14 @@ class StaticURLParser(object):
             return self.__class__(full)(environ, start_response)
         if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
             return self.error_extra_path(environ, start_response)
-        return wsgilib.send_file(full)(environ, start_response)
+        return request.send_file(full)(environ, start_response)
 
     def add_slash(self, environ, start_response):
         """
         This happens when you try to get to a directory
         without a trailing /
         """
-        url = wsgilib.construct_url(environ, with_query_string=False)
+        url = request.construct_url(environ, with_query_string=False)
         url += '/'
         if environ.get('QUERY_STRING'):
             url += '?' + environ['QUERY_STRING']
@@ -493,7 +493,7 @@ class PkgResourcesParser(StaticURLParser):
             # @@: This should obviously be configurable
             filename = 'index.html'
         else:
-            filename = wsgilib.path_info_pop(environ)
+            filename = request.path_info_pop(environ)
         resource = self.resource_name + '/' + filename
         if not self.egg.has_resource(resource):
             return self.not_found(environ, start_response)
@@ -520,7 +520,7 @@ class PkgResourcesParser(StaticURLParser):
     def not_found(self, environ, start_response, debug_message=None):
         exc = httpexceptions.HTTPNotFound(
             'The resource at %s could not be found'
-            % wsgilib.construct_url(environ),
+            % request.construct_url(environ),
             comment='SCRIPT_NAME=%r; PATH_INFO=%r; looking in egg:%s#%r; debug: %s'
             % (environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
                self.egg, self.resource_name, debug_message or '(none)'))

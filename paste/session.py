@@ -31,6 +31,7 @@ try:
 except ImportError:
     import pickle as cPickle
 import wsgilib
+import request
 
 class SessionMiddleware(object):
 
@@ -70,7 +71,7 @@ class SessionFactory(object):
         self.used = True
         if self.session is not None:
             return self.session.data()
-        cookies = wsgilib.get_cookies(self.environ)
+        cookies = request.get_cookies(self.environ)
         session = None
         if cookies.has_key(self.cookie_name):
             self.sid = cookies[self.cookie_name].value
