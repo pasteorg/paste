@@ -527,7 +527,10 @@ def _warn_deprecated(new_func):
             % (new_name, new_path),
             DeprecationWarning, 2)
         return new_func(*args, **kw)
-    replacement.func_name = new_func.func_name
+    try:
+        replacement.func_name = new_func.func_name
+    except:
+        pass
     return replacement
 
 # Put warnings wrapper in place for all public functions that
