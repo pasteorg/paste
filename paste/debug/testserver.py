@@ -11,7 +11,7 @@ where using raw_interactive won't do.
 
 """
 import time
-from paste.util.baseserver import *
+from paste.util.httpserver import *
 
 class WSGIRegressionServer(WSGIServer):
     """

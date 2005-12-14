@@ -222,7 +222,7 @@ if '__main__' == __name__:
             return application(environ, start_response)
         return authstupid_application
     from paste.wsgilib import dump_environ
-    from paste.util.baseserver import serve
+    from paste.util.httpserver import serve
     from paste.httpexceptions import *
     serve(AuthCookieHandler(
             HTTPExceptionHandler(

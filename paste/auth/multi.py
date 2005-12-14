@@ -60,7 +60,7 @@ if '__main__' == __name__:
     import basic, digest, cas, cookie, form
     from paste.httpexceptions import *
     from paste.wsgilib import dump_environ
-    from paste.util.baseserver import serve
+    from paste.util.httpserver import serve
     multi = MultiHandler(dump_environ)
     multi.add_method('basic',basic.middleware,
                      'tag:clarkevans.com,2005:basic',

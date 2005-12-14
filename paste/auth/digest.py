@@ -187,7 +187,7 @@ if '__main__' == __name__:
     def userfunc(realm, username):
         return digest_password(username, realm, username)
     from paste.wsgilib import dump_environ
-    from paste.util.baseserver import serve
+    from paste.util.httpserver import serve
     from paste.httpexceptions import *
     serve(HTTPExceptionHandler(
              AuthDigestHandler(dump_environ, realm, userfunc)))
