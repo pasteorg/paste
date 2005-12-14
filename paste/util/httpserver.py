@@ -21,7 +21,6 @@ except ImportError:
 __all__ = ['WSGIHandlerMixin','WSGIServer','WSGIHandler', 'serve']
 __version__ = "0.2"
 
-
 class WSGIHandlerMixin:
     """
     WSGI mix-in for HTTPRequestHandler
@@ -98,6 +97,11 @@ class WSGIHandlerMixin:
         for k,v in self.headers.items():
             self.wsgi_environ['HTTP_%s' % k.replace ('-', '_').upper()] = v
 
+        if hasattr(self.connection,'get_context'):
+            self.wsgi_environ['wsgi.url_scheme'] = 'https'
+            # @@: extract other SSL parameters from pyOpenSSL at...
+            # http://www.modssl.org/docs/2.8/ssl_reference.html#ToC25
+
         if environ:
             assert isinstance(environ,dict)
             self.wsgi_environ.update(environ)
@@ -141,16 +145,101 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPServer.BaseHTTPRequestHandler):
     """
     do_POST = do_GET = do_HEAD = WSGIHandlerMixin.wsgi_execute
 
+#
+# SSL Functionality
+#
+# This implementation was motivated by Sebastien Martini's SSL example
+# http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/442473
+#
+try:
+    from OpenSSL import SSL
+except ImportError:
+    # Do not require pyOpenSSL to be installed, but disable SSL
+    # functionality in that case.
+    SSL = None
+    class SecureHTTPServer(BaseHTTPServer.HTTPServer):
+        def __init__(self, server_address, RequestHandlerClass,
+                     ssl_context=None):
+            assert not ssl_context, "pyOpenSSL not installed"
+            BaseHTTPServer.HTTPServer.__init__(self, server_address,
+                                               RequestHandlerClass)
+else:
 
-class WSGIServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
-    def __init__ (self, application, host=None, port=None, handler=None):
-        server_address = (host or "127.0.0.1", port or 8080)
-        BaseHTTPServer.HTTPServer.__init__ (self,server_address,
-                                            handler or WSGIHandler)
-        self.wsgi_application = application
+    class _ConnFixer(object):
+        """ wraps a socket connection so it implements makefile """
+        def __init__(self, conn):
+            self.__conn = conn
+        def makefile(self, mode, bufsize):
+            return socket._fileobject(self.__conn, mode, bufsize)
+        def __getattr__(self, attrib):
+            return getattr(self.__conn, attrib)
 
-def serve(application, host=None, port=None, handler=None):
-    server = WSGIServer(application,host,port,handler)
+    class SecureHTTPServer(BaseHTTPServer.HTTPServer):
+        """ 
+        Provides SSL server functionality on top of the BaseHTTPServer
+        by overriding _private_ members of Python's standard
+        distribution. The interface for this instance only changes by
+        adding a an optional ssl_context attribute to the constructor:
+
+              cntx = SSL.Context(SSL.SSLv23_METHOD)
+              cntx.use_privatekey_file("host.pem")
+              cntx.use_certificate_file("host.pem")
+
+        The certificates can be generated with openssl as follows:
+          
+            $ openssl genrsa 1024 > host.key
+            $ chmod 400 host.key
+            $ openssl req -new -x509 -nodes -sha1 -days 365  \
+                          -key host.key > host.cert
+            $ cat host.cert host.key > host.pem
+            $ chmod 400 host.pem
+
+        """ 
+
+        def __init__(self, server_address, RequestHandlerClass,
+                     ssl_context=None):
+            # This overrides the implementation of __init__ in python's
+            # SocketServer.TCPServer (which BaseHTTPServer.HTTPServer
+            # does not override, thankfully).
+            BaseHTTPServer.HTTPServer.__init__(self, server_address, 
+                                               RequestHandlerClass)
+            self.socket = socket.socket(self.address_family,
+                                        self.socket_type)
+            self.ssl_context = ssl_context
+            if ssl_context:
+                self.socket = SSL.Connection(ssl_context, self.socket)
+            self.server_bind()
+            self.server_activate()
+
+        def get_request(self):
+            # The default SSL request object does not seem to have a
+            # ``makefile(mode, bufsize)`` method as expected by
+            # Socketserver.StreamRequestHandler.
+            (conn,info) = self.socket.accept()
+            if self.ssl_context:
+                print dir(conn)
+                conn = _ConnFixer(conn)
+            return (conn,info)
+
+class WSGIServer(SocketServer.ThreadingMixIn, SecureHTTPServer):
+    def __init__(self, wsgi_application, server_address, 
+                 RequestHandlerClass=None, ssl_context=None):
+        SecureHTTPServer.__init__(self, server_address,
+            RequestHandlerClass or WSGIHandler, ssl_context)
+        self.wsgi_application = wsgi_application
+
+def serve(application, host=None, port=None, handler=None, ssl_pem=None):
+
+    ssl_context = None
+    if ssl_pem:
+        assert SSL, "pyOpenSSL is not installed"
+        port = port or 4443
+        ssl_context = SSL.Context(SSL.SSLv23_METHOD)
+        ssl_context.use_privatekey_file(ssl_pem)
+        ssl_context.use_certificate_file(ssl_pem)
+
+    server_address = (host or "127.0.0.1", port or 8080)
+    server = WSGIServer(application, server_address, handler, ssl_context)
     print "serving on %s:%s" % server.server_address
     try:
         server.serve_forever()
@@ -164,4 +253,5 @@ if __name__ == '__main__':
     # program like wget or curl to submit these 3 requests.
     import os
     from paste.wsgilib import dump_environ
+    #serve(dump_environ, ssl_pem="test.pem")
     serve(dump_environ)
