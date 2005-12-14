@@ -217,7 +217,6 @@ else:
             # Socketserver.StreamRequestHandler.
             (conn,info) = self.socket.accept()
             if self.ssl_context:
-                print dir(conn)
                 conn = _ConnFixer(conn)
             return (conn,info)
 
