@@ -7,7 +7,7 @@ WSGI Exception Middleware
 Regression Test Suite
 """
 from paste.httpexceptions import *
-from paste.wsgilib import header_value
+from paste.wsgilib import header_value, raw_interactive
 import py
 
 def test_HTTPMove():
@@ -41,6 +41,24 @@ def test_template():
         'A fun and happy message.\n')
     assert '<p>A fun and <b>happy</b> message.</p>' in \
            e.html({'ping': 'fun', 'pong': 'happy'})
+
+def test_iterator_application():
+    """ 
+    This tests to see that an iterator's exceptions are caught by 
+    HTTPExceptionHandler
+    """
+    def basic_found(environ, start_response):
+        raise HTTPFound("/bing/foo")
+        return ['result']
+    app = HTTPExceptionHandler(basic_found)
+    (status, headers, content, errors) = raw_interactive(app)
+    assert '302 Found' == status
+    def iterate_found(environ, start_response):
+        raise HTTPFound("/bing/foo")
+        yield 'result'
+    app = HTTPExceptionHandler(iterate_found)
+    (status, headers, content, errors) = raw_interactive(app)
+    assert '302 Found' == status
 
 def test_redapp():
     """ check that redirect returns the correct, expected results """
