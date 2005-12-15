@@ -31,6 +31,7 @@ class WSGIHandlerMixin:
     """
     
     def version_string(self):
+        """ behavior that BaseHTTPServer should have had """
         if not self.sys_version:
             return self.server_version
         return super(WSGIHandlerMixin,self).version_string(self)
@@ -228,12 +229,7 @@ else:
 class WSGIServer(SocketServer.ThreadingMixIn, SecureHTTPServer):
     server_version = 'WSGIServer/' + __version__
     def __init__(self, wsgi_application, server_address, 
-                 RequestHandlerClass=None, ssl_context=None,
-                 server_version=None):
-        RequestHandlerClass = RequestHandlerClass or WSGIHandler
-        if server_version:
-            RequestHandlerClass.server_version = server_version
-            RequestHandlerClass.sys_version = None
+                 RequestHandlerClass=None, ssl_context=None):
         SecureHTTPServer.__init__(self, server_address,
                                   RequestHandlerClass, ssl_context)
         self.wsgi_application = wsgi_application
@@ -250,8 +246,14 @@ def serve(application, host=None, port=None, handler=None,
         ssl_context.use_certificate_file(ssl_pem)
 
     server_address = (host or "127.0.0.1", port or 8080)
-    server = WSGIServer(application, server_address, handler,
-                        ssl_context, server_version)
+
+    if not handler:
+        handler = WSGIHandler
+    if server_version:
+        handler.server_version = server_version
+        handler.sys_version = None
+
+    server = WSGIServer(application, server_address, handler, ssl_context)
     print "serving on %s:%s" % server.server_address
     try:
         server.serve_forever()
