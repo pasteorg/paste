@@ -46,8 +46,24 @@ class WSGIHandlerMixin:
             (status, headers) = self.wsgi_curr_headers
             code, message = status.split(" ",1)
             self.send_response(int(code),message)
+            #
+            # HTTP/1.1 compliance; either send Content-Length or
+            # signal that the connection is being closed.
+            #
+            send_close = True
             for (k,v) in  headers:
+                k = k.lower()
+                if 'content-length' == k:
+                    send_close = False
+                if 'connection' == k:
+                    if 'close' == v.lower():
+                        self.close_connection = 1
+                        send_close = False
                 self.send_header(k,v)
+            if send_close:
+                self.close_connection = 1
+                self.send_header('Connection','close')
+
             self.end_headers()
         self.wfile.write(chunk)
 

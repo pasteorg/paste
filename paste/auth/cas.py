@@ -19,7 +19,7 @@ of processing.  It has the secondary goal of allowing for other
 authentication methods to be used concurrently.
 """
 import urllib
-from paste.wsgilib import construct_url
+from paste.request import construct_url
 from paste.httpexceptions import HTTPSeeOther, HTTPForbidden
 
 class CASLoginFailure(HTTPForbidden):
@@ -32,11 +32,11 @@ def AuthCASHandler(application, authority):
     """
     This middleware implements CAS 1.0 Authentication There are several
     possible outcomes:
-    
+
     0. If the REMOTE_USER environment variable is already populated;
        then this middleware is a no-op, and the request is passed along
        to the application.
-   
+
     1. If a query argument 'ticket' is found, then an attempt to
        validate said ticket /w the authentication service done.  If the
        ticket is not validated; an 403 'Forbidden' exception is raised.
