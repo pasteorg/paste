@@ -94,6 +94,68 @@ class _wrap_app_iter(object):
             self.error_callback(sys.exc_info())
             raise
 
+def catch_errors_app(application, environ, start_response, error_callback_app,
+                     ok_callback=None, catch=Exception):
+    """
+    Like ``catch_errors``, except error_callback_app should be a
+    callable that will receive *three* arguments -- ``environ``,
+    ``start_response``, and ``exc_info``.  It should call
+    ``start_response`` (*with* the exc_info argument!) and return an
+    iterator.
+    """
+    error_occurred = False
+    try:
+        app_iter = application(environ, start_response)
+    except catch:
+        return error_callback_app(environ, start_response, sys.exc_info())
+    if type(app_iter) in (list, tuple):
+        # These won't produce exceptions
+        if ok_callback:
+            ok_callback()
+        return app_iter
+    else:
+        return _wrap_app_iter_app(
+            environ, start_response, app_iter,
+            error_callback_app, ok_callback)
+
+class _wrap_app_iter_app(object):
+
+    def __init__(self, environ, start_response, app_iterable,
+                 error_callback_app, ok_callback):
+        self.environ = environ
+        self.start_response = start_response
+        self.app_iterable = app_iterable
+        self.app_iter = iter(app_iterable)
+        self.error_callback_app = error_callback_app
+        self.ok_callback = ok_callback
+        if hasattr(self.app_iterable, 'close'):
+            self.close = self.app_iterable.close
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        try:
+            return self.app_iter.next()
+        except StopIteration:
+            if self.ok_callback:
+                self.ok_callback()
+            raise
+        except:
+            if hasattr(self.app_iterable, 'close'):
+                try:
+                    self.app_iterable.close()
+                except:
+                    # @@: Print to wsgi.errors?
+                    pass
+            new_app_iterable = self.error_callback_app(
+                self.environ, self.start_response, sys.exc_info())
+            app_iter = iter(new_app_iterable)
+            if hasattr(new_app_iterable, 'close'):
+                self.close = new_app_iterable.close
+            self.next = app_iter.next
+            return self.next()
+
 def raw_interactive(application, path='', **environ):
     """
     Runs the application in a fake environment.
