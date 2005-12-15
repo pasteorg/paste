@@ -430,7 +430,7 @@ class StaticURLParser(object):
             return self.__class__(full)(environ, start_response)
         if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
             return self.error_extra_path(environ, start_response)
-        return request.send_file(full)(environ, start_response)
+        return wsgilib.send_file(full)(environ, start_response)
 
     def add_slash(self, environ, start_response):
         """
