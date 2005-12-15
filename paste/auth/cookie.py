@@ -23,7 +23,7 @@ size of at least 4k (4096 bytes).  This is rather small; so one should
 be parsimonious in your cookie name/sizes.
 """
 import sha, base64, random, time, string, warnings
-from paste.wsgilib import get_cookies
+from paste.request import get_cookies
 
 def make_time(value):
     """ return a human readable timestmp """
