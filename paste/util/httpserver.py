@@ -57,7 +57,11 @@ class WSGIHandlerMixin:
                 if self.wsgi_headers_sent:
                     raise exc_info[0], exc_info[1], exc_info[2]
                 else:
-                    self.log_error(repr(exc_info))
+                    # In this case, we're going to assume that the
+                    # higher-level code is currently handling the
+                    # issue and returning a resonable response.
+                    # self.log_error(repr(exc_info))
+                    pass
             finally:
                 exc_info = None
         elif self.wsgi_curr_headers:
