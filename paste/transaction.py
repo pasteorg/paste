@@ -12,6 +12,7 @@ two-phase commit goodness that I don't need.
    This is experimental, and will change in the future.
 """
 from paste.httpexceptions import HTTPError, HTTPException
+from wsgilib import catch_errors
 
 class ConnectionFactory(object):
     """
@@ -46,12 +47,14 @@ def BasicTransactionHandler(application, factory):
     through a HTTPException's code.  If it is a 100, 200, or 300; the
     transaction is committed; otherwise it is rolled back.
     """
-
     def basic_transaction(environ, start_response):
         conn = factory(environ)
         environ['paste.connection'] = conn
         should_commit = [500]
-        def finalizer():
+        def finalizer(exc_info=None):
+            if exc_info:
+                if issubclass(exc_info[0], HTTPException):
+                    should_commit.append(exc_info[1].code)
             if should_commit.pop() < 400:
                 conn.commit()
             else:
@@ -60,15 +63,8 @@ def BasicTransactionHandler(application, factory):
         def basictrans_start_response(status, headers, exc_info = None):
             should_commit.append(int(status.split(" ")[0]))
             return start_response(status, headers, exc_info)
-        try:
-            for chunk in application(environ, basictrans_start_response):
-                yield chunk
-        except Exception, e:
-            if isinstance(e,HTTPException):
-                should_commit.append(e.code)
-            finalizer()
-            raise
-        finalizer()
+        return catch_errors(application, environ, basictrans_start_response,
+                            finalizer, finalizer)
     return basic_transaction
 
 __all__ = ['ConnectionFactory','BasicTransactionHandler']
