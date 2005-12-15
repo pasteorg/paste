@@ -54,14 +54,12 @@ def middleware(application, global_conf=None):
         environ['wsgi.errors'] = ErrorWrapper(environ['wsgi.errors'])
 
         iterator = application(environ, start_response_wrapper)
-        assert start_response_started, (
-            "The application returned, but did not call start_response()")
         assert iterator is not None and iterator != False, (
             "The application must return an iterator, if only an empty list")
 
         check_iterator(iterator)
 
-        return IteratorWrapper(iterator)
+        return IteratorWrapper(iterator, start_response_started)
 
     return lint_app
 
@@ -138,10 +136,11 @@ class PartialIteratorWrapper:
 
 class IteratorWrapper:
 
-    def __init__(self, wsgi_iterator):
+    def __init__(self, wsgi_iterator, check_start_response):
         self.original_iterator = wsgi_iterator
         self.iterator = iter(wsgi_iterator)
         self.closed = False
+        self.check_start_response = check_start_response
 
     def __iter__(self):
         return self
@@ -149,8 +148,13 @@ class IteratorWrapper:
     def next(self):
         assert not self.closed, (
             "Iterator read after closed")
-        return self.iterator.next()
-
+        v = self.iterator.next()
+        if self.check_start_response is not None:
+            assert self.check_start_response, (
+                "The application returns and we started iterating over its body, but start_response has not yet been called")
+            self.check_start_response = None
+        return v
+        
     def close(self):
         self.closed = True
         if hasattr(self.original_iterator, 'close'):
