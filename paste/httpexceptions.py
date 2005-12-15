@@ -71,7 +71,7 @@ Exception
 
 import types
 import sys
-from wsgilib import has_header, header_value
+from wsgilib import has_header, header_value, catch_errors_app
 from util.quoting import strip_html, html_quote
 
 class HTTPException(Exception):
@@ -534,28 +534,17 @@ class HTTPExceptionHandler:
     def __call__(self, environ, start_response):
         environ['paste.httpexceptions'] = self
         environ.setdefault('paste.expected_exceptions', 
-                          []).append(HTTPException)
-        headers_sent = []
-        def httpexce_start_response(status, headers, exc_info = None):
-            headers_sent.append(True)
-            return start_response(status, headers, exc_info)
+                           []).append(HTTPException)
+        return catch_errors_app(
+            self.application, environ, start_response,
+            self.send_http_response, catch=HTTPException)
+
+    def send_http_response(self, environ, start_response, exc_info):
         try:
-            result = self.application(environ, httpexce_start_response)
-        except HTTPException, e:
-            if environ.get('paste.debug_suppress_httpexceptions'):
-                raise
-            if headers_sent or e.code >= self.warning_level:
-                exc_info = sys.exc_info()
-            else:
-                exc_info = None
-            try:
-                result = e.wsgi_application(environ, start_response, exc_info)
-            finally:
-                # clean up
-                exc_info = None
-            return result
-        else:
-            return result
+            exc = exc_info[1]
+            return exc.wsgi_application(environ, start_response, exc_info)
+        finally:
+            exc_info = None
 
 def middleware(*args, **kw):
     import warnings
