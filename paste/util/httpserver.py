@@ -30,6 +30,11 @@ class WSGIHandlerMixin:
     This assumes a ``wsgi_application`` handler on ``self.server``.
     """
     
+    def version_string(self):
+        if not self.sys_version:
+            return self.server_version
+        return super(WSGIHandlerMixin,self).version_string(self)
+    
     def wsgi_write_chunk(self, chunk):
         """
         Write a chunk of the output stream; send headers if they 
@@ -51,7 +56,7 @@ class WSGIHandlerMixin:
                 if self.wsgi_headers_sent:
                     raise exc_info[0], exc_info[1], exc_info[2]
                 else:
-                    self.log_error(exc_info)
+                    self.log_error(repr(exc_info))
             finally:
                 exc_info = None
         elif self.wsgi_curr_headers:
@@ -221,13 +226,20 @@ else:
             return (conn,info)
 
 class WSGIServer(SocketServer.ThreadingMixIn, SecureHTTPServer):
+    server_version = 'WSGIServer/' + __version__
     def __init__(self, wsgi_application, server_address, 
-                 RequestHandlerClass=None, ssl_context=None):
+                 RequestHandlerClass=None, ssl_context=None,
+                 server_version=None):
+        RequestHandlerClass = RequestHandlerClass or WSGIHandler
+        if server_version:
+            RequestHandlerClass.server_version = server_version
+            RequestHandlerClass.sys_version = None
         SecureHTTPServer.__init__(self, server_address,
-            RequestHandlerClass or WSGIHandler, ssl_context)
+                                  RequestHandlerClass, ssl_context)
         self.wsgi_application = wsgi_application
 
-def serve(application, host=None, port=None, handler=None, ssl_pem=None):
+def serve(application, host=None, port=None, handler=None, 
+          ssl_pem=None, server_version=None):
 
     ssl_context = None
     if ssl_pem:
@@ -238,7 +250,8 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None):
         ssl_context.use_certificate_file(ssl_pem)
 
     server_address = (host or "127.0.0.1", port or 8080)
-    server = WSGIServer(application, server_address, handler, ssl_context)
+    server = WSGIServer(application, server_address, handler,
+                        ssl_context, server_version)
     print "serving on %s:%s" % server.server_address
     try:
         server.serve_forever()
@@ -253,4 +266,4 @@ if __name__ == '__main__':
     import os
     from paste.wsgilib import dump_environ
     #serve(dump_environ, ssl_pem="test.pem")
-    serve(dump_environ)
+    serve(dump_environ, server_version="Wombles/1.0")
