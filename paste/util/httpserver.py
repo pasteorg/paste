@@ -29,16 +29,16 @@ class WSGIHandlerMixin:
     HTTPRequestHandler derivative (as provided in Python's BaseHTTPServer).
     This assumes a ``wsgi_application`` handler on ``self.server``.
     """
-    
+
     def version_string(self):
         """ behavior that BaseHTTPServer should have had """
         if not self.sys_version:
             return self.server_version
         return super(WSGIHandlerMixin,self).version_string(self)
-    
+
     def wsgi_write_chunk(self, chunk):
         """
-        Write a chunk of the output stream; send headers if they 
+        Write a chunk of the output stream; send headers if they
         have not already been sent.
         """
         if not self.wsgi_headers_sent:
@@ -50,7 +50,7 @@ class WSGIHandlerMixin:
                 self.send_header(k,v)
             self.end_headers()
         self.wfile.write(chunk)
-    
+
     def wsgi_start_response(self,status,response_headers,exc_info=None):
         if exc_info:
             try:
@@ -68,20 +68,20 @@ class WSGIHandlerMixin:
             assert 0, "Attempt to set headers a second time w/o an exc_info"
         self.wsgi_curr_headers = (status, response_headers)
         return self.wsgi_write_chunk
-    
+
     def wsgi_setup(self, environ=None):
         """
         Setup the member variables used by this WSGI mixin, including
         the ``environ`` and status member variables.
-        
+
         After the basic environment is created; the optional ``environ``
-        argument can be used to override any settings.  
+        argument can be used to override any settings.
         """
 
         (_,_,path,query,fragment) = urlparse.urlsplit(self.path)
         (server_name, server_port) = self.server.server_address
 
-        self.wsgi_environ = { 
+        self.wsgi_environ = {
                 'wsgi.version': (1,0)
                ,'wsgi.url_scheme': 'http'
                ,'wsgi.input': self.rfile
@@ -103,7 +103,7 @@ class WSGIHandlerMixin:
                ,'REMOTE_ADDR': self.client_address[0]
                ,'REMOTE_HOST': self.address_string()
                }
-        
+
         for k,v in self.headers.items():
             self.wsgi_environ['HTTP_%s' % k.replace ('-', '_').upper()] = v
 
@@ -123,13 +123,13 @@ class WSGIHandlerMixin:
 
     def wsgi_execute(self, environ=None):
         """
-        Invoke the server's ``wsgi_application``.   
+        Invoke the server's ``wsgi_application``.
         """
 
         self.wsgi_setup(environ)
 
         try:
-            result = self.server.wsgi_application(self.wsgi_environ, 
+            result = self.server.wsgi_application(self.wsgi_environ,
                                                   self.wsgi_start_response)
             try:
                 for chunk in result:
@@ -196,7 +196,7 @@ else:
               cntx.use_certificate_file("host.pem")
 
         The certificates can be generated with openssl as follows:
-          
+
             $ openssl genrsa 1024 > host.key
             $ chmod 400 host.key
             $ openssl req -new -x509 -nodes -sha1 -days 365  \
@@ -204,14 +204,14 @@ else:
             $ cat host.cert host.key > host.pem
             $ chmod 400 host.pem
 
-        """ 
+        """
 
         def __init__(self, server_address, RequestHandlerClass,
                      ssl_context=None):
             # This overrides the implementation of __init__ in python's
             # SocketServer.TCPServer (which BaseHTTPServer.HTTPServer
             # does not override, thankfully).
-            BaseHTTPServer.HTTPServer.__init__(self, server_address, 
+            BaseHTTPServer.HTTPServer.__init__(self, server_address,
                                                RequestHandlerClass)
             self.socket = socket.socket(self.address_family,
                                         self.socket_type)
@@ -232,13 +232,13 @@ else:
 
 class WSGIServer(SocketServer.ThreadingMixIn, SecureHTTPServer):
     server_version = 'WSGIServer/' + __version__
-    def __init__(self, wsgi_application, server_address, 
+    def __init__(self, wsgi_application, server_address,
                  RequestHandlerClass=None, ssl_context=None):
         SecureHTTPServer.__init__(self, server_address,
                                   RequestHandlerClass, ssl_context)
         self.wsgi_application = wsgi_application
 
-def serve(application, host=None, port=None, handler=None, ssl_pem=None, 
+def serve(application, host=None, port=None, handler=None, ssl_pem=None,
           server_version=None, protocol_version=None):
 
     ssl_context = None
