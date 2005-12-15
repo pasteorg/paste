@@ -53,6 +53,15 @@ def test_iterator_application():
     app = HTTPExceptionHandler(basic_found)
     (status, headers, content, errors) = raw_interactive(app)
     assert '302 Found' == status
+    def make_iter(application):
+        def iterapp(environ, start_response):
+            result = application(environ, start_response)
+            for chunk in result:
+                yield chunk
+        return iterapp
+    app = HTTPExceptionHandler(make_iter(basic_found))
+    (status, headers, content, errors) = raw_interactive(app)
+    assert '302 Found' == status
     def iterate_found(environ, start_response):
         raise HTTPFound("/bing/foo")
         yield 'result'
