@@ -234,8 +234,8 @@ class WSGIServer(SocketServer.ThreadingMixIn, SecureHTTPServer):
                                   RequestHandlerClass, ssl_context)
         self.wsgi_application = wsgi_application
 
-def serve(application, host=None, port=None, handler=None, 
-          ssl_pem=None, server_version=None):
+def serve(application, host=None, port=None, handler=None, ssl_pem=None, 
+          server_version=None, protocol_version=None):
 
     ssl_context = None
     if ssl_pem:
@@ -253,6 +253,9 @@ def serve(application, host=None, port=None, handler=None,
         handler.server_version = server_version
         handler.sys_version = None
 
+    if protocol_version:
+        handler.protocol_version = protocol_version
+
     server = WSGIServer(application, server_address, handler, ssl_context)
     print "serving on %s:%s" % server.server_address
     try:
@@ -268,4 +271,5 @@ if __name__ == '__main__':
     import os
     from paste.wsgilib import dump_environ
     #serve(dump_environ, ssl_pem="test.pem")
-    serve(dump_environ, server_version="Wombles/1.0")
+    serve(dump_environ, server_version="Wombles/1.0",
+          protocol_version="HTTP/1.1")
