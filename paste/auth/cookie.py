@@ -22,13 +22,13 @@ should allow each domain at least 20 cookies; each one with a content
 size of at least 4k (4096 bytes).  This is rather small; so one should
 be parsimonious in your cookie name/sizes.
 """
-import sha, base64, random, time, string, warnings
+import sha, hmac, base64, random, time, string, warnings
 from paste.request import get_cookies
 
 def make_time(value):
     """ return a human readable timestmp """
     return time.strftime("%Y%m%d%H%M",time.gmtime(value))
-_signature_size = len(sha.sha("").digest())
+_signature_size = len(hmac.new('x','x',sha).digest())
 _header_size = _signature_size + len(make_time(time.time()))
 
 # build encode/decode functions to safely pack away values
@@ -72,7 +72,7 @@ class CookieSigner:
         cookie is handled server-side in the auth() function.
         """
         cookie = base64.b64encode(
-            sha.sha(content+self.secret).digest() +
+            hmac.new(self.secret,content,sha).digest() +
             make_time(time.time()+60*self.timeout) +
             content).replace("/","_").replace("=","~")
         if len(cookie) > self.maxlen:
@@ -89,7 +89,7 @@ class CookieSigner:
         signature = decode[:_signature_size]
         expires = decode[_signature_size:_header_size]
         content = decode[_header_size:]
-        if signature == sha.sha(content+self.secret).digest():
+        if signature == hmac.new(self.secret,content,sha).digest():
             if int(expires) > int(make_time(time.time())):
                 return content
             else:
