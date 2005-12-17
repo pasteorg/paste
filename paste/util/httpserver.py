@@ -34,7 +34,8 @@ class WSGIHandlerMixin:
         """ behavior that BaseHTTPServer should have had """
         if not self.sys_version:
             return self.server_version
-        return super(WSGIHandlerMixin,self).version_string(self)
+        else:
+            return self.server_version + ' ' + self.sys_version
 
     def wsgi_write_chunk(self, chunk):
         """
