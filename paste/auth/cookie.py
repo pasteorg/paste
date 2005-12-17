@@ -20,7 +20,9 @@ user closes their window) and does server-side expiration.
 According to the cookie specifications, RFC2068 and RFC2109, browsers
 should allow each domain at least 20 cookies; each one with a content
 size of at least 4k (4096 bytes).  This is rather small; so one should
-be parsimonious in your cookie name/sizes.
+be parsimonious in your cookie name/sizes.  It is recommended via the
+HMAC specification (RFC 2104) that the secret key be 64 bytes since
+this is the block size of the hashing.
 """
 import sha, hmac, base64, random, time, string, warnings
 from paste.request import get_cookies
@@ -45,6 +47,11 @@ class CookieTooLarge(RuntimeError):
         self.content = content
         self.cookie = cookie
 
+_all_chars = ''.join([chr(x) for x in range(0,255)])
+def new_secret():
+    """ returns a 64 byte secret """
+    return ''.join(random.sample(_all_chars,64))
+
 class CookieSigner:
     """
     This class converts content into a timed and digitally signed
@@ -62,11 +69,10 @@ class CookieSigner:
     def __init__(self, secret = None, timeout = None, maxlen = None):
         self.timeout = timeout or 30
         self.maxlen  = maxlen or 4096
-        self.secret  = secret or sha.sha(str(random.random()) +
-                                         str(time.time())).digest()
+        self.secret = secret or new_secret()
 
     def sign(self, content):
-        """ 
+        """
         Sign the content returning a valid cookie (that does not
         need to be escaped and quoted).  The expiration of this
         cookie is handled server-side in the auth() function.
