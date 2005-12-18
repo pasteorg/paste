@@ -27,6 +27,3 @@ class SetupDirectory(py.test.collect.Directory):
             warnings.filterwarnings('error')
         
 Directory = SetupDirectory
-
-import warnings
-warnings.filterwarnings('error')
