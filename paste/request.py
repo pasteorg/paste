@@ -14,7 +14,7 @@ environment to solve common requirements.
    * path_info_pop(environ)
 
 """
-import cgi, string
+import cgi
 from Cookie import SimpleCookie
 
 __all__ = ['get_cookies', 'parse_querystring', 'parse_formvars',

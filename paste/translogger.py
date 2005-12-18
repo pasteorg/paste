@@ -28,7 +28,6 @@ class TransLogger(object):
         if logger is None:
             self.logger = logging.getLogger(self.logger_name)
             if setup_console_handler:
-                import sys
                 console = logging.StreamHandler()
                 console.setLevel(logging.DEBUG)
                 # We need to control the exact format:

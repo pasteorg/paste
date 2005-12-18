@@ -70,7 +70,6 @@ Exception
 """
 
 import types
-import sys
 from wsgilib import catch_errors_app
 from response import has_header, header_value
 from util.quoting import strip_html, html_quote

@@ -10,7 +10,9 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 """
 
 import BaseHTTPServer, SocketServer
-import urlparse, sys, time, socket
+import urlparse
+import sys
+import socket
 
 try:
     from paste.httpexceptions import HTTPServerError
@@ -289,7 +291,6 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
 if __name__ == '__main__':
     # serve exactly 3 requests and then stop, use an external
     # program like wget or curl to submit these 3 requests.
-    import os
     from paste.wsgilib import dump_environ
     #serve(dump_environ, ssl_pem="test.pem")
     serve(dump_environ, server_version="Wombles/1.0",
