@@ -147,7 +147,7 @@ Other Tools
       httpexceptions = paste.httpexceptions:make_middleware
       lint = paste.lint:middleware
       login = paste.login:middleware
-      printdebug = paste.printdebug:PrintDebugMiddleware 
+      printdebug = paste.debug:prints:PrintDebugMiddleware 
       profile = paste.profilemiddleware:ProfileMiddleware [hotshot]
       recursive = paste.recursive:RecursiveMiddleware
       # This isn't good enough to deserve the name egg:Paste#session:
