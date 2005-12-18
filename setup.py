@@ -50,13 +50,13 @@ Dispatching
 Web Application
 ---------------
 
-* Run CGI programs as WSGI applications in ``paste.cgiapp`` (and
-  Python-sepcific CGI programs with ``paste.pycgiwrapper``)
+* Run CGI programs as WSGI applications in ``paste.cgiapp``
 
 * Traverse files and load WSGI applications from ``.py`` files (or
   static files), in ``paste.urlparser``
 
-* Serve static directories of files, also in ``paste.urlparser``
+* Serve static directories of files, also in ``paste.urlparser``; also
+  in that module serving from Egg resources using ``pkg_resources``.
 
 Tools
 -----
@@ -64,15 +64,17 @@ Tools
 * Catch HTTP-related exceptions (e.g., ``HTTPNotFound``) and turn them
   into proper responses in ``paste.httpexceptions``
 
-* Check for signed cookies for authentication, setting ``REMOTE_USER``
-  in ``paste.login``
+* Several authentication techniques, including HTTP (Basic and
+  Digest), signed cookies, and CAS single-signon, in the
+  ``paste.auth`` package.
 
 * Create sessions in ``paste.session`` and ``paste.flup_session``
 
 * Gzip responses in ``paste.gzip``
 
 * A wide variety of routines for manipulating WSGI requests and
-  producing responses, in ``paste.wsgilib``
+  producing responses, in ``paste.request``, ``paste.response`` and
+  ``paste.wsgilib``
 
 Debugging Filters
 -----------------
@@ -85,14 +87,14 @@ Debugging Filters
   output, in ``paste.cgitb_catcher``.
 
 * Profile each request and append profiling information to the HTML,
-  in ``paste.profilemiddleware``
+  in ``paste.debug.profile``
 
 * Capture ``print`` output and present it in the browser for
-  debugging, in ``paste.printdebug``
+  debugging, in ``paste.debug.prints``
 
 * Validate all HTML output from applications using the `WDG Validator
   <http://www.htmlhelp.com/tools/validator/>`_, appending any errors
-  or warnings to the page, in ``paste.wdg_validator``
+  or warnings to the page, in ``paste.debug.wdg_validator``
 
 Other Tools
 -----------
