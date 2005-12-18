@@ -8,6 +8,7 @@ import pkg_resources
 import mimetypes
 import wsgilib
 import request
+import fileapp
 from paste.util import import_string
 from paste.deploy import converters
 import httpexceptions
@@ -515,7 +516,7 @@ class PkgResourcesParser(StaticURLParser):
             return exc.wsgi_application(environ, start_response)
         start_response('200 OK',
                        [('content-type', type)])
-        return wsgilib._FileIter(file)
+        return fileapp._FileIter(file)
         
     def not_found(self, environ, start_response, debug_message=None):
         exc = httpexceptions.HTTPNotFound(
