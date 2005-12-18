@@ -1,5 +1,5 @@
 from paste.fixture import *
-from paste.profilemiddleware import *
+from paste.debug.profile import *
 
 def simple_app(environ, start_response):
     start_response('200 OK', [('content-type', 'text/plain')])
