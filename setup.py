@@ -148,11 +148,11 @@ Other Tools
       lint = paste.lint:middleware
       login = paste.login:middleware
       printdebug = paste.debug:prints:PrintDebugMiddleware 
-      profile = paste.profilemiddleware:ProfileMiddleware [hotshot]
+      profile = paste.debug.profile:ProfileMiddleware [hotshot]
       recursive = paste.recursive:RecursiveMiddleware
       # This isn't good enough to deserve the name egg:Paste#session:
       paste_session = paste.session:SessionMiddleware
-      wdg_validate = paste.wdg_validate:WDGValidateMiddleware [subprocess]
+      wdg_validate = paste.debug.wdg_validate:WDGValidateMiddleware [subprocess]
       evalerror = paste.evalexception:EvalException
       """,
       )
