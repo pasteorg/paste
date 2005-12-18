@@ -3,7 +3,8 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 from paste.auth import digest
-from paste.wsgilib import raw_interactive, header_value
+from paste.wsgilib import raw_interactive
+from paste.response import header_value
 from paste.httpexceptions import *
 import os
 

@@ -7,7 +7,8 @@ WSGI Exception Middleware
 Regression Test Suite
 """
 from paste.httpexceptions import *
-from paste.wsgilib import header_value, raw_interactive
+from paste.wsgilib import raw_interactive
+from paste.response import header_value
 import py
 
 def test_HTTPMove():

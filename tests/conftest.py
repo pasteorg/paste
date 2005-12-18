@@ -23,8 +23,10 @@ class SetupDirectory(py.test.collect.Directory):
     def __init__(self, *args, **kw):
         super(SetupDirectory, self).__init__(*args, **kw)
         if option.raise_warnings:
-            print "Setting up warnings"
             import warnings
             warnings.filterwarnings('error')
         
 Directory = SetupDirectory
+
+import warnings
+warnings.filterwarnings('error')

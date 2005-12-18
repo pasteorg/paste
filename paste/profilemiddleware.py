@@ -10,6 +10,7 @@ import cgi
 import time
 from cStringIO import StringIO
 from paste import wsgilib
+from paste import response
 
 __all__ = ['ProfileMiddleware', 'profile_decorator']
 
@@ -44,10 +45,10 @@ class ProfileMiddleware(object):
         self.limit = limit
 
     def __call__(self, environ, start_response):
-        response = []
+        catch_response = []
         body = []
         def replace_start_response(status, headers):
-            response.extend([status, headers])
+            catch_response.extend([status, headers])
             start_response(status, headers)
             return body.append
         def run_app():
@@ -61,8 +62,8 @@ class ProfileMiddleware(object):
             finally:
                 prof.close()
             body = ''.join(body)
-            headers = response[1]
-            content_type = wsgilib.header_value(headers, 'content-type')
+            headers = catch_response[1]
+            content_type = response.header_value(headers, 'content-type')
             if not content_type.startswith('text/html'):
                 # We can't add info to non-HTML output
                 return [body]

@@ -335,7 +335,7 @@ def make_directory(parser, environ, filename):
 URLParser.register_constructor('dir', make_directory)
 
 def make_unknown(parser, environ, filename):
-    return wsgilib.send_file(filename)
+    return fileapp.FileApp(filename)
 
 URLParser.register_constructor('*', make_unknown)
 
@@ -431,7 +431,7 @@ class StaticURLParser(object):
             return self.__class__(full)(environ, start_response)
         if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
             return self.error_extra_path(environ, start_response)
-        return wsgilib.send_file(full)(environ, start_response)
+        return fileapp.FileApp(full)(environ, start_response)
 
     def add_slash(self, environ, start_response):
         """
