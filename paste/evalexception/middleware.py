@@ -183,7 +183,7 @@ class EvalException(object):
 
     def mochikit(self, environ, start_response):
         app = urlparser.StaticURLParser(
-            os.path.join(os.path.dirname(__file__), 'mochikit', 'MochiKit'))
+            os.path.join(os.path.dirname(__file__), 'mochikit'))
         return app(environ, start_response)
     mochikit.exposed = True
 
