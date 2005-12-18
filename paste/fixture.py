@@ -596,7 +596,7 @@ class TestResponse(object):
             if href_pat and not href_pat(el_href):
                 printlog("  Skipped: doesn't match href")
                 continue
-            if html_pat and not html_pat(link_anchor):
+            if html_pat and not html_pat(el_html):
                 printlog("  Skipped: doesn't match html")
                 continue
             printlog("  Accepted")

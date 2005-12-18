@@ -27,6 +27,9 @@ import atexit
 from paste.util.classinstance import classinstancemethod
 
 def install(poll_interval=1, raise_keyboard_interrupt=True):
+    """
+    Install the reloading monitor.
+    """
     mon = Monitor(poll_interval=poll_interval,
                   raise_keyboard_interrupt=raise_keyboard_interrupt)
     t = threading.Thread(target=mon.periodic_reload)

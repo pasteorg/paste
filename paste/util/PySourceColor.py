@@ -1,5 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: Latin-1 -*-
+"""
+PySourceColor: color Python source code
+"""
+
 """
  PySourceColor.py
 

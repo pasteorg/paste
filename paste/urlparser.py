@@ -6,7 +6,6 @@ import sys
 import imp
 import pkg_resources
 import mimetypes
-import wsgilib
 import request
 import fileapp
 from paste.util import import_string
