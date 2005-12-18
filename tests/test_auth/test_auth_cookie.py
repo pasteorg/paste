@@ -3,7 +3,8 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 from paste.auth import cookie
-from paste.wsgilib import raw_interactive, header_value, dump_environ
+from paste.wsgilib import raw_interactive, dump_environ
+from paste.response import header_value
 from paste.httpexceptions import *
 from Cookie import SimpleCookie
 import urllib2, os

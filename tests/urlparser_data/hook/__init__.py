@@ -1,7 +1,7 @@
-from paste import wsgilib
+from paste import request
 
 def urlparser_hook(environ):
-    first, rest = wsgilib.path_info_split(environ.get('PATH_INFO', ''))
+    first, rest = request.path_info_split(environ.get('PATH_INFO', ''))
     if not first:
         # No username
         return
