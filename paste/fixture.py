@@ -1124,12 +1124,15 @@ class TestFileEnvironment(object):
             Input to the script
         ``printresult``: (default True)
             Print the result after running
+        ``cwd``: (default ``self.cwd``)
+            The working directory to run in
 
         Returns a ``ProcResponse`` object.
         """
         __tracebackhide__ = True
         expect_error = _popget(kw, 'expect_error', False)
         expect_stderr = _popget(kw, 'expect_stderr', expect_error)
+        cwd = _popget(kw, 'cwd', self.cwd)
         stdin = _popget(kw, 'stdin', None)
         printresult = _popget(kw, 'printresult', True)
         args = map(str, args)
@@ -1147,7 +1150,7 @@ class TestFileEnvironment(object):
         proc = subprocess.Popen(all, stdin=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
-                                cwd=self.cwd,
+                                cwd=cwd,
                                 env=self.environ)
         stdout, stderr = proc.communicate(stdin)
         files_after = self.find_files()
