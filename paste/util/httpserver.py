@@ -10,15 +10,7 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 """
 
 import BaseHTTPServer, SocketServer
-import urlparse
-import sys
-import socket
-
-try:
-    from paste.httpexceptions import HTTPServerError
-except ImportError:
-    # so we can run this module independent of paste
-    HTTPServerError = RuntimeError
+import urlparse, sys, socket
 
 __all__ = ['WSGIHandlerMixin','WSGIServer','WSGIHandler', 'serve']
 __version__ = "0.2"
