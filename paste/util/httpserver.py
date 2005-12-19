@@ -148,10 +148,12 @@ class WSGIHandlerMixin:
             finally:
                 if hasattr(result,'close'):
                     result.close()
-        except socket.error, exce:
-            # do not stop the server on a network error; is this needed?
-            self.log_error("Network Error: %s", exce)
-            return
+        except socket.error:
+            # @@: what do we do with this exception?  Sending a 500
+            # isn't smart in this case, which is why it is being singled
+            # out here.  Yet, SocketServer@218 just ignores this sort of
+            # error... is this acceptable?  Let's just punt.
+            raise
         except:
             if not self.wsgi_headers_sent:
                 self.wsgi_curr_headers = ('500 Internal Server Error',
