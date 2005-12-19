@@ -157,7 +157,7 @@ class HTTPException(Exception):
         assert isinstance(comment, (type(None), basestring))
         self.headers = headers or tuple()
         for req in self.required_headers:
-            assert has_header(headers, req)
+            assert headers and has_header(headers, req)
         if detail is not None:
             self.detail = detail
         if comment is not None:
