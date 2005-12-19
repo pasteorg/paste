@@ -166,7 +166,7 @@ class URLResource(object):
     def addpath(self, *paths):
         u = self
         for path in paths:
-            path = path.lstrip('/')
+            path = str(path).lstrip('/')
             new_url = u.url
             if not new_url.endswith('/'):
                 new_url += '/'
