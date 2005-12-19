@@ -198,7 +198,8 @@ class TestApp(object):
     # for py.test
     disabled = True
 
-    def __init__(self, app, namespace=None, relative_to=None):
+    def __init__(self, app, namespace=None, relative_to=None,
+                 extra_environ=None):
         if isinstance(app, (str, unicode)):
             from paste.deploy import loadapp
             # @@: Should pick up relative_to from calling module's
@@ -207,13 +208,16 @@ class TestApp(object):
         self.app = app
         self.namespace = namespace
         self.relative_to = relative_to
+        if extra_environ is None:
+            extra_environ = {}
+        self.extra_environ = extra_environ
         self.reset()
 
     def reset(self):
         self.cookies = {}
 
     def make_environ(self):
-        environ = {}
+        environ = self.extra_environ.copy()
         environ['paste.throw_errors'] = True
         return environ
 
@@ -973,7 +977,16 @@ class Field(object):
 
     def value__set(self, value):
         if not self.settable:
-            raise AttributeError("You cannot set the value")
+            raise AttributeError(
+                "You cannot set the value of the <%s> field %r"
+                % (self.tag, self.name))
+        self._value = value
+
+    def force_value(self, value):
+        """
+        Like setting a value, except forces it even for, say, hidden
+        fields.
+        """
         self._value = value
 
     def value__get(self):
@@ -1011,7 +1024,10 @@ class Select(Field):
                 if checked:
                     return option
             else:
-                return self.options[0][0]
+                if self.options:
+                    return self.options[0][0]
+                else:
+                    return None
 
     value = property(value__get, value__set)
 
