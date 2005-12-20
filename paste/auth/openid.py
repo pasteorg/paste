@@ -65,7 +65,8 @@ class AuthOpenIDHandler(object):
     def __call__(self, environ, start_response):
         if environ['PATH_INFO'].startswith(self.auth_prefix):
             self.environ = environ
-            self.wfile = start_response
+            self.start = start_response
+            self.body = []
             self.base_url = request.construct_url(environ)
             
             path = re.sub(auth_prefix, '', environ['PATH_INFO'])
@@ -196,8 +197,9 @@ Location: %s
 Content-type: text/plain
 
 Redirecting to %s""" % (redirect_url, redirect_url)
-        self.send_response(302)
-        self.wfile.write(response)
+        response_headers = [('Content-type', 'text/html')]
+        self.start(302, response_headers)
+        return [response]
 
     def notFound(self):
         """Render a page with a 404 return code and a message."""
@@ -209,17 +211,20 @@ Redirecting to %s""" % (redirect_url, redirect_url)
     def render(self, message=None, css_class='alert', form_contents=None,
                status=200, title="Python OpenID Consumer Example"):
         """Render a page."""
-        self.send_response(status)
+        response_headers = [('Content-type', 'text/html')]
+        self.start(status, response_headers)
+
         self.pageHeader(title)
         if message:
-            self.wfile.write("<div class='%s'>" % (css_class,))
-            self.wfile.write(message)
-            self.wfile.write("</div>")
+            self.body.append("<div class='%s'>" % (css_class,))
+            self.body.append(message)
+            self.body.append("</div>")
         self.pageFooter(form_contents)
+        return self.body
 
     def pageHeader(self, title):
         """Render the page header"""
-        self.wfile.write('''\
+        self.body.append('''\
 Content-type: text/html
 
 <html>
@@ -268,7 +273,7 @@ Content-type: text/html
         if not form_contents:
             form_contents = ''
 
-        self.wfile.write('''\
+        self.body.append('''\
     <div id="verify-form">
       <form method="get" action=%s>
         Identity&nbsp;URL:
