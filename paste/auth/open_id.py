@@ -54,7 +54,7 @@ class AuthOpenIDHandler(object):
     """
     def __init__(self, app, data_store_path, auth_prefix='/oid', 
                                              login_redirect='/'):
-        self.store = filestore.FileOpenIDStore(data_store_path)
+        store = filestore.FileOpenIDStore(data_store_path)
         self.oidconsumer = consumer.OpenIDConsumer(store)
         
         self.app = app
@@ -69,32 +69,31 @@ class AuthOpenIDHandler(object):
             self.body = []
             self.base_url = request.construct_url(environ)
             
-            path = re.sub(auth_prefix, '', environ['PATH_INFO'])
+            path = re.sub(self.auth_prefix, '', environ['PATH_INFO'])
             self.parsed_uri = urlparse.urlparse(path)
             self.query = dict(request.parse_querystring(environ))
             
             path = self.parsed_uri[2]
             if path == '/':
-                self.render()
+                return self.render()
             elif path == '/verify':
-                self.doVerify()
+                return self.do_verify()
             elif path == '/process':
-                self.doProcess()
+                return self.do_process()
             else:
-                self.notFound()
+                return self.not_found()
         else:
             return self.app(environ, start_response)
 
-    def doVerify(self):
+    def do_verify(self):
         """Process the form submission, initating OpenID verification.
         """
 
         # First, make sure that the user entered something
         openid_url = self.query.get('openid_url')
         if not openid_url:
-            self.render('Enter an identity URL to verify.',
+            return self.render('Enter an identity URL to verify.',
                         css_class='error', form_contents=openid_url)
-            return
 
         oidconsumer = self.oidconsumer
 
@@ -123,21 +122,21 @@ class AuthOpenIDHandler(object):
             # the response. A cookie or a session object could be used
 	        # to accomplish this, but for simplicity here we just add
 	        # it as a query parameter of the return-to URL.
-            return_to = self.buildURL('process', token=info.token)
+            return_to = self.build_url('process', token=info.token)
 
             # Now ask the library for the URL to redirect the user to
             # his OpenID server. It is required for security that the
             # return_to URL must be under the specified trust_root. We
             # just use the base_url for this server as a trust root.
             redirect_url = oidconsumer.constructRedirect(
-                info, return_to, trust_root=self.server.base_url)
+                info, return_to, trust_root=self.base_url)
 
             # Send the redirect response 
-            self.redirect(redirect_url)
+            return self.redirect(redirect_url)
         else:
             assert False, 'Not reached'
 
-    def doProcess(self):
+    def do_process(self):
         """Handle the redirect from the OpenID server.
         """
         oidconsumer = self.oidconsumer
@@ -182,51 +181,45 @@ class AuthOpenIDHandler(object):
             # information in a log.
             message = 'Verification failed.'
 
-        self.render(message, css_class, openid_url)
+        return self.render(message, css_class, openid_url)
 
-    def buildURL(self, action, **query):
+    def build_url(self, action, **query):
         """Build a URL relative to the server base_url, with the given
         query parameters added."""
-        base = urlparse.urljoin(self.server.base_url, action)
+        base = urlparse.urljoin(self.base_url, action)
         return appendArgs(base, query)
 
     def redirect(self, redirect_url):
         """Send a redirect response to the given URL to the browser."""
-        response = """\
-Location: %s
-Content-type: text/plain
+        response_headers = [('Content-type', 'text/plain'),
+                            ('Location', redirect_url)]
+        self.start('302 REDIRECT', response_headers)
+        return ["Redirecting to %s" % redirect_url]
 
-Redirecting to %s""" % (redirect_url, redirect_url)
-        response_headers = [('Content-type', 'text/html')]
-        self.start(302, response_headers)
-        return [response]
-
-    def notFound(self):
+    def not_found(self):
         """Render a page with a 404 return code and a message."""
         fmt = 'The path <q>%s</q> was not understood by this server.'
-        msg = fmt % (self.path,)
+        msg = fmt % (self.parsed_uri,)
         openid_url = self.query.get('openid_url')
-        self.render(msg, 'error', openid_url, status=404)
+        return self.render(msg, 'error', openid_url, status='404 Not Found')
 
     def render(self, message=None, css_class='alert', form_contents=None,
-               status=200, title="Python OpenID Consumer Example"):
+               status='200 OK', title="Python OpenID Consumer"):
         """Render a page."""
         response_headers = [('Content-type', 'text/html')]
-        self.start(status, response_headers)
+        self.start(str(status), response_headers)
 
-        self.pageHeader(title)
+        self.page_header(title)
         if message:
             self.body.append("<div class='%s'>" % (css_class,))
             self.body.append(message)
             self.body.append("</div>")
-        self.pageFooter(form_contents)
+        self.page_footer(form_contents)
         return self.body
 
-    def pageHeader(self, title):
+    def page_header(self, title):
         """Render the page header"""
         self.body.append('''\
-Content-type: text/html
-
 <html>
   <head><title>%s</title></head>
   <style type="text/css">
@@ -268,7 +261,7 @@ Content-type: text/html
     </p>
 ''' % (title, title))
 
-    def pageFooter(self, form_contents):
+    def page_footer(self, form_contents):
         """Render the page footer"""
         if not form_contents:
             form_contents = ''
@@ -283,7 +276,7 @@ Content-type: text/html
     </div>
   </body>
 </html>
-''' % (quoteattr(self.buildURL('verify')), quoteattr(form_contents)))
+''' % (quoteattr(self.build_url('verify')), quoteattr(form_contents)))
 
 
 middleware = AuthOpenIDHandler
