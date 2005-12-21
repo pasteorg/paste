@@ -67,7 +67,8 @@ class AuthOpenIDHandler(object):
             self.environ = environ
             self.start = start_response
             self.body = []
-            self.base_url = request.construct_url(environ)
+            self.base_url = request.construct_url(environ, with_path_info=False,
+                                                           with_query_string=False)
             
             path = re.sub(self.auth_prefix, '', environ['PATH_INFO'])
             self.parsed_uri = urlparse.urlparse(path)
@@ -186,7 +187,7 @@ class AuthOpenIDHandler(object):
     def build_url(self, action, **query):
         """Build a URL relative to the server base_url, with the given
         query parameters added."""
-        base = urlparse.urljoin(self.base_url, action)
+        base = urlparse.urljoin(self.base_url, self.auth_prefix + '/' + action)
         return appendArgs(base, query)
 
     def redirect(self, redirect_url):
