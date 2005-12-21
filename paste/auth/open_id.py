@@ -23,6 +23,34 @@ libraries::
     http://www.openidenabled.com/
     
 This module is based highly off the consumer.py that Python OpenID comes with.
+
+Using the OpenID Middleware
+===========================
+
+Using the OpenID middleware is fairly easy, the most minimal example using the
+basic login form thats included::
+
+    # Add to your wsgi app creation
+    from paste.auth import open_id
+    
+    wsgi_app = open_id.middleware(wsgi_app, '/somewhere/to/store/openid/data')
+
+You will now have the OpenID form available at /oid on your site. Logging in will
+verify that the login worked.
+
+A more complete login should involve having the OpenID middleware load your own
+login page after verifying the OpenID URL so that you can retain the login
+information in your webapp (session, cookies, etc.)::
+
+    wsgi_app = open_id.middleware(wsgi_app, '/somewhere/to/store/openid/data',
+                                  login_redirect='/your/login/code')
+
+Your login code should then be configured to retrieve 'paste.auth.open_id' for
+the users OpenID URL. If this key does not exist, the user has not logged in.
+
+Once the login is retrieved, it should be saved in your webapp, and the user
+should be redirected to wherever they would normally go after a successful
+login.
 """
 
 import cgi
@@ -52,8 +80,19 @@ class AuthOpenIDHandler(object):
     This middleware implements OpenID Consumer behavior to authenticate a
     URL against an OpenID Server.
     """
+    
     def __init__(self, app, data_store_path, auth_prefix='/oid', 
-                                             login_redirect='/'):
+                                             login_redirect=None):
+        """
+        Initialize the OpenID middleware
+        
+        app - Your WSGI app to call
+        data_store_path - Directory to store crypto data in for use with
+              OpenID servers.
+        auth_prefix - Location for authentication process/verification
+        login_redirect - Location to load after successful process of
+              login
+        """
         store = filestore.FileOpenIDStore(data_store_path)
         self.oidconsumer = consumer.OpenIDConsumer(store)
         
@@ -75,7 +114,7 @@ class AuthOpenIDHandler(object):
             self.query = dict(request.parse_querystring(environ))
             
             path = self.parsed_uri[2]
-            if path == '/':
+            if path == '/' or not path:
                 return self.render()
             elif path == '/verify':
                 return self.do_verify()
@@ -170,8 +209,15 @@ class AuthOpenIDHandler(object):
                 # was a real application, we would do our login,
                 # comment posting, etc. here.
                 openid_url = info
-                fmt = "You have successfully verified %s as your identity."
-                message = fmt % (cgi.escape(openid_url),)
+                if not self.login_redirect:
+                    fmt = "If you had supplied a login redirect path, you would've"
+                    fmt += "been redirected there."
+                    fmt += "You have successfully verified %s as your identity."
+                    message = fmt % (cgi.escape(openid_url),)
+                else:
+                    self.environ['paste.auth.open_id'] = openid_url
+                    self.environ['PATH_INFO'] = self.login_redirect
+                    return self.app(self.environ, self.start)
             else:
                 # cancelled
                 message = 'Verification cancelled'
