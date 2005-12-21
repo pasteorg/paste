@@ -1049,7 +1049,11 @@ class Checkbox(Field):
 
     def value__get(self):
         if self.checked:
-            return self._value
+            if self._value is None:
+                # @@: 'on'?
+                return 'checked'
+            else:
+                return self._value
         else:
             return None
 
