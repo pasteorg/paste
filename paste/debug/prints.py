@@ -6,6 +6,7 @@ import re
 import cgi
 from paste.util import threadedprint
 from paste import wsgilib
+from paste import response
 from paste.deploy.converters import asbool
 
 _threadedprint_installed = False
@@ -71,7 +72,7 @@ class PrintDebugMiddleware(object):
                 start_response(status, headers)
                 if not body:
                     body = 'An error occurred'
-            content_type = wsgilib.header_value(headers, 'content-type')
+            content_type = response.header_value(headers, 'content-type')
             if (not self.force_content_type and
                 (not content_type
                  or not content_type.startswith('text/html'))):
@@ -80,7 +81,7 @@ class PrintDebugMiddleware(object):
                     environ['wsgi.errors'].write(logged.getvalue())
                 start_response(status, headers)
                 return [body]
-            wsgilib.remove_header(headers, 'content-length')
+            response.remove_header(headers, 'content-length')
             body = self.add_log(body, logged.getvalue())
             start_response(status, headers)
             return [body]
