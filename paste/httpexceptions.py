@@ -152,12 +152,19 @@ class HTTPException(Exception):
 
     def __init__(self, detail=None, headers=None, comment=None):
         assert self.code, "Do not directly instantiate abstract exceptions."
-        assert isinstance(headers, (type(None), list))
-        assert isinstance(detail, (type(None), basestring))
-        assert isinstance(comment, (type(None), basestring))
+        assert isinstance(headers, (type(None), list)), (
+            "headers must be None or a list: %r"
+            % headers)
+        assert isinstance(detail, (type(None), basestring)), (
+            "detail must be None or a string: %r" % detail)
+        assert isinstance(comment, (type(None), basestring)), (
+            "comment must be None or a string: %r" % comment)
         self.headers = headers or tuple()
         for req in self.required_headers:
-            assert headers and has_header(headers, req)
+            assert headers and has_header(headers, req), (
+                "Exception %s must be passed the header %r "
+                "(got headers: %r)"
+                % (self.__class__.__name__, req, headers))
         if detail is not None:
             self.detail = detail
         if comment is not None:
