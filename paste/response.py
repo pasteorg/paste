@@ -45,7 +45,7 @@ class HeaderDict(dict):
 
     def normalize(self, key):
         return str(key).lower().strip()
-        
+
     def add(self, key, value):
         key = self.normalize(key)
         if key in self:
