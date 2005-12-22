@@ -83,7 +83,7 @@ class FileApp(DataApp):
             fh.close()
             return
         self.content = None
-        remote_header(self.headers,'content-length')
+        remove_header(self.headers,'content-length')
         self.headers.append(('content-length',stat.st_size))
 
     def __call__(self, environ, start_response):
