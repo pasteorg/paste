@@ -198,7 +198,7 @@ else:
             return getattr(self.__conn, attrib)
 
     class SecureHTTPServer(BaseHTTPServer.HTTPServer):
-        """ 
+        """
         Provides SSL server functionality on top of the BaseHTTPServer
         by overriding _private_ members of Python's standard
         distribution. The interface for this instance only changes by
@@ -289,3 +289,4 @@ if __name__ == '__main__':
     #serve(dump_environ, ssl_pem="test.pem")
     serve(dump_environ, server_version="Wombles/1.0",
           protocol_version="HTTP/1.1")
+

@@ -20,7 +20,7 @@ def digest_password(username, realm, password):
     return md5.md5("%s:%s:%s" % (username,realm,password)).hexdigest()
 
 def response(challenge, realm, path, username, password):
-    """ 
+    """
     Build an authorization response for a given challenge.  This
     implementation uses urllib2 to do the dirty work.
     """
@@ -83,7 +83,7 @@ class DigestAuthenticator:
             return self.build_authentication(stale = True)
         self.nonce[nonce] = nc
         return username
-    
+
     def authenticate(self, authorization, path, method):
         """ This function takes the value of the 'Authorization' header,
             the method used (e.g. GET), and the path of the request
@@ -118,35 +118,35 @@ class DigestAuthenticator:
         ha1 = self.userfunc(realm,username)
         return self.compute(ha1, username, response, method, authpath,
                             nonce, nc, cnonce, qop)
-   
+
     __call__ = authenticate
 
 def AuthDigestHandler(application, realm, userfunc):
     """
-    This middleware implements HTTP Digest authentication (RFC 2617) on 
+    This middleware implements HTTP Digest authentication (RFC 2617) on
     the incoming request.  There are several possible outcomes:
-    
+
     0. If the REMOTE_USER environment variable is already populated;
        then this middleware is a no-op, and the request is passed along
        to the application.
-   
+
     1. If the HTTP_AUTHORIZATION header was not provided, then a
        HTTPUnauthorized exception is raised containing the challenge.
-       
+
     2. If the HTTP_AUTHORIZATION header specifies anything other
        than digest; the REMOTE_USER is left unset and application
-       processing continues. 
-       
-    3. If the response is malformed or or if the user's credientials 
+       processing continues.
+
+    3. If the response is malformed or or if the user's credientials
        do not pass muster, another HTTPUnauthorized is raised.
-       
+
     4. IF all goes well, and the user's credintials pass; then
        REMOTE_USER environment variable is filled in and the
        AUTH_TYPE is listed as 'digest'.
 
-    Besides the application to delegate requests, this middleware 
+    Besides the application to delegate requests, this middleware
     requires two additional arguments:
-    
+
     realm:
         This is a globally unique identifier used to indicate the
         authority that is performing the authentication.  The taguri
@@ -155,9 +155,9 @@ def AuthDigestHandler(application, realm, userfunc):
     userfunc:
         This is a callback function which performs the actual
         authentication; the signature of this callback is:
-          
+
           userfunc(realm, username) -> hashcode
-          
+
         This module provides a 'digest_password' helper function which
         can help construct the hashcode; it is recommended that the
         hashcode is stored in a database, not the user's actual password.
