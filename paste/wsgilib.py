@@ -34,7 +34,7 @@ class add_close:
     An an iterable that iterates over app_iter, then calls
     close_func.
     """
-    
+
     def __init__(self, app_iterable, close_func):
         self.app_iterable = app_iterable
         self.app_iter = iter(app_iterable)
@@ -259,7 +259,7 @@ def interactive(*args, **kw):
 interactive.proxy = 'raw_interactive'
 
 def dump_environ(environ,start_response):
-    """ 
+    """
     Application which simply dumps the current environment
     variables out as a plain text response.
     """
@@ -269,6 +269,11 @@ def dump_environ(environ,start_response):
     for k in keys:
         v = str(environ[k]).replace("\n","\n    ")
         output.append("%s: %s\n" % (k,v))
+    output.append("\n")
+    content_length = environ.get("CONTENT_LENGTH",'')
+    if content_length:
+        output.append(environ['wsgi.input'].read(int(content_length)))
+        output.append("\n")
     output = "".join(output)
     headers = [('Content-Type', 'text/plain'),
                ('Content-Length', len(output))]

@@ -38,14 +38,14 @@ def test_template():
     e.template = 'A %(ping)s and <b>%(pong)s</b> message.'
     assert str(e).startswith("500 Internal Server Error")
     assert e.plain({'ping': 'fun', 'pong': 'happy'}) == (
-        '500 Internal Server Error\n'
-        'A fun and happy message.\n')
+        '500 Internal Server Error\r\n'
+        'A fun and happy message.\r\n')
     assert '<p>A fun and <b>happy</b> message.</p>' in \
            e.html({'ping': 'fun', 'pong': 'happy'})
 
 def test_iterator_application():
-    """ 
-    This tests to see that an iterator's exceptions are caught by 
+    """
+    This tests to see that an iterator's exceptions are caught by
     HTTPExceptionHandler
     """
     def basic_found(environ, start_response):

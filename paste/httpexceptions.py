@@ -18,7 +18,7 @@ can call ``start_response`` more then once only under two conditions:
 subsequent invocations of ``start_response`` have a valid ``exc_info``
 argument obtained from ``sys.exc_info()``.  The WSGI specification then
 requires the server or gateway to handle the case where content has been
-sent and then an exception was encountered.  
+sent and then an exception was encountered.
 
 Exceptions in the 5xx range and those raised after ``start_response``
 has been called are treated as serious errors and the ``exc_info`` is
@@ -74,25 +74,27 @@ from wsgilib import catch_errors_app
 from response import has_header, header_value
 from util.quoting import strip_html, html_quote
 
+SERVER_NAME = 'WSGI Server'
+
 class HTTPException(Exception):
-    """ 
+    """
     Base class for all HTTP exceptions
 
-    This encapsulates an HTTP response that interrupts normal application 
+    This encapsulates an HTTP response that interrupts normal application
     flow; but one which is not necessarly an error condition. For
     example, codes in the 300's are exceptions in that they interrupt
-    normal processing; however, they are not considered errors. 
-    
+    normal processing; however, they are not considered errors.
+
     This class is complicated by 4 factors:
 
       1. The content given to the exception may either be plain-text or
-         as html-text. 
-   
+         as html-text.
+
       2. The template may want to have string-substitutions taken from
          the current ``environ`` or values from incoming headers. This
          is especially troublesome due to case sensitivity.
-  
-      3. The final output may either be text/plain or text/html 
+
+      3. The final output may either be text/plain or text/html
          mime-type as requested by the client application.
 
       4. Each exception has a default explanation, but those who
@@ -100,36 +102,36 @@ class HTTPException(Exception):
 
     Attributes:
 
-       ``code``       
+       ``code``
            the HTTP status code for the exception
 
-       ``title``      
+       ``title``
            remainder of the status line (stuff after the code)
 
-       ``explanation``   
+       ``explanation``
            a plain-text explanation of the error message that is
-           not subject to environment or header substitutions; 
+           not subject to environment or header substitutions;
            it is accessable in the template via %(explanation)s
-       
-       ``detail``    
-           a plain-text message customization that is not subject 
-           to environment or header substutions; accessable in 
+
+       ``detail``
+           a plain-text message customization that is not subject
+           to environment or header substutions; accessable in
            the template via %(detail)s
 
-       ``template``   
-           a content fragment (in HTML) used for environment and 
+       ``template``
+           a content fragment (in HTML) used for environment and
            header substution; the default template includes both
-           the explanation and further detail provided in the 
+           the explanation and further detail provided in the
            message
 
-       ``required_headers``  
+       ``required_headers``
            a sequence of headers which are required for proper
            construction of the exception
 
     Parameters:
 
        ``detail``     a plain-text override of the default ``detail``
-       ``headers``    a list of (k,v) header pairs  
+       ``headers``    a list of (k,v) header pairs
        ``comment``    a plain-text additional information which is
                       usually stripped/hidden for end-users
 
@@ -146,9 +148,8 @@ class HTTPException(Exception):
     explanation = ''
     detail = ''
     comment = ''
-    template = "%(explanation)s\n<br/>%(detail)s\n<!-- %(comment)s -->"
+    template = "%(explanation)s\r\n<br/>%(detail)s\r\n<!-- %(comment)s -->"
     required_headers = ()
-    server_name = 'WSGI server'
 
     def __init__(self, detail=None, headers=None, comment=None):
         assert self.code, "Do not directly instantiate abstract exceptions."
@@ -189,21 +190,21 @@ class HTTPException(Exception):
         """ text/plain representation of the exception """
         noop = lambda _: _
         body = self.make_body(environ, strip_html(self.template), noop)
-        return ('%s %s\n%s\n' % (self.code, self.title, body))
+        return ('%s %s\r\n%s\r\n' % (self.code, self.title, body))
 
     def html(self, environ):
         """ text/html representation of the exception """
         body = self.make_body(environ, self.template, html_quote)
-        return ('<html><head><title>%(title)s</title></head>\n'
-                '<body>\n'
-                '<h1>%(title)s</h1>\n'
-                '<p>%(body)s</p>\n'
-                '<hr noshade>\n'
-                '<div align="right">%(server)s</div>\n'
-                '</body></html>\n'
+        return ('<html><head><title>%(title)s</title></head>\r\n'
+                '<body>\r\n'
+                '<h1>%(title)s</h1>\r\n'
+                '<p>%(body)s</p>\r\n'
+                '<hr noshade>\r\n'
+                '<div align="right">%(server)s</div>\r\n'
+                '</body></html>\r\n'
                 % {'title': self.title,
                    'code': self.code,
-                   'server': self.server_name,
+                   'server': SERVER_NAME,
                    'body': body})
 
     def wsgi_application(self, environ, start_response, exc_info=None):
@@ -233,8 +234,8 @@ class HTTPException(Exception):
                                      self.title, self.code)
 
 class HTTPError(HTTPException):
-    """ 
-    This is an exception which indicates that an error has occured, 
+    """
+    This is an exception which indicates that an error has occured,
     and that any work in progress should not be committed.  These are
     typically results in the 400's and 500's.
     """
@@ -247,24 +248,24 @@ class HTTPError(HTTPException):
 #  required MAY be carried out by the user agent without interaction with
 #  the user if and only if the method used in the second request is GET or
 #  HEAD. A client SHOULD detect infinite redirection loops, since such
-#  loops generate network traffic for each redirection. 
+#  loops generate network traffic for each redirection.
 #
 
 class HTTPRedirection(HTTPException):
-    """ 
+    """
     This is an abstract base class for 3xx redirection.  It indicates
     that further action needs to be taken by the user agent in order
     to fulfill the request.  It does not necessarly signal an error
     condition.
     """
-    
+
 class _HTTPMove(HTTPRedirection):
-    """ 
+    """
     Base class for redirections which require a Location field.
 
     Since a 'Location' header is a required attribute of 301, 302, 303,
     305 and 307 (but not 304), this base class provides the mechanics to
-    make this easy.  While this has the same parameters as HTTPException, 
+    make this easy.  While this has the same parameters as HTTPException,
     if a location is not provided in the headers; it is assumed that the
     detail _is_ the location (this for backward compatibility, otherwise
     we'd add a new attribute).
@@ -272,9 +273,9 @@ class _HTTPMove(HTTPRedirection):
     required_headers = ('location',)
     explanation = 'The resource has been moved to'
     template = (
-        '%(explanation)s <a href="%(location)s">%(location)s</a>;\n'
-        'you should be redirected automatically.\n'
-        '%(detail)s\n<!-- %(comment)s -->')
+        '%(explanation)s <a href="%(location)s">%(location)s</a>;\r\n'
+        'you should be redirected automatically.\r\n'
+        '%(detail)s\r\n<!-- %(comment)s -->')
 
     def __init__(self, detail=None, headers=None, comment=None):
         assert isinstance(headers, (type(None), list))
@@ -340,11 +341,11 @@ class HTTPTemporaryRedirect(_HTTPMove):
 #  server SHOULD include an entity containing an explanation of the error
 #  situation, and whether it is a temporary or permanent condition. These
 #  status codes are applicable to any request method. User agents SHOULD
-#  display any included entity to the user. 
-# 
+#  display any included entity to the user.
+#
 
 class HTTPClientError(HTTPError):
-    """ 
+    """
     This is an error condition in which the client is presumed to be
     in-error.  This is an expected problem, and thus is not considered
     a bug.  A server-side traceback is not warranted.  Unless specialized,
@@ -352,7 +353,8 @@ class HTTPClientError(HTTPError):
     """
     code = 400
     title = 'Bad Request'
-    explanation = 'The server could not understand your request.'
+    explanation = ('The server could not comply with the request since\r\n'
+                   'it is either malformed or otherwise incorrect.\r\n')
 
 HTTPBadRequest = HTTPClientError
 
@@ -361,10 +363,10 @@ class HTTPUnauthorized(HTTPClientError):
     code = 401
     title = 'Unauthorized'
     explanation = (
-        'This server could not verify that you are authorized to\n'
-        'access the document you requested.  Either you supplied the\n'
-        'wrong credentials (e.g., bad password), or your browser\n'
-        'does not understand how to supply the credentials required.\n')
+        'This server could not verify that you are authorized to\r\n'
+        'access the document you requested.  Either you supplied the\r\n'
+        'wrong credentials (e.g., bad password), or your browser\r\n'
+        'does not understand how to supply the credentials required.\r\n')
 
 class HTTPForbidden(HTTPClientError):
     code = 403
@@ -382,15 +384,15 @@ class HTTPMethodNotAllowed(HTTPClientError):
     title = 'Method Not Allowed'
     # override template since we need an environment variable
     template = ('The method %(REQUEST_METHOD)s is not allowed for '
-                'this resource.\n%(detail)s')
+                'this resource.\r\n%(detail)s')
 
 class HTTPNotAcceptable(HTTPClientError):
     code = 406
     title = 'Not Acceptable'
     # override template since we need an environment variable
     template = ('The resource could not be generated that was '
-                'acceptable to your browser (content\nof type '
-                '%(HTTP_ACCEPT)s).\n%(detail)s')
+                'acceptable to your browser (content\r\nof type '
+                '%(HTTP_ACCEPT)s).\r\n%(detail)s')
 
 class HTTPConflict(HTTPClientError):
     code = 409
@@ -429,7 +431,7 @@ class HTTPUnsupportedMediaType(HTTPClientError):
     title = 'Unsupported Media Type'
     # override template since we need an environment variable
     template = ('The request media type %(CONTENT_TYPE)s is not '
-                'supported by this server.\n%(detail)s')
+                'supported by this server.\r\n%(detail)s')
 
 class HTTPRequestRangeNotSatisfiable(HTTPClientError):
     code = 416
@@ -443,7 +445,7 @@ class HTTPExpectationFailed(HTTPClientError):
 
 #
 # 5xx Server Error
-# 
+#
 #  Response status codes beginning with the digit "5" indicate cases in
 #  which the server is aware that it has erred or is incapable of
 #  performing the request. Except when responding to a HEAD request, the
@@ -454,7 +456,7 @@ class HTTPExpectationFailed(HTTPClientError):
 #
 
 class HTTPServerError(HTTPError):
-    """ 
+    """
     This is an error condition in which the server is presumed to be
     in-error.  This is usually unexpected, and thus requires a traceback;
     ideally, opening a support ticket for the customer. Unless specialized,
@@ -462,16 +464,18 @@ class HTTPServerError(HTTPError):
     """
     code = 500
     title = 'Internal Server Error'
-    explanation = ('An internal server error occurred.')
+    explanation = (
+      'The server has either erred or is incapable of performing\r\n'
+      'the requested operation.\r\n')
 
 HTTPInternalServerError = HTTPServerError
-       
+
 class HTTPNotImplemented(HTTPServerError):
     code = 501
     title = 'Not Implemented'
     # override template since we need an environment variable
     template = ('The request method %(REQUEST_METHOD)s is not implemented '
-                'for this server.\n%(detail)s')
+                'for this server.\r\n%(detail)s')
 
 class HTTPBadGateway(HTTPServerError):
     code = 502
@@ -515,12 +519,12 @@ def get_exception(code):
 class HTTPExceptionHandler:
     """
     This middleware catches any exceptions (which are subclasses of
-    ``HTTPException``) and turns them into proper HTTP responses. 
-    
+    ``HTTPException``) and turns them into proper HTTP responses.
+
     Attributes:
 
-       ``warning_level``  
-           This attribute determines for what exceptions a stack 
+       ``warning_level``
+           This attribute determines for what exceptions a stack
            trace is kept for lower level reporting; by default, it
            only keeps stack trace for 5xx, HTTPServerError exceptions.
            To keep a stack trace for 4xx, HTTPClientError exceptions,
@@ -541,7 +545,7 @@ class HTTPExceptionHandler:
 
     def __call__(self, environ, start_response):
         environ['paste.httpexceptions'] = self
-        environ.setdefault('paste.expected_exceptions', 
+        environ.setdefault('paste.expected_exceptions',
                            []).append(HTTPException)
         return catch_errors_app(
             self.application, environ, start_response,
