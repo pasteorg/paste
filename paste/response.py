@@ -107,6 +107,30 @@ def remove_header(headers, name):
         i += 1
     return result
 
+def replace_header(headers, name, value):
+    """
+    Updates the headers replacing the first occurance of the given name
+    with the value provided; asserting that no further occurances
+    happen. Note that this is _not_ the same as remove_header and then
+    append, as two distinct operations (del followed by an append) are
+    not atomic in a threaded environment. Returns the previous header
+    value for the provided name, if any.   Clearly one should not use
+    this function with ``set-cookie`` or other names that may have more
+    than one occurance in the headers.
+    """
+    name = name.lower()
+    i = 0
+    result = None
+    while i < len(headers):
+        if headers[i][0].lower() == name:
+            assert not result, "two values for the header '%s' found" % name
+            result = headers[i][1]
+            headers[i] = (name,value)
+        i += 1
+    if not result:
+        headers.append((name,value))
+    return result
+
 ############################################################
 ## Deprecated methods
 ############################################################
