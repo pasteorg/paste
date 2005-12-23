@@ -226,6 +226,7 @@ class HTTPException(Exception):
                        exc_info)
         return [content]
 
+    __call__ = wsgi_application
 
     def __repr__(self):
         return '<%s %s; code=%s>' % (self.__class__.__name__,
