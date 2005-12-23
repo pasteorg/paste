@@ -6,7 +6,9 @@ This module handles sending static content such as in-memory data or
 files.  At this time it has cache helpers and understands the
 if-modified-since request header.
 """
+
 #@@: this still needs Range support for large files
+
 import os, time
 import mimetypes
 import httpexceptions
@@ -84,6 +86,7 @@ class DataApp(object):
                             implementation does not support the
                             enumeration of private fields
 
+
           ``no_cache``      if True, this argument specifies that the
                             response, as a whole, may be cashed; this
                             implementation does not support the
@@ -113,12 +116,18 @@ class DataApp(object):
           ``extensions``    gives additional cache-control extensionsn,
                             such as items like, community="UCI" (14.9.6)
 
-        As recommended by RFC 2616, if ``max_age`` is provided (or
-        implicitly set by specifying ``no-cache``, then the ``Expires``
-        header is also calculated for HTTP/1.0 clients.  This is done
+        As recommended by RFC 2616, if ``max_age`` is provided, then
+        then the ``Expires`` header is also calculated for HTTP/1.0
+        clients and proxies.   For ``no-cache`` and for ``private``
+        cases, we either do not want the response cached or do not want
+        any response accidently returned to other users; so to prevent
+        this case, we set the ``Expires`` header to the time of the
+        request, signifying to HTTP/1.0 transports that the content
+        isn't to be cached.  If you are using SSL, your communication
+        is already "private", so to work with HTTP/1.0 browsers,
+        consider specifying your cache as public as the distinction
+        between public and private is moot for this case.
         """
-        assert not has_header(self.headers,'cache-control')
-        assert not has_header(self.headers,'expires')
         assert isinstance(max_age,(type(None),int))
         assert isinstance(s_maxage,(type(None),int))
         result = []
@@ -146,7 +155,8 @@ class DataApp(object):
         for (k,v) in extensions.items():
             assert '"' not in v
             result.append('%s="%s"' % (k.replace("_","-"),v))
-        self.headers.append(('cache-control',", ".join(result)))
+        replace_header(self.headers,'cache-control',", ".join(result))
+        return self
 
     def set_content(self, content):
         self.last_modified = time.time()
@@ -154,6 +164,7 @@ class DataApp(object):
         replace_header(self.headers,'content-length', str(len(content)))
         replace_header(self.headers,'last-modified',
                         formatdate(self.last_modified))
+        return self
 
     def __call__(self, environ, start_response):
         if self.expires is not None:
@@ -165,17 +176,17 @@ class DataApp(object):
             try:
                 client_clock = mktime_tz(parsedate_tz(checkmod))
             except TypeError:
-                return HTTPBadRequest(
-                  "Bad Timestamp\n"
-                  "Client program did not provide an appropriate "
-                  "timestamp for its If-Modified-Since header."
+                return HTTPBadRequest(detail=(
+                  "Client program provided an ill-formed timestamp for\r\n"
+                  "its If-Modified-Since header:\r\n"
+                  "  %s\r\n") % checkmod
                 ).wsgi_application(environ, start_response)
             if client_clock > time.time():
-                return HTTPBadRequest((
-                  "Clock Time In Future\n"
-                  "According to this server, the time provided in "
-                  "the If-Modified-Since header (%s) is in the future.\n"
-                  "Please check your system clock.") % checkmod
+                return HTTPBadRequest(detail=(
+                  "Please check your system clock.\r\n"
+                  "According to this server, the time provided in the\r\n"
+                  "If-Modified-Since header is in the future:\r\n"
+                  "  %s\r\n") % checkmod
                 ).wsgi_application(environ, start_response)
             elif client_clock <= self.last_modified:
                 # the client has a recent copy
@@ -190,10 +201,13 @@ class FileApp(DataApp):
     Returns an application that will send the file at the given
     filename.  Adds a mime type based on ``mimetypes.guess_type()``.
     See DataApp for the arguments beyond ``filename``.
+
+
     """
 
     def __init__(self, filename, headers=None, **kwargs):
         self.filename = filename
+        self.last_size = None
         content_type, content_encoding = mimetypes.guess_type(self.filename)
         if content_type and 'content_type' not in kwargs:
             kwargs['content_type'] = content_type
@@ -203,9 +217,11 @@ class FileApp(DataApp):
 
     def update(self):
         stat = os.stat(self.filename)
-        if stat.st_mtime == self.last_modified:
+        if (stat.st_mtime == self.last_modified and
+            stat.st_size == self.last_size):
             return
-        if  stat.st_size < CACHE_SIZE:
+        self.last_size = stat.st_size
+        if stat.st_size < CACHE_SIZE:
             fh = open(self.filename,"rb")
             self.set_content(fh.read())
             fh.close()

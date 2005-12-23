@@ -9,11 +9,63 @@ This is a minimalistic WSGI server using Python's built-in BaseHTTPServer;
 if pyOpenSSL is installed, it also provides SSL capabilities.
 """
 
+# @@: add in protection against HTTP/1.0 clients who claim to
+#     be 1.1 but do not send a Content-Length
+
+# @@: add support for chunked encoding, this is not a 1.1 server
+#     till this is completed.
+
+
 import BaseHTTPServer, SocketServer
 import urlparse, sys, socket
 
 __all__ = ['WSGIHandlerMixin','WSGIServer','WSGIHandler', 'serve']
 __version__ = "0.2"
+
+class ContinueHook(object):
+    """
+    When a client request includes a 'Expect: 100-continue' header, then
+    it is the responsibility of the server to send 100 Continue when it
+    is ready for the content body.  This allows authentication, access
+    levels, and other exceptions to be detected *before* bandwith is
+    spent on the request body.
+
+    This is a rfile wrapper that implements this functionality by
+    sending 100 Continue to the client immediately after the user
+    requests the content via a read() operation on the rfile stream.
+    After this response is sent, it becomes a pass-through object.
+    """
+
+    def __init__(self, rfile, write):
+        self._ContinueFile_rfile = rfile
+        self._ContinueFile_write = write
+        for attr in ('close','closed','fileno','flush',
+                     'mode','bufsize','softspace'):
+            if hasattr(rfile,attr):
+                setattr(self,attr,getattr(rfile,attr))
+        for attr in ('read','readline','readlines'):
+            if hasattr(rfile,attr):
+                setattr(self,attr,getattr(self,'_ContinueFile_' + attr))
+
+    def _ContinueFile_send(self):
+        self._ContinueFile_write("HTTP/1.1 100 Continue\r\n\r\n")
+        rfile = self._ContinueFile_rfile
+        for attr in ('read','readline','readlines'):
+            if hasattr(rfile,attr):
+                setattr(self,attr,getattr(rfile,attr))
+
+    def _ContinueFile_read(self, size=-1):
+        self._ContinueFile_send()
+        return self._ContinueFile_rfile.readline(size)
+
+    def _ContinueFile_readline(self, size=-1):
+        self._ContinueFile_send()
+        return self._ContinueFile_rfile.readline(size)
+
+    def _ContinueFile_readlines(self, sizehint=0):
+        self._ContinueFile_send()
+        return self._ContinueFile_rfile.readlines(sizehint)
+
 
 class WSGIHandlerMixin:
     """
@@ -92,10 +144,15 @@ class WSGIHandlerMixin:
         (_,_,path,query,fragment) = urlparse.urlsplit(self.path)
         (server_name, server_port) = self.server.server_address
 
+        rfile = self.rfile
+        if 'HTTP/1.1' == self.protocol_version and \
+                '100-continue' == self.headers.get('Expect',''):
+            rfile = ContinueHook(rfile, self.wfile.write)
+
         self.wsgi_environ = {
                 'wsgi.version': (1,0)
                ,'wsgi.url_scheme': 'http'
-               ,'wsgi.input': self.rfile
+               ,'wsgi.input': rfile
                ,'wsgi.errors': sys.stderr
                ,'wsgi.multithread': True
                ,'wsgi.multiprocess': False
@@ -166,7 +223,8 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPServer.BaseHTTPRequestHandler):
     A WSGI handler that overrides POST, GET and HEAD to delegate
     requests to the server's ``wsgi_application``.
     """
-    do_POST = do_GET = do_HEAD = WSGIHandlerMixin.wsgi_execute
+    do_POST = do_GET = do_HEAD = do_DELETE = do_PUT = do_TRACE = \
+        WSGIHandlerMixin.wsgi_execute
 
 #
 # SSL Functionality
