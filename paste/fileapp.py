@@ -244,7 +244,7 @@ class DataApp(object):
                   "If-Modified-Since header is in the future:\r\n"
                   "  %s\r\n") % checkmod
                 ).wsgi_application(environ, start_response)
-            elif client_clock <= self.last_modified:
+            elif client_clock >= int(self.last_modified):
                 # the client has a recent copy
                 #@@: all entity headers should be removed, not just these
                 remove_header(headers,'content-length')
