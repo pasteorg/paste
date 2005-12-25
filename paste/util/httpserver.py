@@ -189,6 +189,13 @@ class WSGIHandlerMixin:
         self.wsgi_curr_headers = None
         self.wsgi_headers_sent = False
 
+    def wsgi_connection_drop(self, environ, exce):
+        """
+        Override this if you're interested in socket exceptions, such
+        as when the user clicks 'Cancel' during a file download.
+        """
+        pass
+
     def wsgi_execute(self, environ=None):
         """
         Invoke the server's ``wsgi_application``.
@@ -205,12 +212,9 @@ class WSGIHandlerMixin:
             finally:
                 if hasattr(result,'close'):
                     result.close()
-        except socket.error:
-            # @@: what do we do with this exception?  Sending a 500
-            # isn't smart in this case, which is why it is being singled
-            # out here.  Yet, SocketServer@218 just ignores this sort of
-            # error... is this acceptable?  Let's just punt.
-            raise
+        except socket.error, exce:
+            self.wsgi_connection_drop(environ, exce)
+            return
         except:
             if not self.wsgi_headers_sent:
                 self.wsgi_curr_headers = ('500 Internal Server Error',

@@ -379,7 +379,7 @@ class HTTPNotFound(HTTPClientError):
     explanation = ('The resource could not be found.')
 
 class HTTPMethodNotAllowed(HTTPClientError):
-    required_headers = ('allowed',)
+    required_headers = ('allow',)
     code = 405
     title = 'Method Not Allowed'
     # override template since we need an environment variable
