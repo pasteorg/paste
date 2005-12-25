@@ -10,7 +10,7 @@ if-modified-since request header.
 import os, time
 import mimetypes
 import httpexceptions
-from response import has_header, replace_header, header_value
+from response import has_header, replace_header, header_value, remove_header
 from rfc822 import formatdate, parsedate_tz, mktime_tz
 from httpexceptions import HTTPBadRequest
 
@@ -246,12 +246,9 @@ class DataApp(object):
                 ).wsgi_application(environ, start_response)
             elif client_clock <= self.last_modified:
                 # the client has a recent copy
-                headers = []
-                for head in ('etag','content-location','vary',
-                             'expires','cache-control'):
-                    value = header_value(self.headers,head)
-                    if value:
-                        headers.apppend((head, value))
+                #@@: all entity headers should be removed, not just these
+                remove_header(headers,'content-length')
+                remove_header(headers,'content-type')
                 start_response('304 Not Modified',headers)
                 return [''] # empty body
 
