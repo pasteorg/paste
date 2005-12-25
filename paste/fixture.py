@@ -54,7 +54,7 @@ class DummyMethod(object):
 
     def __call__(self, *args, **kw):
         return self.return_value
-                
+
 def capture_stdout(func, *args, **kw):
     newstdout = StringIO()
     oldstdout = sys.stdout
@@ -127,7 +127,7 @@ class Dummy_smtplib(object):
         assert not self.open, (
             "SMTP connection not quit")
         self.__class__.existing = None
-        
+
 class FakeFilesystem(object):
 
     def __init__(self):
@@ -187,9 +187,7 @@ class WriterFile(object):
         assert self.open, (
             "Closing an open file")
         self.open = False
-        
-        
-    
+
 class AppError(Exception):
     pass
 
@@ -261,7 +259,7 @@ class TestApp(object):
         environ.update(extra_environ)
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
-            
+
     def encode_multipart(self, params, files):
         """
         Encodes a set of parameters (typically a name/value list) and
@@ -368,7 +366,7 @@ class TestApp(object):
         if res.errors:
             raise AppError(
                 "Application had errors logged:\n%s" % res.errors)
-        
+
     def make_response(self, (status, headers, body, errors), total_time):
         return TestResponse(self, status, headers, body, errors,
                             total_time)
@@ -433,7 +431,7 @@ class TestResponse(object):
             forms[i] = form
             if form.id:
                 forms[form.id] = form
-        
+
     def header(self, name, default=NoDefault):
         """
         Returns the named header; an error if there is not exactly one
@@ -707,7 +705,7 @@ class TestResponse(object):
         f.close()
         url = 'file:' + fn.replace(os.sep, '/')
         webbrowser.open_new(url)
-        
+
 class TestRequest(object):
 
     # for py.test
@@ -941,7 +939,7 @@ class Form(object):
                     continue
                 submit.append((name, value))
         return submit
-            
+
 
 _attr_re = re.compile(r'([^= \n\r\t]*)[ \n\r\t]*=[ \n\r\t]*(?:"([^"]*)"|([^"][^ \n\r\t>]*))', re.S)
 
@@ -1270,7 +1268,7 @@ class ProcResult(object):
 
     ``stdout``, ``stderr``:
         What is produced
-        
+
     ``files_created``, ``files_deleted``, ``files_updated``:
         Dictionaries mapping filenames (relative to the ``base_dir``)
         to ``FoundFile`` or ``FoundDir`` objects.
