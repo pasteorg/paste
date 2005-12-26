@@ -32,12 +32,9 @@ It is planned that HTTPHeader will grow three methods:
                    a WSGI ``response_headers`` list.
 
 """
-__all__ = ['get_header','known_headers','HTTPHeader' ]
+__all__ = ['get_header', 'HTTPHeader', 'normalize_headers' ]
 
 _headers = {}
-
-def known_headers():
-    return _headers.values()
 
 def get_header(name, raiseError=True):
     """
@@ -114,7 +111,7 @@ class HTTPHeader(object):
             self.style = style
             self.category = category
             self._catsort = {'general': 1, 'request': 2, 'response': 2,
-                             'entity': 3}[category]
+                            'entity': 3}[category]
             assert self.name.lower() not in _headers
             _headers[self.name.lower()] = self
         return self
@@ -132,10 +129,38 @@ class HTTPHeader(object):
             if self._catsort != other._catsort:
                 return self._catsort < other._catsort
             return self.name < other.name
-        return self.name < other
+        return False
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.name)
+
+def normalize_headers(response_headers):
+    """
+    This alters the underlying response_headers to use the common
+    name for each header; as well as sorting them with general
+    headers first, followed by request/response headers, then
+    entity headers, and unknown headers last.
+    """
+    category = {}
+    for idx in range(len(response_headers)):
+        (key,val) = response_headers[idx]
+        head = get_header(key,False)
+        if not head:
+            newhead = '-'.join(x.capitalize() for x in \
+                               key.replace("_","-").split("-"))
+            response_headers[idx] = (newhead,val)
+            category[newhead] = 4
+            continue
+        response_headers[idx] = (str(head),val)
+        category[str(head)] = head._catsort
+    def compare(a,b):
+        ac = category[a[0]]
+        bc = category[b[0]]
+        if ac == bc:
+            return cmp(a[0],b[0])
+        return cmp(ac,bc)
+    response_headers.sort(compare)
+
 #
 # For now, construct a minimalistic version of the field-names; at a
 # later date more complicated headers may sprout content constructors.

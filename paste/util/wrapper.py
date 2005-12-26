@@ -10,6 +10,7 @@ This module contains wrapper objects for WSGI ``environ`` and
 
 """
 from paste import httpheaders
+from paste.response import replace_header, remove_header, header_value
 
 class EnvironWrapper(object):
     """
@@ -43,11 +44,12 @@ _proplist = [
   'wsgi.multithread', 'wsgi.multiprocess', 'wsgi.run_once',
   'wsgi.file_wrapper'
 ]
-for head in dir(httpheaders):
-    if head.startswith("HTTP_"):
-        if 'response' != getattr(httpheaders,head).category:
-            # Only add general, request, and entity headers
-            _proplist.append(head)
+
+for name in dir(httpheaders):
+    if name.startswith("HTTP_"):
+        header = getattr(httpheaders,name)
+        if header and 'response' != header.category:
+            _proplist.append(name)
 
 for item in _proplist:
     key = item
@@ -57,21 +59,55 @@ for item in _proplist:
         return self.environ.get(tmp,None)
     def set(self,val,tmp=key):
         dict.__setitem__(self.environ,tmp,val)
-        return self
     setattr(EnvironWrapper, "GET_" + item, get)
     setattr(EnvironWrapper, "SET_" + item, set)
     setattr(EnvironWrapper, item, property(get,set))
 del _proplist
+
+class ResponseHeadersWrapper(object):
+    """
+    Used to wrap the ``response_headers`` to provide handy mechanism
+    for dealing with the headers using properties.
+
+       wrapped = wrap(response_headers)
+       wrapped.HTTP_CONTENT_ENCODING = 'text/plain'
+       etc.
+
+       wrapped.sort()
+    """
+    def __new__(cls, response_headers):
+        assert list == type(response_headers)
+        self = object.__new__(cls)
+        self.response_headers = response_headers
+        return self
+
+for name in dir(httpheaders):
+    if not name.startswith("HTTP_"):
+        continue
+    header = getattr(httpheaders,name)
+    if 'request' == header.category or 'multi-entry' == header.style:
+        continue
+    name = name[5:]
+    def get(self,tmp=str(header)):
+        return header_value(self.response_headers,tmp)
+    def set(self,val,tmp=str(header)):
+        return replace_header(self.response_headers,tmp,val)
+    setattr(ResponseHeadersWrapper, "GET_" + name, get)
+    setattr(ResponseHeadersWrapper, "SET_" + name, set)
+    setattr(ResponseHeadersWrapper, name, property(get,set))
 
 def wrap(obj):
     """
     Wraps a WSGI ``environ`` and ``result_headers`` with corresponding
     ``dict`` and ``list`` items that can be passed on up/down stream.
     """
-    if isinstance(obj, EnvironWrapper):
-        return obj
     if isinstance(obj, dict):
         return EnvironWrapper(obj)
-    assert False, "Only EnvironWrapper so far"
+    if isinstance(obj, list):
+        return ResponseHeadersWrapper(obj)
+    assert False, ("The object being wrapped is neither a ``dict`` type "
+                   "(which corresponds to a WSGI ``environ``), nor is "
+                   "it a ``list`` type (which corresponds to WSGI "
+                   "``response_headers``.")
 
-__all__ = ['wrap','EnvironWrapper']
+__all__ = ['wrap','EnvironWrapper', 'ResponseHeadersWrapper']
