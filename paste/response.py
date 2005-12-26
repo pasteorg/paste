@@ -80,7 +80,17 @@ def header_value(headers, name):
     """
     Returns the header's value, or None if no such header.  If a
     header appears more than once, all the values of the headers
-    are joined with ','
+    are joined with ','.   Note that this is consistent /w RFC 2616
+    section 4.2 which states:
+
+        It MUST be possible to combine the multiple header fields
+        into one "field-name: field-value" pair, without changing
+        the semantics of the message, by appending each subsequent
+        field-value to the first, each separated by a comma.
+
+    However, note that the original netscape usage of 'Set-Cookie',
+    especially in MSIE which contains an 'expires' date will is not
+    compatible with this particular concatination method.
     """
     name = name.lower()
     result = [value for header, value in headers

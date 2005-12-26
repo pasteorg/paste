@@ -19,3 +19,14 @@ def test_environ():
     assert '1.0' == d.version
     assert None == d.multiprocess
 
+def test_response_headers():
+    response_headers = []
+    d = wrap(response_headers)
+    assert None == d.CONTENT_TYPE
+    d.CONTENT_TYPE = 'text/plain'
+    assert response_headers == [('content-type','text/plain')]
+    assert d.CONTENT_TYPE == 'text/plain'
+    d.CONTENT_TYPE = 'text/html'
+    assert response_headers == [('content-type','text/html')]
+    assert d.CONTENT_TYPE == 'text/html'
+    assert None == getattr(d,'SET_COOKIE',None) # multi-entity header

@@ -29,3 +29,23 @@ def test_sorting():
      ('entity', 'Content-Encoding'),
      ('entity', 'Content-Type'),
      ('entity', 'Expires')]
+
+def test_normalize():
+    response_headers = [
+       ('www-authenticate','Response AuthMessage'),
+       ('unknown-header','Unknown Sorted Last'),
+       ('Via','General Bingles'),
+       ('aLLoW','Entity Allow Something'),
+       ('ETAG','Response 34234'),
+       ('expires','Entity An-Expiration-Date'),
+       ('date','General A-Date')]
+    normalize_headers(response_headers)
+    assert response_headers == [
+     ('Date', 'General A-Date'),
+     ('Via', 'General Bingles'),
+     ('ETag', 'Response 34234'),
+     ('WWW-Authenticate', 'Response AuthMessage'),
+     ('Allow', 'Entity Allow Something'),
+     ('Expires', 'Entity An-Expiration-Date'),
+     ('Unknown-Header', 'Unknown Sorted Last')]
+
