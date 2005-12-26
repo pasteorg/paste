@@ -29,23 +29,6 @@ class EnvironWrapper(object):
         self = object.__new__(cls)
         self.environ = environ
         return self
-
-#
-# Add all of the methods to the wrapper to simulate a mapping,
-# redirecting all attribute calls to the underlying dict.
-#
-for attrname in (
-  '__cmp__', '__len__', '__getitem__', '__setitem__', '__delitem__',
-  'clear', 'copy', 'keys', 'items', 'iteritems', 'iterkeys',
-  'itervalues', 'values', 'has_key', 'update', 'get', 'setdefault',
-  'pop', 'popitem', '__contains__'):
-    def scope():
-        attrfunc = getattr(dict,attrname)
-        def temp(self, *args, **kwargs):
-            return attrfunc(self.environ, *args, **kwargs)
-        return temp
-    setattr(EnvironWrapper, attrname, scope())
-
 #
 # For each WSGI environment variable (and defined HTTP headers),
 # add the relevant get/set and attach the property to this class.
@@ -62,7 +45,9 @@ _proplist = [
 ]
 for head in dir(httpheaders):
     if head.startswith("HTTP_"):
-        _proplist.append(head)
+        if 'response' != getattr(httpheaders,head).category:
+            # Only add general, request, and entity headers
+            _proplist.append(head)
 
 for item in _proplist:
     key = item

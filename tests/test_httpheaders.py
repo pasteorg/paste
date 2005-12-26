@@ -7,7 +7,7 @@ def test_sorting():
     HTTP_CONTENT_ENCODING, HTTP_ETAG, HTTP_CONTENT_TYPE, HTTP_FROM,
     HTTP_EXPIRES, HTTP_RANGE, HTTP_UPGRADE, HTTP_VARY, HTTP_ALLOW]
     sample.sort()
-    sample = [(x.category, x) for x in sample]
+    sample = [(x.category, str(x)) for x in sample]
     assert sample == [
      # general headers first
      ('general', 'Cache-Control'),
@@ -29,4 +29,3 @@ def test_sorting():
      ('entity', 'Content-Encoding'),
      ('entity', 'Content-Type'),
      ('entity', 'Expires')]
-
