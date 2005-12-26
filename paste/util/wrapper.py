@@ -6,30 +6,45 @@
 Wrapper
 
 This module contains wrapper objects for WSGI ``environ`` and
-``response_headers`` objects.  The goal is to make these objects
-easy to use; but yet maintaining their WSGI compliance.
+``response_headers`` objects.
 
 """
 from paste import httpheaders
 
-class EnvironWrapper(dict):
+class EnvironWrapper(object):
     """
     Used to wrap the ``environ`` to provide handy property get/set
     methods for common HTTP headers and for other environment
     variables specified in the WSGI specification.
 
-       environ = wrap(environ)
-       environ.version     ->  environ.get('wsgi.version',None)
-       environ.HTTP_HOST   -> environ.get('HTTP_HOST',None)
-       environ.REMOTE_USER -> environ.get('REMOTE_USER',None)
+       wrapped = wrap(environ)
+       wrapped.version      -> environ.get('wsgi.version',None)
+       wrapped.HTTP_HOST    -> environ.get('HTTP_HOST',None)
+       wrapped.REMOTE_USER  -> environ.get('REMOTE_USER',None)
 
     """
     def __new__(cls, environ):
-        if isinstance(environ, EnvironWrapper):
-            return environ
-        assert isinstance(environ,dict)
+        assert dict == type(environ)
         assert "wsgi.version" in environ
-        return dict.__new__(cls, environ)
+        self = object.__new__(cls)
+        self.environ = environ
+        return self
+
+#
+# Add all of the methods to the wrapper to simulate a mapping,
+# redirecting all attribute calls to the underlying dict.
+#
+for attrname in (
+  '__cmp__', '__len__', '__getitem__', '__setitem__', '__delitem__',
+  'clear', 'copy', 'keys', 'items', 'iteritems', 'iterkeys',
+  'itervalues', 'values', 'has_key', 'update', 'get', 'setdefault',
+  'pop', 'popitem', '__contains__'):
+    def scope():
+        attrfunc = getattr(dict,attrname)
+        def temp(self, *args, **kwargs):
+            return attrfunc(self.environ, *args, **kwargs)
+        return temp
+    setattr(EnvironWrapper, attrname, scope())
 
 #
 # For each WSGI environment variable (and defined HTTP headers),
@@ -54,9 +69,9 @@ for item in _proplist:
     if "." in item:
         item = item.split(".")[1]
     def get(self,tmp=key):
-        return dict.get(self,tmp,None)
+        return self.environ.get(tmp,None)
     def set(self,val,tmp=key):
-        dict.__setitem__(self,tmp,val)
+        dict.__setitem__(self.environ,tmp,val)
         return self
     setattr(EnvironWrapper, "GET_" + item, get)
     setattr(EnvironWrapper, "SET_" + item, set)
