@@ -6,13 +6,14 @@
 from paste.util.wrapper import wrap
 
 def test_environ():
-    d = wrap({'HTTP_VIA':'bing', 'wsgi.version': '1.0' })
+    environ = {'HTTP_VIA':'bing', 'wsgi.version': '1.0' }
+    d = wrap(environ)
     assert 'bing' == d.GET_HTTP_VIA()
     d.SET_HTTP_HOST('womble')
     assert 'womble' == d.GET_HTTP_HOST()
     assert 'womble' == d.HTTP_HOST
     d.HTTP_HOST = 'different'
-    assert 'different' == d['HTTP_HOST']
+    assert 'different' == environ['HTTP_HOST']
     assert None == d.GET_REMOTE_USER()
     assert None == d.REMOTE_USER
     assert '1.0' == d.version
