@@ -39,7 +39,7 @@ def test_normalize():
        ('ETAG','Response 34234'),
        ('expires','Entity An-Expiration-Date'),
        ('date','General A-Date')]
-    normalize_headers(response_headers)
+    normalize_headers(response_headers, strict=False)
     assert response_headers == [
      ('Date', 'General A-Date'),
      ('Via', 'General Bingles'),
