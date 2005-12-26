@@ -46,7 +46,7 @@ def get_header(name, raiseError=True):
         return name
     retval = _headers.get(name.strip().lower().replace("_","-"))
     if not retval and raiseError:
-        raise NameError(name)
+        raise AssertionError("'%s' is an unknown header" % name)
     return retval
 
 class HTTPHeader(object):
@@ -134,7 +134,7 @@ class HTTPHeader(object):
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.name)
 
-def normalize_headers(response_headers):
+def normalize_headers(response_headers, strict=True):
     """
     This alters the underlying response_headers to use the common
     name for each header; as well as sorting them with general
@@ -144,7 +144,7 @@ def normalize_headers(response_headers):
     category = {}
     for idx in range(len(response_headers)):
         (key,val) = response_headers[idx]
-        head = get_header(key,False)
+        head = get_header(key, strict)
         if not head:
             newhead = '-'.join(x.capitalize() for x in \
                                key.replace("_","-").split("-"))
