@@ -5,90 +5,128 @@
 """
 HTTP Message Headers
 
-This contains general support for message headers as defined by HTTP/1.1
-specification, RFC 2616 (in particular section 4.2).  This module
-defines the ``HTTPHeader`` class, and corresponding instances for common
-headers.  Here are some snippets of how you'd use it:
+This contains general support for HTTP/1.1 message headers [1] in a
+manner that supports WSGI ``environ`` [2] and ``response_headers``[3].
+Specifically, this module defines a ``HTTPHeader`` class whose instances
+correspond to field-name items.  The actual field-content for the
+message-header is stored in the appropriate WSGI collection (either
+the ``environ`` for requests, or ``response_headers`` for responses).
 
-  environ.get('HTTP_ACCEPT_LANGUAGE')
-  -> AcceptLanguage(environ)
+Each ``HTTPHeader`` instance is a callable (defining ``__call__(``)
+that takes one of the following:
 
-    In this usage, the header is passed the ``environ``, and extracts
-    the appropriate field-value.  The primary advantage is that a typo
-    in the header is a NameError; environ.get('HTTP_ACCEPT_LANGUAGES'),
-    by contrast, might be a rather hard bug to track down.
+  - an ``environ`` dictionary, returning the corresponding header
+    value by according to the WSGI's HTTP_ prefix mechanism, e.g.,
+    ``UserAgent(environ)`` returns ``environ.get('HTTP_USER_AGENT')``
 
-  header_value(response_headers, 'content-type')  # from paste.response
-  -> ContentType(response_headers)
+  - a ``response_headers`` list, giving a comma-delimited string for
+    each corresponding ``header_value`` tuple entries (see below).
 
-     This usage is similar in that typos are easily noticed; but also
-     the syntax is the same -- the HTTPHeader can hide the technical
-     difference between ``environ`` and ``response_headers`` so that
-     your code remains focused on the task.
+  - a sequence of string ``*args`` that are comma-delimited into a
+    single string value, e.g. ``ContentType("text/html","text/plain")``
+    returns ``"text/html, text/plain"``
 
-  response_headers.append(('content-type','text/html'))
-  -> ContentType.append(response_headers, 'text/html')
+  - a set of ``*kwargs`` keyword arguments that are used to create
+    a header value, in a manner dependent upon the particular header in
+    question (to make value construction easier and error-free):
+    ``ContentDisposition(max_age=ContentDisposition.ONEWEEK)`` returns
+    ``"public, max-age=60480"``
 
-     Although in most cases these two forms have similar result,
-     there are a few differences:
+Each ``HTTPHeader`` instance also provides several methods wich act on
+a WSGI collection, for setting or getting header values.  The first
+argument of these methods is the collection, and all remaining arguments
+are equivalent to invoking ``__call__(*args, **kwargs)``.
 
-     - Since the ContentType header knows that it is a singleton, it
-       will raise an exception if already exists in the response_headers
+  ``delete(collection)``
 
-     - The ContentType version uses the recommended RFC capitalization,
-       'Content-Type'; while this is easy in this case, it is not easy
-       to remember in every case, such as 'ETag' or 'WWW-Authenticate'.
+    This method removes all entries of the corresponding header from
+    the given collection (``environ`` or ``response_headers``), e.g.,
+    ``UserAgent.remove(environ)`` deletes the 'HTTP_USER_AGENT' entry
+    from the ``environ``.
 
-     - The ContentType version can validate the content; while this case
-       is easy to inspect that the former is correct -- this isn't
-       always true, for example in ContentDisposition or more
-       complicated headers.
+  ``update(collection, *args, **kwargs)``
 
-  remove_header(response_headers, 'content-type')  # from paste.response
-  -> ContentType.remove(response_headers)
+    This method does an in-place replacement of the given header entry,
+    for example: ``ContentLength(response_headers,len(body))``
 
-     No pratical difference other than consistency with the rest
-     of the module; same as the ``replace`` method.
+This particular approach to managing headers within a WSGI collection
+has several advantages:
 
-  "public, no-store, max-age=%d" % 7*24*60*60
-  -> CacheControl(public=True, no_store=True,
-                  max_age= CacheControl.ONE_WEEK)
+  1. Typos in the header name are easily detected since they become a
+     ``NameError`` when executed.  The approach of using header strings
+     directly can be problematic; for example, the following should
+     allways return ``None``: ``environ.get("HTTP_ACCEPT_LANGUAGES")``
 
-     While the former is the actual header that should be sent, it is
-     quite easy to make mistakes in header construction; or specify
-     invalid values that look correct but violate the specification.
+  2. For specific headers with validation, using ``__call__`` will
+     result in an automatic header value check.  For example, the
+     ContentDisposition header will reject a value having ``maxage``
+     or ``max_age`` (the appropriate parameter is ``max_age``).
+
+  3. When appending/replacing headers, the field-name has the suggested
+     RFC capitalization (e.g. ``Content-Type`` or ``ETag``) for
+     user-agents that incorrectly use case-sensitive matches.
+
+  4. Some headers (such as ``Content-Type``) are singeltons, that is,
+     only one entry of this type may occur in a given set of
+     ``response_headers``.  This module knows about those cases and
+     enforces this cardnality constraint.
+
+  5. The exact details of WSGI header management are abstracted so
+     the programmer need not worry about operational differences
+     between ``environ`` dictionary or ``response_headers`` list.
+
+  6. Sorting of ``HTTPHeaders`` is done following the RFC suggestion
+     that general-headers come first, followed by request and response
+     headers, and finishing with entity-headers.
+
+  7. Special care is given to exceptional cases such as ``Set-Cookie``
+     which violates the RFC's recommendation about combining header
+     content into a single entry using comma separation [1]
+
+A particular difficulty with HTTPHeaders is a categorization of
+sorts as described in section 4.2:
+
+    Multiple message-header fields with the same field-name MAY be
+    present in a message if and only if the entire field-value for that
+    header field is defined as a comma-separated list [i.e., #(values)].
+    It MUST be possible to combine the multiple header fields into one
+    "field-name: field-value" pair, without changing the semantics of
+    the message, by appending each subsequent field-value to the first,
+    each separated by a comma.
+
+This creates three fundamentally different kinds of headers:
+
+  - Those that do not have a #(values) production, and hence are
+    singular and may only occur once in a set of response fields;
+    this case is handled by the ``SingleValueHeader`` subclass.
+
+  - Those which have the #(values) production and follow the
+    combining rule outlined above; our ``MultiValueHeader`` case.
+
+  - Those which are multi-valued, but cannot be combined (such as the
+    ``Set-Cookie`` header due to its ``Expires`` parameter); or where
+    combining them into a single header entry would cause common
+    user-agents to fail (``WWW-Authenticate``, ``Warning``) since
+    they fail to handle dates even when properly quoted. This case
+    is handled by ``MultiEntryHeader``.
+
+Since this project does not have time to provide rigorous support
+and validation for all headers, it does a basic construction of
+headers listed in RFC 2616 (plus a few others) so that they can
+be obtained by simply doing ``from paste.httpheaders import *``;
+the name of the header instance is the "common name" less any
+dashes to give CamelCase style names.
+
+[1] http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+[2] http://www.python.org/peps/pep-0333.html#environ-variables
+[3] http://www.python.org/peps/pep-0333.html#the-start-response-callable
 """
 
-__all__ = ['get_header', 'HTTPHeader', 'normalize_headers' ]
+__all__ = ['get_header', 'HTTPHeader', 'normalize_headers'
+           # additionally, all headers are exported 
+]
 
 _headers = {}
-
-def get_header(name, raiseError=True):
-    """
-    This function finds the corresponding ``HTTPHeader`` for the
-    ``name`` provided.  So that python-style names can be used,
-    underscores are converted to dashes before the lookup.
-    """
-    if isinstance(name,HTTPHeader):
-        return name
-    retval = _headers.get(name.strip().lower().replace("_","-"))
-    if not retval and raiseError:
-        raise AssertionError("'%s' is an unknown header" % name)
-    return retval
-
-def list_headers(general=True, request=True, response=True, entity=True):
-    " list all headers for a given category "
-    search = []
-    for (bool,strval) in ((general,'general'), (request,'request'),
-                         (response,'response'), (entity,'entity')):
-        if bool:
-            search.append(strval)
-    search = tuple(search)
-    for head in _headers.values():
-        if head.category in search:
-            retval.append(head)
-    retval.sort()
-    return retval
 
 class HTTPHeader(object):
     """
@@ -132,17 +170,19 @@ class HTTPHeader(object):
 
     Collection Methods:
 
-       ``append()``    appends the given field-value onto a WSGI
-                       ``response_headers`` list object
-
-       ``remove()``    removes all field-value occurances of this
+       ``delete()``    remove the all occurances (if any) of the given
                        header in the collection provided
 
-       ``replace()``   replaces (if they exist) all field-value items
+       ``update()``    replaces (if they exist) all field-value items
                        in the given collection with the value provided
 
+       ``tuples()``    returns a set of (field-name, field-value) tuples
+                       sutable for extending ``response_headers``
+
     The collected versions of initialized header instances are immediately
-    registered and accessable through the ``get_header`` function.
+    registered and accessable through the ``get_header`` function.  Do not
+    inherit from this directly, use one of ``SingleValueHeader``,
+    ``MultiValueHeader``, or ``MultiEntryHeader`` as appropriate.
     """
     #@@: add field-name validation
     def __new__(cls, name, category):
@@ -170,6 +210,7 @@ class HTTPHeader(object):
                            'response': 3, 'entity': 4 }[category]
         _headers[name.lower()] = self
         self._environ_name = 'HTTP_'+ self.name.upper().replace("-","_")
+        self._headers_name = self.name.lower()
         assert self.version in ('1.1','1.0','0.9')
         assert isinstance(self,(SingleValueHeader,MultiValueHeader,
                                 MultiEntryHeader))
@@ -192,7 +233,7 @@ class HTTPHeader(object):
     def __repr__(self):
         return '<HTTPHeader %s>' % self.name
 
-    def construct(**kwargs):
+    def construct(self, **kwargs):
         """
         construct field-value(s) via keyword arguments
 
@@ -202,7 +243,11 @@ class HTTPHeader(object):
         be specialized for specific headers.
         """
         result = []
-        for (k,v) in kwargs.items():
+        keys = kwargs.keys()
+        keys.sort()
+        for k in keys:
+            v = kwargs[k]
+            k = k.lower().replace("_","-")
             if v in (None,True):
                result.append(str(k))
             else:
@@ -266,6 +311,57 @@ class HTTPHeader(object):
            assert type(item) == str
         return self.format(*args)
 
+    def delete(self, collection):
+        """
+        This method removes all occurances of the header in the
+        given collection.  It does not return the value removed.
+        """
+        if type(collection) == dict:
+            if self._environ_name in collection:
+                del collection[self._environ_name]
+            return self
+        assert list == type(collection)
+        i = 0
+        while i < len(collection):
+            if collection[i][0].lower() == self._headers_name:
+                del collection[i]
+                continue
+            i += 1
+        return self
+
+    def update(self, collection, *args, **kwargs):
+        """
+        This method replaces (in-place when possible) all occurances of
+        the given header with the provided value.  If no value is
+        provided, this is the same as ``remove``.
+        """
+        value = self.__call__(*args, **kwargs)
+        if value is None:
+            return self.remove(connection)
+        if type(collection) == dict:
+            collection[self._environ_name] = value
+            return self
+        assert list == type(collection)
+        i = 0
+        found = False
+        while i < len(collection):
+            if collection[i][0].lower() == self._headers_name:
+                if found:
+                    del collection[i]
+                    continue
+                collection[i] = (self.name, value)
+                found = True
+            i += 1
+        if not found:
+            collection.append((self.name, value))
+        return self
+
+    def tuples(self, *args, **kwargs):
+        value = self.__call__(*args, **kwargs)
+        if not value:
+            return ()
+        return ((self.name, value),)
+
 class SingleValueHeader(HTTPHeader):
     """
     The field-value is a single value and therefore all results
@@ -281,22 +377,10 @@ class SingleValueHeader(HTTPHeader):
 
 class MultiValueHeader(HTTPHeader):
     """
-    This header is multi-valued, however, results can be combined by
-    concatinating with a comma, as described by section 4.2 of RFC 2616:
-
-        Multiple message-header fields with the same field-name MAY
-        be present in a message if and only if the entire
-        field-value for that header field is defined as a
-        comma-separated list [i.e., #(values)]. It MUST be possible
-        to combine the multiple header fields into one "field-name:
-        field-value" pair, without changing the semantics of the
-        message, by appending each subsequent field-value to the
-        first, each separated by a comma. The order in which header
-        fields with the same field-name are received is therefore
-        significant to the interpretation of the combined field
-        value, and thus a proxy MUST NOT change the order of these
-        field values when a message is forwarded.
+    This header is multi-valued and values can be combined by
+    concatinating with a comma, as described by section 4.2 of RFC 2616.
     """
+
     def format(self, *values):
         if not values:
            return None
@@ -306,13 +390,54 @@ class MultiEntryHeader(HTTPHeader):
     """
     This header is multi-valued, but the values should not be combined
     with a comma since the header is not in compliance with RFC 2616
-    (Set-Cookie) or which common user-agents do not behave well when the
-    header values are combined.
+    (Set-Cookie due to Expires parameter) or which common user-agents do
+    not behave well when the header values are combined.
+
+    The values returned for this case are _always_ a list instead
+    of a string.
     """
+
+    def update(self, collection, *args, **kwargs):
+        #@@: This needs to be implemented to handle lists
+        raise NotImplementedError()
+
     def format(self, *values):
         if not values:
            return None
         return list(values)
+
+    def tuples(self, *args, **kwargs):
+        values = self.__call__(*args, **kwargs)
+        if not values:
+            return ()
+        return tuple([(self.name, value) for value in values])
+
+def get_header(name, raiseError=True):
+    """
+    This function finds the corresponding ``HTTPHeader`` for the
+    ``name`` provided.  So that python-style names can be used,
+    underscores are converted to dashes before the lookup.
+    """
+    if isinstance(name,HTTPHeader):
+        return name
+    retval = _headers.get(name.strip().lower().replace("_","-"))
+    if not retval and raiseError:
+        raise AssertionError("'%s' is an unknown header" % name)
+    return retval
+
+def list_headers(general=True, request=True, response=True, entity=True):
+    " list all headers for a given category "
+    search = []
+    for (bool,strval) in ((general,'general'), (request,'request'),
+                         (response,'response'), (entity,'entity')):
+        if bool:
+            search.append(strval)
+    search = tuple(search)
+    for head in _headers.values():
+        if head.category in search:
+            retval.append(head)
+    retval.sort()
+    return retval
 
 def normalize_headers(response_headers, strict=True):
     """
@@ -358,6 +483,7 @@ for (name,              category, version, style,      comment) in \
 ,("Cookie"             ,'request' ,'1.0','multi-value','RFC 2109/Netscape')
 ,("Connection"         ,'general' ,'1.1','multi-value','RFC 2616 $14.10')
 ,("Content-Encoding"   ,'entity'  ,'1.0','multi-value','RFC 2616 $14.11')
+,("Content-Disposition",'entity'  ,'1.1','multi-value','RFC 2616 $15.5' )
 ,("Content-Language"   ,'entity'  ,'1.1','multi-value','RFC 2616 $14.12')
 ,("Content-Length"     ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.13')
 ,("Content-Location"   ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.14')
@@ -412,3 +538,4 @@ for head in _headers.values():
     headname = head.name.replace("-","")
     locals()[headname] = head
     __all__.append(headname)
+

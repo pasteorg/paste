@@ -1,12 +1,41 @@
 from paste.httpheaders import *
 
+def _test_generic(collection):
+    assert 'bing' == Via(collection)
+    Referer.update(collection,'internal:/some/path')
+    assert 'internal:/some/path' == Referer(collection)
+    ContentDisposition.update(collection,public=None,max_age=1234)
+    Pragma.update(collection,"test","multi",'valued="items"')
+    #@@: fix ordering issue here, public should be first
+    assert 'max-age=1234, public' == ContentDisposition(collection)
+    assert 'test, multi, valued="items"' == Pragma(collection)
+    Via.delete(collection)
+
+
 def test_environ():
-    environ = {'HTTP_VIA':'bing', 'wsgi.version': '1.0' }
-    assert 'bing' == Via(environ)
+    collection = {'HTTP_VIA':'bing', 'wsgi.version': '1.0' }
+    _test_generic(collection)
+    assert collection == {'wsgi.version': '1.0',
+      'HTTP_PRAGMA': 'test, multi, valued="items"',
+      'HTTP_CONTENT_DISPOSITION': 'max-age=1234, public',
+      'HTTP_REFERER': 'internal:/some/path'
+    }
 
 def test_response_headers():
-    response_headers = [('via', 'bing')]
-    assert 'bing' == Via(response_headers)
+    collection = [('via', 'bing')]
+    _test_generic(collection)
+    normalize_headers(collection)
+    assert collection == [
+      ('Pragma', 'test, multi, valued="items"'),
+      ('Referer', 'internal:/some/path'),
+      ('Content-Disposition', 'max-age=1234, public')
+    ]
+
+def test_copy():
+    environ = {'HTTP_VIA':'bing', 'wsgi.version': '1.0' }
+    response_headers = []
+    Via.update(response_headers,environ)
+    assert response_headers == [('Via', 'bing')]
 
 def test_sorting():
     # verify the HTTP_HEADERS are set with their canonical form
