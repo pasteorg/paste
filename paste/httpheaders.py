@@ -33,9 +33,7 @@ that takes one of the following:
     ``"public, max-age=60480"``
 
 Each ``HTTPHeader`` instance also provides several methods wich act on
-a WSGI collection, for setting or getting header values.  The first
-argument of these methods is the collection, and all remaining arguments
-are equivalent to invoking ``__call__(*args, **kwargs)``.
+a WSGI collection, for removing and setting header values.
 
   ``delete(collection)``
 
@@ -48,6 +46,9 @@ are equivalent to invoking ``__call__(*args, **kwargs)``.
 
     This method does an in-place replacement of the given header entry,
     for example: ``ContentLength(response_headers,len(body))``
+    The first argument is a valid ``environ`` dictionary or
+    ``response_headers`` list; remaining arguments are passed on to
+    ``__call__(*args, **kwargs)`` for value construction.
 
 This particular approach to managing headers within a WSGI collection
 has several advantages:
@@ -60,7 +61,7 @@ has several advantages:
   2. For specific headers with validation, using ``__call__`` will
      result in an automatic header value check.  For example, the
      ContentDisposition header will reject a value having ``maxage``
-     or ``max_age`` (the appropriate parameter is ``max_age``).
+     or ``max_age`` (the appropriate parameter is ``max-age``).
 
   3. When appending/replacing headers, the field-name has the suggested
      RFC capitalization (e.g. ``Content-Type`` or ``ETag``) for
@@ -83,7 +84,7 @@ has several advantages:
      which violates the RFC's recommendation about combining header
      content into a single entry using comma separation [1]
 
-A particular difficulty with HTTPHeaders is a categorization of
+A particular difficulty with HTTP message headers is a categorization of
 sorts as described in section 4.2:
 
     Multiple message-header fields with the same field-name MAY be
