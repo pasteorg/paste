@@ -1,13 +1,16 @@
 from paste.httpheaders import *
+import time
 
 def _test_generic(collection):
     assert 'bing' == Via(collection)
     Referer.update(collection,'internal:/some/path')
     assert 'internal:/some/path' == Referer(collection)
-    ContentDisposition.update(collection,public=None,max_age=1234)
+    CacheControl.update(collection,max_age=1234)
+    ContentDisposition.update(collection,filename="bingles.txt")
     Pragma.update(collection,"test","multi",'valued="items"')
-    #@@: fix ordering issue here, public should be first
-    assert 'max-age=1234, public' == ContentDisposition(collection)
+    assert 'public, max-age=1234' == CacheControl(collection)
+    assert 'attachment, filename="bingles.txt"' == \
+            ContentDisposition(collection)
     assert 'test, multi, valued="items"' == Pragma(collection)
     Via.delete(collection)
 
@@ -17,8 +20,9 @@ def test_environ():
     _test_generic(collection)
     assert collection == {'wsgi.version': '1.0',
       'HTTP_PRAGMA': 'test, multi, valued="items"',
-      'HTTP_CONTENT_DISPOSITION': 'max-age=1234, public',
-      'HTTP_REFERER': 'internal:/some/path'
+      'HTTP_REFERER': 'internal:/some/path',
+      'HTTP_CONTENT_DISPOSITION': 'attachment, filename="bingles.txt"',
+      'HTTP_CACHE_CONTROL': 'public, max-age=1234'
     }
 
 def test_response_headers():
@@ -26,9 +30,51 @@ def test_response_headers():
     _test_generic(collection)
     normalize_headers(collection)
     assert collection == [
-      ('Pragma', 'test, multi, valued="items"'),
-      ('Referer', 'internal:/some/path'),
-      ('Content-Disposition', 'max-age=1234, public')
+        ('Cache-Control', 'public, max-age=1234'),
+        ('Pragma', 'test, multi, valued="items"'),
+        ('Referer', 'internal:/some/path'),
+        ('Content-Disposition', 'attachment, filename="bingles.txt"')
+    ]
+
+def test_cache_control():
+    assert 'public' == CacheControl()
+    assert 'public' == CacheControl(public=True)
+    assert 'private' == CacheControl(private=True)
+    assert 'no-cache' == CacheControl(no_cache=True)
+    assert 'private, no-store' == CacheControl(private=True, no_store=True)
+    assert 'public, max-age=60' == CacheControl(max_age=60)
+    assert 'public, max-age=86400' == \
+            CacheControl(max_age=CacheControl.ONE_DAY)
+    CacheControl.extensions['community'] = str
+    assert 'public, community="bingles"' == \
+            CacheControl(community="bingles")
+    headers = []
+    CacheControl.apply(headers,max_age=60)
+    assert 'public, max-age=60' == CacheControl(headers)
+    assert Expires.time(headers) > time.time()
+    assert Expires.time(headers) < time.time() + 60
+
+def test_content_disposition():
+    assert 'attachment' == ContentDisposition()
+    assert 'attachment' == ContentDisposition(attachment=True)
+    assert 'inline' == ContentDisposition(inline=True)
+    assert 'inline, filename="test.txt"' == \
+            ContentDisposition(inline=True, filename="test.txt")
+    assert 'attachment, filename="test.txt"' == \
+            ContentDisposition(filename="/some/path/test.txt")
+    headers = []
+    ContentDisposition.apply(headers,filename="test.txt")
+    assert 'text/plain' == ContentType(headers)
+    ContentDisposition.apply(headers,filename="test")
+    assert 'text/plain' == ContentType(headers)
+    ContentDisposition.apply(headers,filename="test.html")
+    assert 'text/plain' == ContentType(headers)
+    headers = [('Content-Type', 'application/octet-stream')]
+    ContentDisposition.apply(headers,filename="test.txt")
+    assert 'text/plain' == ContentType(headers)
+    assert headers == [
+      ('Content-Type', 'text/plain'),
+      ('Content-Disposition', 'attachment, filename="test.txt"')
     ]
 
 def test_copy():
