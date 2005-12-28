@@ -9,7 +9,7 @@ def _test_generic(collection):
     ContentDisposition.update(collection,filename="bingles.txt")
     Pragma.update(collection,"test","multi",'valued="items"')
     assert 'public, max-age=1234' == CacheControl(collection)
-    assert 'attachment, filename="bingles.txt"' == \
+    assert 'attachment; filename="bingles.txt"' == \
             ContentDisposition(collection)
     assert 'test, multi, valued="items"' == Pragma(collection)
     Via.delete(collection)
@@ -21,7 +21,7 @@ def test_environ():
     assert collection == {'wsgi.version': '1.0',
       'HTTP_PRAGMA': 'test, multi, valued="items"',
       'HTTP_REFERER': 'internal:/some/path',
-      'HTTP_CONTENT_DISPOSITION': 'attachment, filename="bingles.txt"',
+      'HTTP_CONTENT_DISPOSITION': 'attachment; filename="bingles.txt"',
       'HTTP_CACHE_CONTROL': 'public, max-age=1234'
     }
 
@@ -33,7 +33,7 @@ def test_response_headers():
         ('Cache-Control', 'public, max-age=1234'),
         ('Pragma', 'test, multi, valued="items"'),
         ('Referer', 'internal:/some/path'),
-        ('Content-Disposition', 'attachment, filename="bingles.txt"')
+        ('Content-Disposition', 'attachment; filename="bingles.txt"')
     ]
 
 def test_cache_control():
@@ -58,9 +58,9 @@ def test_content_disposition():
     assert 'attachment' == ContentDisposition()
     assert 'attachment' == ContentDisposition(attachment=True)
     assert 'inline' == ContentDisposition(inline=True)
-    assert 'inline, filename="test.txt"' == \
+    assert 'inline; filename="test.txt"' == \
             ContentDisposition(inline=True, filename="test.txt")
-    assert 'attachment, filename="test.txt"' == \
+    assert 'attachment; filename="test.txt"' == \
             ContentDisposition(filename="/some/path/test.txt")
     headers = []
     ContentDisposition.apply(headers,filename="test.txt")
@@ -74,7 +74,7 @@ def test_content_disposition():
     assert 'text/plain' == ContentType(headers)
     assert headers == [
       ('Content-Type', 'text/plain'),
-      ('Content-Disposition', 'attachment, filename="test.txt"')
+      ('Content-Disposition', 'attachment; filename="test.txt"')
     ]
 
 def test_copy():
