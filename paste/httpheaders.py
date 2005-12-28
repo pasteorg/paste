@@ -132,6 +132,11 @@ dashes to give CamelCase style names.
 [3] http://www.python.org/peps/pep-0333.html#the-start-response-callable
 """
 
+from mimetypes import guess_type
+from rfc822 import formatdate, parsedate_tz, mktime_tz
+from time import time as now
+from httpexceptions import HTTPBadRequest
+
 __all__ = ['get_header', 'HTTPHeader', 'normalize_headers'
            # additionally, all headers are exported
 ]
@@ -252,27 +257,8 @@ class HTTPHeader(object):
     def compose(self, **kwargs):
         """
         construct field-value(s) via keyword arguments
-
-        The base implementation of this method simply provides a comma
-        separated list of arguments using the convention that a True
-        value does not include an equal sign.  It is intended that this
-        be specialized for specific headers.
         """
-        assert kwargs, "arguments expected"
-        result = []
-        keys = kwargs.keys()
-        keys.sort()
-        for k in keys:
-            v = kwargs[k]
-            k = k.lower().replace("_","-")
-            if v in (None,True):
-               result.append(str(k))
-            else:
-               if isinstance(v,(float,int)):
-                  result.append('%s=%s' % (k,v))
-               else:
-                  result.append('%s="%s"' % (k,v))
-        return result
+        raise NotImplementedError()
 
     def format(self, *values):
         """ produce a return value appropriate for this kind of header """
@@ -323,7 +309,7 @@ class HTTPHeader(object):
                return None
             return self.format(value)
         for item in args:
-           assert type(item) == str
+           assert not type(item) in (dict, list)
         return self.format(*args)
 
     def delete(self, collection):
@@ -350,14 +336,16 @@ class HTTPHeader(object):
         the given header with the provided value.  If no value is
         provided, this is the same as ``remove`` (note that this case
         can only occur if the target is a collection w/o a corresponding
-        header value).
+        header value). The return value is the new header value (which
+        could be a list for ``MultiEntryHeader`` instances).
         """
         value = self.__call__(*args, **kwargs)
         if value is None:
-            return self.remove(connection)
+            self.remove(connection)
+            return
         if type(collection) == dict:
             collection[self._environ_name] = value
-            return self
+            return value
         assert list == type(collection)
         i = 0
         found = False
@@ -371,16 +359,16 @@ class HTTPHeader(object):
             i += 1
         if not found:
             collection.append((self.name, value))
-        return self
+        return value
 
     def apply(self, collection, **kwargs):
         """
-        This method is similar to ``update`` only that usage may
-        result in other headers being changed as recommended by 
-        the corresponding specification.  The return value of this
-        method is undefined (it is up to sub-classes).
+        This method is similar to ``update`` only that usage may result
+        in other headers being changed as recommended by the corresponding
+        specification.  The return value is defined by the particular
+        sub-class, but defaults to the same as ``update()``.
         """
-        self.update(collection, **kwargs)
+        return self.update(collection, **kwargs)
 
     def tuples(self, *args, **kwargs):
         value = self.__call__(*args, **kwargs)
@@ -399,7 +387,7 @@ class SingleValueHeader(HTTPHeader):
         if not values:
            return None
         assert len(values) == 1, "more than one value: %s" % repr(values)
-        return values[0].strip()
+        return str(values[0]).strip()
 
 class MultiValueHeader(HTTPHeader):
     """
@@ -410,7 +398,7 @@ class MultiValueHeader(HTTPHeader):
     def format(self, *values):
         if not values:
            return None
-        return ", ".join([v.strip() for v in values])
+        return ", ".join([str(v).strip() for v in values])
 
 class MultiEntryHeader(HTTPHeader):
     """
@@ -430,7 +418,7 @@ class MultiEntryHeader(HTTPHeader):
     def format(self, *values):
         if not values:
            return None
-        return list([v.strip() for v in values])
+        return list([str(v).strip() for v in values])
 
     def tuples(self, *args, **kwargs):
         values = self.__call__(*args, **kwargs)
@@ -504,28 +492,30 @@ class DateHeader(SingleValueHeader):
       and returns the current time value.
     """
 
-    def compose(self, time=None):
-        if not time:
-            time = 0
-        else:
-            assert type(time) == int
-        return (formatdate(now()+time),)
+    def compose(self, time=None, delta=None):
+        time = time or now()
+        if delta:
+            assert type(delta) == int
+            time += delta
+        return (formatdate(time),)
 
     def time(self, *args, **kwargs):
         """ return the time value (in seconds since 1970) """
         value = self.__call__(*args, **kwargs)
-        return mktime_tz(parsedate_tz(value))
-
+        if value is None:
+            return None
+        try:
+            return mktime_tz(parsedate_tz(value))
+        except TypeError:
+            raise HTTPBadRequest((
+                "Received an ill-formed timestamp for %s: %s\r\n") %
+                (self.name, value))
 
 #
 # Following are specific HTTP headers. Since these classes are mostly
 # singletons, there is no point in keeping the class around once it has
 # been instantiated, so we use the same name.
 #
-
-from mimetypes import guess_type
-from rfc822 import formatdate, parsedate_tz, mktime_tz
-from time import time as now
 
 class CacheControl(MultiValueHeader):
     """
@@ -630,15 +620,46 @@ class CacheControl(MultiValueHeader):
         return result
 
     def apply(self, collection, **kwargs):
+        """ returns the offset expiration in seconds """
         (result, expires) = self._compose(**kwargs)
-        Expires.update(collection, time=expires)
+        if expires is not None:
+            Expires.update(collection, delta=expires)
         self.update(collection, *result)
         return expires
+
 CacheControl = CacheControl('Cache-Control','general')
 
-class ContentDisposition(MultiValueHeader):
+class ContentType(SingleValueHeader):
     """
-    Content-Disposition, RFC 2616 section 15.5
+    Content-Type, RFC 2616 section 14.17
+    """
+    version = '1.0'
+
+    # common mimetype constants
+    UNKNOWN    = 'application/octet-stream'
+    TEXT_PLAIN = 'text/plain'
+    TEXT_HTML  = 'text/html'
+    TEXT_XML   = 'text/xml'
+
+    def compose(self, major=None, minor=None, charset=None):
+        if not major:
+            if minor in ('plain','html','xml'):
+                major = 'text'
+            else:
+                assert not minor and not charset
+                return (self.UNKNOWN,)
+        if not minor:
+            minor = "*"
+        result = "%s/%s" % (major,minor)
+        if charset:
+            result += "; charset=%s" % charset
+        return (result,)
+ContentType = ContentType('Content-Type','entity')
+
+
+class ContentDisposition(SingleValueHeader):
+    """
+    Content-Disposition, RFC 2183
 
     This header can be constructed (using keyword arguments), by
     first specifying one of the following mechanisms:
@@ -667,6 +688,8 @@ class ContentDisposition(MultiValueHeader):
     'application/octet-stream', then the mimetypes.guess is used to
     upgrade the Content-Type setting.
     """
+    version = '1.1'
+
     def _compose(self, attachment=None, inline=None, filename=None):
         result = []
         if inline is True:
@@ -680,22 +703,38 @@ class ContentDisposition(MultiValueHeader):
             filename = filename.split("/")[-1]
             filename = filename.split("\\")[-1]
             result.append('filename="%s"' % filename)
-        return (result, filename)
+        return (("; ".join(result),), filename)
 
     def compose(self, **kwargs):
         (result, mimetype) = self._compose(**kwargs)
         return result
 
     def apply(self, collection, **kwargs):
+        """ return the new Content-Type side-effect value """
         (result, filename) = self._compose(**kwargs)
         mimetype = ContentType(collection)
-        if not mimetype or 'application/octet-stream' == mimetype:
+        if filename and (not mimetype or ContentType.UNKNOWN == mimetype):
             mimetype, _ = guess_type(filename)
-            if mimetype and 'application/octet-stream' != mimetype:
+            if mimetype and ContentType.UNKNOWN != mimetype:
                 ContentType.update(collection, mimetype)
         self.update(collection, *result)
         return mimetype
 ContentDisposition = ContentDisposition('Content-Disposition','entity')
+
+class IfModifiedSince(DateHeader):
+    """
+    If-Modified-Since, RFC 2616 section 14.25
+    """
+    version = '1.0'
+    def time(self, *args, **kwargs):
+        value = DateHeader.time(self, *args, **kwargs)
+        if value and value > now():
+            raise HTTPBadRequest((
+              "Please check your system clock.\r\n"
+              "According to this server, the time provided in the\r\n"
+              "%s header is in the future.\r\n") % self.name)
+        return value
+IfModifiedSince = IfModifiedSince('If-Modified-Since','request')
 
 #
 # For now, construct a minimalistic version of the field-names; at a
@@ -720,7 +759,7 @@ for (name,              category, version, style,      comment) in \
 ,("Content-Location"   ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.14')
 ,("Content-MD5"        ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.15')
 ,("Content-Range"      ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.16')
-,("Content-Type"       ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.17')
+#,("Content-Type"       ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.17')
 ,("Date"               ,'general' ,'1.0','date-header','RFC 2616 $14.18')
 ,("ETag"               ,'response','1.1','singular'   ,'RFC 2616 $14.19')
 ,("Expect"             ,'request' ,'1.1','multi-value','RFC 2616 $14.20')
@@ -728,7 +767,7 @@ for (name,              category, version, style,      comment) in \
 ,("From"               ,'request' ,'1.0','singular'   ,'RFC 2616 $14.22')
 ,("Host"               ,'request' ,'1.1','singular'   ,'RFC 2616 $14.23')
 ,("If-Match"           ,'request' ,'1.1','multi-value','RFC 2616 $14.24')
-,("If-Modified-Since"  ,'request' ,'1.0','date-header','RFC 2616 $14.25')
+#,("If-Modified-Since"  ,'request' ,'1.0','date-header','RFC 2616 $14.25')
 ,("If-None-Match"      ,'request' ,'1.1','multi-value','RFC 2616 $14.26')
 ,("If-Range"           ,'request' ,'1.1','singular'   ,'RFC 2616 $14.27')
 ,("If-Unmodified-Since",'request' ,'1.1','date-header' ,'RFC 2616 $14.28')

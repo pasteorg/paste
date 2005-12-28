@@ -7,16 +7,14 @@ files.  At this time it has cache helpers and understands the
 if-modified-since request header.
 """
 
-import os, time
-import mimetypes
-import httpexceptions
-from response import has_header, replace_header, header_value, remove_header
-from rfc822 import formatdate, parsedate_tz, mktime_tz
-from httpexceptions import HTTPBadRequest
+import os, time, mimetypes
+from httpexceptions import HTTPBadRequest, HTTPForbidden
+from httpheaders import get_header, Expires, \
+    ContentType, AcceptRanges, CacheControl, ContentDisposition, \
+    ContentLength, ContentRange, LastModified, IfModifiedSince
 
 CACHE_SIZE = 4096
 BLOCK_SIZE = 4096 * 16
-U_MIMETYPE = 'application/octet-stream'
 
 __all__ = ['DataApp','FileApp']
 
@@ -63,101 +61,16 @@ class DataApp(object):
         self.last_modified = 0
         self.headers = headers or []
         for (k,v) in kwargs.items():
-            hk = k.replace("_","-")
-            if not headers or not has_header(self.headers,hk):
-                self.headers.append((hk,v))
-        replace_header(self.headers,'accept-ranges','bytes')
-        if not has_header(self.headers,'content-type'):
-            self.headers.append(('content-type',U_MIMETYPE))
+            header = get_header(k)
+            header.update(self.headers,v)
+        AcceptRanges.update(self.headers,'bytes')
+        if not ContentType(self.headers):
+            ContentType.update(self.headers)
         if content:
             self.set_content(content)
 
-    def cache_control(self, public=None, private=None, no_cache=None,
-                      no_store=False, max_age=None, s_maxage=None,
-                      no_transform=False, **extensions):
-        """
-        Sets the ``Cache-Control`` according to the arguments provided.
-        See RFC 2616 section 14.9 for more details.
-
-          ``public``        if True, this argument specifies that the
-                            response, as a whole, may be cashed.
-
-          ``private``       if True, this argument specifies that the
-                            response, as a whole, may be cashed; this
-                            implementation does not support the
-                            enumeration of private fields
-
-
-          ``no_cache``      if True, this argument specifies that the
-                            response, as a whole, may be cashed; this
-                            implementation does not support the
-                            enumeration of private fields
-
-          In general, only one of the above three may be True, the other
-          2 must then be False or None.  If all three are None, then the
-          cashe is assumed to be ``public``.  These are distinct fields
-          since support for field enumeration may be added in the future.
-
-          ``no_store``      indicates if content may be stored on disk;
-                            otherwise cashe is limited to memory (note:
-                            users can still save the data, this applies
-                            to intermediate caches)
-
-          ``max_age``       the maximum duration (in seconds) for which
-                            the content should be cached; if ``no-cache``
-                            is specified, this defaults to 0 seconds
-
-          ``s_maxage``      the maximum duration (in seconds) for which the
-                            content should be allowed in a shared cache.
-
-          ``no_transform``  specifies that an intermediate cache should
-                            not convert the content from one type to
-                            another (e.g. transform a BMP to a PNG).
-
-          ``extensions``    gives additional cache-control extensionsn,
-                            such as items like, community="UCI" (14.9.6)
-
-        As recommended by RFC 2616, if ``max_age`` is provided, then
-        then the ``Expires`` header is also calculated for HTTP/1.0
-        clients and proxies.   For ``no-cache`` and for ``private``
-        cases, we either do not want the response cached or do not want
-        any response accidently returned to other users; so to prevent
-        this case, we set the ``Expires`` header to the time of the
-        request, signifying to HTTP/1.0 transports that the content
-        isn't to be cached.  If you are using SSL, your communication
-        is already "private", so to work with HTTP/1.0 browsers,
-        consider specifying your cache as public as the distinction
-        between public and private is moot for this case.
-        """
-        assert isinstance(max_age,(type(None),int))
-        assert isinstance(s_maxage,(type(None),int))
-        result = []
-        if private is True:
-            assert not public and not no_cache and not s_maxage
-            self.expires = 0  # Date >= Expires for HTTP/1.0
-            result.append('private')
-        elif no_cache is True:
-            assert not public and not private and not max_age
-            self.expires = 0  # Date >= Expires for HTTP/1.0
-            result.append('no-cache')
-        else:
-            assert public is None or public is True
-            assert not private and not no_cache
-            self.expires = max_age
-            result.append('public')
-        if no_store:
-            result.append('no-store')
-        if no_transform:
-            result.append('no-transform')
-        if max_age is not None:
-            result.append('max-age=%d' % max_age)
-        if s_maxage is not None:
-            result.append('s-maxage=%d' % s_maxage)
-        for (k,v) in extensions.items():
-            assert 'age' not in k
-            assert '"' not in v
-            result.append('%s="%s"' % (k.replace("_","-"),v))
-        replace_header(self.headers,'cache-control',", ".join(result))
+    def cache_control(self, **kwargs):
+        self.expires = CacheControl.apply(self.headers, **kwargs)
         return self
 
     def set_content(self, content):
@@ -165,96 +78,32 @@ class DataApp(object):
         self.last_modified = time.time()
         self.content = content
         self.content_length = len(content)
-        replace_header(self.headers,'last-modified',
-                        formatdate(self.last_modified))
+        LastModified.update(self.headers, time=self.last_modified)
         return self
 
-    def content_disposition(self, attachment=None, inline=None,
-                            filename=None):
-        """
-        Sets the ``Content-Disposition`` header according to RFC 1806,
-        as specified in 19.5.1 of RFC 2616.  Note that this is not an
-        approved HTTP/1.1 header, but it is very common and useful.
-
-          ``attachment``    if True, this specifies that the content
-                            should not be shown in the browser and
-                            should be handled externally, even if the
-                            browser could render the content
-
-          ``inline``        exclusive with attachment; indicates that the
-                            content should be rendered in the browser if
-                            possible, but otherwise it should be handled
-                            externally
-
-          Only one of the above 2 may be True.  If both are None, then
-          the disposition is assumed to be an ``attachment``. These are
-          distinct fields since support for field enumeration may be
-          added in the future.
-
-          ``filename``      the filename parameter, if any, to be reported;
-                            if this is None, then the current object's
-                            'filename' attribute is used
-
-          If filename is provided, and Content-Type is not set or is
-          'application/octet-stream', then the mimetypes.guess is used
-          to upgrade the Content-Type setting.
-        """
-        assert not (attachment and inline)
-        if filename is None:
-            filename = getattr(self,'filename',None)
-        else:
-            if header_value(self.headers,'content-type') == U_MIMETYPE:
-                content_type, _ = mimetypes.guess_type(filename)
-                replace_header(self.headers,'content-type',content_type)
-        result = []
-        if inline is True:
-            assert not attachment
-            result.append('inline')
-        else:
-            assert not inline
-            result.append('attachment')
-        if filename:
-            assert '"' not in filename
-            filename = filename.split("/")[-1]
-            filename = filename.split("\\")[-1]
-            result.append('filename="%s"' % filename)
-        replace_header(self.headers,'content-disposition',"; ".join(result))
+    def content_disposition(self, **kwargs):
+        ContentDisposition.apply(self.headers, **kwargs)
         return self
 
     def __call__(self, environ, start_response):
         headers = self.headers[:]
         if self.expires is not None:
-            replace_header(headers,'expires',
-                           formatdate(time.time()+self.expires))
+            Expires.update(headers, delta=self.expires)
 
-        checkmod = environ.get('HTTP_IF_MODIFIED_SINCE')
-        if checkmod:
-            try:
-                client_clock = mktime_tz(parsedate_tz(checkmod.strip()))
-            except TypeError:
-                return HTTPBadRequest((
-                  "Client program provided an ill-formed timestamp for\r\n"
-                  "its If-Modified-Since header:\r\n"
-                  "  %s\r\n") % checkmod
-                ).wsgi_application(environ, start_response)
-            if client_clock > time.time():
-                return HTTPBadRequest((
-                  "Please check your system clock.\r\n"
-                  "According to this server, the time provided in the\r\n"
-                  "If-Modified-Since header is in the future:\r\n"
-                  "  %s\r\n") % checkmod
-                ).wsgi_application(environ, start_response)
-            elif client_clock >= int(self.last_modified):
+        try:
+            client_clock = IfModifiedSince.time(environ)
+            if client_clock >= int(self.last_modified):
                 # the client has a recent copy
                 #@@: all entity headers should be removed, not just these
-                remove_header(headers,'content-length')
-                remove_header(headers,'content-type')
+                ContentLength.delete(headers)
+                ContentType.delete(headers)
                 start_response('304 Not Modified',headers)
                 return [''] # empty body
+        except HTTPBadRequest, exce:
+            return exce.wsgi_application(environ, start_response)
 
         (lower,upper) = (0, self.content_length - 1)
         if 'HTTP_RANGE' in environ:
-            print environ['HTTP_RANGE']
             range = environ['HTTP_RANGE'].split(",")[0]
             range = range.strip().lower().replace(" ","")
             if not range.startswith("bytes=") or 1 != range.count("-"):
@@ -273,8 +122,9 @@ class DataApp(object):
                 ).wsgi_application(environ, start_response)
 
         content_length = 1 + (upper - lower)
-        replace_header(headers,'content-length', str(content_length))
-        replace_header(headers,'content-range',
+        ContentLength.update(headers,content_length)
+        ContentRange.update(headers,
+            # @@: make parameterized version
             "%d-%d/%d" % (lower, upper, self.content_length))
 
         start_response('200 OK',headers)
@@ -321,7 +171,7 @@ class FileApp(DataApp):
             try:
                 file = open(self.filename, 'rb')
             except (IOError, OSError), e:
-                exc = httpexceptions.HTTPForbidden(
+                exc = HTTPForbidden(
                     'You are not permitted to view this file (%s)' % e)
                 return exc.wsgi_application(
                     environ, start_response)
