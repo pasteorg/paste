@@ -46,9 +46,18 @@ a WSGI collection, for removing and setting header values.
 
     This method does an in-place replacement of the given header entry,
     for example: ``ContentLength(response_headers,len(body))``
+
     The first argument is a valid ``environ`` dictionary or
     ``response_headers`` list; remaining arguments are passed on to
     ``__call__(*args, **kwargs)`` for value construction.
+
+  ``apply(collection, **kwargs)``
+
+    This method is similar to update, only that it may affect other
+    headers.  For example, according to recommendations in RFC 2616,
+    certain Cache-Control configurations should also set the ``Expires``
+    header for HTTP/1.0 clients. By default, ``apply()`` is simply
+    ``update()`` but limited to keyword arguments.
 
 This particular approach to managing headers within a WSGI collection
 has several advantages:
@@ -124,7 +133,7 @@ dashes to give CamelCase style names.
 """
 
 __all__ = ['get_header', 'HTTPHeader', 'normalize_headers'
-           # additionally, all headers are exported 
+           # additionally, all headers are exported
 ]
 
 _headers = {}
@@ -177,6 +186,9 @@ class HTTPHeader(object):
        ``update()``    replaces (if they exist) all field-value items
                        in the given collection with the value provided
 
+       ``apply()``     similar to ``update`` only that keyword arguments
+                       are used and that other headers may be updated
+
        ``tuples()``    returns a set of (field-name, field-value) tuples
                        sutable for extending ``response_headers``
 
@@ -186,7 +198,7 @@ class HTTPHeader(object):
     ``MultiValueHeader``, or ``MultiEntryHeader`` as appropriate.
     """
     #@@: add field-name validation
-    def __new__(cls, name, category):
+    def __new__(cls, name, category=None):
         """
         We use the ``__new__`` operator to ensure that only one
         ``HTTPHeader`` instance exists for each field-name, and to
@@ -206,10 +218,13 @@ class HTTPHeader(object):
 
         self = object.__new__(cls)
         self.name = name
-        self.category = category
+        self.version  = getattr(self,'version','1.1')
+        self.category = getattr(self,'category',category or 'general')
+        assert isinstance(self.name,str)
         self.sort_order = {'general': 1, 'request': 2,
-                           'response': 3, 'entity': 4 }[category]
-        _headers[name.lower()] = self
+                           'response': 3, 'entity': 4 }[self.category]
+        self.extensions = {}
+        _headers[self.name.lower()] = self
         self._environ_name = 'HTTP_'+ self.name.upper().replace("-","_")
         self._headers_name = self.name.lower()
         assert self.version in ('1.1','1.0','0.9')
@@ -234,7 +249,7 @@ class HTTPHeader(object):
     def __repr__(self):
         return '<HTTPHeader %s>' % self.name
 
-    def construct(self, **kwargs):
+    def compose(self, **kwargs):
         """
         construct field-value(s) via keyword arguments
 
@@ -243,6 +258,7 @@ class HTTPHeader(object):
         value does not include an equal sign.  It is intended that this
         be specialized for specific headers.
         """
+        assert kwargs, "arguments expected"
         result = []
         keys = kwargs.keys()
         keys.sort()
@@ -270,7 +286,7 @@ class HTTPHeader(object):
         depending upon the arguments:
 
         - If only keyword arguments are given, then this is equivalent
-          to ``format(*construct(**kwargs))``.
+          to ``format(*compose(**kwargs))``.
 
         - If the first (and only) argument is a dict, it is assumed
           to be a WSGI ``environ`` and the result of the corresponding
@@ -286,14 +302,12 @@ class HTTPHeader(object):
 
         At this time it is an error to provide keyword arguments if args
         is present (this might change).  It is an error to provide both
-        a WSGI object and also string arguments.  It is possible to not
-        provide any arguments, in which case none of the above
-        constructor functions are called and ``None`` is returned.
+        a WSGI object and also string arguments.  If no arguments are
+        provided, then ``compose()`` is called to provide a default
+        value for the header; if there is not default it is an error.
         """
         if not args:
-            if kwargs:
-                return self.format(*self.construct(**kwargs))
-            return None
+            return self.format(*self.compose(**kwargs))
         if list == type(args[0]):
             assert 1 == len(args)
             result = []
@@ -334,7 +348,9 @@ class HTTPHeader(object):
         """
         This method replaces (in-place when possible) all occurances of
         the given header with the provided value.  If no value is
-        provided, this is the same as ``remove``.
+        provided, this is the same as ``remove`` (note that this case
+        can only occur if the target is a collection w/o a corresponding
+        header value).
         """
         value = self.__call__(*args, **kwargs)
         if value is None:
@@ -357,6 +373,15 @@ class HTTPHeader(object):
             collection.append((self.name, value))
         return self
 
+    def apply(self, collection, **kwargs):
+        """
+        This method is similar to ``update`` only that usage may
+        result in other headers being changed as recommended by 
+        the corresponding specification.  The return value of this
+        method is undefined (it is up to sub-classes).
+        """
+        self.update(collection, **kwargs)
+
     def tuples(self, *args, **kwargs):
         value = self.__call__(*args, **kwargs)
         if not value:
@@ -373,8 +398,8 @@ class SingleValueHeader(HTTPHeader):
     def format(self, *values):
         if not values:
            return None
-        assert len(values) == 1, "found more than one value for singelton"
-        return values[0]
+        assert len(values) == 1, "more than one value: %s" % repr(values)
+        return values[0].strip()
 
 class MultiValueHeader(HTTPHeader):
     """
@@ -385,7 +410,7 @@ class MultiValueHeader(HTTPHeader):
     def format(self, *values):
         if not values:
            return None
-        return ", ".join(values)
+        return ", ".join([v.strip() for v in values])
 
 class MultiEntryHeader(HTTPHeader):
     """
@@ -405,7 +430,7 @@ class MultiEntryHeader(HTTPHeader):
     def format(self, *values):
         if not values:
            return None
-        return list(values)
+        return list([v.strip() for v in values])
 
     def tuples(self, *args, **kwargs):
         values = self.__call__(*args, **kwargs)
@@ -467,6 +492,211 @@ def normalize_headers(response_headers, strict=True):
         return cmp(ac,bc)
     response_headers.sort(compare)
 
+class DateHeader(SingleValueHeader):
+    """
+    This extends the ``SingleValueHeader`` object with specific
+    treatment of time values.
+
+    - It overrides ``compose`` to provide a sole keyword argument
+      ``time`` which is an offset in seconds from the current time.
+
+    - A ``time`` method is provided which parses the given value
+      and returns the current time value.
+    """
+
+    def compose(self, time=None):
+        if not time:
+            time = 0
+        else:
+            assert type(time) == int
+        return (formatdate(now()+time),)
+
+    def time(self, *args, **kwargs):
+        """ return the time value (in seconds since 1970) """
+        value = self.__call__(*args, **kwargs)
+        return mktime_tz(parsedate_tz(value))
+
+
+#
+# Following are specific HTTP headers. Since these classes are mostly
+# singletons, there is no point in keeping the class around once it has
+# been instantiated, so we use the same name.
+#
+
+from mimetypes import guess_type
+from rfc822 import formatdate, parsedate_tz, mktime_tz
+from time import time as now
+
+class CacheControl(MultiValueHeader):
+    """
+    Cache-Control, RFC 2616 section 14.9
+
+    This header can be constructed (using keyword arguments), by
+    first specifying one of the following mechanisms:
+
+      ``public``        if True, this argument specifies that the
+                        response, as a whole, may be cashed.
+
+      ``private``       if True, this argument specifies that the
+                        response, as a whole, may be cashed; this
+                        implementation does not support the
+                        enumeration of private fields
+
+
+      ``no_cache``      if True, this argument specifies that the
+                        response, as a whole, may be cashed; this
+                        implementation does not support the
+                        enumeration of private fields
+
+    In general, only one of the above three may be True, the other 2
+    must then be False or None.  If all three are None, then the cashe
+    is assumed to be ``public``.  Following one of these mechanism
+    specifiers are various modifiers:
+
+      ``no_store``      indicates if content may be stored on disk;
+                        otherwise cashe is limited to memory (note:
+                        users can still save the data, this applies
+                        to intermediate caches)
+
+      ``max_age``       the maximum duration (in seconds) for which
+                        the content should be cached; if ``no-cache``
+                        is specified, this defaults to 0 seconds
+
+      ``s_maxage``      the maximum duration (in seconds) for which the
+                        content should be allowed in a shared cache.
+
+      ``no_transform``  specifies that an intermediate cache should
+                        not convert the content from one type to
+                        another (e.g. transform a BMP to a PNG).
+
+      ``extensions``    gives additional cache-control extensionsn,
+                        such as items like, community="UCI" (14.9.6)
+
+    The usage of ``apply()`` on this header has side-effects. As
+    recommended by RFC 2616, if ``max_age`` is provided, then then the
+    ``Expires`` header is also calculated for HTTP/1.0 clients and
+    proxies (this is done at the time ``apply()`` is called).  For
+    ``no-cache`` and for ``private`` cases, we either do not want the
+    response cached or do not want any response accidently returned to
+    other users; so to prevent this case, we set the ``Expires`` header
+    to the time of the request, signifying to HTTP/1.0 transports that
+    the content isn't to be cached.  If you are using SSL, your
+    communication is already "private", so to work with HTTP/1.0
+    browsers over SSL, consider specifying your cache as ``public`` as
+    the distinction between public and private is moot.
+    """
+
+    # common values for max-age; "good enough" approxmiates
+    ONE_HOUR  = 60*60
+    ONE_DAY   = ONE_HOUR * 24
+    ONE_WEEK  = ONE_DAY * 7
+    ONE_MONTH = ONE_DAY * 30
+    ONE_YEAR  = ONE_WEEK * 52
+
+    def _compose(self, public=None, private=None, no_cache=None,
+                 no_store=False, max_age=None, s_maxage=None,
+                 no_transform=False, **extensions):
+        assert isinstance(max_age,(type(None),int))
+        assert isinstance(s_maxage,(type(None),int))
+        expires = 0
+        result = []
+        if private is True:
+            assert not public and not no_cache and not s_maxage
+            result.append('private')
+        elif no_cache is True:
+            assert not public and not private and not max_age
+            result.append('no-cache')
+        else:
+            assert public is None or public is True
+            assert not private and not no_cache
+            expires = max_age
+            result.append('public')
+        if no_store:
+            result.append('no-store')
+        if no_transform:
+            result.append('no-transform')
+        if max_age is not None:
+            result.append('max-age=%d' % max_age)
+        if s_maxage is not None:
+            result.append('s-maxage=%d' % s_maxage)
+        for (k,v) in extensions.items():
+            if k not in self.extensions:
+                raise AssertionError("unexpected extension used: '%s'" % k)
+            result.append('%s="%s"' % (k.replace("_","-"),v))
+        return (result, expires)
+
+    def compose(self, **kwargs):
+        (result, expires) = self._compose(**kwargs)
+        return result
+
+    def apply(self, collection, **kwargs):
+        (result, expires) = self._compose(**kwargs)
+        Expires.update(collection, time=expires)
+        self.update(collection, *result)
+        return expires
+CacheControl = CacheControl('Cache-Control','general')
+
+class ContentDisposition(MultiValueHeader):
+    """
+    Content-Disposition, RFC 2616 section 15.5
+
+    This header can be constructed (using keyword arguments), by
+    first specifying one of the following mechanisms:
+
+      ``attachment``    if True, this specifies that the content
+                        should not be shown in the browser and
+                        should be handled externally, even if the
+                        browser could render the content
+
+      ``inline``        exclusive with attachment; indicates that the
+                        content should be rendered in the browser if
+                        possible, but otherwise it should be handled
+                        externally
+
+    Only one of the above 2 may be True.  If both are None, then
+    the disposition is assumed to be an ``attachment``. These are
+    distinct fields since support for field enumeration may be
+    added in the future.
+
+      ``filename``      the filename parameter, if any, to be reported;
+                        if this is None, then the current object's
+                        'filename' attribute is used
+
+    The usage of ``apply()`` on this header has side-effects. If
+    filename is provided, and Content-Type is not set or is
+    'application/octet-stream', then the mimetypes.guess is used to
+    upgrade the Content-Type setting.
+    """
+    def _compose(self, attachment=None, inline=None, filename=None):
+        result = []
+        if inline is True:
+            assert not attachment
+            result.append('inline')
+        else:
+            assert not inline
+            result.append('attachment')
+        if filename:
+            assert '"' not in filename
+            filename = filename.split("/")[-1]
+            filename = filename.split("\\")[-1]
+            result.append('filename="%s"' % filename)
+        return (result, filename)
+
+    def compose(self, **kwargs):
+        (result, mimetype) = self._compose(**kwargs)
+        return result
+
+    def apply(self, collection, **kwargs):
+        (result, filename) = self._compose(**kwargs)
+        mimetype = ContentType(collection)
+        if not mimetype or 'application/octet-stream' == mimetype:
+            mimetype, _ = guess_type(filename)
+            if mimetype and 'application/octet-stream' != mimetype:
+                ContentType.update(collection, mimetype)
+        self.update(collection, *result)
+        return mimetype
+ContentDisposition = ContentDisposition('Content-Disposition','entity')
+
 #
 # For now, construct a minimalistic version of the field-names; at a
 # later date more complicated headers may sprout content constructors.
@@ -480,29 +710,29 @@ for (name,              category, version, style,      comment) in \
 ,("Age"                ,'response','1.1','singular'   ,'RFC 2616 $14.6' )
 ,("Allow"              ,'entity'  ,'1.0','multi-value','RFC 2616 $14.7' )
 ,("Authorization"      ,'request' ,'1.0','singular'   ,'RFC 2616 $14.8' )
-,("Cache-Control"      ,'general' ,'1.1','multi-value','RFC 2616 $14.9' )
+#,("Cache-Control"      ,'general' ,'1.1','multi-value','RFC 2616 $14.9' )
 ,("Cookie"             ,'request' ,'1.0','multi-value','RFC 2109/Netscape')
 ,("Connection"         ,'general' ,'1.1','multi-value','RFC 2616 $14.10')
 ,("Content-Encoding"   ,'entity'  ,'1.0','multi-value','RFC 2616 $14.11')
-,("Content-Disposition",'entity'  ,'1.1','multi-value','RFC 2616 $15.5' )
+#,("Content-Disposition",'entity'  ,'1.1','multi-value','RFC 2616 $15.5' )
 ,("Content-Language"   ,'entity'  ,'1.1','multi-value','RFC 2616 $14.12')
 ,("Content-Length"     ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.13')
 ,("Content-Location"   ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.14')
 ,("Content-MD5"        ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.15')
 ,("Content-Range"      ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.16')
 ,("Content-Type"       ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.17')
-,("Date"               ,'general' ,'1.0','singular'   ,'RFC 2616 $14.18')
+,("Date"               ,'general' ,'1.0','date-header','RFC 2616 $14.18')
 ,("ETag"               ,'response','1.1','singular'   ,'RFC 2616 $14.19')
 ,("Expect"             ,'request' ,'1.1','multi-value','RFC 2616 $14.20')
-,("Expires"            ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.21')
+,("Expires"            ,'entity'  ,'1.0','date-header','RFC 2616 $14.21')
 ,("From"               ,'request' ,'1.0','singular'   ,'RFC 2616 $14.22')
 ,("Host"               ,'request' ,'1.1','singular'   ,'RFC 2616 $14.23')
 ,("If-Match"           ,'request' ,'1.1','multi-value','RFC 2616 $14.24')
-,("If-Modified-Since"  ,'request' ,'1.0','singular'   ,'RFC 2616 $14.25')
+,("If-Modified-Since"  ,'request' ,'1.0','date-header','RFC 2616 $14.25')
 ,("If-None-Match"      ,'request' ,'1.1','multi-value','RFC 2616 $14.26')
 ,("If-Range"           ,'request' ,'1.1','singular'   ,'RFC 2616 $14.27')
-,("If-Unmodified-Since",'request' ,'1.1','singular'   ,'RFC 2616 $14.28')
-,("Last-Modified"      ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.29')
+,("If-Unmodified-Since",'request' ,'1.1','date-header' ,'RFC 2616 $14.28')
+,("Last-Modified"      ,'entity'  ,'1.0','date-header','RFC 2616 $14.29')
 ,("Location"           ,'response','1.0','singular'   ,'RFC 2616 $14.30')
 ,("Max-Forwards"       ,'request' ,'1.1','singular'   ,'RFC 2616 $14.31')
 ,("Pragma"             ,'general' ,'1.0','multi-value','RFC 2616 $14.32')
@@ -525,6 +755,7 @@ for (name,              category, version, style,      comment) in \
     cname = name.replace("-","")
     bname = { 'multi-value': 'MultiValueHeader',
               'multi-entry': 'MultiEntryHeader',
+              'date-header': 'DateHeader',
               'singular'   : 'SingleValueHeader'}[style]
     exec """\
 class %(cname)s(%(bname)s):
