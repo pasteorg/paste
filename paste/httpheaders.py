@@ -449,7 +449,7 @@ class MultiEntryHeader(HTTPHeader):
         values = self.__call__(*args, **kwargs)
         if not values:
             return ()
-        return tuple([(self.name, value) for value in values])
+        return [(self.name, value) for value in values]
 
 def get_header(name, raiseError=True):
     """
