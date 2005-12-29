@@ -204,7 +204,7 @@ class HTTPHeader(object):
     """
 
     # default attributes
-    case_sensitive = True
+    case_sensitive = False
     version = '1.1'
     category = 'general'
     extensions = {}
@@ -240,8 +240,6 @@ class HTTPHeader(object):
         self._headers_name = getattr(self, '_headers_name',
                                  self.name.lower())
         assert self.version in ('1.1','1.0','0.9')
-        assert isinstance(self,(SingleValueHeader,MultiValueHeader,
-                                MultiEntryHeader))
 
     def __str__(self):
         return self.name
@@ -271,14 +269,14 @@ class HTTPHeader(object):
 
     def parse(self, *args, **kwargs):
         """
-        This method invokes __call__ with the arguments provided, parses
-        the header results, and then returns a header-specific data
-        structure corresponding to the header.  For example, ``Expires``
-        header returns seconds (as returned by time.time() module).
+        This method invokes ``resolve()`` with the arguments provided,
+        parses the header results, and then returns a header-specific
+        data structure corresponding to the header.  For example, the
+        ``Expires`` header returns seconds (as returned by time.time())
         """
         raise NotImplementedError()
 
-    def __call__(self, *args, **kwargs):
+    def resolve(self, *args, **kwargs):
         """
         This finds/constructs field-value(s) for the given header
         depending upon the arguments:
@@ -313,7 +311,7 @@ class HTTPHeader(object):
             for value in [value for header, value in args[0]
                          if header.lower() == name]:
                 result.append(value)
-            return tuple(result)
+            return result
         if dict == type(args[0]):
             assert 1 == len(args) and 'wsgi.version' in args[0]
             value = args[0].get(self._environ_name)
@@ -323,6 +321,20 @@ class HTTPHeader(object):
         for item in args:
            assert not type(item) in (dict, list)
         return args
+
+    def __call__(self, *args, **kwargs):
+        """
+        This method converts the results of ``resolve()`` into a string
+        value for common usage.  If more than one result are found; they
+        are comma delimited as described by section 4.2 of RFC 2616.
+        """
+        results = self.resolve(*args, **kwargs)
+        if not results:
+            return ''
+        result = ", ".join([str(v).strip() for v in results])
+        if self.case_sensitive:
+            return result
+        return result.lower()
 
     def delete(self, collection):
         """
@@ -383,20 +395,19 @@ class HTTPHeader(object):
         return self.update(collection, **kwargs)
 
     def tuples(self, *args, **kwargs):
-        values = self.__call__(*args, **kwargs)
-        if not values:
+        value = self.__call__(*args, **kwargs)
+        if not value:
             return ()
-        return tuple([(self.name, value) for value in values])
+        return [(self.name, value)]
 
 class SingleValueHeader(HTTPHeader):
     """
-    The field-value is a single value and therefore all results constructed
-    or obtained from a collection are asserted to ensure that only one
-    result was there; if an empty list is returned it is cast into a
-    empty string so that string operations may be directly applied.
+    The field-value is a single value and therefore all results
+    constructed or obtained from a collection are asserted to ensure
+    that only one result was there.
     """
     def __call__(self, *args, **kwargs):
-        results = HTTPHeader.__call__(self, *args, **kwargs)
+        results = HTTPHeader.resolve(self, *args, **kwargs)
         assert isinstance(results, (tuple,list))
         if not results:
             return ''
@@ -408,18 +419,10 @@ class SingleValueHeader(HTTPHeader):
 
 class MultiValueHeader(HTTPHeader):
     """
-    This header is multi-valued and values can be combined by
-    concatinating with a comma, as described by section 4.2 of RFC 2616.
+    This is the default behavior of HTTPHeader where the header is
+    assumed to be multi-valued and values can be combined with a comma.
     """
-    def __call__(self, *args, **kwargs):
-        results = HTTPHeader.__call__(self, *args, **kwargs)
-        assert isinstance(results, (tuple,list))
-        if not results:
-            return ''
-        result = ", ".join([str(v).strip() for v in results])
-        if self.case_sensitive:
-            return result
-        return result.lower()
+    pass
 
 class MultiEntryHeader(HTTPHeader):
     """
@@ -432,7 +435,7 @@ class MultiEntryHeader(HTTPHeader):
     of a string.
     """
     def __call__(self, *args, **kwargs):
-        results = HTTPHeader.__call__(self, *args, **kwargs)
+        results = self.resolve(*args, **kwargs)
         assert isinstance(results, (tuple,list))
         if self.case_sensitive:
             return [str(v).strip() for v in results]
@@ -441,6 +444,12 @@ class MultiEntryHeader(HTTPHeader):
     def update(self, collection, *args, **kwargs):
         #@@: This needs to be implemented to handle lists
         raise NotImplementedError()
+
+    def tuples(self, *args, **kwargs):
+        values = self.__call__(*args, **kwargs)
+        if not values:
+            return ()
+        return tuple([(self.name, value) for value in values])
 
 def get_header(name, raiseError=True):
     """
