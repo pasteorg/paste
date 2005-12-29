@@ -8,8 +8,9 @@ if-modified-since request header.
 """
 
 import os, time, mimetypes
-from httpexceptions import HTTPBadRequest, HTTPForbidden
-from httpheaders import get_header, Expires, \
+from httpexceptions import HTTPBadRequest, HTTPForbidden, \
+    HTTPRequestRangeNotSatisfiable
+from httpheaders import get_header, Expires, Range, \
     ContentType, AcceptRanges, CacheControl, ContentDisposition, \
     ContentLength, ContentRange, LastModified, IfModifiedSince
 
@@ -70,7 +71,7 @@ class DataApp(object):
             self.set_content(content)
 
     def cache_control(self, **kwargs):
-        self.expires = CacheControl.apply(self.headers, **kwargs)
+        self.expires = CacheControl.apply(self.headers, **kwargs) or None
         return self
 
     def set_content(self, content):
@@ -91,7 +92,7 @@ class DataApp(object):
             Expires.update(headers, delta=self.expires)
 
         try:
-            client_clock = IfModifiedSince.time(environ)
+            client_clock = IfModifiedSince.parse(environ)
             if client_clock >= int(self.last_modified):
                 # the client has a recent copy
                 #@@: all entity headers should be removed, not just these
@@ -103,19 +104,13 @@ class DataApp(object):
             return exce.wsgi_application(environ, start_response)
 
         (lower,upper) = (0, self.content_length - 1)
-        if 'HTTP_RANGE' in environ:
-            range = environ['HTTP_RANGE'].split(",")[0]
-            range = range.strip().lower().replace(" ","")
-            if not range.startswith("bytes=") or 1 != range.count("-"):
-                return HTTPBadRequest((
-                  "A malformed range request was given.\r\n"
-                  "  Range: %s\r\n") % range
-                ).wsgi_application(environ, start_response)
-            (lower,upper) = range[len("bytes="):].split("-")
-            upper = upper and int(upper) or (self.content_length - 1)
-            lower = lower and int(lower) or 0
-            if upper >= self.content_length or lower >= self.content_length:
-                return HTTPBadRequest((
+        range = Range.parse(environ)
+        print range
+        if range and 'bytes' == range[0] and 1 == len(range[1]):
+            (lower,upper) = range[1][0]
+            upper = upper or (self.content_length - 1)
+            if upper >= self.content_length or lower > upper:
+                return HTTPRequestRangeNotSatisfiable((
                   "Range request was made beyond the end of the content,\r\n"
                   "which is %s long.\r\n  Range: %s\r\n") % (
                      self.content_length, range)
@@ -126,8 +121,10 @@ class DataApp(object):
         ContentRange.update(headers,
             # @@: make parameterized version
             "%d-%d/%d" % (lower, upper, self.content_length))
-
-        start_response('200 OK',headers)
+        if lower == 0 and upper == self.content_length - 1:
+            start_response('200 OK', headers)
+        else:
+            start_response('206 Partial Content', headers)
         if self.content is not None:
             return [self.content[lower:upper+1]]
         assert self.__class__ != DataApp, "DataApp must call set_content"
@@ -163,7 +160,8 @@ class FileApp(DataApp):
         self.last_modified = stat.st_mtime
 
     def __call__(self, environ, start_response):
-        if 'max-age=0' in environ.get("HTTP_CACHE_CONTROL",''):
+        print CacheControl(environ), "\n"
+        if 'max-age=0' in CacheControl(environ):
             self.update(force=True) # RFC 2616 13.2.6
         else:
             self.update()
