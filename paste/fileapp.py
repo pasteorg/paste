@@ -10,9 +10,10 @@ if-modified-since request header.
 import os, time, mimetypes
 from httpexceptions import HTTPBadRequest, HTTPForbidden, \
     HTTPRequestRangeNotSatisfiable
-from httpheaders import get_header, Expires, Range, \
+from httpheaders import get_header, Expires, Range, list_headers, \
     ContentType, AcceptRanges, CacheControl, ContentDisposition, \
     ContentLength, ContentRange, LastModified, IfModifiedSince
+
 
 CACHE_SIZE = 4096
 BLOCK_SIZE = 4096 * 16
@@ -94,10 +95,9 @@ class DataApp(object):
         try:
             client_clock = IfModifiedSince.parse(environ)
             if client_clock >= int(self.last_modified):
-                # the client has a recent copy
-                #@@: all entity headers should be removed, not just these
-                ContentLength.delete(headers)
-                ContentType.delete(headers)
+                # horribly inefficient, n^2 performance, yuck!
+                for head in list_headers(entity=True):
+                    head.delete(headers)
                 start_response('304 Not Modified',headers)
                 return [''] # empty body
         except HTTPBadRequest, exce:
@@ -112,7 +112,7 @@ class DataApp(object):
                 return HTTPRequestRangeNotSatisfiable((
                   "Range request was made beyond the end of the content,\r\n"
                   "which is %s long.\r\n  Range: %s\r\n") % (
-                     self.content_length, range)
+                     self.content_length, Range(environ))
                 ).wsgi_application(environ, start_response)
 
         content_length = 1 + (upper - lower)

@@ -267,6 +267,15 @@ class HTTPHeader(object):
            return ''
         raise NotImplementedError()
 
+    def parse(self, *args, **kwargs):
+        """
+        This method invokes __call__ with the arguments provided, parses
+        the header results, and then returns a header-specific data
+        structure corresponding to the header.  For example, ``Expires``
+        header returns seconds (as returned by time.time() module).
+        """
+        raise NotImplementedError()
+
     def __call__(self, *args, **kwargs):
         """
         This finds/constructs field-value(s) for the given header
@@ -440,19 +449,16 @@ def get_header(name, raiseError=True):
         raise AssertionError("'%s' is an unknown header" % name)
     return retval
 
-def list_headers(general=True, request=True, response=True, entity=True):
+def list_headers(general=None, request=None, response=None, entity=None):
     " list all headers for a given category "
+    if not (general or request or response or entity):
+        general = request = response = entity = True
     search = []
     for (bool,strval) in ((general,'general'), (request,'request'),
                          (response,'response'), (entity,'entity')):
         if bool:
             search.append(strval)
-    search = tuple(search)
-    for head in _headers.values():
-        if head.category in search:
-            retval.append(head)
-    retval.sort()
-    return retval
+    return [head for head in _headers.values() if head.category in search]
 
 def normalize_headers(response_headers, strict=True):
     """
