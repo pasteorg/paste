@@ -202,6 +202,13 @@ class HTTPHeader(object):
     inherit from this directly, use one of ``SingleValueHeader``,
     ``MultiValueHeader``, or ``MultiEntryHeader`` as appropriate.
     """
+
+    # default attributes
+    case_sensitive = True
+    version = '1.1'
+    category = 'general'
+    extensions = {}
+
     #@@: add field-name validation
     def __new__(cls, name, category=None):
         """
@@ -223,16 +230,15 @@ class HTTPHeader(object):
 
         self = object.__new__(cls)
         self.name = name
-        self.version  = getattr(self,'version','1.1')
-        self.category = getattr(self,'category',category or 'general')
         assert isinstance(self.name,str)
+        self.category = category or self.category
         self.sort_order = {'general': 1, 'request': 2,
                            'response': 3, 'entity': 4 }[self.category]
-        self.extensions = {}
         _headers[self.name.lower()] = self
         self._environ_name = getattr(self, '_environ_name',
                                 'HTTP_'+ self.name.upper().replace("-","_"))
-        self._headers_name = self.name.lower()
+        self._headers_name = getattr(self, '_headers_name',
+                                 self.name.lower())
         assert self.version in ('1.1','1.0','0.9')
         assert isinstance(self,(SingleValueHeader,MultiValueHeader,
                                 MultiEntryHeader))
@@ -257,14 +263,10 @@ class HTTPHeader(object):
 
     def compose(self, **kwargs):
         """
-        construct field-value(s) via keyword arguments
+        construct field-value(s) via keyword arguments; this should
+        return a sequence (tuple or list) with the results; not a
+        singular value
         """
-        raise NotImplementedError()
-
-    def format(self, *values):
-        """ produce a return value appropriate for this kind of header """
-        if not values:
-           return ''
         raise NotImplementedError()
 
     def parse(self, *args, **kwargs):
@@ -282,7 +284,7 @@ class HTTPHeader(object):
         depending upon the arguments:
 
         - If only keyword arguments are given, then this is equivalent
-          to ``format(*compose(**kwargs))``.
+          to ``compose(**kwargs)``.
 
         - If the first (and only) argument is a dict, it is assumed
           to be a WSGI ``environ`` and the result of the corresponding
@@ -303,7 +305,7 @@ class HTTPHeader(object):
         value for the header; if there is not default it is an error.
         """
         if not args:
-            return self.format(*self.compose(**kwargs))
+            return self.compose(**kwargs)
         if list == type(args[0]):
             assert 1 == len(args)
             result = []
@@ -311,16 +313,16 @@ class HTTPHeader(object):
             for value in [value for header, value in args[0]
                          if header.lower() == name]:
                 result.append(value)
-            return self.format(*result)
+            return tuple(result)
         if dict == type(args[0]):
             assert 1 == len(args) and 'wsgi.version' in args[0]
             value = args[0].get(self._environ_name)
             if not value:
-                return ''
-            return self.format(value)
+                return ()
+            return (value,)
         for item in args:
            assert not type(item) in (dict, list)
-        return self.format(*args)
+        return args
 
     def delete(self, collection):
         """
@@ -381,34 +383,43 @@ class HTTPHeader(object):
         return self.update(collection, **kwargs)
 
     def tuples(self, *args, **kwargs):
-        value = self.__call__(*args, **kwargs)
-        if not value:
+        values = self.__call__(*args, **kwargs)
+        if not values:
             return ()
-        return ((self.name, value),)
+        return tuple([(self.name, value) for value in values])
 
 class SingleValueHeader(HTTPHeader):
     """
-    The field-value is a single value and therefore all results
-    constructed or obtained from a collection are asserted to ensure
-    that only one result was there.
+    The field-value is a single value and therefore all results constructed
+    or obtained from a collection are asserted to ensure that only one
+    result was there; if an empty list is returned it is cast into a
+    empty string so that string operations may be directly applied.
     """
-
-    def format(self, *values):
-        if not values:
-           return ''
-        assert len(values) == 1, "more than one value: %s" % repr(values)
-        return str(values[0]).strip()
+    def __call__(self, *args, **kwargs):
+        results = HTTPHeader.__call__(self, *args, **kwargs)
+        assert isinstance(results, (tuple,list))
+        if not results:
+            return ''
+        assert len(results) == 1, "more than one value: %s" % repr(results)
+        result = str(results[0]).strip()
+        if self.case_sensitive:
+            return result
+        return result.lower()
 
 class MultiValueHeader(HTTPHeader):
     """
     This header is multi-valued and values can be combined by
     concatinating with a comma, as described by section 4.2 of RFC 2616.
     """
-
-    def format(self, *values):
-        if not values:
-           return ''
-        return ", ".join([str(v).strip() for v in values])
+    def __call__(self, *args, **kwargs):
+        results = HTTPHeader.__call__(self, *args, **kwargs)
+        assert isinstance(results, (tuple,list))
+        if not results:
+            return ''
+        result = ", ".join([str(v).strip() for v in results])
+        if self.case_sensitive:
+            return result
+        return result.lower()
 
 class MultiEntryHeader(HTTPHeader):
     """
@@ -420,21 +431,16 @@ class MultiEntryHeader(HTTPHeader):
     The values returned for this case are _always_ a list instead
     of a string.
     """
+    def __call__(self, *args, **kwargs):
+        results = HTTPHeader.__call__(self, *args, **kwargs)
+        assert isinstance(results, (tuple,list))
+        if self.case_sensitive:
+            return [str(v).strip() for v in results]
+        return [str(v).strip().lower() for v in results]
 
     def update(self, collection, *args, **kwargs):
         #@@: This needs to be implemented to handle lists
         raise NotImplementedError()
-
-    def format(self, *values):
-        if not values:
-           return []
-        return list([str(v).strip() for v in values])
-
-    def tuples(self, *args, **kwargs):
-        values = self.__call__(*args, **kwargs)
-        if not values:
-            return ()
-        return tuple([(self.name, value) for value in values])
 
 def get_header(name, raiseError=True):
     """
