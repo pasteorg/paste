@@ -25,6 +25,16 @@ def test_environ():
       'HTTP_CACHE_CONTROL': 'public, max-age=1234'
     }
 
+def test_environ_cgi():
+    environ = {'CONTENT_TYPE': 'server/supplied', 'wsgi.version': '1.0',
+               'HTTP_CONTENT_TYPE': 'text/plain', 'CONTENT_LENGTH': '200'}
+    assert 'text/plain' == ContentType(environ)
+    assert '200' == ContentLength(environ)
+    ContentType.update(environ,'new/type')
+    assert 'new/type' == ContentType(environ)
+    ContentType.delete(environ)
+    assert 'server/supplied' == ContentType(environ)
+
 def test_response_headers():
     collection = [('via', 'bing')]
     _test_generic(collection)

@@ -629,9 +629,26 @@ class CacheControl(MultiValueHeader):
 
 CacheControl = CacheControl('Cache-Control','general')
 
-class ContentType(SingleValueHeader):
+class SingleValueCGIHeader(SingleValueHeader):
+    """
+    This is a base class for Content-Type and Content-Length headers,
+    which besides their HTTP_ entries may also have a CGI version.
+    The logic is to only use the CGI version when the HTTP_ version is
+    missing.  Hopefully this can be removed.
+    """
+    def __call__(self, *args, **kwargs):
+        if args and dict == type(args[0]):
+            if not args[0].get(self._environ_name):
+                cgi_name = self._environ_name[5:]
+                return self.format(args[0].get(cgi_name))
+        return SingleValueHeader.__call__(self, *args, **kwargs)
+
+class ContentType(SingleValueCGIHeader):
     """
     Content-Type, RFC 2616 section 14.17
+
+    If the 'Content-Type' does not appear in the ``environ`` the
+    corresponding CGI variable is searched.
     """
     version = '1.0'
 
@@ -656,6 +673,12 @@ class ContentType(SingleValueHeader):
         return (result,)
 ContentType = ContentType('Content-Type','entity')
 
+class ContentLength(SingleValueCGIHeader):
+    """
+    Content-Length, RFC 2616 section 14.13
+    """
+    version = "1.0"
+ContentLength = ContentLength('Content-Length','entity')
 
 class ContentDisposition(SingleValueHeader):
     """
@@ -755,7 +778,7 @@ for (name,              category, version, style,      comment) in \
 ,("Content-Encoding"   ,'entity'  ,'1.0','multi-value','RFC 2616 $14.11')
 #,("Content-Disposition",'entity'  ,'1.1','multi-value','RFC 2616 $15.5' )
 ,("Content-Language"   ,'entity'  ,'1.1','multi-value','RFC 2616 $14.12')
-,("Content-Length"     ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.13')
+#,("Content-Length"     ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.13')
 ,("Content-Location"   ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.14')
 ,("Content-MD5"        ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.15')
 ,("Content-Range"      ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.16')
