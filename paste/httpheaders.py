@@ -230,7 +230,8 @@ class HTTPHeader(object):
                            'response': 3, 'entity': 4 }[self.category]
         self.extensions = {}
         _headers[self.name.lower()] = self
-        self._environ_name = 'HTTP_'+ self.name.upper().replace("-","_")
+        self._environ_name = getattr(self, '_environ_name',
+                                'HTTP_'+ self.name.upper().replace("-","_"))
         self._headers_name = self.name.lower()
         assert self.version in ('1.1','1.0','0.9')
         assert isinstance(self,(SingleValueHeader,MultiValueHeader,
@@ -263,7 +264,7 @@ class HTTPHeader(object):
     def format(self, *values):
         """ produce a return value appropriate for this kind of header """
         if not values:
-           return None
+           return ''
         raise NotImplementedError()
 
     def __call__(self, *args, **kwargs):
@@ -305,8 +306,8 @@ class HTTPHeader(object):
         if dict == type(args[0]):
             assert 1 == len(args) and 'wsgi.version' in args[0]
             value = args[0].get(self._environ_name)
-            if value is None:
-               return None
+            if not value:
+                return ''
             return self.format(value)
         for item in args:
            assert not type(item) in (dict, list)
@@ -340,7 +341,7 @@ class HTTPHeader(object):
         could be a list for ``MultiEntryHeader`` instances).
         """
         value = self.__call__(*args, **kwargs)
-        if value is None:
+        if not value:
             self.remove(connection)
             return
         if type(collection) == dict:
@@ -385,7 +386,7 @@ class SingleValueHeader(HTTPHeader):
 
     def format(self, *values):
         if not values:
-           return None
+           return ''
         assert len(values) == 1, "more than one value: %s" % repr(values)
         return str(values[0]).strip()
 
@@ -397,7 +398,7 @@ class MultiValueHeader(HTTPHeader):
 
     def format(self, *values):
         if not values:
-           return None
+           return []
         return ", ".join([str(v).strip() for v in values])
 
 class MultiEntryHeader(HTTPHeader):
@@ -417,7 +418,7 @@ class MultiEntryHeader(HTTPHeader):
 
     def format(self, *values):
         if not values:
-           return None
+           return ''
         return list([str(v).strip() for v in values])
 
     def tuples(self, *args, **kwargs):
@@ -499,17 +500,16 @@ class DateHeader(SingleValueHeader):
             time += delta
         return (formatdate(time),)
 
-    def time(self, *args, **kwargs):
+    def parse(self, *args, **kwargs):
         """ return the time value (in seconds since 1970) """
         value = self.__call__(*args, **kwargs)
-        if value is None:
-            return None
-        try:
-            return mktime_tz(parsedate_tz(value))
-        except TypeError:
-            raise HTTPBadRequest((
-                "Received an ill-formed timestamp for %s: %s\r\n") %
-                (self.name, value))
+        if value:
+            try:
+                return mktime_tz(parsedate_tz(value))
+            except TypeError:
+                raise HTTPBadRequest((
+                    "Received an ill-formed timestamp for %s: %s\r\n") %
+                    (self.name, value))
 
 #
 # Following are specific HTTP headers. Since these classes are mostly
@@ -629,28 +629,14 @@ class CacheControl(MultiValueHeader):
 
 CacheControl = CacheControl('Cache-Control','general')
 
-class SingleValueCGIHeader(SingleValueHeader):
-    """
-    This is a base class for Content-Type and Content-Length headers,
-    which besides their HTTP_ entries may also have a CGI version.
-    The logic is to only use the CGI version when the HTTP_ version is
-    missing.  Hopefully this can be removed.
-    """
-    def __call__(self, *args, **kwargs):
-        if args and dict == type(args[0]):
-            if not args[0].get(self._environ_name):
-                cgi_name = self._environ_name[5:]
-                return self.format(args[0].get(cgi_name))
-        return SingleValueHeader.__call__(self, *args, **kwargs)
-
-class ContentType(SingleValueCGIHeader):
+class ContentType(SingleValueHeader):
     """
     Content-Type, RFC 2616 section 14.17
 
-    If the 'Content-Type' does not appear in the ``environ`` the
-    corresponding CGI variable is searched.
+    Unlike other headers, use the CGI variable instead.
     """
     version = '1.0'
+    _environ_name = 'CONTENT_TYPE'
 
     # common mimetype constants
     UNKNOWN    = 'application/octet-stream'
@@ -673,11 +659,15 @@ class ContentType(SingleValueCGIHeader):
         return (result,)
 ContentType = ContentType('Content-Type','entity')
 
-class ContentLength(SingleValueCGIHeader):
+class ContentLength(SingleValueHeader):
     """
     Content-Length, RFC 2616 section 14.13
+
+    Unlike other headers, use the CGI variable instead.
     """
     version = "1.0"
+    _environ_name = 'CONTENT_LENGTH'
+
 ContentLength = ContentLength('Content-Length','entity')
 
 class ContentDisposition(SingleValueHeader):
@@ -749,8 +739,8 @@ class IfModifiedSince(DateHeader):
     If-Modified-Since, RFC 2616 section 14.25
     """
     version = '1.0'
-    def time(self, *args, **kwargs):
-        value = DateHeader.time(self, *args, **kwargs)
+    def parse(self, *args, **kwargs):
+        value = DateHeader.parse(self, *args, **kwargs)
         if value and value > now():
             raise HTTPBadRequest((
               "Please check your system clock.\r\n"
@@ -758,6 +748,56 @@ class IfModifiedSince(DateHeader):
               "%s header is in the future.\r\n") % self.name)
         return value
 IfModifiedSince = IfModifiedSince('If-Modified-Since','request')
+
+class Range(MultiValueHeader):
+    """
+    Range, RFC 2616 section 14.35
+
+    According to section 14.16, the response to this message should be a
+    206 Partial Content and that if multiple non-overlapping byte ranges
+    are requested (it is an error to request multiple overlapping
+    ranges) the result should be sent as multipart/byteranges mimetype.
+
+    The server should respond with '416 Requested Range Not Satisifiable'
+    if the requested ranges are out-of-bounds.  The specification also
+    indicates that a syntax error in the Range request should result in
+    the header being ignored rather than a '400 Bad Request'.
+    """
+    version = '1.1'
+    def parse(self, *args, **kwargs):
+        """
+        Returns a tuple (units, list), where list is a sequence of
+        (begin, end) tuples; and end is None if it was not provided.
+        """
+        value = self.__call__(*args, **kwargs)
+        if not value:
+            return None
+        ranges = []
+        last_end   = -1
+        try:
+            (units, range) = value.split("=")
+            units = units.strip().lower()
+            for item in range.split(","):
+                (begin, end) = item.split("-")
+                if not begin.strip():
+                    begin = 0
+                else:
+                    begin = int(begin)
+                if begin <= last_end:
+                    raise ValueError()
+                if not end.strip():
+                    end = None
+                else:
+                    end = int(end)
+                last_end = end
+                ranges.append((begin,end))
+        except ValueError:
+            # In this case where the Range header is malformed,
+            # section 14.16 says to treat the request as if the
+            # Range header was not present.  How do I log this?
+            return None
+        return (units, ranges)
+Range = Range('Range','request')
 
 #
 # For now, construct a minimalistic version of the field-names; at a
@@ -800,7 +840,7 @@ for (name,              category, version, style,      comment) in \
 ,("Pragma"             ,'general' ,'1.0','multi-value','RFC 2616 $14.32')
 ,("Proxy-Authenticate" ,'response','1.1','multi-value','RFC 2616 $14.33')
 ,("Proxy-Authorization",'request' ,'1.1','singular'   ,'RFC 2616 $14.34')
-,("Range"              ,'request' ,'1.1','multi-value','RFC 2616 $14.35')
+#,("Range"              ,'request' ,'1.1','multi-value','RFC 2616 $14.35')
 ,("Referer"            ,'request' ,'1.0','singular'   ,'RFC 2616 $14.36')
 ,("Retry-After"        ,'response','1.1','singular'   ,'RFC 2616 $14.37')
 ,("Server"             ,'response','1.0','singular'   ,'RFC 2616 $14.38')

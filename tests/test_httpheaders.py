@@ -26,14 +26,16 @@ def test_environ():
     }
 
 def test_environ_cgi():
-    environ = {'CONTENT_TYPE': 'server/supplied', 'wsgi.version': '1.0',
-               'HTTP_CONTENT_TYPE': 'text/plain', 'CONTENT_LENGTH': '200'}
+    environ = {'CONTENT_TYPE': 'text/plain', 'wsgi.version': '1.0',
+               'HTTP_CONTENT_TYPE': 'ignored/invalid',
+               'CONTENT_LENGTH': '200'}
     assert 'text/plain' == ContentType(environ)
     assert '200' == ContentLength(environ)
     ContentType.update(environ,'new/type')
     assert 'new/type' == ContentType(environ)
     ContentType.delete(environ)
-    assert 'server/supplied' == ContentType(environ)
+    assert '' == ContentType(environ)
+    assert 'ignored/invalid' == environ['HTTP_CONTENT_TYPE']
 
 def test_response_headers():
     collection = [('via', 'bing')]
@@ -61,8 +63,8 @@ def test_cache_control():
     headers = []
     CacheControl.apply(headers,max_age=60)
     assert 'public, max-age=60' == CacheControl(headers)
-    assert Expires.time(headers) > time.time()
-    assert Expires.time(headers) < time.time() + 60
+    assert Expires.parse(headers) > time.time()
+    assert Expires.parse(headers) < time.time() + 60
 
 def test_content_disposition():
     assert 'attachment' == ContentDisposition()
@@ -86,6 +88,20 @@ def test_content_disposition():
       ('Content-Type', 'text/plain'),
       ('Content-Disposition', 'attachment; filename="test.txt"')
     ]
+
+def test_range():
+    assert ('bytes',[(0,300)]) == Range.parse("bytes=0-300")
+    assert ('bytes',[(0,300)]) == Range.parse("bytes   =  -300")
+    assert ('bytes',[(0,None)]) == Range.parse("bytes=  -")
+    assert ('bytes',[(0,None)]) == Range.parse("bytes=0   -   ")
+    assert ('bytes',[(300,None)]) == Range.parse("   BYTES=300-")
+    assert ('bytes',[(4,5),(6,7)]) == Range.parse(" Bytes = 4 - 5,6 - 07  ")
+    assert ('bytes',[(0,5),(7,None)]) == Range.parse(" bytes=-5,7-")
+    assert ('bytes',[(0,5),(7,None)]) == Range.parse(" bytes=-5,7-")
+    assert ('bytes',[(0,5),(7,None)]) == Range.parse(" bytes=-5,7-")
+    assert None == Range.parse("")
+    assert None == Range.parse("bytes=0,300")
+    assert None == Range.parse("bytes=-7,5-")
 
 def test_copy():
     environ = {'HTTP_VIA':'bing', 'wsgi.version': '1.0' }

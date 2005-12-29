@@ -120,6 +120,7 @@ def test_file():
         os.unlink(tempfile)
 
 def _excercize_range(build,content):
+    # full content request, but using ranges'
     res = build("bytes=0-%d" % (len(content)-1))
     assert res.header('accept-ranges') == 'bytes'
     assert res.body == content
@@ -130,21 +131,22 @@ def _excercize_range(build,content):
     res = build("bytes=0-")
     assert res.body == content
     assert res.header('content-length') == str(len(content))
-    res = build("bytes=0-9")
+    # partial content requests
+    res = build("bytes=0-9", status=206)
     assert res.body == content[:10]
     assert res.header('content-length') == '10'
-    res = build("bytes=%d-" % (len(content)-1))
+    res = build("bytes=%d-" % (len(content)-1), status=206)
     assert res.body == 'Z'
     assert res.header('content-length') == '1'
-    res = build("bytes=%d-%d" % (3,17))
+    res = build("bytes=%d-%d" % (3,17), status=206)
     assert res.body == content[3:18]
     assert res.header('content-length') == '15'
 
 def test_range():
     content = string.letters * 5
-    def build(range):
+    def build(range, status=200):
         app = DataApp(content)
-        return TestApp(app).get("/",headers={'Range': range})
+        return TestApp(app).get("/",headers={'Range': range}, status=status)
     _excercize_range(build,content)
 
 def test_file_range():
@@ -157,9 +159,10 @@ def test_file_range():
     file.write(content)
     file.close()
     try:
-        def build(range):
+        def build(range, status=200):
             app = fileapp.FileApp(tempfile)
-            return TestApp(app).get("/",headers={'Range': range})
+            return TestApp(app).get("/",headers={'Range': range},
+                                        status=status)
         _excercize_range(build,content)
         for size in (13,len(string.letters),len(string.letters)-1):
             fileapp.BLOCK_SIZE = size
