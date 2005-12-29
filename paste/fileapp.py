@@ -105,7 +105,6 @@ class DataApp(object):
 
         (lower,upper) = (0, self.content_length - 1)
         range = Range.parse(environ)
-        print range
         if range and 'bytes' == range[0] and 1 == len(range[1]):
             (lower,upper) = range[1][0]
             upper = upper or (self.content_length - 1)
@@ -160,7 +159,6 @@ class FileApp(DataApp):
         self.last_modified = stat.st_mtime
 
     def __call__(self, environ, start_response):
-        print CacheControl(environ), "\n"
         if 'max-age=0' in CacheControl(environ):
             self.update(force=True) # RFC 2616 13.2.6
         else:

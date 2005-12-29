@@ -173,7 +173,10 @@ class WSGIHandlerMixin:
                }
 
         for k,v in self.headers.items():
-            self.wsgi_environ['HTTP_%s' % k.replace ('-', '_').upper()] = v
+            k = k.replace("-","_").upper()
+            if k in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
+                continue
+            self.wsgi_environ[k] = v
 
         if hasattr(self.connection,'get_context'):
             self.wsgi_environ['wsgi.url_scheme'] = 'https'
