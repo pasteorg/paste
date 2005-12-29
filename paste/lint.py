@@ -306,7 +306,7 @@ def check_content_type(status, headers):
         assert 0, "No Content-Type header found in headers (%s)" % headers
 
 def check_exc_info(exc_info):
-    assert not exc_info or type(exc_info) is type(()), (
+    assert exc_info is None or type(exc_info) is type(()), (
         "exc_info (%r) is not a tuple: %r" % (exc_info, type(exc_info)))
     # More exc_info checks?
 
