@@ -398,7 +398,7 @@ class MultiValueHeader(HTTPHeader):
 
     def format(self, *values):
         if not values:
-           return []
+           return ''
         return ", ".join([str(v).strip() for v in values])
 
 class MultiEntryHeader(HTTPHeader):
@@ -418,7 +418,7 @@ class MultiEntryHeader(HTTPHeader):
 
     def format(self, *values):
         if not values:
-           return ''
+           return []
         return list([str(v).strip() for v in values])
 
     def tuples(self, *args, **kwargs):
