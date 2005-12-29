@@ -147,7 +147,7 @@ Other Tools
       flup_session = paste.flup_session:SessionMiddleware [Flup]
       gzip = paste.gzipper:middleware
       httpexceptions = paste.httpexceptions:make_middleware
-      lint = paste.lint:middleware
+      lint = paste.lint:make_middleware
       login = paste.login:middleware
       printdebug = paste.debug.prints:PrintDebugMiddleware 
       profile = paste.debug.profile:ProfileMiddleware [hotshot]
