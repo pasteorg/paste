@@ -4,9 +4,15 @@
 import re
 import sys
 from types import DictType, StringType, TupleType, ListType
+import warnings
 
 header_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9\-_]*$')
 bad_header_value_re = re.compile(r'[\000-\037]')
+
+class WSGIWarning(Warning):
+    """
+    Raised in response to WSGI-spec-related warnings
+    """
 
 def middleware(application, global_conf=None):
 
@@ -176,9 +182,21 @@ def check_environ(environ):
                 'wsgi.version', 'wsgi.input', 'wsgi.errors',
                 'wsgi.multithread', 'wsgi.multiprocess',
                 'wsgi.run_once']:
-        assert environ.has_key(key), (
+        assert key in environ, (
             "Environment missing required key: %r" % key)
-        
+
+    for key in ['HTTP_CONTENT_TYPE', 'HTTP_CONTENT_LENGTH']:
+        assert key not in environ, (
+            "Environment should not have the key: %s "
+            "(use %s instead)" % (key, key[5:]))
+
+    if 'QUERY_STRING' not in environ:
+        warnings.warn(
+            'QUERY_STRING is not in the WSGI environment; the cgi '
+            'module will use sys.argv when this variable is missing, '
+            'so application errors are more likely',
+            WSGIWarning)
+
     for key in environ.keys():
         if '.' in key:
             # Extension, we don't care about its type
@@ -196,9 +214,12 @@ def check_environ(environ):
     check_errors(environ['wsgi.errors'])
 
     # @@: these need filling out:
-    assert environ['REQUEST_METHOD'] in ('GET', 'HEAD', 'POST',
-            'OPTIONS','PUT','DELETE','TRACE'), (
-        "Unknown REQUEST_METHOD: %r" % environ['REQUEST_METHOD'])
+    if environ['REQUEST_METHOD'] not in (
+        'GET', 'HEAD', 'POST',
+        'OPTIONS','PUT','DELETE','TRACE'):
+        warnings.warn(
+            "Unknown REQUEST_METHOD: %r" % environ['REQUEST_METHOD'],
+            WSGIWarning)
 
     assert (not environ.get('SCRIPT_NAME')
             or environ['SCRIPT_NAME'].startswith('/')), (
