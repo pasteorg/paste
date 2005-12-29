@@ -108,17 +108,17 @@ This creates three fundamentally different kinds of headers:
 
   - Those that do not have a #(values) production, and hence are
     singular and may only occur once in a set of response fields;
-    this case is handled by the ``SingleValueHeader`` subclass.
+    this case is handled by the ``_SingleValueHeader`` subclass.
 
   - Those which have the #(values) production and follow the
-    combining rule outlined above; our ``MultiValueHeader`` case.
+    combining rule outlined above; our ``_MultiValueHeader`` case.
 
   - Those which are multi-valued, but cannot be combined (such as the
     ``Set-Cookie`` header due to its ``Expires`` parameter); or where
     combining them into a single header entry would cause common
     user-agents to fail (``WWW-Authenticate``, ``Warning``) since
     they fail to handle dates even when properly quoted. This case
-    is handled by ``MultiEntryHeader``.
+    is handled by ``_MultiEntryHeader``.
 
 Since this project does not have time to provide rigorous support
 and validation for all headers, it does a basic construction of
@@ -199,17 +199,51 @@ class HTTPHeader(object):
 
     The collected versions of initialized header instances are immediately
     registered and accessable through the ``get_header`` function.  Do not
-    inherit from this directly, use one of ``SingleValueHeader``,
-    ``MultiValueHeader``, or ``MultiEntryHeader`` as appropriate.
+    inherit from this directly, use one of ``_SingleValueHeader``,
+    ``_MultiValueHeader``, or ``_MultiEntryHeader`` as appropriate.
     """
 
-    # default attributes
+    #
+    # Things which can be customized
+    #
     case_sensitive = False
     version = '1.1'
     category = 'general'
     extensions = {}
 
-    #@@: add field-name validation
+    def compose(self, **kwargs):
+        """
+        This method is used to build the corresponding header value when
+        keyword arguments (or no arguments) were provided.  The result
+        should be a sequence of values.  For example, the ``Expires``
+        header takes a keyword argument ``time`` (e.g. time.time()) from
+        which it returns a the corresponding date.
+        """
+        raise NotImplementedError()
+
+    def parse(self, *args, **kwargs):
+        """
+        This method invokes ``resolve()`` with the arguments provided,
+        parses the header results, and then returns a header-specific
+        data structure corresponding to the header.  For example, the
+        ``Expires`` header returns seconds (as returned by time.time())
+        """
+        raise NotImplementedError()
+
+    def apply(self, collection, **kwargs):
+        """
+        This method is similar to ``update`` only that usage may result
+        in other headers being changed as recommended by the corresponding
+        specification.  The return value is defined by the particular
+        sub-class. For example, the ``CacheControl.apply()`` sets the
+        ``Expires`` header in addition to its normal behavior.
+        """
+        self.update(collection, **kwargs)
+        return None
+
+    #
+    # Things which are standardized (mostly)
+    #
     def __new__(cls, name, category=None):
         """
         We use the ``__new__`` operator to ensure that only one
@@ -232,9 +266,9 @@ class HTTPHeader(object):
         self.name = name
         assert isinstance(self.name,str)
         self.category = category or self.category
+        _headers[self.name.lower()] = self
         self.sort_order = {'general': 1, 'request': 2,
                            'response': 3, 'entity': 4 }[self.category]
-        _headers[self.name.lower()] = self
         self._environ_name = getattr(self, '_environ_name',
                                 'HTTP_'+ self.name.upper().replace("-","_"))
         self._headers_name = getattr(self, '_headers_name',
@@ -258,23 +292,6 @@ class HTTPHeader(object):
 
     def __repr__(self):
         return '<HTTPHeader %s>' % self.name
-
-    def compose(self, **kwargs):
-        """
-        construct field-value(s) via keyword arguments; this should
-        return a sequence (tuple or list) with the results; not a
-        singular value
-        """
-        raise NotImplementedError()
-
-    def parse(self, *args, **kwargs):
-        """
-        This method invokes ``resolve()`` with the arguments provided,
-        parses the header results, and then returns a header-specific
-        data structure corresponding to the header.  For example, the
-        ``Expires`` header returns seconds (as returned by time.time())
-        """
-        raise NotImplementedError()
 
     def resolve(self, *args, **kwargs):
         """
@@ -361,7 +378,7 @@ class HTTPHeader(object):
         provided, this is the same as ``remove`` (note that this case
         can only occur if the target is a collection w/o a corresponding
         header value). The return value is the new header value (which
-        could be a list for ``MultiEntryHeader`` instances).
+        could be a list for ``_MultiEntryHeader`` instances).
         """
         value = self.__call__(*args, **kwargs)
         if not value:
@@ -385,22 +402,13 @@ class HTTPHeader(object):
             collection.append((self.name, value))
         return value
 
-    def apply(self, collection, **kwargs):
-        """
-        This method is similar to ``update`` only that usage may result
-        in other headers being changed as recommended by the corresponding
-        specification.  The return value is defined by the particular
-        sub-class, but defaults to the same as ``update()``.
-        """
-        return self.update(collection, **kwargs)
-
     def tuples(self, *args, **kwargs):
         value = self.__call__(*args, **kwargs)
         if not value:
             return ()
         return [(self.name, value)]
 
-class SingleValueHeader(HTTPHeader):
+class _SingleValueHeader(HTTPHeader):
     """
     The field-value is a single value and therefore all results
     constructed or obtained from a collection are asserted to ensure
@@ -417,14 +425,14 @@ class SingleValueHeader(HTTPHeader):
             return result
         return result.lower()
 
-class MultiValueHeader(HTTPHeader):
+class _MultiValueHeader(HTTPHeader):
     """
     This is the default behavior of HTTPHeader where the header is
     assumed to be multi-valued and values can be combined with a comma.
     """
     pass
 
-class MultiEntryHeader(HTTPHeader):
+class _MultiEntryHeader(HTTPHeader):
     """
     This header is multi-valued, but the values should not be combined
     with a comma since the header is not in compliance with RFC 2616
@@ -436,14 +444,15 @@ class MultiEntryHeader(HTTPHeader):
     """
     def __call__(self, *args, **kwargs):
         results = self.resolve(*args, **kwargs)
-        assert isinstance(results, (tuple,list))
         if self.case_sensitive:
             return [str(v).strip() for v in results]
         return [str(v).strip().lower() for v in results]
 
     def update(self, collection, *args, **kwargs):
-        #@@: This needs to be implemented to handle lists
-        raise NotImplementedError()
+        assert list == type(collection), "``environ`` may not be updated"
+        self.delete(collection)
+        collection.extend(self.tuples(*args,**kwargs))
+        return value
 
     def tuples(self, *args, **kwargs):
         values = self.__call__(*args, **kwargs)
@@ -457,9 +466,7 @@ def get_header(name, raiseError=True):
     ``name`` provided.  So that python-style names can be used,
     underscores are converted to dashes before the lookup.
     """
-    if isinstance(name,HTTPHeader):
-        return name
-    retval = _headers.get(name.strip().lower().replace("_","-"))
+    retval = _headers.get(str(name).strip().lower().replace("_","-"))
     if not retval and raiseError:
         raise AssertionError("'%s' is an unknown header" % name)
     return retval
@@ -502,9 +509,9 @@ def normalize_headers(response_headers, strict=True):
         return cmp(ac,bc)
     response_headers.sort(compare)
 
-class DateHeader(SingleValueHeader):
+class _DateHeader(_SingleValueHeader):
     """
-    This extends the ``SingleValueHeader`` object with specific
+    This extends the ``_SingleValueHeader`` object with specific
     treatment of time values.
 
     - It overrides ``compose`` to provide a sole keyword argument
@@ -538,7 +545,7 @@ class DateHeader(SingleValueHeader):
 # been instantiated, so we use the same name.
 #
 
-class CacheControl(MultiValueHeader):
+class CacheControl(_MultiValueHeader):
     """
     Cache-Control, RFC 2616 section 14.9
 
@@ -650,7 +657,7 @@ class CacheControl(MultiValueHeader):
 
 CacheControl = CacheControl('Cache-Control','general')
 
-class ContentType(SingleValueHeader):
+class ContentType(_SingleValueHeader):
     """
     Content-Type, RFC 2616 section 14.17
 
@@ -680,7 +687,7 @@ class ContentType(SingleValueHeader):
         return (result,)
 ContentType = ContentType('Content-Type','entity')
 
-class ContentLength(SingleValueHeader):
+class ContentLength(_SingleValueHeader):
     """
     Content-Length, RFC 2616 section 14.13
 
@@ -691,7 +698,7 @@ class ContentLength(SingleValueHeader):
 
 ContentLength = ContentLength('Content-Length','entity')
 
-class ContentDisposition(SingleValueHeader):
+class ContentDisposition(_SingleValueHeader):
     """
     Content-Disposition, RFC 2183
 
@@ -755,13 +762,13 @@ class ContentDisposition(SingleValueHeader):
         return mimetype
 ContentDisposition = ContentDisposition('Content-Disposition','entity')
 
-class IfModifiedSince(DateHeader):
+class IfModifiedSince(_DateHeader):
     """
     If-Modified-Since, RFC 2616 section 14.25
     """
     version = '1.0'
     def parse(self, *args, **kwargs):
-        value = DateHeader.parse(self, *args, **kwargs)
+        value = _DateHeader.parse(self, *args, **kwargs)
         if value and value > now():
             raise HTTPBadRequest((
               "Please check your system clock.\r\n"
@@ -770,7 +777,7 @@ class IfModifiedSince(DateHeader):
         return value
 IfModifiedSince = IfModifiedSince('If-Modified-Since','request')
 
-class Range(MultiValueHeader):
+class Range(_MultiValueHeader):
     """
     Range, RFC 2616 section 14.35
 
@@ -876,10 +883,10 @@ for (name,              category, version, style,      comment) in \
 ,("Warning"            ,'general' ,'1.1','multi-entry','RFC 2616 $14.46')
 ,("WWW-Authenticate"   ,'response','1.0','multi-entry','RFC 2616 $14.47')):
     cname = name.replace("-","")
-    bname = { 'multi-value': 'MultiValueHeader',
-              'multi-entry': 'MultiEntryHeader',
-              'date-header': 'DateHeader',
-              'singular'   : 'SingleValueHeader'}[style]
+    bname = { 'multi-value': '_MultiValueHeader',
+              'multi-entry': '_MultiEntryHeader',
+              'date-header': '_DateHeader',
+              'singular'   : '_SingleValueHeader'}[style]
     exec """\
 class %(cname)s(%(bname)s):
     "%(comment)s"
