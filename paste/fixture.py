@@ -788,7 +788,7 @@ class Form(object):
                 name = None
             if tag == 'option':
                 in_select.options.append((attrs.get('value'),
-                                          attrs.get('selected')))
+                                          'selected' in attrs))
                 continue
             if tag == 'input' and attrs.get('type') == 'radio':
                 field = self.fields.get(name)
@@ -799,7 +799,7 @@ class Form(object):
                     field = field[0]
                     assert isinstance(field, Radio)
                 field.options.append((attrs.get('value'),
-                                      attrs.get('checked')))
+                                      'checked' in attrs))
                 continue
             tag_type = tag
             if tag == 'input':
@@ -941,7 +941,7 @@ class Form(object):
         return submit
 
 
-_attr_re = re.compile(r'([^= \n\r\t]*)[ \n\r\t]*=[ \n\r\t]*(?:"([^"]*)"|([^"][^ \n\r\t>]*))', re.S)
+_attr_re = re.compile(r'([^= \n\r\t]+)[ \n\r\t]*(?:=[ \n\r\t]*(?:"([^"]*)"|([^"][^ \n\r\t>]*)))?', re.S)
 
 def _parse_attrs(text):
     attrs = {}
@@ -1040,7 +1040,7 @@ class Checkbox(Field):
 
     def __init__(self, *args, **attrs):
         super(Checkbox, self).__init__(*args, **attrs)
-        self.checked = attrs.get('checked') is not None
+        self.checked = 'checked' in attrs
 
     def value__set(self, value):
         self.checked = not not value
