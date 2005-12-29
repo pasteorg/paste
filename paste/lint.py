@@ -215,8 +215,7 @@ def check_environ(environ):
 
     # @@: these need filling out:
     if environ['REQUEST_METHOD'] not in (
-        'GET', 'HEAD', 'POST',
-        'OPTIONS','PUT','DELETE','TRACE'):
+        'GET', 'HEAD', 'POST', 'OPTIONS','PUT','DELETE','TRACE'):
         warnings.warn(
             "Unknown REQUEST_METHOD: %r" % environ['REQUEST_METHOD'],
             WSGIWarning)
@@ -295,7 +294,7 @@ def check_content_type(status, headers):
     code = int(status.split(None, 1)[0])
     # @@: need one more person to verify this interpretation of RFC 2616
     #     http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-    NO_MESSAGE_BODY = (204,304)
+    NO_MESSAGE_BODY = (204, 304)
     for name, value in headers:
         if name.lower() == 'content-type':
             if code not in NO_MESSAGE_BODY:
@@ -318,4 +317,9 @@ def check_iterator(iterator):
         "You should not return a string as your application iterator, "
         "instead return a single-item list containing that string.")
 
-__all__ = ['middleware']
+def make_middleware(application, global_conf):
+    # @@: global_conf should be taken out of the middleware function,
+    # and isolated here
+    return middleware(application)
+
+__all__ = ['middleware', 'make_middleware']
