@@ -115,7 +115,7 @@ class HTTPException(Exception):
 
        ``detail``
            a plain-text message customization that is not subject
-           to environment or header substations; accessible in
+           to environment or header substitutions; accessible in
            the template via %(detail)s
 
        ``template``
