@@ -5,18 +5,18 @@
 """
 HTTP Message Headers
 
-This contains general support for HTTP/1.1 message headers [1] in a
-manner that supports WSGI ``environ`` [2] and ``response_headers``[3].
-Specifically, this module defines a ``HTTPHeader`` class whose instances
-correspond to field-name items.  The actual field-content for the
-message-header is stored in the appropriate WSGI collection (either
+This contains general support for HTTP/1.1 message headers [1]_ in a
+manner that supports WSGI ``environ`` [2]_ and ``response_headers``
+[3]_. Specifically, this module defines a ``HTTPHeader`` class whose
+instances correspond to field-name items.  The actual field-content for
+the message-header is stored in the appropriate WSGI collection (either
 the ``environ`` for requests, or ``response_headers`` for responses).
 
-Each ``HTTPHeader`` instance is a callable (defining ``__call__(``)
+Each ``HTTPHeader`` instance is a callable (defining ``__call__``)
 that takes one of the following:
 
   - an ``environ`` dictionary, returning the corresponding header
-    value by according to the WSGI's HTTP_ prefix mechanism, e.g.,
+    value by according to the WSGI's ``HTTP_`` prefix mechanism, e.g.,
     ``USER_AGENT(environ)`` returns ``environ.get('HTTP_USER_AGENT')``
 
   - a ``response_headers`` list, giving a comma-delimited string for
@@ -26,13 +26,13 @@ that takes one of the following:
     single string value, e.g. ``CONTENT_TYPE("text/html","text/plain")``
     returns ``"text/html, text/plain"``
 
-  - a set of ``*kwargs`` keyword arguments that are used to create
+  - a set of ``**kwargs`` keyword arguments that are used to create
     a header value, in a manner dependent upon the particular header in
     question (to make value construction easier and error-free):
     ``CONTENT_DISPOSITION(max_age=CONTENT_DISPOSITION.ONEWEEK)`` returns
     ``"public, max-age=60480"``
 
-Each ``HTTPHeader`` instance also provides several methods 04 act on
+Each ``HTTPHeader`` instance also provides several methods to act on
 a WSGI collection, for removing and setting header values.
 
   ``delete(collection)``
@@ -65,12 +65,12 @@ has several advantages:
   1. Typos in the header name are easily detected since they become a
      ``NameError`` when executed.  The approach of using header strings
      directly can be problematic; for example, the following should
-     return ``None``: ``environ.get("HTTP_ACCEPT_LANGUAGES")``
+     return ``None`` : ``environ.get("HTTP_ACCEPT_LANGUAGES")``
 
   2. For specific headers with validation, using ``__call__`` will
      result in an automatic header value check.  For example, the
      ContentDisposition header will reject a value having ``maxage``
-     or ``max_age`` (the appropriate parameter is ``max-age``).
+     or ``max_age`` (the appropriate parameter is ``max-age`` ).
 
   3. When appending/replacing headers, the field-name has the suggested
      RFC capitalization (e.g. ``Content-Type`` or ``ETag``) for
@@ -89,9 +89,9 @@ has several advantages:
      that general-headers come first, followed by request and response
      headers, and finishing with entity-headers.
 
-  7. Special care is given to exceptional cases such as ``Set-Cookie``
+  7. Special care is given to exceptional cases such as Set-Cookie
      which violates the RFC's recommendation about combining header
-     content into a single entry using comma separation [1]
+     content into a single entry using comma separation.
 
 A particular difficulty with HTTP message headers is a categorization of
 sorts as described in section 4.2:
@@ -127,9 +127,10 @@ be obtained by simply doing ``from paste.httpheaders import *``;
 the name of the header instance is the "common name" less any
 dashes to give CamelCase style names.
 
-[1] http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-[2] http://www.python.org/peps/pep-0333.html#environ-variables
-[3] http://www.python.org/peps/pep-0333.html#the-start-response-callable
+.. [1] http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+.. [2] http://www.python.org/peps/pep-0333.html#environ-variables
+.. [3] http://www.python.org/peps/pep-0333.html#the-start-response-callable
+
 """
 
 from mimetypes import guess_type
