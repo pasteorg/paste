@@ -3,12 +3,12 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 # This code was written with funding by http://prometheusresearch.com
 """
-Multi Authentication 
+Authentication via Multiple Methods
 
 In some environments, the choice of authentication method to be used
-depends upon the environment and is not "fixed".  This middleware 
-allows N authentication methods to be registered along with a goodness
-function which determines which method should be used.
+depends upon the environment and is not "fixed".  This middleware allows
+N authentication methods to be registered along with a goodness function
+which determines which method should be used.
 
 Strictly speaking this is not limited to authentication, but it is a
 common requirement in that domain; this is why it isn't named
@@ -16,12 +16,18 @@ AuthMultiHandler (for now).
 """
 
 class MultiHandler:
-    """ This middleware provides two othogonal facilities:
-          (a) a way to register any number of middlewares
-          (b) a way to register predicates which cause one of
-              the registered middlewares to be used
-        If none of the predicates returns True, then the
-        application is invoked directly without middleware
+    """
+    Multiple Authentication Handler
+
+    This middleware provides two othogonal facilities:
+
+      - a manner to register any number of authentication middlewares
+
+      - a mechanism to register predicates which cause one of the
+        registered middlewares to be used depending upon the request
+
+    If none of the predicates returns True, then the application is
+    invoked directly without middleware
     """
     def __init__(self, application):
         self.application = application
@@ -33,16 +39,10 @@ class MultiHandler:
     def add_predicate(self, name, checker):
         self.predicate.append((checker,self.binding[name]))
     def set_default(self, name):
-        """ 
-        This method sets the default middleware to be executed, 
-        if none of the rules apply. 
-        """
+        """ set default authentication method """
         self.default = self.binding[name]
     def set_query_argument(self, name, key = '*authmeth', value = None):
-        """
-        This method indicates that the named middleware component should
-        be executed if the given key/value pair occurs in the query args.
-        """
+        """ choose authentication method based on a query argument """
         lookfor = "%s=%s" % (key, value or name)
         self.add_predicate(name, 
             lambda environ: lookfor in environ.get('QUERY_STRING',''))
