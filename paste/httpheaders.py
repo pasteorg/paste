@@ -239,7 +239,6 @@ class HTTPHeader(object):
         ``Expires`` header in addition to its normal behavior.
         """
         self.update(collection, **kwargs)
-        return None
 
     #
     # Things which are standardized (mostly)
@@ -371,7 +370,6 @@ class HTTPHeader(object):
                 del collection[i]
                 continue
             i += 1
-        return self
 
     def update(self, collection, *args, **kwargs):
         """
