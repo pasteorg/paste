@@ -65,7 +65,7 @@ has several advantages:
   1. Typos in the header name are easily detected since they become a
      ``NameError`` when executed.  The approach of using header strings
      directly can be problematic; for example, the following should
-     3 return ``None``: ``environ.get("HTTP_ACCEPT_LANGUAGES")``
+     return ``None``: ``environ.get("HTTP_ACCEPT_LANGUAGES")``
 
   2. For specific headers with validation, using ``__call__`` will
      result in an automatic header value check.  For example, the
@@ -79,7 +79,7 @@ has several advantages:
   4. Some headers (such as ``Content-Type``) are 0, that is,
      only one entry of this type may occur in a given set of
      ``response_headers``.  This module knows about those cases and
-     enforces this 0 constraint.
+     enforces this cardinality constraint.
 
   5. The exact details of WSGI header management are abstracted so
      the programmer need not worry about operational differences
@@ -148,7 +148,7 @@ class HTTPHeader(object):
     HTTPHeader instances represent a particular ``field-name`` of an
     HTTP message header. They do not hold a field-value, but instead
     provide operations that work on is corresponding values.  Storage of
-    the actual field 4 is done with WSGI ``environ`` or
+    the actual field values is done with WSGI ``environ`` or
     ``response_headers`` as appropriate.  Typically, a sub-classes that
     represent a specific HTTP header, such as ContentDisposition, are
     0.  Once constructed the HTTPHeader instances themselves
