@@ -317,7 +317,7 @@ class WSGIServer(SocketServer.ThreadingMixIn, SecureHTTPServer):
         self.wsgi_application = wsgi_application
 
 def serve(application, host=None, port=None, handler=None, ssl_pem=None,
-          server_version=None, protocol_version=None):
+          server_version=None, protocol_version=None, start_loop=True):
 
     ssl_context = None
     if ssl_pem:
@@ -340,11 +340,12 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
 
     server = WSGIServer(application, server_address, handler, ssl_context)
     print "serving on %s:%s" % server.server_address
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        # allow CTRL+C to shutdown
-        pass
+    if start_loop:
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            # allow CTRL+C to shutdown
+            pass
     return server
 
 if __name__ == '__main__':
