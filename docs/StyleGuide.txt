@@ -88,14 +88,14 @@ Python Style Guide.  Some things to take particular note of:
     if type(var) is StringType: ...
 
 * Never, ever use two leading underscores.  This is annoyingly
-  private.  If name clashes are a concern, use name mangling instead
-  (e.g., ``_MyThing_blahblah``).  This is essentially the same thing
-  as double-underscore, only it's transparent where double underscore
-  obscures.
+  private.  If name clashes are a concern, use explicit name mangling
+  instead (e.g., ``_MyThing_blahblah``).  This is essentially the same
+  thing as double-underscore, only it's transparent where double
+  underscore obscures.
 
 * Module names should be unique in the package.  Subpackages shouldn't
   share module names with sibling or parent packages.  Sadly this
-  isn't possible for ``__init__``, but it's otherwise easy enough.
+  isn't possible for ``__init__.py``, but it's otherwise easy enough.
 
 * Module names should be all lower case, and probably have no
   underscores (smushedwords).

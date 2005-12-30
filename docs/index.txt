@@ -15,6 +15,9 @@ Python Paste
    Paste: the vinegar eel.
    Paste: you bring the cut.
    Paste: a doughy substance from which to make metaphorical web cupcakes.
+   LAMP?  LAMPP!
+   Putting the P in Wep 2.0!
+   Frankenweb smush tiny humans!
 
 Python Paste brings consistency to Python web development and web
 application installation, providing tools for both developers and

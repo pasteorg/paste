@@ -17,6 +17,10 @@ There's some basic principles:
 
 * Use WSGI standards for communication between decoupled libraries.
 
+* When possible, use HTTP semantics for communicating between
+  libraries (e.g., indicate cachability using the appropriate HTTP
+  headers).
+
 * When possible, use WSGI as a wrapper around web-neutral libraries.
   For instance, the configuration is a simple library, but the WSGI
   middleware that puts the configuration in place is really really
@@ -39,24 +43,33 @@ Developer Info
 Mostly, if there's a problem we can discuss it and work it out, no one
 is going to bite your head off for committing something.
 
-* Framework-like things should go in subpackages.  The top level is
-  only for things that are lower-level than a framework.  
+* Framework-like things should go in subpackages, or perhaps in
+  separate distributions entirely (Paste WebKit and Wareweb were
+  extracted for this reason).
 
 * Integrating external servers and frameworks is also interesting, but
-  if someone else is maintaining the code elsewhere you shouldn't
-  import their work into the repository -- it'll just cause
-  confusion.  Create a script to pull in their work or something, and
-  check that in.
+  it's best to introduce that as a requirement instead of including
+  the work here.  Paste Script contains several wrappers for external
+  projects (servers in particular).
 
 * Tests are good.  We use py.test_, because it is simple.  I want to
   use doctests too, but the infrastructure isn't really there now --
   but please feel free to use those too.  ``unittest`` is kind of
   annoying, and py.test is both more powerful and easier to write for.
-  Tests should go in a ``tests/`` subdirectory.
-  ``paste.tests.fixture`` contains some convenience functions for
-  testing WSGI applications and middleware.
+  Tests should go in the ``tests/`` directory.  ``paste.fixture``
+  contains some convenience functions for testing WSGI applications
+  and middleware.  Pay particular attention to ``TestApp``.
   
 .. _py.test: http://codespeak.net/py/current/doc/test.html
+
+* If you move something around that someone may be using, keep their
+  imports working and introduce a warning, like::
+
+    def backward_compat_function(*args, **kw):
+        import warnings
+        # Deprecated on 2005 Mar 5
+        warnings.warn('Moved to foo.function', DeprecationWarnings, 2)
+        return foo.function(*args, **kw)
 
 * If something is really experimental, put it in your home directory,
   or make a branch in your home directory.  You can make a home
@@ -78,3 +91,20 @@ is going to bite your head off for committing something.
 
 .. _Style Guidelines: StyleGuide.html
 
+* Write your docstrings in `restructured text
+  <http://docutils.sourceforge.net/rst.html>`_.  As time goes on, I
+  want to rely on docstrings more for documentation, with shorter
+  narrative documentation pointing into the documentation generated
+  from docstrings.
+
+  The generation is done with `Pudge <http://pudge.lesscode.org/>`_.
+  To try generating the documentation, this should work:
+
+    $ easy_install svn://lesscode.org/buildutils/trunk \
+                   svn://lesscode.org/pudge/trunk
+    $ cd Paste
+    $ python setup.py pudge
+
+  This will install Pudge and `buildutils
+  <http://buildutils.lesscode.org/>`_, and then generate the
+  documentation into ``Paste/docs/html/``.
