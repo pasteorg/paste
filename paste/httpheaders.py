@@ -137,8 +137,8 @@ from rfc822 import formatdate, parsedate_tz, mktime_tz
 from time import time as now
 from httpexceptions import HTTPBadRequest
 
-__all__ = ['get_header', 'HTTPHeader', 'normalize_headers'
-           # additionally, all headers are exported
+__all__ = ['get_header', 'list_headers', 'normalize_headers', 'HTTPHeader',
+           # additionally, all header instance objects are exported
 ]
 
 _headers = {}
@@ -729,7 +729,6 @@ class ContentDisposition(_SingleValueHeader):
     'application/octet-stream', then the mimetypes.guess is used to
     upgrade the Content-Type setting.
     """
-    version = '1.1'
 
     def _compose(self, attachment=None, inline=None, filename=None):
         result = []
@@ -777,6 +776,7 @@ class IfModifiedSince(_DateHeader):
         return value
 IfModifiedSince = IfModifiedSince('If-Modified-Since','request')
 
+
 class Range(_MultiValueHeader):
     """
     Range, RFC 2616 section 14.35
@@ -791,7 +791,6 @@ class Range(_MultiValueHeader):
     indicates that a syntax error in the Range request should result in
     the header being ignored rather than a '400 Bad Request'.
     """
-    version = '1.1'
     def parse(self, *args, **kwargs):
         """
         Returns a tuple (units, list), where list is a sequence of
@@ -827,6 +826,27 @@ class Range(_MultiValueHeader):
         return (units, ranges)
 Range = Range('Range','request')
 
+class AcceptRanges(_MultiValueHeader):
+    """
+    Accept-Ranges, RFC 2616 section 14.5
+    """
+    def compose(self, none=None, bytes=None):
+        if bytes:
+            return ('bytes',)
+        return ('none',)
+AcceptRanges = AcceptRanges('Accept-Ranges')
+
+class ContentRange(_SingleValueHeader):
+    """
+    Content-Range, RFC 2616 section 14.6
+    """
+    def compose(self, first_byte=None, last_byte=None, total_length=None):
+        retval = "%d-%d/%d" % (first_byte, last_byte, total_length)
+        assert first_byte <= last_byte
+        assert last_byte  < total_length
+        return (retval,)
+ContentRange = ContentRange('Content-Range')
+
 #
 # For now, construct a minimalistic version of the field-names; at a
 # later date more complicated headers may sprout content constructors.
@@ -836,7 +856,7 @@ for (name,              category, version, style,      comment) in \
 ,("Accept-Charset"     ,'request' ,'1.1','multi-value','RFC 2616 $14.2' )
 ,("Accept-Encoding"    ,'request' ,'1.1','multi-value','RFC 2616 $14.3' )
 ,("Accept-Language"    ,'request' ,'1.1','multi-value','RFC 2616 $14.4' )
-,("Accept-Ranges"      ,'response','1.1','multi-value','RFC 2616 $14.5' )
+#,("Accept-Ranges"      ,'response','1.1','multi-value','RFC 2616 $14.5' )
 ,("Age"                ,'response','1.1','singular'   ,'RFC 2616 $14.6' )
 ,("Allow"              ,'entity'  ,'1.0','multi-value','RFC 2616 $14.7' )
 ,("Authorization"      ,'request' ,'1.0','singular'   ,'RFC 2616 $14.8' )
@@ -849,7 +869,7 @@ for (name,              category, version, style,      comment) in \
 #,("Content-Length"     ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.13')
 ,("Content-Location"   ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.14')
 ,("Content-MD5"        ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.15')
-,("Content-Range"      ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.16')
+#,("Content-Range"      ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.16')
 #,("Content-Type"       ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.17')
 ,("Date"               ,'general' ,'1.0','date-header','RFC 2616 $14.18')
 ,("ETag"               ,'response','1.1','singular'   ,'RFC 2616 $14.19')

@@ -8,12 +8,8 @@ if-modified-since request header.
 """
 
 import os, time, mimetypes
-from httpexceptions import HTTPBadRequest, HTTPForbidden, \
-    HTTPRequestRangeNotSatisfiable
-from httpheaders import get_header, Expires, Range, list_headers, \
-    ContentType, AcceptRanges, CacheControl, ContentDisposition, \
-    ContentLength, ContentRange, LastModified, IfModifiedSince
-
+from httpexceptions import *
+from httpheaders import *
 
 CACHE_SIZE = 4096
 BLOCK_SIZE = 4096 * 16
@@ -65,7 +61,7 @@ class DataApp(object):
         for (k,v) in kwargs.items():
             header = get_header(k)
             header.update(self.headers,v)
-        AcceptRanges.update(self.headers,'bytes')
+        AcceptRanges.update(self.headers,bytes=True)
         if not ContentType(self.headers):
             ContentType.update(self.headers)
         if content:
@@ -115,12 +111,11 @@ class DataApp(object):
                      self.content_length, Range(environ))
                 ).wsgi_application(environ, start_response)
 
-        content_length = 1 + (upper - lower)
-        ContentLength.update(headers,content_length)
-        ContentRange.update(headers,
-            # @@: make parameterized version
-            "%d-%d/%d" % (lower, upper, self.content_length))
-        if lower == 0 and upper == self.content_length - 1:
+        content_length = upper - lower + 1
+        ContentRange.update(headers, first_byte=lower, last_byte=upper,
+                            total_length = self.content_length)
+        ContentLength.update(headers, content_length)
+        if content_length == self.content_length:
             start_response('200 OK', headers)
         else:
             start_response('206 Partial Content', headers)
