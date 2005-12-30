@@ -1,7 +1,7 @@
 # (c) 2005 Ian Bicking, Clark C. Evans and contributors
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
-# Some of this code was funded by http://prometheusresearch.com
+# Some of this code was funded by: http://prometheusresearch.com
 """
 HTTP Message Headers
 
@@ -210,6 +210,7 @@ class HTTPHeader(object):
     case_sensitive = False
     version = '1.1'
     category = 'general'
+    reference = ''
     extensions = {}
 
     def compose(self, **kwargs):
@@ -244,7 +245,7 @@ class HTTPHeader(object):
     #
     # Things which are standardized (mostly)
     #
-    def __new__(cls, name, category=None, version=None):
+    def __new__(cls, name, category=None, reference=None, version=None):
         """
         We use the ``__new__`` operator to ensure that only one
         ``HTTPHeader`` instance exists for each field-name, and to
@@ -267,6 +268,7 @@ class HTTPHeader(object):
         assert isinstance(self.name,str)
         self.category = category or self.category
         self.version  = version or self.version
+        self.reference = reference or self.reference
         _headers[self.name.lower()] = self
         self.sort_order = {'general': 1, 'request': 2,
                            'response': 3, 'entity': 4 }[self.category]
@@ -293,7 +295,8 @@ class HTTPHeader(object):
         return False
 
     def __repr__(self):
-        return '<HTTPHeader %s>' % self.name
+        ref = self.reference and (' (%s)' % self.reference) or ''
+        return '<HTTPHeader %s%s>' % (self.name, ref)
 
     def resolve(self, *args, **kwargs):
         """
@@ -462,6 +465,8 @@ class _MultiEntryHeader(HTTPHeader):
 
 def get_header(name, raiseError=True):
     """
+    find the given ``HTTPHeader`` instance
+
     This function finds the corresponding ``HTTPHeader`` for the
     ``name`` provided.  So that python-style names can be used,
     underscores are converted to dashes before the lookup.
@@ -484,6 +489,8 @@ def list_headers(general=None, request=None, response=None, entity=None):
 
 def normalize_headers(response_headers, strict=True):
     """
+    sort headers as suggested by  RFC 2616
+
     This alters the underlying response_headers to use the common
     name for each header; as well as sorting them with general
     headers first, followed by request/response headers, then
@@ -511,6 +518,8 @@ def normalize_headers(response_headers, strict=True):
 
 class _DateHeader(_SingleValueHeader):
     """
+    handle date-based headers
+
     This extends the ``_SingleValueHeader`` object with specific
     treatment of time values.
 
@@ -655,7 +664,7 @@ class _CacheControl(_MultiValueHeader):
         self.update(collection, *result)
         return expires
 
-_CacheControl('Cache-Control','general')
+_CacheControl('Cache-Control','general', 'RFC 2616, 14.9')
 
 class _ContentType(_SingleValueHeader):
     """
@@ -685,7 +694,7 @@ class _ContentType(_SingleValueHeader):
         if charset:
             result += "; charset=%s" % charset
         return (result,)
-_ContentType('Content-Type','entity')
+_ContentType('Content-Type','entity', 'RFC 2616, 14.17')
 
 class _ContentLength(_SingleValueHeader):
     """
@@ -696,7 +705,7 @@ class _ContentLength(_SingleValueHeader):
     version = "1.0"
     _environ_name = 'CONTENT_LENGTH'
 
-_ContentLength('Content-Length','entity')
+_ContentLength('Content-Length','entity', 'RFC 2616, 14.13')
 
 class _ContentDisposition(_SingleValueHeader):
     """
@@ -760,7 +769,7 @@ class _ContentDisposition(_SingleValueHeader):
         self.update(collection, *result)
         return mimetype
 
-_ContentDisposition('Content-Disposition','entity')
+_ContentDisposition('Content-Disposition','entity', 'RFC 2183')
 
 class _IfModifiedSince(_DateHeader):
     """
@@ -775,7 +784,7 @@ class _IfModifiedSince(_DateHeader):
               "According to this server, the time provided in the\r\n"
               "%s header is in the future.\r\n") % self.name)
         return value
-_IfModifiedSince('If-Modified-Since','request')
+_IfModifiedSince('If-Modified-Since', 'request', 'RFC 2616, 14.25')
 
 class _Range(_MultiValueHeader):
     """
@@ -824,7 +833,7 @@ class _Range(_MultiValueHeader):
             # Range header was not present.  How do I log this?
             return None
         return (units, ranges)
-_Range('Range','request')
+_Range('Range', 'request', 'RFC 2616, 14.35')
 
 class _AcceptRanges(_MultiValueHeader):
     """
@@ -834,7 +843,7 @@ class _AcceptRanges(_MultiValueHeader):
         if bytes:
             return ('bytes',)
         return ('none',)
-_AcceptRanges('Accept-Ranges')
+_AcceptRanges('Accept-Ranges', 'response', 'RFC 2616, 14.5')
 
 class _ContentRange(_SingleValueHeader):
     """
@@ -845,7 +854,7 @@ class _ContentRange(_SingleValueHeader):
         assert first_byte <= last_byte
         assert last_byte  < total_length
         return (retval,)
-_ContentRange('Content-Range')
+_ContentRange('Content-Range', 'entity', 'RFC 2616, 14.6')
 
 #
 # For now, construct a minimalistic version of the field-names; at a
@@ -853,61 +862,61 @@ _ContentRange('Content-Range')
 # The items commented out have concrete variants.
 #
 for (name,              category, version, style,      comment) in \
-(("Accept"             ,'request' ,'1.1','multi-value','RFC 2616 $14.1' )
-,("Accept-Charset"     ,'request' ,'1.1','multi-value','RFC 2616 $14.2' )
-,("Accept-Encoding"    ,'request' ,'1.1','multi-value','RFC 2616 $14.3' )
-,("Accept-Language"    ,'request' ,'1.1','multi-value','RFC 2616 $14.4' )
-#,("Accept-Ranges"      ,'response','1.1','multi-value','RFC 2616 $14.5' )
-,("Age"                ,'response','1.1','singular'   ,'RFC 2616 $14.6' )
-,("Allow"              ,'entity'  ,'1.0','multi-value','RFC 2616 $14.7' )
-,("Authorization"      ,'request' ,'1.0','singular'   ,'RFC 2616 $14.8' )
-#,("Cache-Control"      ,'general' ,'1.1','multi-value','RFC 2616 $14.9' )
+(("Accept"             ,'request' ,'1.1','multi-value','RFC 2616, 14.1' )
+,("Accept-Charset"     ,'request' ,'1.1','multi-value','RFC 2616, 14.2' )
+,("Accept-Encoding"    ,'request' ,'1.1','multi-value','RFC 2616, 14.3' )
+,("Accept-Language"    ,'request' ,'1.1','multi-value','RFC 2616, 14.4' )
+#,("Accept-Ranges"      ,'response','1.1','multi-value','RFC 2616, 14.5' )
+,("Age"                ,'response','1.1','singular'   ,'RFC 2616, 14.6' )
+,("Allow"              ,'entity'  ,'1.0','multi-value','RFC 2616, 14.7' )
+,("Authorization"      ,'request' ,'1.0','singular'   ,'RFC 2616, 14.8' )
+#,("Cache-Control"      ,'general' ,'1.1','multi-value','RFC 2616, 14.9' )
 ,("Cookie"             ,'request' ,'1.0','multi-value','RFC 2109/Netscape')
-,("Connection"         ,'general' ,'1.1','multi-value','RFC 2616 $14.10')
-,("Content-Encoding"   ,'entity'  ,'1.0','multi-value','RFC 2616 $14.11')
-#,("Content-Disposition",'entity'  ,'1.1','multi-value','RFC 2616 $15.5' )
-,("Content-Language"   ,'entity'  ,'1.1','multi-value','RFC 2616 $14.12')
-#,("Content-Length"     ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.13')
-,("Content-Location"   ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.14')
-,("Content-MD5"        ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.15')
-#,("Content-Range"      ,'entity'  ,'1.1','singular'   ,'RFC 2616 $14.16')
-#,("Content-Type"       ,'entity'  ,'1.0','singular'   ,'RFC 2616 $14.17')
-,("Date"               ,'general' ,'1.0','date-header','RFC 2616 $14.18')
-,("ETag"               ,'response','1.1','singular'   ,'RFC 2616 $14.19')
-,("Expect"             ,'request' ,'1.1','multi-value','RFC 2616 $14.20')
-,("Expires"            ,'entity'  ,'1.0','date-header','RFC 2616 $14.21')
-,("From"               ,'request' ,'1.0','singular'   ,'RFC 2616 $14.22')
-,("Host"               ,'request' ,'1.1','singular'   ,'RFC 2616 $14.23')
-,("If-Match"           ,'request' ,'1.1','multi-value','RFC 2616 $14.24')
-#,("If-Modified-Since"  ,'request' ,'1.0','date-header','RFC 2616 $14.25')
-,("If-None-Match"      ,'request' ,'1.1','multi-value','RFC 2616 $14.26')
-,("If-Range"           ,'request' ,'1.1','singular'   ,'RFC 2616 $14.27')
-,("If-Unmodified-Since",'request' ,'1.1','date-header' ,'RFC 2616 $14.28')
-,("Last-Modified"      ,'entity'  ,'1.0','date-header','RFC 2616 $14.29')
-,("Location"           ,'response','1.0','singular'   ,'RFC 2616 $14.30')
-,("Max-Forwards"       ,'request' ,'1.1','singular'   ,'RFC 2616 $14.31')
-,("Pragma"             ,'general' ,'1.0','multi-value','RFC 2616 $14.32')
-,("Proxy-Authenticate" ,'response','1.1','multi-value','RFC 2616 $14.33')
-,("Proxy-Authorization",'request' ,'1.1','singular'   ,'RFC 2616 $14.34')
-#,("Range"              ,'request' ,'1.1','multi-value','RFC 2616 $14.35')
-,("Referer"            ,'request' ,'1.0','singular'   ,'RFC 2616 $14.36')
-,("Retry-After"        ,'response','1.1','singular'   ,'RFC 2616 $14.37')
-,("Server"             ,'response','1.0','singular'   ,'RFC 2616 $14.38')
+,("Connection"         ,'general' ,'1.1','multi-value','RFC 2616, 14.10')
+,("Content-Encoding"   ,'entity'  ,'1.0','multi-value','RFC 2616, 14.11')
+#,("Content-Disposition",'entity'  ,'1.1','multi-value','RFC 2616, 15.5' )
+,("Content-Language"   ,'entity'  ,'1.1','multi-value','RFC 2616, 14.12')
+#,("Content-Length"     ,'entity'  ,'1.0','singular'   ,'RFC 2616, 14.13')
+,("Content-Location"   ,'entity'  ,'1.1','singular'   ,'RFC 2616, 14.14')
+,("Content-MD5"        ,'entity'  ,'1.1','singular'   ,'RFC 2616, 14.15')
+#,("Content-Range"      ,'entity'  ,'1.1','singular'   ,'RFC 2616, 14.16')
+#,("Content-Type"       ,'entity'  ,'1.0','singular'   ,'RFC 2616, 14.17')
+,("Date"               ,'general' ,'1.0','date-header','RFC 2616, 14.18')
+,("ETag"               ,'response','1.1','singular'   ,'RFC 2616, 14.19')
+,("Expect"             ,'request' ,'1.1','multi-value','RFC 2616, 14.20')
+,("Expires"            ,'entity'  ,'1.0','date-header','RFC 2616, 14.21')
+,("From"               ,'request' ,'1.0','singular'   ,'RFC 2616, 14.22')
+,("Host"               ,'request' ,'1.1','singular'   ,'RFC 2616, 14.23')
+,("If-Match"           ,'request' ,'1.1','multi-value','RFC 2616, 14.24')
+#,("If-Modified-Since"  ,'request' ,'1.0','date-header','RFC 2616, 14.25')
+,("If-None-Match"      ,'request' ,'1.1','multi-value','RFC 2616, 14.26')
+,("If-Range"           ,'request' ,'1.1','singular'   ,'RFC 2616, 14.27')
+,("If-Unmodified-Since",'request' ,'1.1','date-header' ,'RFC 2616, 14.28')
+,("Last-Modified"      ,'entity'  ,'1.0','date-header','RFC 2616, 14.29')
+,("Location"           ,'response','1.0','singular'   ,'RFC 2616, 14.30')
+,("Max-Forwards"       ,'request' ,'1.1','singular'   ,'RFC 2616, 14.31')
+,("Pragma"             ,'general' ,'1.0','multi-value','RFC 2616, 14.32')
+,("Proxy-Authenticate" ,'response','1.1','multi-value','RFC 2616, 14.33')
+,("Proxy-Authorization",'request' ,'1.1','singular'   ,'RFC 2616, 14.34')
+#,("Range"              ,'request' ,'1.1','multi-value','RFC 2616, 14.35')
+,("Referer"            ,'request' ,'1.0','singular'   ,'RFC 2616, 14.36')
+,("Retry-After"        ,'response','1.1','singular'   ,'RFC 2616, 14.37')
+,("Server"             ,'response','1.0','singular'   ,'RFC 2616, 14.38')
 ,("Set-Cookie"         ,'response','1.0','multi-entry','RFC 2109/Netscape')
-,("TE"                 ,'request' ,'1.1','multi-value','RFC 2616 $14.39')
-,("Trailer"            ,'general' ,'1.1','multi-value','RFC 2616 $14.40')
-,("Transfer-Encoding"  ,'general' ,'1.1','multi-value','RFC 2616 $14.41')
-,("Upgrade"            ,'general' ,'1.1','multi-value','RFC 2616 $14.42')
-,("User-Agent"         ,'request' ,'1.0','singular'   ,'RFC 2616 $14.43')
-,("Vary"               ,'response','1.1','multi-value','RFC 2616 $14.44')
-,("Via"                ,'general' ,'1.1','multi-value','RFC 2616 $14.45')
-,("Warning"            ,'general' ,'1.1','multi-entry','RFC 2616 $14.46')
-,("WWW-Authenticate"   ,'response','1.0','multi-entry','RFC 2616 $14.47')):
+,("TE"                 ,'request' ,'1.1','multi-value','RFC 2616, 14.39')
+,("Trailer"            ,'general' ,'1.1','multi-value','RFC 2616, 14.40')
+,("Transfer-Encoding"  ,'general' ,'1.1','multi-value','RFC 2616, 14.41')
+,("Upgrade"            ,'general' ,'1.1','multi-value','RFC 2616, 14.42')
+,("User-Agent"         ,'request' ,'1.0','singular'   ,'RFC 2616, 14.43')
+,("Vary"               ,'response','1.1','multi-value','RFC 2616, 14.44')
+,("Via"                ,'general' ,'1.1','multi-value','RFC 2616, 14.45')
+,("Warning"            ,'general' ,'1.1','multi-entry','RFC 2616, 14.46')
+,("WWW-Authenticate"   ,'response','1.0','multi-entry','RFC 2616, 14.47')):
     klass = { 'multi-value': _MultiValueHeader,
               'multi-entry': _MultiEntryHeader,
               'date-header': _DateHeader,
               'singular'   : _SingleValueHeader}[style]
-    klass(name,category,version).__doc__ = comment
+    klass(name,category,comment,version).__doc__ = comment
 
 for head in _headers.values():
     headname = head.name.replace("-","_").upper()
