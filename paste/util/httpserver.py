@@ -173,7 +173,7 @@ class WSGIHandlerMixin:
                }
 
         for k,v in self.headers.items():
-            k = k.replace("-","_").upper()
+            k = 'HTTP_' + k.replace("-","_").upper()
             if k in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
                 continue
             self.wsgi_environ[k] = v
