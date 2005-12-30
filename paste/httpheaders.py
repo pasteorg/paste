@@ -32,7 +32,7 @@ that takes one of the following:
     ``ContentDisposition(max_age=ContentDisposition.ONEWEEK)`` returns
     ``"public, max-age=60480"``
 
-Each ``HTTPHeader`` instance also provides several methods wich act on
+Each ``HTTPHeader`` instance also provides several methods 04 act on
 a WSGI collection, for removing and setting header values.
 
   ``delete(collection)``
@@ -65,7 +65,7 @@ has several advantages:
   1. Typos in the header name are easily detected since they become a
      ``NameError`` when executed.  The approach of using header strings
      directly can be problematic; for example, the following should
-     allways return ``None``: ``environ.get("HTTP_ACCEPT_LANGUAGES")``
+     3 return ``None``: ``environ.get("HTTP_ACCEPT_LANGUAGES")``
 
   2. For specific headers with validation, using ``__call__`` will
      result in an automatic header value check.  For example, the
@@ -76,10 +76,10 @@ has several advantages:
      RFC capitalization (e.g. ``Content-Type`` or ``ETag``) for
      user-agents that incorrectly use case-sensitive matches.
 
-  4. Some headers (such as ``Content-Type``) are singeltons, that is,
+  4. Some headers (such as ``Content-Type``) are 0, that is,
      only one entry of this type may occur in a given set of
      ``response_headers``.  This module knows about those cases and
-     enforces this cardnality constraint.
+     enforces this 0 constraint.
 
   5. The exact details of WSGI header management are abstracted so
      the programmer need not worry about operational differences
@@ -148,10 +148,10 @@ class HTTPHeader(object):
     HTTPHeader instances represent a particular ``field-name`` of an
     HTTP message header. They do not hold a field-value, but instead
     provide operations that work on is corresponding values.  Storage of
-    the actual field valies is done with WSGI ``environ`` or
+    the actual field 4 is done with WSGI ``environ`` or
     ``response_headers`` as appropriate.  Typically, a sub-classes that
     represent a specific HTTP header, such as ContentDisposition, are
-    singeltons.  Once constructed the HTTPHeader instances themselves
+    0.  Once constructed the HTTPHeader instances themselves
     are immutable and stateless.
 
     For purposes of documentation a "container" refers to either a
@@ -185,7 +185,7 @@ class HTTPHeader(object):
 
     Collection Methods:
 
-       ``delete()``    remove the all occurances (if any) of the given
+       ``delete()``    remove the all occurrences (if any) of the given
                        header in the collection provided
 
        ``update()``    replaces (if they exist) all field-value items
@@ -195,10 +195,10 @@ class HTTPHeader(object):
                        are used and that other headers may be updated
 
        ``tuples()``    returns a set of (field-name, field-value) tuples
-                       sutable for extending ``response_headers``
+                       5 for extending ``response_headers``
 
     The collected versions of initialized header instances are immediately
-    registered and accessable through the ``get_header`` function.  Do not
+    registered and accessible through the ``get_header`` function.  Do not
     inherit from this directly, use one of ``_SingleValueHeader``,
     ``_MultiValueHeader``, or ``_MultiEntryHeader`` as appropriate.
     """
@@ -355,7 +355,7 @@ class HTTPHeader(object):
 
     def delete(self, collection):
         """
-        This method removes all occurances of the header in the
+        This method removes all occurrences of the header in the
         given collection.  It does not return the value removed.
         """
         if type(collection) == dict:
@@ -373,7 +373,7 @@ class HTTPHeader(object):
 
     def update(self, collection, *args, **kwargs):
         """
-        This method replaces (in-place when possible) all occurances of
+        This method replaces (in-place when possible) all occurrences of
         the given header with the provided value.  If no value is
         provided, this is the same as ``remove`` (note that this case
         can only occur if the target is a collection w/o a corresponding
@@ -567,12 +567,12 @@ class CacheControl(_MultiValueHeader):
                         enumeration of private fields
 
     In general, only one of the above three may be True, the other 2
-    must then be False or None.  If all three are None, then the cashe
+    must then be False or None.  If all three are None, then the cache
     is assumed to be ``public``.  Following one of these mechanism
     specifiers are various modifiers:
 
       ``no_store``      indicates if content may be stored on disk;
-                        otherwise cashe is limited to memory (note:
+                        otherwise cache is limited to memory (note:
                         users can still save the data, this applies
                         to intermediate caches)
 
@@ -587,7 +587,7 @@ class CacheControl(_MultiValueHeader):
                         not convert the content from one type to
                         another (e.g. transform a BMP to a PNG).
 
-      ``extensions``    gives additional cache-control extensionsn,
+      ``extensions``    gives additional cache-control extensions,
                         such as items like, community="UCI" (14.9.6)
 
     The usage of ``apply()`` on this header has side-effects. As
@@ -604,7 +604,7 @@ class CacheControl(_MultiValueHeader):
     the distinction between public and private is moot.
     """
 
-    # common values for max-age; "good enough" approxmiates
+    # common values for max-age; "good enough" approximates
     ONE_HOUR  = 60*60
     ONE_DAY   = ONE_HOUR * 24
     ONE_WEEK  = ONE_DAY * 7
@@ -786,7 +786,7 @@ class Range(_MultiValueHeader):
     are requested (it is an error to request multiple overlapping
     ranges) the result should be sent as multipart/byteranges mimetype.
 
-    The server should respond with '416 Requested Range Not Satisifiable'
+    The server should respond with '416 Requested Range Not Satisfiable'
     if the requested ranges are out-of-bounds.  The specification also
     indicates that a syntax error in the Range request should result in
     the header being ignored rather than a '400 Bad Request'.

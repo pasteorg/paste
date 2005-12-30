@@ -111,16 +111,16 @@ class HTTPException(Exception):
        ``explanation``
            a plain-text explanation of the error message that is
            not subject to environment or header substitutions;
-           it is accessable in the template via %(explanation)s
+           it is accessible in the template via %(explanation)s
 
        ``detail``
            a plain-text message customization that is not subject
-           to environment or header substutions; accessable in
+           to environment or header substations; accessible in
            the template via %(detail)s
 
        ``template``
            a content fragment (in HTML) used for environment and
-           header substution; the default template includes both
+           header substitution; the default template includes both
            the explanation and further detail provided in the
            message
 
@@ -140,7 +140,7 @@ class HTTPException(Exception):
     after it has been created.  This particular breakdown of a message
     into explanation, detail and template allows both the creation of
     plain-text and html messages for various clients as well as
-    error-free substution of environment variables and headers.
+    error-free substitution of environment variables and headers.
     """
 
     code = None
@@ -235,7 +235,7 @@ class HTTPException(Exception):
 
 class HTTPError(HTTPException):
     """
-    This is an exception which indicates that an error has occured,
+    This is an exception which indicates that an error has occurred,
     and that any work in progress should not be committed.  These are
     typically results in the 400's and 500's.
     """
