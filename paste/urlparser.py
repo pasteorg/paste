@@ -1,5 +1,8 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+"""
+WSGI applications that parse the URL and dispatch to on-disk resources
+"""
 
 import os
 import sys
