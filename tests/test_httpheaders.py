@@ -2,17 +2,17 @@ from paste.httpheaders import *
 import time
 
 def _test_generic(collection):
-    assert 'bing' == Via(collection)
-    Referer.update(collection,'internal:/some/path')
-    assert 'internal:/some/path' == Referer(collection)
-    CacheControl.update(collection,max_age=1234)
-    ContentDisposition.update(collection,filename="bingles.txt")
-    Pragma.update(collection,"test","multi",'valued="items"')
-    assert 'public, max-age=1234' == CacheControl(collection)
+    assert 'bing' == VIA(collection)
+    REFERER.update(collection,'internal:/some/path')
+    assert 'internal:/some/path' == REFERER(collection)
+    CACHE_CONTROL.update(collection,max_age=1234)
+    CONTENT_DISPOSITION.update(collection,filename="bingles.txt")
+    PRAGMA.update(collection,"test","multi",'valued="items"')
+    assert 'public, max-age=1234' == CACHE_CONTROL(collection)
     assert 'attachment; filename="bingles.txt"' == \
-            ContentDisposition(collection)
-    assert 'test, multi, valued="items"' == Pragma(collection)
-    Via.delete(collection)
+            CONTENT_DISPOSITION(collection)
+    assert 'test, multi, valued="items"' == PRAGMA(collection)
+    VIA.delete(collection)
 
 
 def test_environ():
@@ -29,12 +29,12 @@ def test_environ_cgi():
     environ = {'CONTENT_TYPE': 'text/plain', 'wsgi.version': '1.0',
                'HTTP_CONTENT_TYPE': 'ignored/invalid',
                'CONTENT_LENGTH': '200'}
-    assert 'text/plain' == ContentType(environ)
-    assert '200' == ContentLength(environ)
-    ContentType.update(environ,'new/type')
-    assert 'new/type' == ContentType(environ)
-    ContentType.delete(environ)
-    assert '' == ContentType(environ)
+    assert 'text/plain' == CONTENT_TYPE(environ)
+    assert '200' == CONTENT_LENGTH(environ)
+    CONTENT_TYPE.update(environ,'new/type')
+    assert 'new/type' == CONTENT_TYPE(environ)
+    CONTENT_TYPE.delete(environ)
+    assert '' == CONTENT_TYPE(environ)
     assert 'ignored/invalid' == environ['HTTP_CONTENT_TYPE']
 
 def test_response_headers():
@@ -49,72 +49,72 @@ def test_response_headers():
     ]
 
 def test_cache_control():
-    assert 'public' == CacheControl()
-    assert 'public' == CacheControl(public=True)
-    assert 'private' == CacheControl(private=True)
-    assert 'no-cache' == CacheControl(no_cache=True)
-    assert 'private, no-store' == CacheControl(private=True, no_store=True)
-    assert 'public, max-age=60' == CacheControl(max_age=60)
+    assert 'public' == CACHE_CONTROL()
+    assert 'public' == CACHE_CONTROL(public=True)
+    assert 'private' == CACHE_CONTROL(private=True)
+    assert 'no-cache' == CACHE_CONTROL(no_cache=True)
+    assert 'private, no-store' == CACHE_CONTROL(private=True, no_store=True)
+    assert 'public, max-age=60' == CACHE_CONTROL(max_age=60)
     assert 'public, max-age=86400' == \
-            CacheControl(max_age=CacheControl.ONE_DAY)
-    CacheControl.extensions['community'] = str
+            CACHE_CONTROL(max_age=CACHE_CONTROL.ONE_DAY)
+    CACHE_CONTROL.extensions['community'] = str
     assert 'public, community="bingles"' == \
-            CacheControl(community="bingles")
+            CACHE_CONTROL(community="bingles")
     headers = []
-    CacheControl.apply(headers,max_age=60)
-    assert 'public, max-age=60' == CacheControl(headers)
-    assert Expires.parse(headers) > time.time()
-    assert Expires.parse(headers) < time.time() + 60
+    CACHE_CONTROL.apply(headers,max_age=60)
+    assert 'public, max-age=60' == CACHE_CONTROL(headers)
+    assert EXPIRES.parse(headers) > time.time()
+    assert EXPIRES.parse(headers) < time.time() + 60
 
 def test_content_disposition():
-    assert 'attachment' == ContentDisposition()
-    assert 'attachment' == ContentDisposition(attachment=True)
-    assert 'inline' == ContentDisposition(inline=True)
+    assert 'attachment' == CONTENT_DISPOSITION()
+    assert 'attachment' == CONTENT_DISPOSITION(attachment=True)
+    assert 'inline' == CONTENT_DISPOSITION(inline=True)
     assert 'inline; filename="test.txt"' == \
-            ContentDisposition(inline=True, filename="test.txt")
+            CONTENT_DISPOSITION(inline=True, filename="test.txt")
     assert 'attachment; filename="test.txt"' == \
-            ContentDisposition(filename="/some/path/test.txt")
+            CONTENT_DISPOSITION(filename="/some/path/test.txt")
     headers = []
-    ContentDisposition.apply(headers,filename="test.txt")
-    assert 'text/plain' == ContentType(headers)
-    ContentDisposition.apply(headers,filename="test")
-    assert 'text/plain' == ContentType(headers)
-    ContentDisposition.apply(headers,filename="test.html")
-    assert 'text/plain' == ContentType(headers)
+    CONTENT_DISPOSITION.apply(headers,filename="test.txt")
+    assert 'text/plain' == CONTENT_TYPE(headers)
+    CONTENT_DISPOSITION.apply(headers,filename="test")
+    assert 'text/plain' == CONTENT_TYPE(headers)
+    CONTENT_DISPOSITION.apply(headers,filename="test.html")
+    assert 'text/plain' == CONTENT_TYPE(headers)
     headers = [('Content-Type', 'application/octet-stream')]
-    ContentDisposition.apply(headers,filename="test.txt")
-    assert 'text/plain' == ContentType(headers)
+    CONTENT_DISPOSITION.apply(headers,filename="test.txt")
+    assert 'text/plain' == CONTENT_TYPE(headers)
     assert headers == [
       ('Content-Type', 'text/plain'),
       ('Content-Disposition', 'attachment; filename="test.txt"')
     ]
 
 def test_range():
-    assert ('bytes',[(0,300)]) == Range.parse("bytes=0-300")
-    assert ('bytes',[(0,300)]) == Range.parse("bytes   =  -300")
-    assert ('bytes',[(0,None)]) == Range.parse("bytes=  -")
-    assert ('bytes',[(0,None)]) == Range.parse("bytes=0   -   ")
-    assert ('bytes',[(300,None)]) == Range.parse("   BYTES=300-")
-    assert ('bytes',[(4,5),(6,7)]) == Range.parse(" Bytes = 4 - 5,6 - 07  ")
-    assert ('bytes',[(0,5),(7,None)]) == Range.parse(" bytes=-5,7-")
-    assert ('bytes',[(0,5),(7,None)]) == Range.parse(" bytes=-5,7-")
-    assert ('bytes',[(0,5),(7,None)]) == Range.parse(" bytes=-5,7-")
-    assert None == Range.parse("")
-    assert None == Range.parse("bytes=0,300")
-    assert None == Range.parse("bytes=-7,5-")
+    assert ('bytes',[(0,300)]) == RANGE.parse("bytes=0-300")
+    assert ('bytes',[(0,300)]) == RANGE.parse("bytes   =  -300")
+    assert ('bytes',[(0,None)]) == RANGE.parse("bytes=  -")
+    assert ('bytes',[(0,None)]) == RANGE.parse("bytes=0   -   ")
+    assert ('bytes',[(300,None)]) == RANGE.parse("   BYTES=300-")
+    assert ('bytes',[(4,5),(6,7)]) == RANGE.parse(" Bytes = 4 - 5,6 - 07  ")
+    assert ('bytes',[(0,5),(7,None)]) == RANGE.parse(" bytes=-5,7-")
+    assert ('bytes',[(0,5),(7,None)]) == RANGE.parse(" bytes=-5,7-")
+    assert ('bytes',[(0,5),(7,None)]) == RANGE.parse(" bytes=-5,7-")
+    assert None == RANGE.parse("")
+    assert None == RANGE.parse("bytes=0,300")
+    assert None == RANGE.parse("bytes=-7,5-")
 
 def test_copy():
     environ = {'HTTP_VIA':'bing', 'wsgi.version': '1.0' }
     response_headers = []
-    Via.update(response_headers,environ)
+    VIA.update(response_headers,environ)
     assert response_headers == [('Via', 'bing')]
 
 def test_sorting():
     # verify the HTTP_HEADERS are set with their canonical form
-    sample = [WWWAuthenticate, Via, Accept, Date,
-    AcceptCharset, Age, Allow, CacheControl,
-    ContentEncoding, ETag, ContentType, From,
-    Expires, Range, Upgrade, Vary, Allow]
+    sample = [WWW_AUTHENTICATE, VIA, ACCEPT, DATE,
+    ACCEPT_CHARSET, AGE, ALLOW, CACHE_CONTROL,
+    CONTENT_ENCODING, ETAG, CONTENT_TYPE, FROM,
+    EXPIRES, RANGE, UPGRADE, VARY, ALLOW]
     sample.sort()
     sample = [str(x) for x in sample]
     assert sample == [

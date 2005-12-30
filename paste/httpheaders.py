@@ -17,19 +17,19 @@ that takes one of the following:
 
   - an ``environ`` dictionary, returning the corresponding header
     value by according to the WSGI's HTTP_ prefix mechanism, e.g.,
-    ``UserAgent(environ)`` returns ``environ.get('HTTP_USER_AGENT')``
+    ``USER_AGENT(environ)`` returns ``environ.get('HTTP_USER_AGENT')``
 
   - a ``response_headers`` list, giving a comma-delimited string for
     each corresponding ``header_value`` tuple entries (see below).
 
   - a sequence of string ``*args`` that are comma-delimited into a
-    single string value, e.g. ``ContentType("text/html","text/plain")``
+    single string value, e.g. ``CONTENT_TYPE("text/html","text/plain")``
     returns ``"text/html, text/plain"``
 
   - a set of ``*kwargs`` keyword arguments that are used to create
     a header value, in a manner dependent upon the particular header in
     question (to make value construction easier and error-free):
-    ``ContentDisposition(max_age=ContentDisposition.ONEWEEK)`` returns
+    ``CONTENT_DISPOSITION(max_age=CONTENT_DISPOSITION.ONEWEEK)`` returns
     ``"public, max-age=60480"``
 
 Each ``HTTPHeader`` instance also provides several methods 04 act on
@@ -39,13 +39,13 @@ a WSGI collection, for removing and setting header values.
 
     This method removes all entries of the corresponding header from
     the given collection (``environ`` or ``response_headers``), e.g.,
-    ``UserAgent.remove(environ)`` deletes the 'HTTP_USER_AGENT' entry
+    ``USER_AGENT.remove(environ)`` deletes the 'HTTP_USER_AGENT' entry
     from the ``environ``.
 
   ``update(collection, *args, **kwargs)``
 
     This method does an in-place replacement of the given header entry,
-    for example: ``ContentLength(response_headers,len(body))``
+    for example: ``CONTENT_LENGTH(response_headers,len(body))``
 
     The first argument is a valid ``environ`` dictionary or
     ``response_headers`` list; remaining arguments are passed on to
@@ -244,7 +244,7 @@ class HTTPHeader(object):
     #
     # Things which are standardized (mostly)
     #
-    def __new__(cls, name, category=None):
+    def __new__(cls, name, category=None, version=None):
         """
         We use the ``__new__`` operator to ensure that only one
         ``HTTPHeader`` instance exists for each field-name, and to
@@ -266,6 +266,7 @@ class HTTPHeader(object):
         self.name = name
         assert isinstance(self.name,str)
         self.category = category or self.category
+        self.version  = version or self.version
         _headers[self.name.lower()] = self
         self.sort_order = {'general': 1, 'request': 2,
                            'response': 3, 'entity': 4 }[self.category]
@@ -274,6 +275,7 @@ class HTTPHeader(object):
         self._headers_name = getattr(self, '_headers_name',
                                  self.name.lower())
         assert self.version in ('1.1','1.0','0.9')
+        return self
 
     def __str__(self):
         return self.name
@@ -545,7 +547,7 @@ class _DateHeader(_SingleValueHeader):
 # been instantiated, so we use the same name.
 #
 
-class CacheControl(_MultiValueHeader):
+class _CacheControl(_MultiValueHeader):
     """
     Cache-Control, RFC 2616 section 14.9
 
@@ -651,13 +653,12 @@ class CacheControl(_MultiValueHeader):
         """ returns the offset expiration in seconds """
         (result, expires) = self._compose(**kwargs)
         if expires is not None:
-            Expires.update(collection, delta=expires)
+            EXPIRES.update(collection, delta=expires)
         self.update(collection, *result)
         return expires
+_CacheControl('Cache-Control','general')
 
-CacheControl = CacheControl('Cache-Control','general')
-
-class ContentType(_SingleValueHeader):
+class _ContentType(_SingleValueHeader):
     """
     Content-Type, RFC 2616 section 14.17
 
@@ -685,9 +686,9 @@ class ContentType(_SingleValueHeader):
         if charset:
             result += "; charset=%s" % charset
         return (result,)
-ContentType = ContentType('Content-Type','entity')
+_ContentType('Content-Type','entity')
 
-class ContentLength(_SingleValueHeader):
+class _ContentLength(_SingleValueHeader):
     """
     Content-Length, RFC 2616 section 14.13
 
@@ -696,9 +697,9 @@ class ContentLength(_SingleValueHeader):
     version = "1.0"
     _environ_name = 'CONTENT_LENGTH'
 
-ContentLength = ContentLength('Content-Length','entity')
+_ContentLength('Content-Length','entity')
 
-class ContentDisposition(_SingleValueHeader):
+class _ContentDisposition(_SingleValueHeader):
     """
     Content-Disposition, RFC 2183
 
@@ -752,16 +753,16 @@ class ContentDisposition(_SingleValueHeader):
     def apply(self, collection, **kwargs):
         """ return the new Content-Type side-effect value """
         (result, filename) = self._compose(**kwargs)
-        mimetype = ContentType(collection)
-        if filename and (not mimetype or ContentType.UNKNOWN == mimetype):
+        mimetype = CONTENT_TYPE(collection)
+        if filename and (not mimetype or CONTENT_TYPE.UNKNOWN == mimetype):
             mimetype, _ = guess_type(filename)
-            if mimetype and ContentType.UNKNOWN != mimetype:
-                ContentType.update(collection, mimetype)
+            if mimetype and CONTENT_TYPE.UNKNOWN != mimetype:
+                CONTENT_TYPE.update(collection, mimetype)
         self.update(collection, *result)
         return mimetype
-ContentDisposition = ContentDisposition('Content-Disposition','entity')
+_ContentDisposition('Content-Disposition','entity')
 
-class IfModifiedSince(_DateHeader):
+class _IfModifiedSince(_DateHeader):
     """
     If-Modified-Since, RFC 2616 section 14.25
     """
@@ -774,10 +775,9 @@ class IfModifiedSince(_DateHeader):
               "According to this server, the time provided in the\r\n"
               "%s header is in the future.\r\n") % self.name)
         return value
-IfModifiedSince = IfModifiedSince('If-Modified-Since','request')
+_IfModifiedSince('If-Modified-Since','request')
 
-
-class Range(_MultiValueHeader):
+class _Range(_MultiValueHeader):
     """
     Range, RFC 2616 section 14.35
 
@@ -824,9 +824,9 @@ class Range(_MultiValueHeader):
             # Range header was not present.  How do I log this?
             return None
         return (units, ranges)
-Range = Range('Range','request')
+_Range('Range','request')
 
-class AcceptRanges(_MultiValueHeader):
+class _AcceptRanges(_MultiValueHeader):
     """
     Accept-Ranges, RFC 2616 section 14.5
     """
@@ -834,9 +834,9 @@ class AcceptRanges(_MultiValueHeader):
         if bytes:
             return ('bytes',)
         return ('none',)
-AcceptRanges = AcceptRanges('Accept-Ranges')
+_AcceptRanges('Accept-Ranges')
 
-class ContentRange(_SingleValueHeader):
+class _ContentRange(_SingleValueHeader):
     """
     Content-Range, RFC 2616 section 14.6
     """
@@ -845,11 +845,12 @@ class ContentRange(_SingleValueHeader):
         assert first_byte <= last_byte
         assert last_byte  < total_length
         return (retval,)
-ContentRange = ContentRange('Content-Range')
+_ContentRange('Content-Range')
 
 #
 # For now, construct a minimalistic version of the field-names; at a
 # later date more complicated headers may sprout content constructors.
+# The items commented out have concrete variants.
 #
 for (name,              category, version, style,      comment) in \
 (("Accept"             ,'request' ,'1.1','multi-value','RFC 2616 $14.1' )
@@ -902,22 +903,14 @@ for (name,              category, version, style,      comment) in \
 ,("Via"                ,'general' ,'1.1','multi-value','RFC 2616 $14.45')
 ,("Warning"            ,'general' ,'1.1','multi-entry','RFC 2616 $14.46')
 ,("WWW-Authenticate"   ,'response','1.0','multi-entry','RFC 2616 $14.47')):
-    cname = name.replace("-","")
-    bname = { 'multi-value': '_MultiValueHeader',
-              'multi-entry': '_MultiEntryHeader',
-              'date-header': '_DateHeader',
-              'singular'   : '_SingleValueHeader'}[style]
-    exec """\
-class %(cname)s(%(bname)s):
-    "%(comment)s"
-    version = "%(version)s"
-%(cname)s('%(name)s','%(category)s');
-""" % { 'cname': cname, 'name': name,
-        'category': category, 'bname': bname,
-        'comment': comment, 'version': version } in globals(), globals()
+    klass = { 'multi-value': _MultiValueHeader,
+              'multi-entry': _MultiEntryHeader,
+              'date-header': _DateHeader,
+              'singular'   : _SingleValueHeader}[style]
+    klass(name,category,version).__doc__ = comment
 
 for head in _headers.values():
-    headname = head.name.replace("-","")
+    headname = head.name.replace("-","_").upper()
     locals()[headname] = head
     __all__.append(headname)
 

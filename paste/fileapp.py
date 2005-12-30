@@ -42,7 +42,7 @@ class DataApp(object):
 
         This method provides validated construction of the ``Cache-Control``
         header as well as providing for automated filling out of the
-        ``Expires`` header for HTTP/1.0 clients.
+        ``EXPIRES`` header for HTTP/1.0 clients.
 
     ``set_content()``
 
@@ -61,14 +61,14 @@ class DataApp(object):
         for (k,v) in kwargs.items():
             header = get_header(k)
             header.update(self.headers,v)
-        AcceptRanges.update(self.headers,bytes=True)
-        if not ContentType(self.headers):
-            ContentType.update(self.headers)
+        ACCEPT_RANGES.update(self.headers,bytes=True)
+        if not CONTENT_TYPE(self.headers):
+            CONTENT_TYPE.update(self.headers)
         if content:
             self.set_content(content)
 
     def cache_control(self, **kwargs):
-        self.expires = CacheControl.apply(self.headers, **kwargs) or None
+        self.expires = CACHE_CONTROL.apply(self.headers, **kwargs) or None
         return self
 
     def set_content(self, content):
@@ -76,20 +76,20 @@ class DataApp(object):
         self.last_modified = time.time()
         self.content = content
         self.content_length = len(content)
-        LastModified.update(self.headers, time=self.last_modified)
+        LAST_MODIFIED.update(self.headers, time=self.last_modified)
         return self
 
     def content_disposition(self, **kwargs):
-        ContentDisposition.apply(self.headers, **kwargs)
+        CONTENT_DISPOSITION.apply(self.headers, **kwargs)
         return self
 
     def __call__(self, environ, start_response):
         headers = self.headers[:]
         if self.expires is not None:
-            Expires.update(headers, delta=self.expires)
+            EXPIRES.update(headers, delta=self.expires)
 
         try:
-            client_clock = IfModifiedSince.parse(environ)
+            client_clock = IF_MODIFIED_SINCE.parse(environ)
             if client_clock >= int(self.last_modified):
                 # horribly inefficient, n^2 performance, yuck!
                 for head in list_headers(entity=True):
@@ -100,21 +100,21 @@ class DataApp(object):
             return exce.wsgi_application(environ, start_response)
 
         (lower,upper) = (0, self.content_length - 1)
-        range = Range.parse(environ)
+        range = RANGE.parse(environ)
         if range and 'bytes' == range[0] and 1 == len(range[1]):
             (lower,upper) = range[1][0]
             upper = upper or (self.content_length - 1)
             if upper >= self.content_length or lower > upper:
-                return HTTPRequestRangeNotSatisfiable((
-                  "Range request was made beyond the end of the content,\r\n"
-                  "which is %s long.\r\n  Range: %s\r\n") % (
-                     self.content_length, Range(environ))
+                return HTTPRequestRANGENotSatisfiable((
+                  "RANGE request was made beyond the end of the content,\r\n"
+                  "which is %s long.\r\n  RANGE: %s\r\n") % (
+                     self.content_length, RANGE(environ))
                 ).wsgi_application(environ, start_response)
 
         content_length = upper - lower + 1
-        ContentRange.update(headers, first_byte=lower, last_byte=upper,
+        CONTENT_RANGE.update(headers, first_byte=lower, last_byte=upper,
                             total_length = self.content_length)
-        ContentLength.update(headers, content_length)
+        CONTENT_LENGTH.update(headers, content_length)
         if content_length == self.content_length:
             start_response('200 OK', headers)
         else:
@@ -154,7 +154,7 @@ class FileApp(DataApp):
         self.last_modified = stat.st_mtime
 
     def __call__(self, environ, start_response):
-        if 'max-age=0' in CacheControl(environ):
+        if 'max-age=0' in CACHE_CONTROL(environ):
             self.update(force=True) # RFC 2616 13.2.6
         else:
             self.update()
