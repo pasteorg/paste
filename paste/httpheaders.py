@@ -22,15 +22,15 @@ that takes one of the following:
   - a ``response_headers`` list, giving a comma-delimited string for
     each corresponding ``header_value`` tuple entries (see below).
 
-  - a sequence of string ``*args`` that are comma-delimited into a
-    single string value, e.g. ``CONTENT_TYPE("text/html","text/plain")``
+  - a sequence of string ``*args`` that are comma-delimited into
+    a single string value: ``CONTENT_TYPE("text/html","text/plain")``
     returns ``"text/html, text/plain"``
 
   - a set of ``**kwargs`` keyword arguments that are used to create
     a header value, in a manner dependent upon the particular header in
     question (to make value construction easier and error-free):
-    ``CONTENT_DISPOSITION(max_age=CONTENT_DISPOSITION.ONEWEEK)`` returns
-    ``"public, max-age=60480"``
+    ``CONTENT_DISPOSITION(max_age=CONTENT_DISPOSITION.ONEWEEK)``
+    returns ``"public, max-age=60480"``
 
 Each ``HTTPHeader`` instance also provides several methods to act on
 a WSGI collection, for removing and setting header values.
@@ -55,9 +55,9 @@ a WSGI collection, for removing and setting header values.
 
     This method is similar to update, only that it may affect other
     headers.  For example, according to recommendations in RFC 2616,
-    certain Cache-Control configurations should also set the ``Expires``
-    header for HTTP/1.0 clients. By default, ``apply()`` is simply
-    ``update()`` but limited to keyword arguments.
+    certain Cache-Control configurations should also set the
+    ``Expires`` header for HTTP/1.0 clients. By default, ``apply()``
+    is simply ``update()`` but limited to keyword arguments.
 
 This particular approach to managing headers within a WSGI collection
 has several advantages:
@@ -69,7 +69,7 @@ has several advantages:
 
   2. For specific headers with validation, using ``__call__`` will
      result in an automatic header value check.  For example, the
-     ContentDisposition header will reject a value having ``maxage``
+     _ContentDisposition header will reject a value having ``maxage``
      or ``max_age`` (the appropriate parameter is ``max-age`` ).
 
   3. When appending/replacing headers, the field-name has the suggested
@@ -93,16 +93,16 @@ has several advantages:
      which violates the RFC's recommendation about combining header
      content into a single entry using comma separation.
 
-A particular difficulty with HTTP message headers is a categorization of
-sorts as described in section 4.2:
+A particular difficulty with HTTP message headers is a categorization
+of sorts as described in section 4.2:
 
     Multiple message-header fields with the same field-name MAY be
-    present in a message if and only if the entire field-value for that
-    header field is defined as a comma-separated list [i.e., #(values)].
-    It MUST be possible to combine the multiple header fields into one
-    "field-name: field-value" pair, without changing the semantics of
-    the message, by appending each subsequent field-value to the first,
-    each separated by a comma.
+    present in a message if and only if the entire field-value for
+    that header field is defined as a comma-separated list [i.e.,
+    #(values)]. It MUST be possible to combine the multiple header
+    fields into one "field-name: field-value" pair, without changing
+    the semantics of the message, by appending each subsequent
+    field-value to the first, each separated by a comma.
 
 This creates three fundamentally different kinds of headers:
 
@@ -146,12 +146,14 @@ _headers = {}
 
 class HTTPHeader(object):
     """
+    an HTTP header
+
     HTTPHeader instances represent a particular ``field-name`` of an
     HTTP message header. They do not hold a field-value, but instead
-    provide operations that work on is corresponding values.  Storage of
-    the actual field values is done with WSGI ``environ`` or
+    provide operations that work on is corresponding values.  Storage
+    of the actual field values is done with WSGI ``environ`` or
     ``response_headers`` as appropriate.  Typically, a sub-classes that
-    represent a specific HTTP header, such as ContentDisposition, are
+    represent a specific HTTP header, such as _ContentDisposition, are
     0.  Once constructed the HTTPHeader instances themselves
     are immutable and stateless.
 
@@ -160,43 +162,73 @@ class HTTPHeader(object):
 
     Member variables (and correspondingly constructor arguments).
 
-      ``name``         the ``field-name`` of the header, in "common form"
-                       as presented in RFC 2616; e.g. 'Content-Type'
+      ``name``
 
-      ``category``     one of 'general', 'request', 'response', or 'entity'
+          the ``field-name`` of the header, in "common form"
+          as presented in RFC 2616; e.g. 'Content-Type'
 
-      ``version``      version of HTTP (informational) with which the
-                       header should be recognized
+      ``category``
 
-      ``sort_order``   sorting order to be applied before sorting on
-                       field-name when ordering headers in a response
+          one of 'general', 'request', 'response', or 'entity'
+
+      ``version``
+
+          version of HTTP (informational) with which the header should
+          be recognized
+
+      ``sort_order``
+
+          sorting order to be applied before sorting on
+          field-name when ordering headers in a response
 
     Special Methods:
 
-       ``__call__``    The primary method of the HTTPHeader instance is
-                       to make it a callable, it takes either a collection,
-                       a string value, or keyword arguments and attempts
-                       to find/construct a valid field-value
+       ``__call__``
 
-       ``__lt__``      This method is used so that HTTPHeader objects
-                       can be sorted in a manner suggested by RFC 2616.
+           The primary method of the HTTPHeader instance is to make
+           it a callable, it takes either a collection, a string value,
+           or keyword arguments and attempts to find/construct a valid
+           field-value
 
-       ``__str__``     The string-value for instances of this class is
-                       the ``field-name``.
+       ``__lt__``
 
-    Collection Methods:
+           This method is used so that HTTPHeader objects can be
+           sorted in a manner suggested by RFC 2616.
 
-       ``delete()``    remove the all occurrences (if any) of the given
-                       header in the collection provided
+       ``__str__``
 
-       ``update()``    replaces (if they exist) all field-value items
-                       in the given collection with the value provided
+           The string-value for instances of this class is
+           the ``field-name``.
 
-       ``apply()``     similar to ``update`` only that keyword arguments
-                       are used and that other headers may be updated
+    Primary Methods:
 
-       ``tuples()``    returns a set of (field-name, field-value) tuples
-                       5 for extending ``response_headers``
+       ``delete()``
+
+           remove the all occurrences (if any) of the given
+           header in the collection provided
+
+       ``update()``
+
+           replaces (if they exist) all field-value items
+           in the given collection with the value provided
+
+       ``tuples()``
+
+           returns a set of (field-name, field-value) tuples
+           5 for extending ``response_headers``
+
+    Custom Methods (these may not be implemented):
+
+       ``apply()``
+
+           similar to ``update``, but with two differences; first,
+           only keyword arguments can be used, and second, specific
+           sub-classes may introduce side-effects
+
+       ``parse()``
+
+           converts a string value of the header into a more usable
+           form, such as time in seconds for a date header, etc.
 
     The collected versions of initialized header instances are immediately
     registered and accessible through the ``get_header`` function.  Do not
@@ -215,6 +247,8 @@ class HTTPHeader(object):
 
     def compose(self, **kwargs):
         """
+        build header value from keyword arguments
+
         This method is used to build the corresponding header value when
         keyword arguments (or no arguments) were provided.  The result
         should be a sequence of values.  For example, the ``Expires``
@@ -225,6 +259,8 @@ class HTTPHeader(object):
 
     def parse(self, *args, **kwargs):
         """
+        convert raw header value into more usable form
+
         This method invokes ``resolve()`` with the arguments provided,
         parses the header results, and then returns a header-specific
         data structure corresponding to the header.  For example, the
@@ -234,10 +270,12 @@ class HTTPHeader(object):
 
     def apply(self, collection, **kwargs):
         """
+        update the collection /w header value (may have side effects)
+
         This method is similar to ``update`` only that usage may result
         in other headers being changed as recommended by the corresponding
         specification.  The return value is defined by the particular
-        sub-class. For example, the ``CacheControl.apply()`` sets the
+        sub-class. For example, the ``_CacheControl.apply()`` sets the
         ``Expires`` header in addition to its normal behavior.
         """
         self.update(collection, **kwargs)
@@ -247,6 +285,8 @@ class HTTPHeader(object):
     #
     def __new__(cls, name, category=None, reference=None, version=None):
         """
+        construct a new ``HTTPHeader`` instance
+
         We use the ``__new__`` operator to ensure that only one
         ``HTTPHeader`` instance exists for each field-name, and to
         register the header so that it can be found/enumerated.
@@ -284,6 +324,8 @@ class HTTPHeader(object):
 
     def __lt__(self, other):
         """
+        sort header instances as specified by RFC 2616
+
         Re-define sorting so that general headers are first, followed
         by request/response headers, and then entity headers.  The
         list.sort() methods use the less-than operator for this purpose.
@@ -296,19 +338,20 @@ class HTTPHeader(object):
 
     def __repr__(self):
         ref = self.reference and (' (%s)' % self.reference) or ''
-        return '<HTTPHeader %s%s>' % (self.name, ref)
+        return '<%s %s%s>' % (self.__class__.__name__, self.name, ref)
 
     def resolve(self, *args, **kwargs):
         """
-        This finds/constructs field-value(s) for the given header
-        depending upon the arguments:
+        find/construct field-value(s) for the given header
+
+        Resolution is done according to the following arguments:
 
         - If only keyword arguments are given, then this is equivalent
           to ``compose(**kwargs)``.
 
         - If the first (and only) argument is a dict, it is assumed
           to be a WSGI ``environ`` and the result of the corresponding
-          HTTP_ entry is returned.
+          ``HTTP_`` entry is returned.
 
         - If the first (and only) argument is a list, it is assumed
           to be a WSGI ``response_headers`` and the field-value(s)
@@ -346,6 +389,8 @@ class HTTPHeader(object):
 
     def __call__(self, *args, **kwargs):
         """
+        converts ``resolve()`` into a string value
+
         This method converts the results of ``resolve()`` into a string
         value for common usage.  If more than one result are found; they
         are comma delimited as described by section 4.2 of RFC 2616.
@@ -360,8 +405,7 @@ class HTTPHeader(object):
 
     def delete(self, collection):
         """
-        This method removes all occurrences of the header in the
-        given collection.  It does not return the value removed.
+        removes all occurances of the header from the collection provided
         """
         if type(collection) == dict:
             if self._environ_name in collection:
@@ -377,6 +421,8 @@ class HTTPHeader(object):
 
     def update(self, collection, *args, **kwargs):
         """
+        updates the collection with the provided header value
+
         This method replaces (in-place when possible) all occurrences of
         the given header with the provided value.  If no value is
         provided, this is the same as ``remove`` (note that this case
@@ -413,9 +459,11 @@ class HTTPHeader(object):
 
 class _SingleValueHeader(HTTPHeader):
     """
-    The field-value is a single value and therefore all results
-    constructed or obtained from a collection are asserted to ensure
-    that only one result was there.
+    a ``HTTPHeader`` with exactly a single value
+
+    The field-value for these header instances is a single instance and
+    therefore all results constructed or obtained from a collection are
+    asserted to ensure that only one result was there.
     """
     def __call__(self, *args, **kwargs):
         results = HTTPHeader.resolve(self, *args, **kwargs)
@@ -430,20 +478,22 @@ class _SingleValueHeader(HTTPHeader):
 
 class _MultiValueHeader(HTTPHeader):
     """
-    This is the default behavior of HTTPHeader where the header is
+    a ``HTTPHeader`` with one or more values
+
+    This is the default behavior of ``HTTPHeader`` where the header is
     assumed to be multi-valued and values can be combined with a comma.
     """
     pass
 
 class _MultiEntryHeader(HTTPHeader):
     """
+    a multi-value ``HTTPHeader`` where items cannot be combined with a comma
+
     This header is multi-valued, but the values should not be combined
     with a comma since the header is not in compliance with RFC 2616
     (Set-Cookie due to Expires parameter) or which common user-agents do
-    not behave well when the header values are combined.
-
-    The values returned for this case are _always_ a list instead
-    of a string.
+    not behave well when the header values are combined. The values
+    returned for this case are _always_ a ``list`` instead of a string.
     """
     def __call__(self, *args, **kwargs):
         results = self.resolve(*args, **kwargs)
@@ -521,7 +571,7 @@ class _DateHeader(_SingleValueHeader):
     handle date-based headers
 
     This extends the ``_SingleValueHeader`` object with specific
-    treatment of time values.
+    treatment of time values:
 
     - It overrides ``compose`` to provide a sole keyword argument
       ``time`` which is an offset in seconds from the current time.
@@ -556,7 +606,7 @@ class _DateHeader(_SingleValueHeader):
 
 class _CacheControl(_MultiValueHeader):
     """
-    Cache-Control, RFC 2616 section 14.9
+    Cache-Control, RFC 2616 section 14.9  (``CACHE_CONTROL``)
 
     This header can be constructed (using keyword arguments), by
     first specifying one of the following mechanisms:
@@ -709,29 +759,33 @@ _ContentLength('Content-Length','entity', 'RFC 2616, 14.13')
 
 class _ContentDisposition(_SingleValueHeader):
     """
-    Content-Disposition, RFC 2183
+    Content-Disposition, RFC 2183 (``CONTENT_DISPOSITION``)
 
-    This header can be constructed (using keyword arguments), by
-    first specifying one of the following mechanisms:
+    This header can be constructed (using keyword arguments),
+    by first specifying one of the following mechanisms:
 
-      ``attachment``    if True, this specifies that the content
-                        should not be shown in the browser and
-                        should be handled externally, even if the
-                        browser could render the content
+      ``attachment``
 
-      ``inline``        exclusive with attachment; indicates that the
-                        content should be rendered in the browser if
-                        possible, but otherwise it should be handled
-                        externally
+          if True, this specifies that the content should not be
+          shown in the browser and should be handled externally,
+          even if the browser could render the content
+
+      ``inline``
+
+         exclusive with attachment; indicates that the content
+         should be rendered in the browser if possible, but
+         otherwise it should be handled externally
 
     Only one of the above 2 may be True.  If both are None, then
     the disposition is assumed to be an ``attachment``. These are
     distinct fields since support for field enumeration may be
     added in the future.
 
-      ``filename``      the filename parameter, if any, to be reported;
-                        if this is None, then the current object's
-                        'filename' attribute is used
+      ``filename``
+
+          the filename parameter, if any, to be reported; if
+          this is None, then the current object's filename
+          attribute is used
 
     The usage of ``apply()`` on this header has side-effects. If
     filename is provided, and Content-Type is not set or is
@@ -788,7 +842,7 @@ _IfModifiedSince('If-Modified-Since', 'request', 'RFC 2616, 14.25')
 
 class _Range(_MultiValueHeader):
     """
-    Range, RFC 2616 section 14.35
+    Range, RFC 2616 section 14.35 (``RANGE``)
 
     According to section 14.16, the response to this message should be a
     206 Partial Content and that if multiple non-overlapping byte ranges

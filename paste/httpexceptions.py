@@ -32,25 +32,25 @@ References:
 Exception
   HTTPException
     HTTPRedirection
-      # 300 Multiple Choices
+      300 - HTTPMultipleChoices
       301 - HTTPMovedPermanently
       302 - HTTPFound
       303 - HTTPSeeOther
       304 - HTTPNotModified
       305 - HTTPUseProxy
-      # 306 Unused
+      306 - Unused (not implemented, obviously)
       307 - HTTPTemporaryRedirect
     HTTPError
       HTTPClientError
         400 - HTTPBadRequest
         401 - HTTPUnauthorized
-        # 402 Payment Required
+        402 - HTTPPaymentRequired
         403 - HTTPForbidden
         404 - HTTPNotFound
         405 - HTTPMethodNotAllowed
         406 - HTTPNotAcceptable
-        # 407 Proxy Authentication Required
-        # 408 Request Timeout
+        407 - HTTPProxyAuthenticationRequired
+        408 - HTTPRequestTimeout
         409 - HTTPConfict
         410 - HTTPGone
         411 - HTTPLengthRequired
@@ -78,7 +78,7 @@ SERVER_NAME = 'WSGI Server'
 
 class HTTPException(Exception):
     """
-    Base class for all HTTP exceptions
+    an HTTP exception (including redirects or other status codes)
 
     This encapsulates an HTTP response that interrupts normal application
     flow; but one which is not necessarly an error condition. For
@@ -130,10 +130,15 @@ class HTTPException(Exception):
 
     Parameters:
 
-       ``detail``     a plain-text override of the default ``detail``
-       ``headers``    a list of (k,v) header pairs
-       ``comment``    a plain-text additional information which is
-                      usually stripped/hidden for end-users
+       ``detail``
+         a plain-text override of the default ``detail``
+
+       ``headers``
+         a list of (k,v) header pairs
+
+       ``comment``
+         a plain-text additional information which is
+         usually stripped/hidden for end-users
 
     To override the template (which is HTML content) or the plain-text
     explanation, one must subclass the given exception; or customize it
@@ -235,6 +240,8 @@ class HTTPException(Exception):
 
 class HTTPError(HTTPException):
     """
+    exception where an error has occurred
+
     This is an exception which indicates that an error has occurred,
     and that any work in progress should not be committed.  These are
     typically results in the 400's and 500's.
@@ -253,6 +260,8 @@ class HTTPError(HTTPException):
 
 class HTTPRedirection(HTTPException):
     """
+    a redirection
+
     This is an abstract base class for 3xx redirection.  It indicates
     that further action needs to be taken by the user agent in order
     to fulfill the request.  It does not necessarly signal an error
@@ -261,7 +270,7 @@ class HTTPRedirection(HTTPException):
 
 class _HTTPMove(HTTPRedirection):
     """
-    Base class for redirections which require a Location field.
+    redirections which require a Location field
 
     Since a 'Location' header is a required attribute of 301, 302, 303,
     305 and 307 (but not 304), this base class provides the mechanics to
@@ -291,6 +300,10 @@ class _HTTPMove(HTTPRedirection):
         HTTPRedirection.__init__(self, location, headers, comment)
         if detail is not None:
             self.detail = detail
+
+class HTTPMultipleChoices(_HTTPMove):
+    code = 300
+    title = 'Multiple Choices'
 
 class HTTPMovedPermanently(_HTTPMove):
     code = 301
@@ -346,6 +359,8 @@ class HTTPTemporaryRedirect(_HTTPMove):
 
 class HTTPClientError(HTTPError):
     """
+    an ``HTTPError`` where the client is in-error
+
     This is an error condition in which the client is presumed to be
     in-error.  This is an expected problem, and thus is not considered
     a bug.  A server-side traceback is not warranted.  Unless specialized,
@@ -367,6 +382,11 @@ class HTTPUnauthorized(HTTPClientError):
         'access the document you requested.  Either you supplied the\r\n'
         'wrong credentials (e.g., bad password), or your browser\r\n'
         'does not understand how to supply the credentials required.\r\n')
+
+class HTTPPaymentRequired(HTTPClientError):
+    code = 402
+    title = 'Payment Required'
+    explanation = ('Access was denied for financial reasons.')
 
 class HTTPForbidden(HTTPClientError):
     code = 403
@@ -393,6 +413,17 @@ class HTTPNotAcceptable(HTTPClientError):
     template = ('The resource could not be generated that was '
                 'acceptable to your browser (content\r\nof type '
                 '%(HTTP_ACCEPT)s).\r\n%(detail)s')
+
+class HTTPProxyAuthenticationRequired(HTTPClientError):
+    code = 407
+    title = 'Proxy Authentication Required'
+    explanation = ('Authentication /w a local proxy is needed.')
+
+class HTTPRequestTimeout(HTTPClientError):
+    code = 408
+    title = 'Request Timeout'
+    explanation = ('The server has waited too long for the request to '
+                   'be sent by the client.')
 
 class HTTPConflict(HTTPClientError):
     code = 409
@@ -457,6 +488,8 @@ class HTTPExpectationFailed(HTTPClientError):
 
 class HTTPServerError(HTTPError):
     """
+    an ``HTTPError`` where the server is in-error
+
     This is an error condition in which the server is presumed to be
     in-error.  This is usually unexpected, and thus requires a traceback;
     ideally, opening a support ticket for the customer. Unless specialized,
@@ -518,8 +551,7 @@ def get_exception(code):
 
 class HTTPExceptionHandler:
     """
-    This middleware catches any exceptions (which are subclasses of
-    ``HTTPException``) and turns them into proper HTTP responses.
+    catches exceptions and turns them into proper HTTP responses
 
     Attributes:
 
@@ -530,11 +562,10 @@ class HTTPExceptionHandler:
            To keep a stack trace for 4xx, HTTPClientError exceptions,
            set this to 400.
 
-
-
+    This middleware catches any exceptions (which are subclasses of
+    ``HTTPException``) and turns them into proper HTTP responses.
     Note if the headers have already been sent, the stack trace is
     always maintained as this indicates a programming error.
-
     """
 
     def __init__(self, application, warning_level=None):
