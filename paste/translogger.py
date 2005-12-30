@@ -1,3 +1,7 @@
+"""
+Middleware for logging requests, using Apache combined log format
+"""
+
 import logging
 import time
 

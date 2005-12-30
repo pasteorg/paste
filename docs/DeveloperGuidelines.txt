@@ -98,7 +98,7 @@ is going to bite your head off for committing something.
   from docstrings.
 
   The generation is done with `Pudge <http://pudge.lesscode.org/>`_.
-  To try generating the documentation, this should work:
+  To try generating the documentation, this should work::
 
     $ easy_install svn://lesscode.org/buildutils/trunk \
                    svn://lesscode.org/pudge/trunk
