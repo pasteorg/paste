@@ -400,7 +400,6 @@ class HTTPHeader(object):
             i += 1
         if not found:
             collection.append((self.name, value))
-        return value
 
     def tuples(self, *args, **kwargs):
         value = self.__call__(*args, **kwargs)
@@ -654,6 +653,7 @@ class _CacheControl(_MultiValueHeader):
             EXPIRES.update(collection, delta=expires)
         self.update(collection, *result)
         return expires
+
 _CacheControl('Cache-Control','general')
 
 class _ContentType(_SingleValueHeader):
@@ -758,6 +758,7 @@ class _ContentDisposition(_SingleValueHeader):
                 CONTENT_TYPE.update(collection, mimetype)
         self.update(collection, *result)
         return mimetype
+
 _ContentDisposition('Content-Disposition','entity')
 
 class _IfModifiedSince(_DateHeader):
