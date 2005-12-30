@@ -190,6 +190,9 @@ def raw_interactive(application, path='', **environ):
     for name, value in environ.items():
         name = name.replace('__', '.')
         basic_environ[name] = value
+    if ('SERVER_NAME' in basic_environ
+        and 'HTTP_HOST' not in basic_environ):
+        basic_environ['HTTP_HOST'] = basic_environ['SERVER_NAME']
     istream = basic_environ['wsgi.input']
     if isinstance(istream, str):
         basic_environ['wsgi.input'] = StringIO(istream)
