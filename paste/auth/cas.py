@@ -3,7 +3,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 # This code was written with funding by http://prometheusresearch.com
 """
-CAS 1.0 Authentication 
+CAS 1.0 Authentication
 
 The Central Authentication System is a straight-forward single sign-on
 mechanism developed by Yale University's ITS department.  It has since
@@ -30,8 +30,9 @@ class CASAuthenticate(HTTPSeeOther):
 
 def AuthCASHandler(application, authority):
     """
-    This middleware implements CAS 1.0 Authentication There are several
-    possible outcomes:
+    middleware to implement CAS 1.0 authentication
+
+    There are several possible outcomes:
 
     0. If the REMOTE_USER environment variable is already populated;
        then this middleware is a no-op, and the request is passed along
@@ -48,10 +49,14 @@ def AuthCASHandler(application, authority):
        will send them back to this same URL, only with a 'ticket' query
        argument.
 
-    authority:
-        This is a fully-qualified URL to a CAS 1.0 service. The URL
-        should end with a '/' and have the 'login' and 'validate'
-        sub-paths as described in the CAS 1.0 documentation.
+    Parameters:
+
+        ``authority``
+
+            This is a fully-qualified URL to a CAS 1.0 service. The URL
+            should end with a '/' and have the 'login' and 'validate'
+            sub-paths as described in the CAS 1.0 documentation.
+
     """
     assert authority.endswith("/") and authority.startswith("http")
     def cas_application(environ, start_response):

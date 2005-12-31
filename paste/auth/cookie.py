@@ -5,30 +5,44 @@
 """
 Cookie "Saved" Authentication
 
-This Authentication middleware saves the current REMOTE_USER, and any
-other environment variables specified, in a cookie so that it can be
+This authentication middleware saves the current REMOTE_USER and any
+other environment variables specified in a cookie so that it can be
 retrieved during the next request without requiring re-authentication.
 This uses a session cookie on the client side (so it goes away when the
 user closes their window) and does server-side expiration.
 
-  NOTE: If you use HTTPFound or other redirections; it is likely that
-        this module will not work unless it is _before_ the middleware
-        that converts the exception into a response.  Therefore, in your
-        component stack, put this component darn near the top (before
-        the exception handler).
+Following is a very simple example where a form is presented asking
+for a user name (no actual checking), and dummy session identifier
+(perhaps corresponding to a database session id) is stored in the
+cookie.
 
-According to the cookie specifications, RFC2068 and RFC2109, browsers
-should allow each domain at least 20 cookies; each one with a content
-size of at least 4k (4096 bytes).  This is rather small; so one should
-be parsimonious in your cookie name/sizes.  It is recommended via the
-HMAC specification (RFC 2104) that the secret key be 64 bytes since
-this is the block size of the hashing.
+>>> from paste.util.httpserver import serve
+>>> from paste.fileapp import DataApp
+>>> from paste.httpexceptions import *
+>>> from paste.wsgilib import parse_querystring
+>>> def testapp(environ, start_response):
+...     user = dict(parse_querystring(environ)).get('user','')
+...     if user:
+...         environ['REMOTE_USER'] = user
+...         environ['MY_SESSION'] = '1234' # save this too
+...         environ['paste.auth.cookie'].append('MY_SESSION')
+...     if environ.get('REMOTE_USER'):
+...         page = '<html><body>Welcome %s (%s)</body></html>'
+...         page %= (environ['REMOTE_USER'], environ['MY_SESSION'])
+...     else:
+...         page = ('<html><body><form><input name="user" />'
+...                 '<input type="submit" /></form></body></html>')
+...     return DataApp(page, content_type="text/html")(
+...                    environ, start_response)
+>>> serve(AuthCookieHandler(testapp))
+serving on...
+
 """
+
 import sha, hmac, base64, random, time, string, warnings
 from paste.request import get_cookies
 
 def make_time(value):
-    """ return a human readable timestmp """
     return time.strftime("%Y%m%d%H%M",time.gmtime(value))
 _signature_size = len(hmac.new('x','x',sha).digest())
 _header_size = _signature_size + len(make_time(time.time()))
@@ -52,10 +66,12 @@ def new_secret():
     """ returns a 64 byte secret """
     return ''.join(random.sample(_all_chars,64))
 
-class CookieSigner:
+class AuthCookieSigner:
     """
+    save/restore ``environ`` entries via digially signed cookie
+
     This class converts content into a timed and digitally signed
-    cookie, as well as having the facility to reverse this procedure. 
+    cookie, as well as having the facility to reverse this procedure.
     If the cookie, after the content is encoded and signed exceeds the
     maximum length (4096), then CookieTooLarge exception is raised.
 
@@ -65,6 +81,36 @@ class CookieSigner:
     has closed). Second, the user's clock may be wrong (perhaps
     intentionally). The timeout is specified in minutes; and expiration
     date returned is rounded to one second.
+
+    Constructor Arguments:
+
+        ``secret``
+
+            This is a secret key if you want to syncronize your keys so
+            that the cookie will be good across a cluster of computers.
+            It is recommended via the HMAC specification (RFC 2104) that
+            the secret key be 64 bytes since this is the block size of
+            the hashing.  If you do not provide a secret key, a random
+            one is generated each time you create the handler; this
+            should be sufficient for most cases.
+
+        ``timeout``
+
+            This is the time (in minutes) from which the cookie is set
+            to expire.  Note that on each request a new (replacement)
+            cookie is sent, hence this is effectively a session timeout
+            parameter for your entire cluster.  If you do not provide a
+            timeout, it is set at 30 minutes.
+
+        ``maxlen``
+
+            This is the maximum size of the *signed* cookie; hence the
+            actual content signed will be somewhat less.  If the cookie
+            goes over this size, a ``CookieTooLarge`` exception is
+            raised so that unexpected handling of cookies on the client
+            side are avoided.  By default this is set at 4k (4096 bytes),
+            which is the standard cookie size limit.
+
     """
     def __init__(self, secret = None, timeout = None, maxlen = None):
         self.timeout = timeout or 30
@@ -86,7 +132,7 @@ class CookieSigner:
         return cookie
 
     def auth(self,cookie):
-        """ 
+        """
         Authenticate the cooke using the signature, verify that it
         has not expired; and return the cookie's content
         """
@@ -111,17 +157,12 @@ class CookieSigner:
 
 class AuthCookieEnviron(list):
     """
-    This object is a list of `environ` keys that were restored from or
-    will be added to the digially signed cookie.  This object can be
-    accessed from an `environ` variable by using this module's name.
+    a list of environment keys to be saved via cookie
 
-      environ['paste.auth.cookie'].append('your.environ.variable')
-
-    This environment-specific object can also be used to access/configure
-    the base handler for all requests by using:
-
-      environ['paste.auth.cookie'].handler
-
+    An instance of this object, found at ``environ['paste.auth.cookie']``
+    lists the `environ` keys that were restored from or will be added
+    to the digially signed cookie.  This object can be accessed from an
+    `environ` variable by using this module's name.
     """
     def __init__(self, handler, scanlist):
         list.__init__(self, scanlist)
@@ -133,7 +174,9 @@ class AuthCookieEnviron(list):
 
 class AuthCookieHandler:
     """
-    This middleware uses cookies to stash-away a previously authenticated 
+    the actual handler that should be put in your middleware stack
+
+    This middleware uses cookies to stash-away a previously authenticated
     user (and perhaps other variables) so that re-authentication is not
     needed.  This does not implement sessions; and therefore N servers
     can be syncronized to accept the same saved authentication if they
@@ -144,23 +187,55 @@ class AuthCookieHandler:
     `environ` keys as well -- but be careful not to exceed 2-3k (so that
     the encoded and signed cookie does not exceed 4k). You can ask it
     to handle other environment variables by doing:
-    
-       environ['paste.auth.cookie'].append('your.environ.variable')
 
+       ``environ['paste.auth.cookie'].append('your.environ.variable')``
+
+
+    Constructor Arguments:
+
+        ``application``
+
+            This is the wrapped application which will have access to
+            the ``environ['REMOTE_USER']`` restored by this middleware.
+
+        ``cookie_name``
+
+            The name of the cookie used to store this content, by default
+            it is ``PASTE_AUTH_COOKIE``.
+
+        ``scanlist``
+
+            This is the initial set of ``environ`` keys to save/restore
+            to the signed cookie.  By default is consists only of
+            ``REMOTE_USER``; any tuple or list of environment keys
+            will work.  However, be careful, as the total saved size is
+            limited to around 3k.
+
+        ``signer``
+
+            This is the signer object used to create the actual cookie
+            values, by default, it is ``AuthCookieSigner`` and is passed
+            the remaining arguments to this function: ``secret``,
+            ``timeout``, and ``maxlen``.
+
+    At this time, each cookie is individually signed.  To store more
+    than the 4k of data; it is possible to sub-class this object to
+    provide different ``environ_name`` and ``cookie_name``
     """
     environ_name = 'paste.auth.cookie'
-    signer_class = CookieSigner 
+    cookie_name  = 'PASTE_AUTH_COOKIE'
+    signer_class = AuthCookieSigner
     environ_class = AuthCookieEnviron
 
-    def __init__(self, application, cookie_name=None, secret=None, 
-                 timeout=None, maxlen=None, signer=None, scanlist = None):
+    def __init__(self, application, cookie_name=None, scanlist=None,
+                 signer=None, secret=None, timeout=None, maxlen=None):
         if not signer:
             signer = self.signer_class(secret,timeout,maxlen)
         self.signer = signer
         self.scanlist = scanlist or ('REMOTE_USER',)
         self.application = application
-        self.cookie_name = cookie_name or 'PASTE_AUTH_COOKIE'
-    
+        self.cookie_name = cookie_name or self.cookie_name
+
     def __call__(self, environ, start_response):
         if self.environ_name in environ:
             raise AssertionError("AuthCookie already installed!")
@@ -188,7 +263,7 @@ class AuthCookieHandler:
 
         def response_hook(status, response_headers, exc_info=None):
             """
-            Scan the environment for keys specified in the scanlist, 
+            Scan the environment for keys specified in the scanlist,
             pack up their values, signs the content and issues a cookie.
             """
             scanlist = environ.get(self.environ_name)
@@ -210,26 +285,10 @@ class AuthCookieHandler:
 
 middleware = AuthCookieHandler
 
-__all__ = ['AuthCookieHandler']
+__all__ = ['AuthCookieHandler', 'AuthCookieSigner', 'AuthCookieEnviron']
 
-if '__main__' == __name__:
-    from paste.wsgilib import parse_querystring
-    def AuthStupidHandler(application):
-        def authstupid_application(environ, start_response):
-            args = dict(parse_querystring(environ))
-            user = args.get('user','')
-            if user:
-                environ['REMOTE_USER'] = user
-                environ['AUTH_TYPE'] = 'stupid'
-            test = args.get('test','')
-            if test:
-                environ['paste.auth.cookie.test'] = test
-                environ['paste.auth.cookie'].append('paste.auth.cookie.test')
-            return application(environ, start_response)
-        return authstupid_application
-    from paste.wsgilib import dump_environ
-    from paste.util.httpserver import serve
-    from paste.httpexceptions import *
-    serve(AuthCookieHandler(
-            HTTPExceptionHandler(
-                  AuthStupidHandler(dump_environ))))
+
+if "__main__" == __name__:
+    import doctest
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
+
