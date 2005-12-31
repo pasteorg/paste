@@ -8,11 +8,29 @@ Authentication via Multiple Methods
 In some environments, the choice of authentication method to be used
 depends upon the environment and is not "fixed".  This middleware allows
 N authentication methods to be registered along with a goodness function
-which determines which method should be used.
+which determines which method should be used. The following example
+demonstrates how to use both form and digest authentication in a server
+stack; by default it uses form-based authentication unless
+``*authmeth=digest`` is specified as a query argument.
 
-Strictly speaking this is not limited to authentication, but it is a
-common requirement in that domain; this is why it isn't named
-AuthMultiHandler (for now).
+>>> from paste.auth import form, cookie, digest
+>>> from paste.wsgilib import dump_environ
+>>> from paste.util.httpserver import serve
+>>>
+>>> multi = MultiHandler(dump_environ)
+>>> def authfunc(realm, user):
+...     return digest.digest_password(user, realm, user)
+>>> multi.add_method('digest', digest.middleware, "Test Realm", authfunc)
+>>> multi.set_query_argument('digest')
+>>>
+>>> def authfunc(username, password):
+...     return username == password
+>>> factory = lambda app: form.middleware(app, authfunc)
+>>> multi.add_method('form', factory)
+>>> multi.set_default('form')
+>>> serve(cookie.middleware(multi))
+serving on...
+
 """
 
 class MultiHandler:
@@ -44,7 +62,7 @@ class MultiHandler:
     def set_query_argument(self, name, key = '*authmeth', value = None):
         """ choose authentication method based on a query argument """
         lookfor = "%s=%s" % (key, value or name)
-        self.add_predicate(name, 
+        self.add_predicate(name,
             lambda environ: lookfor in environ.get('QUERY_STRING',''))
     def __call__(self, environ, start_response):
         for (checker,binding) in self.predicate:
@@ -56,26 +74,7 @@ middleware = MultiHandler
 
 __all__ = ['MultiHandler']
 
-if '__main__' == __name__:
-    import basic, digest, cas, cookie, form
-    from paste.httpexceptions import *
-    from paste.wsgilib import dump_environ
-    from paste.util.httpserver import serve
-    multi = MultiHandler(dump_environ)
-    multi.add_method('basic',basic.middleware,
-                     'tag:clarkevans.com,2005:basic',
-                     lambda n,p: n == p )
-    multi.set_query_argument('basic')
-    multi.add_method('digest',digest.middleware,
-                     'tag:clarkevans.com,2005:digest',
-                     lambda r,u: digest.digest_password(u,r,u))
-    multi.set_query_argument('digest')
-    multi.add_method('form',lambda ap: cookie.middleware(
-                                           form.middleware(ap,
-                                               lambda n,p: n == p)))
-    multi.set_query_argument('form')
-    #authority = "https://secure.its.yale.edu/cas/servlet/"
-    #multi.add_method('cas',lambda ap: cookie.middleware(
-    #                                      cas.middleware(ap,authority)))
-    #multi.set_default('cas')
-    serve(HTTPExceptionHandler(multi))
+if "__main__" == __name__:
+    import doctest
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
+

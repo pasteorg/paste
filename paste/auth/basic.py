@@ -5,14 +5,14 @@
 """
 Basic HTTP/1.0 Authentication
 
-This module implements ``Basic`` authentication as described in HTTP/1.0
-specification [1]_ .  Do not use this module unless you need to work
-with very out-dated clients, instead use ``digest`` authentication.
-Basically, you just put this module before your application, and it
-takes care of requesting and handling authentication requests.
+This module implements ``Basic`` authentication as described in
+HTTP/1.0 specification [1]_ .  Do not use this module unless you
+are using SSL or need to work with very out-dated clients, instead
+use ``digest`` authentication.
 
 >>> from paste.wsgilib import dump_environ
 >>> from paste.util.httpserver import serve
+>>> from paste.auth.basic import AuthBasicHandler
 >>> realm = 'Test Realm'
 >>> def authfunc(username, password):
 ...     return username == password
@@ -96,7 +96,6 @@ class AuthBasicHandler:
 middleware = AuthBasicHandler
 
 __all__ = ['AuthBasicHandler']
-
 
 if "__main__" == __name__:
     import doctest
