@@ -3,26 +3,42 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 # This code was written with funding by http://prometheusresearch.com
 """
-HTTP Digest Authentication (RFC 2617)
+Digest HTTP/1.1 Authentication
 
-NOTE: This has not been audited by a security expert, please use
-      with caution (or better yet, report security holes).
+This module implements ``Digest`` authentication as described by
+RFC 2617 [1]_ .
 
-      At this time, this implementation does not provide for further
-      challenges, nor does it support Authentication-Info header.  It
-      also uses md5, and an option to use sha would be a good thing.
+Basically, you just put this module before your application, and it
+takes care of requesting and handling authentication requests.  This
+module has been tested with several common browsers "out-in-the-wild".
+
+>>> from paste.wsgilib import dump_environ
+>>> from paste.util.httpserver import serve
+>>> from paste.auth.digest import digest_password, AuthDigestHandler
+>>> realm = 'Test Realm'
+>>> def authfunc(realm, username):
+...     return digest_password(username, realm, username)
+>>> serve(AuthDigestHandler(dump_environ, realm, authfunc))
+serving on...
+
+This code has not been audited by a security expert, please use with
+caution (or better yet, report security holes). At this time, this
+implementation does not provide for further challenges, nor does it
+support Authentication-Info header.  It also uses md5, and an option
+to use sha would be a good thing.
+
+.. [1] http://www.faqs.org/rfcs/rfc2617.html
 """
 from paste.httpexceptions import HTTPUnauthorized
 import md5, time, random, urllib2
 
 def digest_password(username, realm, password):
-    """ Constructs the appropriate hashcode needed for HTTP Digest """
+    """ construct the appropriate hashcode needed for HTTP digest """
     return md5.md5("%s:%s:%s" % (username,realm,password)).hexdigest()
 
-def response(challenge, realm, path, username, password):
+def digest_response(challenge, realm, path, username, password):
     """
-    Build an authorization response for a given challenge.  This
-    implementation uses urllib2 to do the dirty work.
+    builds an authorization response for a given challenge
     """
     auth = urllib2.AbstractDigestAuthHandler()
     auth.add_password(realm,path,username,password)
@@ -38,19 +54,15 @@ def response(challenge, realm, path, username, password):
        get_selector = get_full_url
     return "Digest %s" % auth.get_authorization(FakeRequest(), chal)
 
-class DigestAuthenticator:
-    """ Simple implementation of RFC 2617 - HTTP Digest Authentication """
-    def __init__(self, realm, userfunc):
-        """
-            realm is a globally unique URI, like tag:clarkevans.com,2005:bing
-            userfunc(realm, username) -> MD5('%s:%s:%s') % (user,realm,pass)
-        """
+class AuthDigestAuthenticator:
+    """ implementation of RFC 2617 - HTTP Digest Authentication """
+    def __init__(self, realm, authfunc):
         self.nonce    = {} # list to prevent replay attacks
-        self.userfunc = userfunc
+        self.authfunc = authfunc
         self.realm    = realm
 
     def build_authentication(self, stale = ''):
-        """ raises an authentication exception """
+        """ builds the authentication error """
         nonce  = md5.md5("%s:%s" % (time.time(),random.random())).hexdigest()
         opaque = md5.md5("%s:%s" % (time.time(),random.random())).hexdigest()
         self.nonce[nonce] = None
@@ -62,7 +74,7 @@ class DigestAuthenticator:
         head = [("WWW-Authenticate", 'Digest %s' % head)]
         return HTTPUnauthorized(headers=head)
 
-    def compute(self, ha1, username, response, method, 
+    def compute(self, ha1, username, response, method,
                       path, nonce, nc, cnonce, qop):
         """ computes the authentication, raises error if unsuccessful """
         if not ha1:
@@ -88,7 +100,7 @@ class DigestAuthenticator:
         """ This function takes the value of the 'Authorization' header,
             the method used (e.g. GET), and the path of the request
             relative to the server. The function either returns an
-            authenticated user, or it raises an exception.
+            authenticated user or it returns the authentication error.
         """
         if not authorization:
             return self.build_authentication()
@@ -115,79 +127,82 @@ class DigestAuthenticator:
                 assert nonce and nc
         except:
             return self.build_authentication()
-        ha1 = self.userfunc(realm,username)
+        ha1 = self.authfunc(realm,username)
         return self.compute(ha1, username, response, method, authpath,
                             nonce, nc, cnonce, qop)
 
     __call__ = authenticate
 
-def AuthDigestHandler(application, realm, userfunc):
+class AuthDigestHandler:
     """
-    This middleware implements HTTP Digest authentication (RFC 2617) on
-    the incoming request.  There are several possible outcomes:
+    middleware for HTTP Digest authentication (RFC 2617)
 
-    0. If the REMOTE_USER environment variable is already populated;
-       then this middleware is a no-op, and the request is passed along
-       to the application.
+    This component follows the procedure below:
 
-    1. If the HTTP_AUTHORIZATION header was not provided, then a
-       HTTPUnauthorized exception is raised containing the challenge.
+        0. If the REMOTE_USER environment variable is already populated;
+           then this middleware is a no-op, and the request is passed
+           along to the application.
 
-    2. If the HTTP_AUTHORIZATION header specifies anything other
-       than digest; the REMOTE_USER is left unset and application
-       processing continues.
+        1. If the HTTP_AUTHORIZATION header was not provided or specifies
+           an algorithem other than ``digest``, then a HTTPUnauthorized
+           response is generated with the challenge.
 
-    3. If the response is malformed or or if the user's credientials
-       do not pass muster, another HTTPUnauthorized is raised.
+        2. If the response is malformed or or if the user's credientials
+           do not pass muster, another HTTPUnauthorized is raised.
 
-    4. IF all goes well, and the user's credintials pass; then
-       REMOTE_USER environment variable is filled in and the
-       AUTH_TYPE is listed as 'digest'.
+        3. If all goes well, and the user's credintials pass; then
+           REMOTE_USER environment variable is filled in and the
+           AUTH_TYPE is listed as 'digest'.
 
-    Besides the application to delegate requests, this middleware
-    requires two additional arguments:
+    Parameters:
 
-    realm:
-        This is a globally unique identifier used to indicate the
-        authority that is performing the authentication.  The taguri
-        such as tag:yourdomain.com,2006 is sufficient.
+        ``application``
 
-    userfunc:
-        This is a callback function which performs the actual
-        authentication; the signature of this callback is:
+            The application object is called only upon successful
+            authentication, and can assume ``environ['REMOTE_USER']``
+            is set.  If the ``REMOTE_USER`` is already set, this
+            middleware is simply pass-through.
 
-          userfunc(realm, username) -> hashcode
+        ``realm``
 
-        This module provides a 'digest_password' helper function which
-        can help construct the hashcode; it is recommended that the
-        hashcode is stored in a database, not the user's actual password.
+            This is a identifier for the authority that is requesting
+            authorization.  It is shown to the user and should be unique
+            within the domain it is being used.
+
+        ``authfunc``
+
+            This is a callback function which performs the actual
+            authentication; the signature of this callback is:
+
+              authfunc(realm, username) -> hashcode
+
+            This module provides a 'digest_password' helper function
+            which can help construct the hashcode; it is recommended
+            that the hashcode is stored in a database, not the user's
+            actual password (since you only need the hashcode).
     """
-    authenticator = DigestAuthenticator(realm, userfunc)
-    def digest_application(environ, start_response):
+    def __init__(self, application, realm, authfunc):
+        self.authenticate = AuthDigestAuthenticator(realm, authfunc)
+        self.application = application
+
+    def __call__(self, environ, start_response):
         username = environ.get('REMOTE_USER','')
         if not username:
             method = environ['REQUEST_METHOD']
             fullpath = environ['SCRIPT_NAME'] + environ["PATH_INFO"]
             authorization = environ.get('HTTP_AUTHORIZATION','')
-            result = authenticator(authorization, fullpath, method)
+            result = self.authenticate(authorization, fullpath, method)
             if isinstance(result, str):
                 environ['AUTH_TYPE'] = 'digest'
                 environ['REMOTE_USER'] = result
             else:
                 return result.wsgi_application(environ, start_response)
-        return application(environ, start_response)
-    return digest_application
+        return self.application(environ, start_response)
 
 middleware = AuthDigestHandler
 
-__all__ = ['digest_password', 'AuthDigestHandler' ]
+__all__ = ['digest_password', 'digest_response', 'AuthDigestHandler' ]
 
-if '__main__' == __name__:
-    realm = 'tag:clarkevans.com,2005:digest'
-    def userfunc(realm, username):
-        return digest_password(username, realm, username)
-    from paste.wsgilib import dump_environ
-    from paste.util.httpserver import serve
-    from paste.httpexceptions import *
-    serve(HTTPExceptionHandler(
-             AuthDigestHandler(dump_environ, realm, userfunc)))
+if "__main__" == __name__:
+    import doctest
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
