@@ -140,6 +140,7 @@ from httpexceptions import HTTPBadRequest
 
 __all__ = ['get_header', 'list_headers', 'normalize_headers', 'HTTPHeader',
            # additionally, all header instance objects are exported
+           '_CacheControl', '_ContentDisposition', '_Range' # for docos
 ]
 
 _headers = {}
@@ -606,48 +607,61 @@ class _DateHeader(_SingleValueHeader):
 
 class _CacheControl(_MultiValueHeader):
     """
-    Cache-Control, RFC 2616 section 14.9  (``CACHE_CONTROL``)
+    Cache-Control, RFC 2616 14.9  (use ``CACHE_CONTROL``)
 
     This header can be constructed (using keyword arguments), by
     first specifying one of the following mechanisms:
 
-      ``public``        if True, this argument specifies that the
-                        response, as a whole, may be cashed.
+      ``public``
 
-      ``private``       if True, this argument specifies that the
-                        response, as a whole, may be cashed; this
-                        implementation does not support the
-                        enumeration of private fields
+          if True, this argument specifies that the
+          response, as a whole, may be cashed.
 
+      ``private``
 
-      ``no_cache``      if True, this argument specifies that the
-                        response, as a whole, may be cashed; this
-                        implementation does not support the
-                        enumeration of private fields
+          if True, this argument specifies that the response, as a
+          whole, may be cashed; this implementation does not support
+          the enumeration of private fields
+
+      ``no_cache``
+
+          if True, this argument specifies that the response, as a
+          whole, may be cashed; this implementation does not support
+          the enumeration of private fields
 
     In general, only one of the above three may be True, the other 2
     must then be False or None.  If all three are None, then the cache
     is assumed to be ``public``.  Following one of these mechanism
     specifiers are various modifiers:
 
-      ``no_store``      indicates if content may be stored on disk;
-                        otherwise cache is limited to memory (note:
-                        users can still save the data, this applies
-                        to intermediate caches)
+      ``no_store``
 
-      ``max_age``       the maximum duration (in seconds) for which
-                        the content should be cached; if ``no-cache``
-                        is specified, this defaults to 0 seconds
+          indicates if content may be stored on disk;
+          otherwise cache is limited to memory (note:
+          users can still save the data, this applies
+          to intermediate caches)
 
-      ``s_maxage``      the maximum duration (in seconds) for which the
-                        content should be allowed in a shared cache.
+      ``max_age``
 
-      ``no_transform``  specifies that an intermediate cache should
-                        not convert the content from one type to
-                        another (e.g. transform a BMP to a PNG).
+          the maximum duration (in seconds) for which
+          the content should be cached; if ``no-cache``
+          is specified, this defaults to 0 seconds
 
-      ``extensions``    gives additional cache-control extensions,
-                        such as items like, community="UCI" (14.9.6)
+      ``s_maxage``
+
+          the maximum duration (in seconds) for which the
+          content should be allowed in a shared cache.
+
+      ``no_transform``
+
+          specifies that an intermediate cache should
+          not convert the content from one type to
+          another (e.g. transform a BMP to a PNG).
+
+      ``extensions``
+
+          gives additional cache-control extensions,
+          such as items like, community="UCI" (14.9.6)
 
     The usage of ``apply()`` on this header has side-effects. As
     recommended by RFC 2616, if ``max_age`` is provided, then then the
@@ -759,7 +773,7 @@ _ContentLength('Content-Length','entity', 'RFC 2616, 14.13')
 
 class _ContentDisposition(_SingleValueHeader):
     """
-    Content-Disposition, RFC 2183 (``CONTENT_DISPOSITION``)
+    Content-Disposition, RFC 2183 (use ``CONTENT_DISPOSITION``)
 
     This header can be constructed (using keyword arguments),
     by first specifying one of the following mechanisms:
@@ -842,7 +856,7 @@ _IfModifiedSince('If-Modified-Since', 'request', 'RFC 2616, 14.25')
 
 class _Range(_MultiValueHeader):
     """
-    Range, RFC 2616 section 14.35 (``RANGE``)
+    Range, RFC 2616 14.35 (use ``RANGE``)
 
     According to section 14.16, the response to this message should be a
     206 Partial Content and that if multiple non-overlapping byte ranges
