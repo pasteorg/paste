@@ -3,14 +3,31 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 # This code was written with funding by http://prometheusresearch.com
 """
-HTTP Form Authentication
+Authentication via HTML Form
+
+This is a very simple HTML form login screen that asks for the username
+and password.  This middleware component requires that an authorization
+function taking the name and passsword and that it be placed in your
+application stack. This class does not include any session management
+code or way to save the user's authorization; however, it is easy enough
+to put ``paste.auth.cookie`` in your application stack.
+
+>>> from paste.wsgilib import dump_environ
+>>> from paste.util.httpserver import serve
+>>> from paste.auth.cookie import AuthCookieHandler
+>>> from paste.auth.form import AuthFormHandler
+>>> def authfunc(username, password):
+...    return username == password
+>>> serve(AuthCookieHandler(
+...           AuthFormHandler(dump_environ, authfunc)))
+serving on...
 
 """
-from paste.wsgilib import parse_formvars, construct_url
+from paste.request import construct_url, parse_formvars
 
-template = """\
+TEMPLATE ="""\
 <html>
-  <head><title>Please Login</title></head>
+  <head><title>Please Login!</title></head>
   <body>
     <h1>Please Login</h1>
     <form action="%s" method="post">
@@ -27,47 +44,83 @@ template = """\
 </html>
 """
 
-def AuthFormHandler(application, userfunc, login_page = None):
-    """ This causes a HTML form to be returned if REMOTE_USER has not 
-        been provided.  This is a really simple implementation, it 
-        requires that the query arguments returned from the form have two
-        variables "username" and "password".  These are then passed to
-        the userfunc; which should return True if authentication is granted.
+class AuthFormHandler:
     """
-    login_page = login_page or template
-    def form_application(environ, start_response):
+    HTML-based login middleware
+
+    This causes a HTML form to be returned if ``REMOTE_USER`` is
+    not found in the ``environ``.  If the form is returned, the
+    ``username`` and ``password`` combination are given to a
+    user-supplied authentication function, ``authfunc``.  If this
+    is successful, then application processing continues.
+
+    Parameters:
+
+        ``application``
+
+            The application object is called only upon successful
+            authentication, and can assume ``environ['REMOTE_USER']``
+            is set.  If the ``REMOTE_USER`` is already set, this
+            middleware is simply pass-through.
+
+        ``authfunc``
+
+            This is a mandatory user-defined function which takes a
+            ``username`` and ``password`` for its first and second
+            arguments respectively.  It should return ``True`` if
+            the user is authenticated.
+
+        ``template``
+
+            This is an optional (a default is provided) HTML
+            fragment that takes exactly one ``%s`` substution
+            argument; which *must* be used for the form's ``action``
+            to ensure that this middleware component does not alter
+            the current path.  The HTML form must use ``POST`` and
+            have two input names:  ``username`` and ``password``.
+
+    Since the authentication form is submitted (via ``POST``)
+    neither the ``PATH_INFO`` nor the ``QUERY_STRING`` are accessed,
+    and hence the current path remains _unaltered_ through the
+    entire authentication process. If authentication succeeds, the
+    ``REQUEST_METHOD`` is converted from a ``POST`` to a ``GET``,
+    so that a redirect is unnecessary (unlike most form auth
+    implementations)
+    """
+
+    def __init__(self, application, authfunc, template=None):
+        self.application = application
+        self.authfunc = authfunc
+        self.template = template or TEMPLATE
+
+    def __call__(self, environ, start_response):
         username = environ.get('REMOTE_USER','')
         if username:
-            return application(environ, start_response)
+            return self.application(environ, start_response)
+
         if 'POST' == environ['REQUEST_METHOD']:
-            formvars = parse_formvars(environ)
+            formvars = parse_formvars(environ, include_get_vars=False)
             username = formvars.get('username')
             password = formvars.get('password')
             if username and password:
-                if userfunc(username,password):
+                if self.authfunc(username,password):
                     environ['AUTH_TYPE'] = 'form'
                     environ['REMOTE_USER'] = username
                     environ['REQUEST_METHOD'] = 'GET'
+                    environ['CONTENT_LENGTH'] = ''
+                    environ['CONTENT_TYPE'] = ''
                     del environ['paste.parsed_formvars']
-                    return application(environ, start_response)
+                    return self.application(environ, start_response)
+
+        content = self.template % construct_url(environ)
         start_response("200 OK",(('Content-Type', 'text/html'),
-                                 ('Content-Length', len(login_page))))
-        if "%s" in login_page:
-             return [login_page % construct_url(environ) ]
-        return [login_page]
-    return form_application
+                                 ('Content-Length', len(content))))
+        return [content]
 
 middleware = AuthFormHandler
 
 __all__ = ['AuthFormHandler']
 
-if '__main__' == __name__:
-    def userfunc(username, password):
-        return username == password
-    from paste.wsgilib import dump_environ
-    from paste.util.httpserver import serve
-    from paste.httpexceptions import *
-    from cookie import AuthCookieHandler
-    serve(HTTPExceptionHandler(
-              AuthCookieHandler(
-                   AuthFormHandler(dump_environ, userfunc))))
+if "__main__" == __name__:
+    import doctest
+    doctest.testmod(optionflags=doctest.ELLIPSIS)

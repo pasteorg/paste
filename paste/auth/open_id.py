@@ -53,6 +53,8 @@ should be redirected to wherever they would normally go after a successful
 login.
 """
 
+__all__ = ['AuthOpenIDHandler']
+
 import cgi
 import urlparse
 import cgitb

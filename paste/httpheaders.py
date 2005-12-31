@@ -140,7 +140,7 @@ from httpexceptions import HTTPBadRequest
 
 __all__ = ['get_header', 'list_headers', 'normalize_headers', 'HTTPHeader',
            # additionally, all header instance objects are exported
-           '_CacheControl', '_ContentDisposition', '_Range' # for docos
+#           '_CacheControl', '_ContentDisposition', '_Range'  for docos
 ]
 
 _headers = {}
@@ -985,12 +985,13 @@ for (name,              category, version, style,      comment) in \
               'date-header': _DateHeader,
               'singular'   : _SingleValueHeader}[style]
     klass(name,category,comment,version).__doc__ = comment
+    del klass
 
 for head in _headers.values():
     headname = head.name.replace("-","_").upper()
     locals()[headname] = head
     __all__.append(headname)
-    
+
 __pudge_all__ = __all__[:]
 for _name, _obj in globals().items():
     if isinstance(_obj, type) and issubclass(_obj, HTTPHeader):

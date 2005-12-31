@@ -10,9 +10,9 @@ by defining a set of exceptions, all subclasses of HTTPException, and a
 request handler (`middleware`) that catches these exceptions and turns
 them into proper responses.
 
-This module defines exceptions according to RFC 2068 [1]: codes with
+This module defines exceptions according to RFC 2068 [1]_ : codes with
 100-300 are not really errors; 400's are client errors, and 500's are
-server errors.  According to the WSGI specification [2], the application
+server errors.  According to the WSGI specification [2]_ , the application
 can call ``start_response`` more then once only under two conditions:
 (a) the response has not yet been sent, or (b) if the second and
 subsequent invocations of ``start_response`` have a valid ``exc_info``
@@ -25,48 +25,50 @@ has been called are treated as serious errors and the ``exc_info`` is
 filled-in with information needed for a lower level module to generate a
 stack trace and log information.
 
-References:
-[1] http://www.python.org/peps/pep-0333.html#error-handling
-[2] http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5
-
 Exception
   HTTPException
     HTTPRedirection
-      300 - HTTPMultipleChoices
-      301 - HTTPMovedPermanently
-      302 - HTTPFound
-      303 - HTTPSeeOther
-      304 - HTTPNotModified
-      305 - HTTPUseProxy
-      306 - Unused (not implemented, obviously)
-      307 - HTTPTemporaryRedirect
+      * 300 - HTTPMultipleChoices
+      * 301 - HTTPMovedPermanently
+      * 302 - HTTPFound
+      * 303 - HTTPSeeOther
+      * 304 - HTTPNotModified
+      * 305 - HTTPUseProxy
+      * 306 - Unused (not implemented, obviously)
+      * 307 - HTTPTemporaryRedirect
     HTTPError
       HTTPClientError
-        400 - HTTPBadRequest
-        401 - HTTPUnauthorized
-        402 - HTTPPaymentRequired
-        403 - HTTPForbidden
-        404 - HTTPNotFound
-        405 - HTTPMethodNotAllowed
-        406 - HTTPNotAcceptable
-        407 - HTTPProxyAuthenticationRequired
-        408 - HTTPRequestTimeout
-        409 - HTTPConfict
-        410 - HTTPGone
-        411 - HTTPLengthRequired
-        412 - HTTPPreconditionFailed
-        413 - HTTPRequestEntityTooLarge
-        414 - HTTPRequestURITooLong
-        415 - HTTPUnsupportedMediaType
-        416 - HTTPRequestRangeNotSatisfiable
-        417 - HTTPExpectationFailed
+        * 400 - HTTPBadRequest
+        * 401 - HTTPUnauthorized
+        * 402 - HTTPPaymentRequired
+        * 403 - HTTPForbidden
+        * 404 - HTTPNotFound
+        * 405 - HTTPMethodNotAllowed
+        * 406 - HTTPNotAcceptable
+        * 407 - HTTPProxyAuthenticationRequired
+        * 408 - HTTPRequestTimeout
+        * 409 - HTTPConfict
+        * 410 - HTTPGone
+        * 411 - HTTPLengthRequired
+        * 412 - HTTPPreconditionFailed
+        * 413 - HTTPRequestEntityTooLarge
+        * 414 - HTTPRequestURITooLong
+        * 415 - HTTPUnsupportedMediaType
+        * 416 - HTTPRequestRangeNotSatisfiable
+        * 417 - HTTPExpectationFailed
       HTTPServerError
-        500 - HTTPInternalServerError
-        501 - HTTPNotImplemented
-        502 - HTTPBadGateway
-        503 - HTTPServiceUnavailable
-        504 - HTTPGatewayTimeout
-        505 - HTTPVersionNotSupported
+        * 500 - HTTPInternalServerError
+        * 501 - HTTPNotImplemented
+        * 502 - HTTPBadGateway
+        * 503 - HTTPServiceUnavailable
+        * 504 - HTTPGatewayTimeout
+        * 505 - HTTPVersionNotSupported
+
+References:
+
+.. [1] http://www.python.org/peps/pep-0333.html#error-handling
+.. [2] http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5
+
 """
 
 import types
@@ -78,7 +80,7 @@ SERVER_NAME = 'WSGI Server'
 
 class HTTPException(Exception):
     """
-    an HTTP exception (including redirects or other status codes)
+    the HTTP exception base class
 
     This encapsulates an HTTP response that interrupts normal application
     flow; but one which is not necessarly an error condition. For
@@ -240,7 +242,7 @@ class HTTPException(Exception):
 
 class HTTPError(HTTPException):
     """
-    exception where an error has occurred
+    base class for status codes in the 400's and 500's
 
     This is an exception which indicates that an error has occurred,
     and that any work in progress should not be committed.  These are
@@ -260,7 +262,7 @@ class HTTPError(HTTPException):
 
 class HTTPRedirection(HTTPException):
     """
-    a redirection
+    base class for 300's status code (redirections)
 
     This is an abstract base class for 3xx redirection.  It indicates
     that further action needs to be taken by the user agent in order
@@ -359,7 +361,7 @@ class HTTPTemporaryRedirect(_HTTPMove):
 
 class HTTPClientError(HTTPError):
     """
-    an ``HTTPError`` where the client is in-error
+    base class for the 400's, where the client is in-error
 
     This is an error condition in which the client is presumed to be
     in-error.  This is an expected problem, and thus is not considered
@@ -371,7 +373,8 @@ class HTTPClientError(HTTPError):
     explanation = ('The server could not comply with the request since\r\n'
                    'it is either malformed or otherwise incorrect.\r\n')
 
-HTTPBadRequest = HTTPClientError
+class HTTPBadRequest(HTTPClientError):
+    pass
 
 class HTTPUnauthorized(HTTPClientError):
     required_headers = ('WWW-Authenticate',)
@@ -488,7 +491,7 @@ class HTTPExpectationFailed(HTTPClientError):
 
 class HTTPServerError(HTTPError):
     """
-    an ``HTTPError`` where the server is in-error
+    base class for the 500's, where the server is in-error
 
     This is an error condition in which the server is presumed to be
     in-error.  This is usually unexpected, and thus requires a traceback;
@@ -501,7 +504,8 @@ class HTTPServerError(HTTPError):
       'The server has either erred or is incapable of performing\r\n'
       'the requested operation.\r\n')
 
-HTTPInternalServerError = HTTPServerError
+class HTTPInternalServerError(HTTPServerError):
+    pass
 
 class HTTPNotImplemented(HTTPServerError):
     code = 501
