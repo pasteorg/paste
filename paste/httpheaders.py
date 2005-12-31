@@ -990,4 +990,8 @@ for head in _headers.values():
     headname = head.name.replace("-","_").upper()
     locals()[headname] = head
     __all__.append(headname)
-
+    
+__pudge_all__ = __all__[:]
+for _name, _obj in globals().items():
+    if isinstance(_obj, type) and issubclass(_obj, HTTPHeader):
+        __pudge_all__.append(_name)
