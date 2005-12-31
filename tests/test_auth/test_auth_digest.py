@@ -2,7 +2,7 @@
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-from paste.auth import digest
+from paste.auth.digest import *
 from paste.wsgilib import raw_interactive
 from paste.response import header_value
 from paste.httpexceptions import *
@@ -21,10 +21,10 @@ def backwords(realm,username):
     password = list(username)
     password.reverse()
     password = "".join(password)
-    return digest.digest_password(username,realm,password)
+    return digest_password(username,realm,password)
 
-application = digest.middleware(application,realm,backwords)
-application = HTTPExceptionHandler(application) 
+application = AuthDigestHandler(application,realm,backwords)
+application = HTTPExceptionHandler(application)
 
 def check(username, password, path="/"):
     """ perform two-stage authentication to verify login """
@@ -32,7 +32,7 @@ def check(username, password, path="/"):
         raw_interactive(application,path, accept='text/html')
     assert status.startswith("401")
     challenge = header_value(headers,'WWW-Authenticate')
-    response = digest.response(challenge, realm, path, username, password)
+    response = digest_response(challenge, realm, path, username, password)
     assert "Digest" in response
     (status,headers,content,errors) = \
         raw_interactive(application,path,
