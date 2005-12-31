@@ -13,11 +13,11 @@ demonstrates how to use both form and digest authentication in a server
 stack; by default it uses form-based authentication unless
 ``*authmeth=digest`` is specified as a query argument.
 
->>> from paste.auth import form, cookie, digest
+>>> from paste.auth import form, cookie, digest, multi
 >>> from paste.wsgilib import dump_environ
 >>> from paste.util.httpserver import serve
 >>>
->>> multi = MultiHandler(dump_environ)
+>>> multi = multi.MultiHandler(dump_environ)
 >>> def authfunc(realm, user):
 ...     return digest.digest_password(user, realm, user)
 >>> multi.add_method('digest', digest.middleware, "Test Realm", authfunc)
@@ -25,8 +25,7 @@ stack; by default it uses form-based authentication unless
 >>>
 >>> def authfunc(username, password):
 ...     return username == password
->>> factory = lambda app: form.middleware(app, authfunc)
->>> multi.add_method('form', factory)
+>>> multi.add_method('form', form.middleware, authfunc)
 >>> multi.set_default('form')
 >>> serve(cookie.middleware(multi))
 serving on...
