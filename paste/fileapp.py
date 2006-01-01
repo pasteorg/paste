@@ -105,9 +105,9 @@ class DataApp(object):
             (lower,upper) = range[1][0]
             upper = upper or (self.content_length - 1)
             if upper >= self.content_length or lower > upper:
-                return HTTPRequestRANGENotSatisfiable((
-                  "RANGE request was made beyond the end of the content,\r\n"
-                  "which is %s long.\r\n  RANGE: %s\r\n") % (
+                return HTTPRequestRangeNotSatisfiable((
+                  "Range request was made beyond the end of the content,\r\n"
+                  "which is %s long.\r\n  Range: %s\r\n") % (
                      self.content_length, RANGE(environ))
                 ).wsgi_application(environ, start_response)
 
@@ -154,7 +154,7 @@ class FileApp(DataApp):
         self.last_modified = stat.st_mtime
 
     def __call__(self, environ, start_response):
-        if 'max-age=0' in CACHE_CONTROL(environ):
+        if 'max-age=0' in CACHE_CONTROL(environ).lower():
             self.update(force=True) # RFC 2616 13.2.6
         else:
             self.update()

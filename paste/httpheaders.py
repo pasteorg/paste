@@ -133,15 +133,37 @@ dashes to give CamelCase style names.
 
 """
 
+import urllib2
 from mimetypes import guess_type
 from rfc822 import formatdate, parsedate_tz, mktime_tz
 from time import time as now
 from httpexceptions import HTTPBadRequest
 
-__all__ = ['get_header', 'list_headers', 'normalize_headers', 'HTTPHeader',
-           # additionally, all header instance objects are exported
-#           '_CacheControl', '_ContentDisposition', '_Range'  for docos
-]
+__all__ = ['get_header', 'list_headers', 'normalize_headers',
+           'HTTPHeader', 'EnvironVariable' ]
+
+class EnvironVariable(str):
+    """
+    a CGI ``environ`` variable as described by WSGI
+
+    This is a helper object so that standard WSGI ``environ`` variables
+    can be extracted w/o syntax error possibility.
+    """
+    def __call__(self, environ):
+        return environ.get(self,'')
+    def __repr__(self):
+        return '<EnvironVariable %s>' % self
+    def update(self, environ, value):
+        environ[self] = value
+REMOTE_USER    = EnvironVariable("REMOTE_USER")
+AUTH_TYPE      = EnvironVariable("AUTH_TYPE")
+REQUEST_METHOD = EnvironVariable("REQUEST_METHOD")
+SCRIPT_NAME    = EnvironVariable("SCRIPT_NAME")
+PATH_INFO      = EnvironVariable("PATH_INFO")
+
+for _name, _obj in globals().items():
+    if isinstance(_obj, EnvironVariable):
+        __all__.append(_name)
 
 _headers = {}
 
@@ -240,7 +262,6 @@ class HTTPHeader(object):
     #
     # Things which can be customized
     #
-    case_sensitive = False
     version = '1.1'
     category = 'general'
     reference = ''
@@ -262,7 +283,7 @@ class HTTPHeader(object):
         """
         convert raw header value into more usable form
 
-        This method invokes ``resolve()`` with the arguments provided,
+        This method invokes ``values()`` with the arguments provided,
         parses the header results, and then returns a header-specific
         data structure corresponding to the header.  For example, the
         ``Expires`` header returns seconds (as returned by time.time())
@@ -341,7 +362,7 @@ class HTTPHeader(object):
         ref = self.reference and (' (%s)' % self.reference) or ''
         return '<%s %s%s>' % (self.__class__.__name__, self.name, ref)
 
-    def resolve(self, *args, **kwargs):
+    def values(self, *args, **kwargs):
         """
         find/construct field-value(s) for the given header
 
@@ -390,19 +411,34 @@ class HTTPHeader(object):
 
     def __call__(self, *args, **kwargs):
         """
-        converts ``resolve()`` into a string value
+        converts ``values()`` into a string value
 
-        This method converts the results of ``resolve()`` into a string
+        This method converts the results of ``values()`` into a string
+        value for common usage.  By default, it is asserted that only
+        one value exists; if you need to access all values then either
+        call ``values()`` directly, or inherit ``_MultiValueHeader``
+        which overrides this method to return a comma separated list of
+        values as described by section 4.2 of RFC 2616.
+        """
+        values = self.values(*args, **kwargs)
+        assert isinstance(values, (tuple,list))
+        if not values:
+            return ''
+        assert len(values) == 1, "more than one value: %s" % repr(values)
+        return str(values[0]).strip()
+
+    def __call__(self, *args, **kwargs):
+        """
+        converts ``values()`` into a string value
+
+        This method converts the results of ``values()`` into a string
         value for common usage.  If more than one result are found; they
         are comma delimited as described by section 4.2 of RFC 2616.
         """
-        results = self.resolve(*args, **kwargs)
+        results = self.values(*args, **kwargs)
         if not results:
             return ''
-        result = ", ".join([str(v).strip() for v in results])
-        if self.case_sensitive:
-            return result
-        return result.lower()
+        return ", ".join([str(v).strip() for v in results])
 
     def delete(self, collection):
         """
@@ -437,7 +473,7 @@ class HTTPHeader(object):
             return
         if type(collection) == dict:
             collection[self._environ_name] = value
-            return value
+            return
         assert list == type(collection)
         i = 0
         found = False
@@ -462,29 +498,26 @@ class _SingleValueHeader(HTTPHeader):
     """
     a ``HTTPHeader`` with exactly a single value
 
-    The field-value for these header instances is a single instance and
-    therefore all results constructed or obtained from a collection are
-    asserted to ensure that only one result was there.
+    This is the default behavior of ``HTTPHeader`` where returning a
+    the string-value of headers via ``__call__`` assumes that only
+    a single value exists.
     """
-    def __call__(self, *args, **kwargs):
-        results = HTTPHeader.resolve(self, *args, **kwargs)
-        assert isinstance(results, (tuple,list))
-        if not results:
-            return ''
-        assert len(results) == 1, "more than one value: %s" % repr(results)
-        result = str(results[0]).strip()
-        if self.case_sensitive:
-            return result
-        return result.lower()
+    pass
 
 class _MultiValueHeader(HTTPHeader):
     """
     a ``HTTPHeader`` with one or more values
 
-    This is the default behavior of ``HTTPHeader`` where the header is
-    assumed to be multi-valued and values can be combined with a comma.
+    The field-value for these header instances is is allowed to be more
+    than one value; whereby the ``__call__`` method returns a comma
+    separated list as described by section 4.2 of RFC 2616.
     """
-    pass
+
+    def __call__(self, *args, **kwargs):
+        results = self.values(*args, **kwargs)
+        if not results:
+            return ''
+        return ", ".join([str(v).strip() for v in results])
 
 class _MultiEntryHeader(HTTPHeader):
     """
@@ -493,14 +526,8 @@ class _MultiEntryHeader(HTTPHeader):
     This header is multi-valued, but the values should not be combined
     with a comma since the header is not in compliance with RFC 2616
     (Set-Cookie due to Expires parameter) or which common user-agents do
-    not behave well when the header values are combined. The values
-    returned for this case are _always_ a ``list`` instead of a string.
+    not behave well when the header values are combined.
     """
-    def __call__(self, *args, **kwargs):
-        results = self.resolve(*args, **kwargs)
-        if self.case_sensitive:
-            return [str(v).strip() for v in results]
-        return [str(v).strip().lower() for v in results]
 
     def update(self, collection, *args, **kwargs):
         assert list == type(collection), "``environ`` may not be updated"
@@ -509,10 +536,10 @@ class _MultiEntryHeader(HTTPHeader):
         return value
 
     def tuples(self, *args, **kwargs):
-        values = self.__call__(*args, **kwargs)
+        values = self.values(*args, **kwargs)
         if not values:
             return ()
-        return [(self.name, value) for value in values]
+        return [(self.name, value.strip()) for value in values]
 
 def get_header(name, raiseError=True):
     """
@@ -868,6 +895,7 @@ class _Range(_MultiValueHeader):
     indicates that a syntax error in the Range request should result in
     the header being ignored rather than a '400 Bad Request'.
     """
+
     def parse(self, *args, **kwargs):
         """
         Returns a tuple (units, list), where list is a sequence of
@@ -924,6 +952,37 @@ class _ContentRange(_SingleValueHeader):
         return (retval,)
 _ContentRange('Content-Range', 'entity', 'RFC 2616, 14.6')
 
+class _Authorization(_SingleValueHeader):
+    """
+    Authorization, RFC 2617 (RFC 2616, 14.8)
+    """
+    def compose(self, digest=None, basic=None, username=None, password=None,
+                challenge=None, path=None, method=None):
+        assert username and password
+        if basic or not challenge:
+            assert not digest
+            userpass = "%s:%s" % (username.strip(),password.strip())
+            return "Basic %s" % userpass.encode('base64').strip()
+        assert challenge and not basic
+        path = path or "/"
+        (_,realm) = challenge.split('realm="')
+        (realm,_) = realm.split('"',1)
+        auth = urllib2.AbstractDigestAuthHandler()
+        auth.add_password(realm,path,username,password)
+        (token,challenge) = challenge.split(' ',1)
+        chal = urllib2.parse_keqv_list(urllib2.parse_http_list(challenge))
+        class FakeRequest:
+           def get_full_url(self):
+               return path
+           def has_data(self):
+               return False
+           def get_method(self):
+               return method or "GET"
+           get_selector = get_full_url
+        retval = "Digest %s" % auth.get_authorization(FakeRequest(), chal)
+        return (retval,)
+_Authorization('Authorization', 'request', 'RFC 2617')
+
 #
 # For now, construct a minimalistic version of the field-names; at a
 # later date more complicated headers may sprout content constructors.
@@ -937,7 +996,7 @@ for (name,              category, version, style,      comment) in \
 #,("Accept-Ranges"      ,'response','1.1','multi-value','RFC 2616, 14.5' )
 ,("Age"                ,'response','1.1','singular'   ,'RFC 2616, 14.6' )
 ,("Allow"              ,'entity'  ,'1.0','multi-value','RFC 2616, 14.7' )
-,("Authorization"      ,'request' ,'1.0','singular'   ,'RFC 2616, 14.8' )
+#,("Authorization"      ,'request' ,'1.0','singular'   ,'RFC 2616, 14.8' )
 #,("Cache-Control"      ,'general' ,'1.1','multi-value','RFC 2616, 14.9' )
 ,("Cookie"             ,'request' ,'1.0','multi-value','RFC 2109/Netscape')
 ,("Connection"         ,'general' ,'1.1','multi-value','RFC 2616, 14.10')
