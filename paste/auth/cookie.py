@@ -19,6 +19,7 @@ cookie.
 >>> from paste.util.httpserver import serve
 >>> from paste.fileapp import DataApp
 >>> from paste.httpexceptions import *
+>>> # from paste.auth.cookie import AuthCookiehandler
 >>> from paste.wsgilib import parse_querystring
 >>> def testapp(environ, start_response):
 ...     user = dict(parse_querystring(environ)).get('user','')

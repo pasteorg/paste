@@ -12,7 +12,7 @@ use ``digest`` authentication.
 
 >>> from paste.wsgilib import dump_environ
 >>> from paste.util.httpserver import serve
->>> from paste.auth.basic import AuthBasicHandler
+>>> # from paste.auth.basic import AuthBasicHandler
 >>> realm = 'Test Realm'
 >>> def authfunc(username, password):
 ...     return username == password
@@ -22,6 +22,7 @@ serving on...
 .. [1] http://www.w3.org/Protocols/HTTP/1.0/draft-ietf-http-spec.html#BasicAA
 """
 from paste.httpexceptions import HTTPUnauthorized
+from paste.httpheaders import *
 
 class AuthBasicAuthenticator:
     """
@@ -33,17 +34,18 @@ class AuthBasicAuthenticator:
         self.authfunc = authfunc
 
     def build_authentication(self):
-        head = [('WWW-Authenticate','Basic realm="%s"' % self.realm)]
+        head = WWW_AUTHENTICATE.tuples('Basic realm="%s"' % self.realm)
         return HTTPUnauthorized(headers=head)
 
-    def authenticate(self, authorization):
+    def authenticate(self, environ):
+        authorization = AUTHORIZATION(environ)
         if not authorization:
             return self.build_authentication()
-        (authmeth, auth) = authorization.split(" ",1)
+        (authmeth, auth) = authorization.split(' ',1)
         if 'basic' != authmeth.lower():
             return self.build_authentication()
         auth = auth.strip().decode('base64')
-        username, password = auth.split(':')
+        username, password = auth.split(':',1)
         if self.authfunc(username, password):
             return username
         return self.build_authentication()
@@ -82,13 +84,12 @@ class AuthBasicHandler:
         self.authenticate = AuthBasicAuthenticator(realm, authfunc)
 
     def __call__(self, environ, start_response):
-        username = environ.get('REMOTE_USER','')
+        username = REMOTE_USER(environ)
         if not username:
-            authorization = environ.get('HTTP_AUTHORIZATION','')
-            result = self.authenticate(authorization)
+            result = self.authenticate(environ)
             if isinstance(result, str):
-                environ['AUTH_TYPE'] = 'basic'
-                environ['REMOTE_USER'] = result
+                AUTH_TYPE.update(environ, 'basic')
+                REMOTE_USER.update(environ, result)
             else:
                 return result.wsgi_application(environ, start_response)
         return self.application(environ, start_response)

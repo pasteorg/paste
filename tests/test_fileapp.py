@@ -148,6 +148,7 @@ def test_range():
         app = DataApp(content)
         return TestApp(app).get("/",headers={'Range': range}, status=status)
     _excercize_range(build,content)
+    build('bytes=0-%d' % (len(content)+1), 416)
 
 def test_file_range():
     from paste import fileapp

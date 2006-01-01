@@ -6,10 +6,11 @@ from paste.auth.digest import *
 from paste.wsgilib import raw_interactive
 from paste.response import header_value
 from paste.httpexceptions import *
+from paste.httpheaders import AUTHORIZATION, WWW_AUTHENTICATE, REMOTE_USER
 import os
 
 def application(environ, start_response):
-    content = environ.get('REMOTE_USER','')
+    content = REMOTE_USER(environ)
     start_response("200 OK",(('Content-Type', 'text/plain'),
                              ('Content-Length', len(content))))
     return content
@@ -31,9 +32,10 @@ def check(username, password, path="/"):
     (status,headers,content,errors) = \
         raw_interactive(application,path, accept='text/html')
     assert status.startswith("401")
-    challenge = header_value(headers,'WWW-Authenticate')
-    response = digest_response(challenge, realm, path, username, password)
-    assert "Digest" in response
+    challenge = WWW_AUTHENTICATE(headers)
+    response = AUTHORIZATION(username=username, password=password,
+                             challenge=challenge, path=path)
+    assert "Digest" in response and username in response
     (status,headers,content,errors) = \
         raw_interactive(application,path,
                         HTTP_AUTHORIZATION=response)
@@ -75,7 +77,7 @@ if os.environ.get("TEST_SOCKET",""):
 
     def test_failure():
         # urllib tries 5 more times before it gives up
-        server.accept(5) 
+        server.accept(5)
         try:
             authfetch('bing','wrong')
             assert False, "this should raise an exception"

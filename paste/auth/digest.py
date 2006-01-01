@@ -14,7 +14,7 @@ module has been tested with several common browsers "out-in-the-wild".
 
 >>> from paste.wsgilib import dump_environ
 >>> from paste.util.httpserver import serve
->>> from paste.auth.digest import digest_password, AuthDigestHandler
+>>> # from paste.auth.digest import digest_password, AuthDigestHandler
 >>> realm = 'Test Realm'
 >>> def authfunc(realm, username):
 ...     return digest_password(username, realm, username)
@@ -30,29 +30,12 @@ to use sha would be a good thing.
 .. [1] http://www.faqs.org/rfcs/rfc2617.html
 """
 from paste.httpexceptions import HTTPUnauthorized
+from paste.httpheaders import *
 import md5, time, random, urllib2
 
 def digest_password(username, realm, password):
     """ construct the appropriate hashcode needed for HTTP digest """
     return md5.md5("%s:%s:%s" % (username,realm,password)).hexdigest()
-
-def digest_response(challenge, realm, path, username, password):
-    """
-    builds an authorization response for a given challenge
-    """
-    auth = urllib2.AbstractDigestAuthHandler()
-    auth.add_password(realm,path,username,password)
-    (token,challenge) = challenge.split(' ',1)
-    chal = urllib2.parse_keqv_list(urllib2.parse_http_list(challenge))
-    class FakeRequest:
-       def get_full_url(self):
-           return path
-       def has_data(self):
-           return False
-       def get_method(self):
-           return "GET"
-       get_selector = get_full_url
-    return "Digest %s" % auth.get_authorization(FakeRequest(), chal)
 
 class AuthDigestAuthenticator:
     """ implementation of RFC 2617 - HTTP Digest Authentication """
@@ -186,22 +169,22 @@ class AuthDigestHandler:
         self.application = application
 
     def __call__(self, environ, start_response):
-        username = environ.get('REMOTE_USER','')
+        username = REMOTE_USER(environ)
         if not username:
-            method = environ['REQUEST_METHOD']
-            fullpath = environ['SCRIPT_NAME'] + environ["PATH_INFO"]
-            authorization = environ.get('HTTP_AUTHORIZATION','')
+            method = REQUEST_METHOD(environ)
+            fullpath = SCRIPT_NAME(environ) + PATH_INFO(environ)
+            authorization = AUTHORIZATION(environ)
             result = self.authenticate(authorization, fullpath, method)
             if isinstance(result, str):
-                environ['AUTH_TYPE'] = 'digest'
-                environ['REMOTE_USER'] = result
+                AUTH_TYPE.update(environ,'digest')
+                REMOTE_USER.update(environ, result)
             else:
                 return result.wsgi_application(environ, start_response)
         return self.application(environ, start_response)
 
 middleware = AuthDigestHandler
 
-__all__ = ['digest_password', 'digest_response', 'AuthDigestHandler' ]
+__all__ = ['digest_password', 'AuthDigestHandler' ]
 
 if "__main__" == __name__:
     import doctest
