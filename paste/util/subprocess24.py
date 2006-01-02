@@ -111,9 +111,8 @@ This module also defines two shortcut functions:
 
 call(*args, **kwargs):
     Run command with arguments.  Wait for command to complete, then
-    return the returncode attribute.
-
-    The arguments are the same as for the Popen constructor.  Example:
+    return the returncode attribute. The arguments are the same as for
+    the Popen constructor.  Example:
 
     retcode = call(["ls", "-l"])
 
