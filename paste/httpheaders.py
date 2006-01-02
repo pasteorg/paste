@@ -156,6 +156,7 @@ class EnvironVariable(str):
     def update(self, environ, value):
         environ[self] = value
 REMOTE_USER    = EnvironVariable("REMOTE_USER")
+REMOTE_SESSION = EnvironVariable("REMOTE_SESSION")
 AUTH_TYPE      = EnvironVariable("AUTH_TYPE")
 REQUEST_METHOD = EnvironVariable("REQUEST_METHOD")
 SCRIPT_NAME    = EnvironVariable("SCRIPT_NAME")
