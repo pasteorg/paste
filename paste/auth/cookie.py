@@ -25,11 +25,13 @@ cookie.
 ...     user = dict(parse_querystring(environ)).get('user','')
 ...     if user:
 ...         environ['REMOTE_USER'] = user
-...         environ['MY_SESSION'] = '1234' # save this too
-...         environ['paste.auth.cookie'].append('MY_SESSION')
+...         environ['REMOTE_SESSION'] = 'a-session-id'
+...         environ['EXTRA_STUFF'] = '1234' # save this too
+...         environ['paste.auth.cookie'].append('EXTRA_STUFF')
 ...     if environ.get('REMOTE_USER'):
-...         page = '<html><body>Welcome %s (%s)</body></html>'
-...         page %= (environ['REMOTE_USER'], environ['MY_SESSION'])
+...         page = '<html><body>Welcome %s (%s) [%s]</body></html>'
+...         page %= (environ['REMOTE_USER'], environ['REMOTE_SESSION'],
+...                  environ['EXTRA_STUFF'])
 ...     else:
 ...         page = ('<html><body><form><input name="user" />'
 ...                 '<input type="submit" /></form></body></html>')
@@ -233,7 +235,7 @@ class AuthCookieHandler:
         if not signer:
             signer = self.signer_class(secret,timeout,maxlen)
         self.signer = signer
-        self.scanlist = scanlist or ('REMOTE_USER',)
+        self.scanlist = scanlist or ('REMOTE_USER','REMOTE_SESSION')
         self.application = application
         self.cookie_name = cookie_name or self.cookie_name
 
