@@ -77,6 +77,17 @@ from response import has_header, header_value
 from util.quoting import strip_html, html_quote
 
 SERVER_NAME = 'WSGI Server'
+TEMPLATE = """\
+<html>\r
+  <head><title>%(title)s</title></head>\r
+  <body>\r
+    <h1>%(title)s</h1>\r
+    <p>%(body)s</p>\r
+    <hr noshade>\r
+    <div align="right">%(server)s</div>\r
+  </body>\r
+</html>\r
+"""
 
 class HTTPException(Exception):
     """
@@ -202,17 +213,11 @@ class HTTPException(Exception):
     def html(self, environ):
         """ text/html representation of the exception """
         body = self.make_body(environ, self.template, html_quote)
-        return ('<html><head><title>%(title)s</title></head>\r\n'
-                '<body>\r\n'
-                '<h1>%(title)s</h1>\r\n'
-                '<p>%(body)s</p>\r\n'
-                '<hr noshade>\r\n'
-                '<div align="right">%(server)s</div>\r\n'
-                '</body></html>\r\n'
-                % {'title': self.title,
+        return TEMPLATE % {
+                   'title': self.title,
                    'code': self.code,
                    'server': SERVER_NAME,
-                   'body': body})
+                   'body': body }
 
     def wsgi_application(self, environ, start_response, exc_info=None):
         """
