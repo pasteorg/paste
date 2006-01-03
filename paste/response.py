@@ -158,7 +158,7 @@ def error_body_response(error_code, message, __warn=True):
         warnings.warn(
             'wsgilib.error_body_response is deprecated; use the '
             'wsgi_application method on an HTTPException object '
-            'instead', DeprecationWarning, 1)
+            'instead', DeprecationWarning, 2)
     return '''\
 <html>
   <head>
@@ -193,7 +193,7 @@ def error_response(environ, error_code, message,
         warnings.warn(
             'wsgilib.error_response is deprecated; use the '
             'wsgi_application method on an HTTPException object '
-            'instead', DeprecationWarning, 1)
+            'instead', DeprecationWarning, 2)
     if debug_message and environ.get('paste.config', {}).get('debug'):
         message += '\n\n<!-- %s -->' % debug_message
     body = error_body_response(error_code, message, __warn=False)
@@ -212,7 +212,7 @@ def error_response_app(error_code, message, debug_message=None,
         warnings.warn(
             'wsgilib.error_response_app is deprecated; use the '
             'wsgi_application method on an HTTPException object '
-            'instead', DeprecationWarning, 1)
+            'instead', DeprecationWarning, 2)
     def application(environ, start_response):
         status, headers, body = error_response(
             environ, error_code, message,
