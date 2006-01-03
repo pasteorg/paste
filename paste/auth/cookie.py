@@ -5,16 +5,18 @@
 """
 Cookie "Saved" Authentication
 
-This authentication middleware saves the current REMOTE_USER and any
-other environment variables specified in a cookie so that it can be
-retrieved during the next request without requiring re-authentication.
-This uses a session cookie on the client side (so it goes away when the
-user closes their window) and does server-side expiration.
+This authentication middleware saves the current REMOTE_USER,
+REMOTE_SESSION, and any other environment variables specified in a
+cookie so that it can be retrieved during the next request without
+requiring re-authentication. This uses a session cookie on the client
+side (so it goes away when the user closes their window) and does
+server-side expiration.
 
-Following is a very simple example where a form is presented asking
-for a user name (no actual checking), and dummy session identifier
-(perhaps corresponding to a database session id) is stored in the
-cookie.
+Following is a very simple example where a form is presented asking for
+a user name (no actual checking), and dummy session identifier (perhaps
+corresponding to a database session id) is stored in the cookie.  It
+also demonstrates the extension mechanism for storing other environment
+variables, if needed.
 
 >>> from paste.util.httpserver import serve
 >>> from paste.fileapp import DataApp
