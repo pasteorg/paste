@@ -14,9 +14,7 @@ server-side expiration.
 
 Following is a very simple example where a form is presented asking for
 a user name (no actual checking), and dummy session identifier (perhaps
-corresponding to a database session id) is stored in the cookie.  It
-also demonstrates the extension mechanism for storing other environment
-variables, if needed.
+corresponding to a database session id) is stored in the cookie.
 
 >>> from paste.util.httpserver import serve
 >>> from paste.fileapp import DataApp
@@ -28,12 +26,9 @@ variables, if needed.
 ...     if user:
 ...         environ['REMOTE_USER'] = user
 ...         environ['REMOTE_SESSION'] = 'a-session-id'
-...         environ['EXTRA_STUFF'] = '1234' # save this too
-...         environ['paste.auth.cookie'].append('EXTRA_STUFF')
 ...     if environ.get('REMOTE_USER'):
-...         page = '<html><body>Welcome %s (%s) [%s]</body></html>'
-...         page %= (environ['REMOTE_USER'], environ['REMOTE_SESSION'],
-...                  environ['EXTRA_STUFF'])
+...         page = '<html><body>Welcome %s (%s)</body></html>'
+...         page %= (environ['REMOTE_USER'], environ['REMOTE_SESSION'])
 ...     else:
 ...         page = ('<html><body><form><input name="user" />'
 ...                 '<input type="submit" /></form></body></html>')
