@@ -1,5 +1,9 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+"""
+Middleware that tests the validity of all generated HTML using the
+`WDG HTML Validator <http://www.htmlhelp.com/tools/validator/>`_
+"""
 
 from cStringIO import StringIO
 try:

@@ -1,5 +1,10 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+"""
+Middleware that profiles the request and displays profiling
+information at the bottom of each page.
+"""
+
 
 import sys
 import os

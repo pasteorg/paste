@@ -5,8 +5,7 @@ SCGI-->WSGI application proxy, "SWAP".
 (Originally written by Titus Brown.)
 
 This lets an SCGI front-end like mod_scgi be used to execute WSGI
-application objects.  To use it, subclass the SWAP class like so:
-
+application objects.  To use it, subclass the SWAP class like so::
 
    class TestAppHandler(swap.SWAP):
        def __init__(self, *args, **kwargs):
@@ -17,7 +16,7 @@ application objects.  To use it, subclass the SWAP class like so:
 where 'TestAppClass' is the application object from WSGI and '/canal'
 is the prefix for what is served by the SCGI Web-server-side process.
 
-Then execute the SCGI handler "as usual" by doing something like this
+Then execute the SCGI handler "as usual" by doing something like this::
 
    scgi_server.SCGIServer(TestAppHandler, port=4000).serve()
 
