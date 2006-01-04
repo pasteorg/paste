@@ -2,6 +2,11 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Routines for testing WSGI applications.
+
+Most interesting is the `TestApp <class-paste.fixture.TestApp.html>`_
+for testing WSGI applications, and the `TestFileEnvironment
+<class-paste.fixture.TestFileEnvironment.html>`_ class for testing the
+effects of command-line scripts.
 """
 
 import sys
@@ -41,59 +46,6 @@ def tempnam_no_warning(*args):
 class NoDefault:
     pass
 
-class Dummy(object):
-
-    def __init__(self, **kw):
-        for name, value in kw.items():
-            if name.startswith('method_'):
-                name = name[len('method_'):]
-                value = DummyMethod(value)
-            setattr(self, name, value)
-
-class DummyMethod(object):
-
-    def __init__(self, return_value):
-        self.return_value = return_value
-
-    def __call__(self, *args, **kw):
-        return self.return_value
-
-def capture_stdout(func, *args, **kw):
-    newstdout = StringIO()
-    oldstdout = sys.stdout
-    sys.stdout = newstdout
-    try:
-        result = func(*args, **kw)
-    finally:
-        sys.stdout = oldstdout
-    return result, newstdout.getvalue()
-
-def assert_error(func, *args, **kw):
-    kw.setdefault('error', Exception)
-    kw.setdefault('text_re', None)
-    error = kw.pop('error')
-    text_re = kw.pop('text_re')
-    if text_re and isinstance(text_re, str):
-        real_text_re = re.compile(text_re, re.S)
-    else:
-        real_text_re = text_re
-    try:
-        value = func(*args, **kw)
-    except error, e:
-        if real_text_re and not real_text_re.search(str(e)):
-            assert False, (
-                "Exception did not match pattern; exception:\n  %r;\n"
-                "pattern:\n  %r"
-                % (str(e), text_re))
-    except Exception, e:
-        assert False, (
-            "Exception type %s should have been raised; got %s instead (%s)"
-            % (error, e.__class__, e))
-    else:
-        assert False, (
-            "Exception was expected, instead successfully returned %r"
-            % (value))
-
 def sorted(l):
     l = list(l)
     l.sort()
@@ -131,66 +83,6 @@ class Dummy_smtplib(object):
             "SMTP connection not quit")
         self.__class__.existing = None
 
-class FakeFilesystem(object):
-
-    def __init__(self):
-        self.files = {}
-
-    def make_file(self, filename, content):
-        self.files[filename] = content
-
-    def open(self, filename, mode='r'):
-        if not self.files.has_key(filename):
-            raise IOError("[FakeFS] No such file or directory: %r" % filename)
-
-
-class FakeFile(object):
-
-    def __init__(self, filename, content=None):
-        self.filename = filename
-        self.content = content
-
-    def open(self, mode):
-        if mode == 'r' or mode == 'rb':
-            if self.content is None:
-                raise IOError("[FakeFS] No such file or directory: %r"
-                              % self.filename)
-            return ReaderFile(self)
-        elif mode == 'w' or mode == 'wb':
-            return WriterFile(self)
-        else:
-            assert 0, "Mode %r not yet implemented" % mode
-
-class ReaderFile(object):
-
-    def __init__(self, fp):
-        self.file = fp
-        self.stream = StringIO(self.file.content)
-        self.open = True
-
-    def read(self, *args):
-        return self.stream.read(*args)
-
-    def close(self):
-        assert self.open, (
-            "Closing open file")
-        self.open = False
-
-class WriterFile(object):
-
-    def __init__(self, fp):
-        self.file = fp
-        self.stream = StringIO()
-        self.open = True
-
-    def write(self, arg):
-        self.stream.write(arg)
-
-    def close(self):
-        assert self.open, (
-            "Closing an open file")
-        self.open = False
-
 class AppError(Exception):
     pass
 
@@ -201,6 +93,26 @@ class TestApp(object):
 
     def __init__(self, app, namespace=None, relative_to=None,
                  extra_environ=None):
+        """
+        Wraps a WSGI application in a more convenient interface for
+        testing.
+
+        ``app`` may be an application, or a Paste Deploy app
+        URI, like ``'config:filename.ini#test'``.
+
+        ``namespace`` is a dictionary that will be written to (if
+        provided).  This can be used with doctest or some other
+        system, and the variable ``res`` will be assigned everytime
+        you make a request (instead of returning the request).
+
+        ``relative_to`` is a directory, and filenames used for file
+        uploads are calculated relative to this.  Also ``config:``
+        URIs that aren't absolute.
+
+        ``extra_environ`` is a dictionary of values that should go
+        into the environment for each request.  These can provide a
+        communication channel with the application.
+        """
         if isinstance(app, (str, unicode)):
             from paste.deploy import loadapp
             # @@: Should pick up relative_to from calling module's
@@ -215,15 +127,49 @@ class TestApp(object):
         self.reset()
 
     def reset(self):
+        """
+        Resets the state of the application; currently just clears
+        saved cookies.
+        """
         self.cookies = {}
 
-    def make_environ(self):
+    def _make_environ(self):
         environ = self.extra_environ.copy()
         environ['paste.throw_errors'] = True
         return environ
 
     def get(self, url, params=None, headers={}, extra_environ={},
             status=None, expect_errors=False):
+        """
+        Get the given url (well, actually a path like
+        ``'/page.html'``).
+
+        ``params``:
+            A query string, or a dictionary that will be encoded
+            into a query string.  You may also include a query
+            string on the ``url``.
+
+        ``headers``:
+            A dictionary of extra headers to send.
+
+        ``extra_environ``:
+            A dictionary of environmental variables that should
+            be added to the request.
+
+        ``status``:
+            The integer status code you expect (if not 200 or 3xx).
+            If you expect a 404 response, for instance, you must give
+            ``status=404`` or it will be an error.  You can also give
+            a wildcard, like ``'3*'`` or ``'*'``.
+
+        ``expect_errors``:
+            If this is not true, then if anything is written to
+            ``wsgi.errors`` it will be an error.  If it is true, then
+            non-200/3xx responses are also okay.
+
+        Returns a `response object
+        <class-paste.fixture.TestResponse.html>`_
+        """
         # Hide from py.test:
         __tracebackhide__ = True
         if params:
@@ -234,7 +180,7 @@ class TestApp(object):
             else:
                 url += '?'
             url += params
-        environ = self.make_environ()
+        environ = self._make_environ()
         for header, value in headers.items():
             environ['HTTP_%s' % header.replace('-', '_').upper()] = value
         if '?' in url:
@@ -245,7 +191,19 @@ class TestApp(object):
 
     def post(self, url, params=None, headers={}, extra_environ={},
              status=None, upload_files=None, expect_errors=False):
-        environ = self.make_environ()
+        """
+        Do a POST request.  Very like the ``.get()`` method.
+        ``params`` are put in the body of the request.
+
+        ``upload_files`` is for file uploads.  It should be a list of
+        ``[(fieldname, filename, file_content)]``.  You can also use
+        just ``[(fieldname, filename)]`` and the file content will be
+        read from disk.
+
+        Returns a `response object
+        <class-paste.fixture.TestResponse.html>`_
+        """
+        environ = self._make_environ()
         # @@: Should this be all non-strings?
         if params and isinstance(params, (list, tuple, dict)):
             params = urllib.urlencode(params)
@@ -277,7 +235,7 @@ class TestApp(object):
             lines.append('')
             lines.append(value)
         for file_info in files:
-            key, filename, value = self.get_file_info(file_info)
+            key, filename, value = self._get_file_info(file_info)
             lines.append('--'+boundary)
             lines.append('Content-Disposition: form-data; name="%s"; filename="%s"'
                          % (key, filename))
@@ -292,7 +250,7 @@ class TestApp(object):
         content_type = 'multipart/form-data; boundary=%s' % boundary
         return content_type, body
 
-    def get_file_info(self, file_info):
+    def _get_file_info(self, file_info):
         if len(file_info) == 2:
             # It only has a filename
             filename = file_info[2]
@@ -312,6 +270,11 @@ class TestApp(object):
                 % repr(file_info)[:100])
 
     def do_request(self, req, status):
+        """
+        Executes the given request (``req``), with the expected
+        ``status``.  Generally ``.get()`` and ``.post()`` are used
+        instead.
+        """
         __tracebackhide__ = True
         if self.cookies:
             c = SimpleCookie()
@@ -331,15 +294,15 @@ class TestApp(object):
         finally:
             sys.stdout = old_stdout
             sys.stderr.write(out.getvalue())
-        res = self.make_response(raw_res, end_time - start_time)
+        res = self._make_response(raw_res, end_time - start_time)
         res.request = req
         for name, value in req.environ['paste.testing_variables'].items():
             setattr(res, name, value)
         if self.namespace is not None:
             self.namespace['res'] = res
         if not req.expect_errors:
-            self.check_status(status, res)
-            self.check_errors(res)
+            self._check_status(status, res)
+            self._check_errors(res)
         for header in res.all_headers('set-cookie'):
             c = SimpleCookie(header)
             for key, morsel in c.items():
@@ -350,7 +313,7 @@ class TestApp(object):
             # it anywhere
             return res
 
-    def check_status(self, status, res):
+    def _check_status(self, status, res):
         __tracebackhide__ = True
         if status == '*':
             return
@@ -365,12 +328,12 @@ class TestApp(object):
             raise AppError(
                 "Bad response: %s (not %s)" % (res.full_status, status))
 
-    def check_errors(self, res):
+    def _check_errors(self, res):
         if res.errors:
             raise AppError(
                 "Application had errors logged:\n%s" % res.errors)
 
-    def make_response(self, (status, headers, body, errors), total_time):
+    def _make_response(self, (status, headers, body, errors), total_time):
         return TestResponse(self, status, headers, body, errors,
                             total_time)
 
@@ -378,6 +341,11 @@ class TestResponse(object):
 
     # for py.test
     disabled = True
+
+    """
+    Instances of this class are return by `TestApp
+    <class-paste.fixture.TestApp.html>`_
+    """
 
     def __init__(self, test_app, status, headers, body, errors,
                  total_time):
@@ -400,12 +368,25 @@ class TestResponse(object):
             self._parse_forms()
         return self._forms_indexed
 
-    forms = property(forms__get)
+    forms = property(forms__get,
+                     doc="""
+                     A list of <form>s found on the page (instances of
+                     `Form <class-paste.fixture.Form.html>`_)
+                     """)
 
     def form__get(self):
-        return self.forms[0]
+        forms = self.forms
+        assert len(forms) == 1, (
+            "You used response.form, but more than one form exists")
+        return forms[0]
 
-    form = property(form__get)
+    form = property(form__get,
+                    doc="""
+                    Returns a single `Form
+                    <class-paste.fixture.Form.html>`_ instance; it
+                    is an error if there are multiple forms on the
+                    page.
+                    """)
 
     _tag_re = re.compile(r'<(/?)([a-z0-9_\-]*)(.*?)>', re.S|re.I)
 
@@ -459,7 +440,7 @@ class TestResponse(object):
 
     def all_headers(self, name):
         """
-        Gets all headers, returns as a list
+        Gets all headers by the ``name``, returns as a list
         """
         found = []
         for cur_name, value in self.headers:
@@ -469,7 +450,9 @@ class TestResponse(object):
 
     def follow(self, **kw):
         """
-        If this request is a redirect, follow that redirect.
+        If this request is a redirect, follow that redirect.  It
+        is an error if this is not a redirect response.  Returns
+        another response object.
         """
         assert self.status >= 300 and self.status < 400, (
             "You can only follow redirect responses (not %s)"
@@ -553,10 +536,10 @@ class TestResponse(object):
                       href_pattern,
                       html_pattern,
                       index, verbose):
-        content_pat = make_pattern(content)
-        id_pat = make_pattern(id)
-        href_pat = make_pattern(href_pattern)
-        html_pat = make_pattern(html_pattern)
+        content_pat = _make_pattern(content)
+        id_pat = _make_pattern(id)
+        href_pat = _make_pattern(href_pattern)
+        html_pat = _make_pattern(html_pattern)
 
         _tag_re = re.compile(r'<%s\s+(.*?)>(.*?)</%s>' % (tag, tag),
                              re.I+re.S)
@@ -657,7 +640,10 @@ class TestResponse(object):
                 ' ', self.body)
         return self._normal_body
 
-    normal_body = property(normal_body__get)
+    normal_body = property(normal_body__get,
+                           doc="""
+                           Return the whitespace-normalized body
+                           """)
 
     def __contains__(self, s):
         """
@@ -713,6 +699,27 @@ class TestRequest(object):
 
     # for py.test
     disabled = True
+
+    """
+    Instances of this class are created by `TestApp
+    <class-paste.fixture.TestApp.html>`_ with the ``.get()`` and
+    ``.post()`` methods, and are consumed there by ``.do_request()``.
+
+    Instances are also available as a ``.req`` attribute on
+    `TestResponse <class-paste.fixture.TestResponse.html>`_ instances.
+
+    Useful attributes:
+
+    ``url``:
+        The url (actually usually the path) of the request, without
+        query string.
+
+    ``environ``:
+        The environment dictionary used for the request.
+
+    ``full_url``:
+        The url/path, with query string.
+    """
 
     def __init__(self, url, environ, expect_errors=False):
         if url.startswith('http://localhost'):
@@ -997,6 +1004,10 @@ class Field(object):
 
 class Select(Field):
 
+    """
+    Field representing ``<select>``
+    """
+
     def __init__(self, *args, **attrs):
         super(Select, self).__init__(*args, **attrs)
         self.options = []
@@ -1035,11 +1046,18 @@ class Select(Field):
 Field.classes['select'] = Select
 
 class Radio(Select):
-    pass
+
+    """
+    Field representing ``<input type="radio">``
+    """
 
 Field.classes['radio'] = Radio
 
 class Checkbox(Field):
+
+    """
+    Field representing ``<input type="checkbox">``
+    """
 
     def __init__(self, *args, **attrs):
         super(Checkbox, self).__init__(*args, **attrs)
@@ -1063,21 +1081,31 @@ class Checkbox(Field):
 Field.classes['checkbox'] = Checkbox
 
 class Text(Field):
-    pass
+    """
+    Field representing ``<input type="text">``
+    """
 
 Field.classes['text'] = Text
 
 class Textarea(Text):
-    pass
+    """
+    Field representing ``<textarea>``
+    """
 
 Field.classes['textarea'] = Textarea
 
 class Hidden(Text):
-    settable = False
+    """
+    Field representing ``<input type="hidden">``
+    """
 
 Field.classes['hidden'] = Hidden
 
 class Submit(Field):
+    """
+    Field representing ``<input type="submit">`` and ``<button>``
+    """
+    
     settable = False
 
     def value__get(self):
@@ -1111,6 +1139,31 @@ class TestFileEnvironment(object):
                  script_path=None,
                  environ=None, cwd=None, start_clear=True,
                  ignore_paths=None, ignore_hidden=True):
+        """
+        Creates an environment.  ``base_path`` is used as the current
+        working directory, and generally where changes are looked for.
+
+        ``template_path`` is the directory to look for *template*
+        files, which are files you'll explicitly add to the
+        environment.  This is done with ``.writefile()``.
+
+        ``script_path`` is the PATH for finding executables.  Usually
+        grabbed from ``$PATH``.
+
+        ``environ`` is the operating system environment,
+        ``os.environ`` if not given.
+
+        ``cwd`` is the working directory, ``base_path`` by default.
+
+        If ``start_clear`` is true (default) then the ``base_path``
+        will be cleared (all files deleted) when an instance is
+        created.  You can also use ``.clear()`` to clear the files.
+
+        ``ignore_paths`` is a set of specific filenames that should be
+        ignored when created in the environment.  ``ignore_hidden``
+        means, if true (default) that filenames and directories
+        starting with ``'.'`` will be ignored.
+        """
         self.base_path = base_path
         self.template_path = template_path
         if environ is None:
@@ -1148,7 +1201,8 @@ class TestFileEnvironment(object):
         ``cwd``: (default ``self.cwd``)
             The working directory to run in
 
-        Returns a ``ProcResponse`` object.
+        Returns a `ProcResponse
+        <class-paste.fixture.ProcResponse.html>`_ object.
         """
         __tracebackhide__ = True
         expect_error = _popget(kw, 'expect_error', False)
@@ -1165,16 +1219,16 @@ class TestFileEnvironment(object):
                 "and arguments (%s)" % (script, args))
             script, args = script.split(None, 1)
             args = shlex.split(args)
-        script = self.find_exe(script)
+        script = self._find_exe(script)
         all = [script] + args
-        files_before = self.find_files()
+        files_before = self._find_files()
         proc = subprocess.Popen(all, stdin=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 cwd=cwd,
                                 env=self.environ)
         stdout, stderr = proc.communicate(stdin)
-        files_after = self.find_files()
+        files_after = self._find_files()
         result = ProcResult(
             self, all, stdin, stdout, stderr,
             returncode=proc.returncode,
@@ -1189,7 +1243,7 @@ class TestFileEnvironment(object):
             result.assert_no_stderr()
         return result
 
-    def find_exe(self, script_name):
+    def _find_exe(self, script_name):
         if self.script_path is None:
             script_name = os.path.join(self.cwd, script_name)
             if not os.path.exists(script_name):
@@ -1204,7 +1258,7 @@ class TestFileEnvironment(object):
             "Script %s could not be found in %s"
             % (script_name, ':'.join(self.script_path)))
 
-    def find_files(self):
+    def _find_files(self):
         result = {}
         for fn in os.listdir(self.base_path):
             if self._ignore_file(fn):
@@ -1265,7 +1319,8 @@ class ProcResult(object):
 
     """
     Represents the results of running a command in
-    ``TestFileEnvironment``.
+    `TestFileEnvironment
+    <class-paste.fixture.TestFileEnvironment.html>`_.
 
     Attributes to pay particular attention to:
 
@@ -1274,7 +1329,8 @@ class ProcResult(object):
 
     ``files_created``, ``files_deleted``, ``files_updated``:
         Dictionaries mapping filenames (relative to the ``base_dir``)
-        to ``FoundFile`` or ``FoundDir`` objects.
+        to `FoundFile <class-paste.fixture.FoundFile.html>`_ or
+        `FoundDir <class-paste.fixture.FoundDir.html>`_ objects.
     """
 
     def __init__(self, test_env, args, stdin, stdout, stderr,
@@ -1340,6 +1396,28 @@ class ProcResult(object):
 
 class FoundFile(object):
 
+    """
+    Represents a single file found as the result of a command.
+
+    Has attributes:
+
+    ``path``:
+        The path of the file, relative to the ``base_path``
+
+    ``full``:
+        The full path
+
+    ``stat``:
+        The results of ``os.stat``.  Also ``mtime`` and ``size``
+        contain the ``.st_mtime`` and ``st_size`` of the stat.
+
+    ``bytes``:
+        The contents of the file.
+
+    You may use the ``in`` operator with these objects (tested against
+    the contents of the file), and the ``.mustcontain()`` method.
+    """
+
     file = True
     dir = False
 
@@ -1377,6 +1455,10 @@ class FoundFile(object):
             self.base_path, self.path)
 
 class FoundDir(object):
+
+    """
+    Represents a directory created by a command.
+    """
 
     file = False
     dir = True
@@ -1426,7 +1508,7 @@ def _space_prefix(pref, full, sep=None, indent=None, include_sep=True):
     else:
         return sep.join(full)
 
-def make_pattern(pat):
+def _make_pattern(pat):
     if pat is None:
         return None
     if isinstance(pat, (str, unicode)):
@@ -1456,6 +1538,9 @@ def setup_module(module=None):
         module.reset_state()
 
 def html_unquote(v):
+    """
+    Unquote (some) entities in HTML.  (incomplete)
+    """
     for ent, repl in [('&nbsp;', ' '), ('&gt;', '>'),
                       ('&lt;', '<'), ('&quot;', '"'),
                       ('&amp;', '&')]:
