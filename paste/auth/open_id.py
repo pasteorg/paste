@@ -8,20 +8,20 @@ OpenID is a distributed authentication system for single sign-on originally
 developed at/for LiveJournal.com.
 
     http://openid.net/
-    
+
 URL. You can have multiple identities in the same way you can have multiple
-URLs. All OpenID does is provide a way to prove that you own a URL (identity). 
-And it does this without passing around your password, your email address, or 
-anything you don't want it to. There's no profile exchange component at all: 
-your profiile is your identity URL, but recipients of your identity can then 
-learn more about you from any public, semantically interesting documents 
+URLs. All OpenID does is provide a way to prove that you own a URL (identity).
+And it does this without passing around your password, your email address, or
+anything you don't want it to. There's no profile exchange component at all:
+your profiile is your identity URL, but recipients of your identity can then
+learn more about you from any public, semantically interesting documents
 linked thereunder (FOAF, RSS, Atom, vCARD, etc.).
 
 ``Note``: paste.auth.openid requires installation of the Python-OpenID
 libraries::
 
     http://www.openidenabled.com/
-    
+
 This module is based highly off the consumer.py that Python OpenID comes with.
 
 Using the OpenID Middleware
@@ -32,7 +32,7 @@ basic login form thats included::
 
     # Add to your wsgi app creation
     from paste.auth import open_id
-    
+
     wsgi_app = open_id.middleware(wsgi_app, '/somewhere/to/store/openid/data')
 
 You will now have the OpenID form available at /oid on your site. Logging in will
@@ -82,12 +82,12 @@ class AuthOpenIDHandler(object):
     This middleware implements OpenID Consumer behavior to authenticate a
     URL against an OpenID Server.
     """
-    
-    def __init__(self, app, data_store_path, auth_prefix='/oid', 
+
+    def __init__(self, app, data_store_path, auth_prefix='/oid',
                                              login_redirect=None):
         """
         Initialize the OpenID middleware
-        
+
         app - Your WSGI app to call
         data_store_path - Directory to store crypto data in for use with
               OpenID servers.
@@ -97,23 +97,23 @@ class AuthOpenIDHandler(object):
         """
         store = filestore.FileOpenIDStore(data_store_path)
         self.oidconsumer = consumer.OpenIDConsumer(store)
-        
+
         self.app = app
         self.auth_prefix = auth_prefix
         self.data_store_path = data_store_path
         self.login_redirect = login_redirect
-    
+
     def __call__(self, environ, start_response):
         if environ['PATH_INFO'].startswith(self.auth_prefix):
             # Let's load everything into a request dict to pass around easier
             request = dict(environ=environ, start=start_response, body=[])
             request['base_url'] = paste.request.construct_url(environ, with_path_info=False,
                                                            with_query_string=False)
-            
+
             path = re.sub(self.auth_prefix, '', environ['PATH_INFO'])
             request['parsed_uri'] = urlparse.urlparse(path)
             request['query'] = dict(paste.request.parse_querystring(environ))
-            
+
             path = request['parsed_uri'][2]
             if path == '/' or not path:
                 return self.render(request)
@@ -172,7 +172,7 @@ class AuthOpenIDHandler(object):
             redirect_url = oidconsumer.constructRedirect(
                 info, return_to, trust_root=request['base_url'])
 
-            # Send the redirect response 
+            # Send the redirect response
             return self.redirect(request, redirect_url)
         else:
             assert False, 'Not reached'
