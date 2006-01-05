@@ -149,7 +149,7 @@ class AuthCookieSigner:
                 # don't bother doing anything here.
                 pass
         else:
-            # This case can happen if the server is restarted with a 
+            # This case can happen if the server is restarted with a
             # different secret; or if the user's IP address changed
             # due to a proxy.  However, it could also be a break-in
             # attempt -- so should it be reported?
