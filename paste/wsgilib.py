@@ -12,6 +12,7 @@ from request import construct_url, path_info_split, path_info_pop
 from response import HeaderDict, has_header, header_value, remove_header
 from response import error_body_response, error_response, error_response_app
 
+from traceback import print_exception
 from Cookie import SimpleCookie
 from cStringIO import StringIO
 import mimetypes
@@ -208,10 +209,8 @@ def raw_interactive(application, path='', **environ):
                     # Re-raise original exception only if headers sent
                     raise exc_info[0], exc_info[1], exc_info[2]
                 else:
-                    # We assume that the sender, who is probably setting
-                    # the headers a second time /w a 500 has produced
-                    # a more appropriate response.
-                    pass
+                    print_exception(exc_info[0], exc_info[1], exc_info[2],
+                                    file=errors)
             finally:
                 # avoid dangling circular reference
                 exc_info = None
