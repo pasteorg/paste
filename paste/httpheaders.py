@@ -580,8 +580,8 @@ def normalize_headers(response_headers, strict=True):
         (key,val) = response_headers[idx]
         head = get_header(key, strict)
         if not head:
-            newhead = '-'.join(x.capitalize() for x in \
-                               key.replace("_","-").split("-"))
+            newhead = '-'.join([x.capitalize() for x in \
+                                key.replace("_","-").split("-")])
             response_headers[idx] = (newhead,val)
             category[newhead] = 4
             continue
