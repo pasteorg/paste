@@ -156,5 +156,8 @@ Other Tools
       paste_session = paste.session:SessionMiddleware
       wdg_validate = paste.debug.wdg_validate:WDGValidateMiddleware [subprocess]
       evalerror = paste.evalexception:EvalException
+
+      [paste.server_runner]
+      http = paste.util.httpserver:server_runner
       """,
       )

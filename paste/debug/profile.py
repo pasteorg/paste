@@ -124,8 +124,15 @@ def profile_decorator(**options):
         log_filename:
             The temporary filename to log profiling data to.  Default;
             ``./profile_data.log.tmp``
+        no_profile:
+            If true, then don't actually profile anything.  Useful for
+            conditional profiling.
     """
 
+    if options.get('no_profile'):
+        def decorator(func):
+            return func
+        return decorator
     def decorator(func):
         def replacement(*args, **kw):
             return DecoratedProfile(func, **options)(*args, **kw)
