@@ -348,6 +348,21 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
             pass
     return server
 
+# For paste.deploy server instantiation (egg:Paste#http)
+# Note: this gets a separate function because it has to expect string
+# arguments (though that's not much of an issue yet, ever?)
+def server_runner(wsgi_app, global_conf, host=None, port=None, ssl_pem=None,
+                  server_version=None, protocol_version=None):
+    """
+    A simple HTTP server.  Also supports SSL if you give it an
+    ``ssl_pem`` argument.
+    """
+    if port:
+        port = int(port)
+    serve(wsgi_app, host=host, port=port, ssl_pem=ssl_pem,
+          server_version=server_version, protocol_version=protocol_version,
+          start_loop=True)
+
 if __name__ == '__main__':
     # serve exactly 3 requests and then stop, use an external
     # program like wget or curl to submit these 3 requests.
