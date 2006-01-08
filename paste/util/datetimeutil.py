@@ -5,38 +5,57 @@
 """
 Date, Time, and Timespan Parsing Utilities
 
-This module contains parsing support to create "human friendly" datetime
-parsing. Many date/time parsing approaches depend upon the user entering
-dates/times in a strict format and raising an error if their input
-deviates.  By contrast, this module does the best it can with the input
-producing a value given any human input; its expected that the output of
-this module will be presented to the user for "confirmation" if it
-differs from what they typed.  In other words, rather than giving an
-error, it corrects the value.
+This module contains parsing support to create "human friendly"
+``datetime`` object parsing.  The explicit goal of these routines is
+to provide a multi-format date/time support not unlike that found in
+Microsoft Excel.  In most approaches, the input is very "strict" to
+prevent errors -- however, this approach is much more liberal since we
+are assuming the user-interface is parroting back the normalized value
+and thus the user has immediate feedback if the data is not typed in
+correctly.
 
-This module supports three functions:
+  ``parse_date`` and ``normalize_date``
 
-  ``parse_date``
+     These functions take a value like '9 jan 2007' and returns either an
+     ``date`` object, or an ISO 8601 formatted date value such
+     as '2007-01-09'.  There is an option to provide an Oracle database
+     style output as well, ``09 JAN 2007``, but this is not the default.
 
-     This function takes values like '9 jan 2007' and returns an
-     ISO 8601 formatted date such as '2007-01-09'.
+     This module always treats '/' delimiters as using US date order
+     (since the author's clients are US based), hence '1/9/2007' is
+     January 9th.  Since this module treats the '-' as following
+     European order this supports both modes of data-entry; together
+     with immediate parroting back the result to the screen, the author
+     has found this approach to work well in pratice.
 
-  ``parse_time``
+  ``parse_time`` and ``normalize_time``
 
-     This function takes a time of daay, like '9AM' and returns the
-     value in 24-hour clock style: '09:00'.
+     These functions take a value like '1 pm' and returns either an
+     ``time`` object, or an ISO 8601 formatted 24h clock time
+     such as '13:00'.  There is an option to provide for US style time
+     values, '1:00 PM', however this is not the default.
 
-  ``parse_timedelta``
+  ``parse_datetime`` and ``normalize_datetime``
 
-     This function takes a time interval, like '1h 15min' and
-     returns the corresponding ``datetime.timedelta`` object.
+     These functions take a value like '9 jan 2007 at 1 pm' and returns
+     either an ``datetime`` object, or an ISO 8601 formatted
+     return (without the T) such as '2007-01-09 13:00'. There is an
+     option to provide for Oracle / US style, '09 JAN 2007 @ 1:00 PM',
+     however this is not the default.
 
-The result of these functions is a normalized string value that has
-predictable format (ie, can be easily parsed).
+  ``parse_delta`` and ``normalize_delta``
+
+     These functions take a value like '1h 15m' and returns either an
+     ``timedelta`` object, or an 2-decimal fixed-point
+     numerical value in hours, such as '1.25'.  The rationale is to
+     support meeting or time-billing lengths, not to be an accurate
+     representation in mili-seconds.  As such not all valid
+     ``timedelta`` values will have a normalized representation.
+
 """
-import datetime
+from datetime import timedelta, time, date, datetime
+from time import localtime
 import string
-import time, sys
 
 __all__ = ['parse_timedelta', 'normalize_timedelta',
            'parse_time', 'normalize_time',
@@ -51,47 +70,47 @@ def _number(val):
 #
 # timedelta
 #
-def _timedelta(val):
+def parse_timedelta(val):
+    """
+    returns a ``timedelta`` object, or None
+    """
+    if not val:
+        return None
     val = string.lower(val)
     if "." in val:
         val = float(val)
-        val = "%s:%s" % ( int(val) , 60 * ( val % 1.0))
+        return timedelta(hours=int(val), minutes=60*(val % 1.0))
     fHour = ("h" in val or ":" in val)
     fMin  = ("m" in val or ":" in val)
     fFraction = "." in val
-    for noise in "minu:teshour().":
+    for noise in "minu:teshour()":
         val = string.replace(val,noise,' ')
     val = string.strip(val)
     val = string.split(val)
     hr = 0.0
     mi = 0
     val.reverse()
-    if fHour: hr = float(val.pop())
+    if fHour: hr = int(val.pop())
     if fMin:  mi = int(val.pop())
     if len(val) > 0 and not hr:
-        hr = float(val.pop())
-    return (hr + mi / 60, mi % 60)
-
-def parse_timedelta(val):
-    """
-    returns a ``datetime.timedelta`` object
-    """
-    if not val:
-        return None
-    (hr, mi) = _timedelta(val)
-    return datetime.timedelta(hours=hr, minutes=mi)
+        hr = int(val.pop())
+    return timedelta(hours=hr, minutes=mi)
 
 def normalize_timedelta(val):
     """
     produces a normalized string value of the timedelta
 
-    This module returns a normalized time span value consisting of
-    the number of hours and minutes in clock form.  For example 1h
-    and 15min is formatted as 01:15.
+    This module returns a normalized time span value consisting of the
+    number of hours in fractional form. For example '1h 15min' is
+    formatted as 01.25.
     """
+    if type(val) == str:
+        val = parse_timedelta(val)
     if not val:
         return ''
-    return "%02d:%02d" % _timedelta(val)
+    hr = val.seconds/3600
+    mn = (val.seconds % 3600)/60
+    return "%02d.%02d" % (hr,mn*100/60)
 
 #
 # time
@@ -115,7 +134,7 @@ def _time(val):
             if len(val) < 1:
                 pass
             elif 'now' == val:
-                tm = time.localtime()
+                tm = localtime()
                 hr = tm[3]
                 mi = tm[4]
             elif len(val) < 3:
@@ -142,7 +161,7 @@ def parse_time(val):
     if not val:
         return None
     (hi,mi) = _time(val)
-    return datetime.time(hr,mi)
+    return time(hr,mi)
 
 def _format_time(value, ampm):
     (hr,mi) = value
@@ -166,7 +185,7 @@ def normalize_time(val, ampm=False):
 # Date Processing
 #
 
-_one_day = datetime.timedelta(days=1)
+_one_day = timedelta(days=1)
 
 _str2num = { 'jan':1, 'feb':2, 'mar':3, 'apr':4,  'may':5, 'jun':6,
             'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12 }
@@ -199,12 +218,12 @@ def _date(val):
             d = d.split("+")[0]
         if " " in d:
             d = d.split(" ")[0]
-        now = datetime.date(int(y),int(m),int(d))
+        now = date(int(y),int(m),int(d))
         val = "xxx" + val[10:]
     if not now and 'now' == chk:
-        now = datetime.date.today()
+        now = date.today()
     if not now and chk in wkdy:
-        now = datetime.date.today()
+        now = date.today()
         idx = list(wkdy).index(chk)
         while now.day_of_week != idx:
             now += _one_day
@@ -217,7 +236,7 @@ def _date(val):
             except ValueError:
                 pass
             else:
-                now += datetime.timedelta(days=days)
+                now += timedelta(days=days)
         return (now.year,now.month,now.day,0, 0, 0, 0, 0, 0)
     #
     for noise in ('/','-',',','*'):
@@ -320,7 +339,7 @@ def _date(val):
                 dy = v
             else:
                 raise TypeError("four digit year required")
-    tm = time.localtime()
+    tm = localtime()
     if mo is None: mo = tm[1]
     if dy is None: dy = tm[2]
     if yr is None: yr = tm[0]
@@ -346,7 +365,7 @@ def parse_date(val, iso8601=True):
     if not val:
         return None
     (yr,mo,dy) = _date(val)
-    return datetime.date(yr,mo,dy)
+    return date(yr,mo,dy)
 
 def normalize_date(val, iso8601=True):
     if not val:

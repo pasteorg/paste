@@ -3,25 +3,27 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 # Some of this code was funded by: http://prometheusresearch.com
 import time
-from paste.util.parse_datetime import *
-from paste.util.parse_datetime import _format_date
+from paste.util.datetimeutil import *
+from paste.util.datetimeutil import _format_date
 
 def test_timedelta():
-    assert('00:30' == normalize_timedelta("30m"))
-    assert('00:45' == normalize_timedelta("45m"))
-    assert('01:00' == normalize_timedelta("60 min"))
-    assert('01:30' == normalize_timedelta("90min"))
-    assert('01:30' == normalize_timedelta("1:30"))
-    assert('04:30' == normalize_timedelta("4 : 30"))
-    assert('01:30' == normalize_timedelta("1h 30m"))
     assert('' == normalize_timedelta(""))
-    assert('01:00' == normalize_timedelta("1"))
-    assert('01:00' == normalize_timedelta("1 hour"))
-    assert('08:00' == normalize_timedelta("480 mins"))
-    assert('08:00' == normalize_timedelta("8h"))
-    assert('00:30' == normalize_timedelta("0.5"))
-    assert('00:30' == normalize_timedelta(".50"))
-    assert('00:45' == normalize_timedelta("0.75"))
+    assert('00.10' == normalize_timedelta("6m"))
+    assert('00.50' == normalize_timedelta("30m"))
+    assert('00.75' == normalize_timedelta("45m"))
+    assert('01.00' == normalize_timedelta("60 min"))
+    assert('01.50' == normalize_timedelta("90min"))
+    assert('01.50' == normalize_timedelta("1.50"))
+    assert('04.50' == normalize_timedelta("4 : 30"))
+    assert('01.50' == normalize_timedelta("1h 30m"))
+    assert('01.00' == normalize_timedelta("1"))
+    assert('01.00' == normalize_timedelta("1 hour"))
+    assert('08.00' == normalize_timedelta("480 mins"))
+    assert('08.00' == normalize_timedelta("8h"))
+    assert('00.50' == normalize_timedelta("0.5"))
+    assert('00.10' == normalize_timedelta(".1"))
+    assert('00.50' == normalize_timedelta(".50"))
+    assert('00.75' == normalize_timedelta("0.75"))
 
 def test_time():
     assert('03:00 PM' == normalize_time("3p", ampm=True))
@@ -114,6 +116,7 @@ def test_date():
         except (TypeError,ValueError):
             return
         raise "type error expected", val
+
     assertError("4-11-1999")
     assertError("2000-13-11")
     assertError("APR 99")
