@@ -110,7 +110,7 @@ def normalize_timedelta(val):
         return ''
     hr = val.seconds/3600
     mn = (val.seconds % 3600)/60
-    return "%02d.%02d" % (hr,mn*100/60)
+    return "%d.%02d" % (hr,mn*100/60)
 
 #
 # time
@@ -174,8 +174,9 @@ def normalize_time(value, ampm):
 
 _one_day = timedelta(days=1)
 
-_str2num = { 'jan':1, 'feb':2, 'mar':3, 'apr':4,  'may':5, 'jun':6,
+_str2num = {'jan':1, 'feb':2, 'mar':3, 'apr':4,  'may':5, 'jun':6,
             'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12 }
+
 def _month(val):
     for (key,mon) in _str2num.items():
         if key in val:
@@ -184,20 +185,17 @@ def _month(val):
 
 _days_in_month = {1:31,2:28,3:31,4:30,5:31,6:30,
                  7:31,8:31,9:30,10:31,11:30,12:31 }
-num2str = { 1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun',
+_num2str = { 1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun',
             7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec' }
-wkdy = ("mon","tue","wed","thu","fri","sat","sun" )
+_wkdy = ("mon","tue","wed","thu","fri","sat","sun" )
 
-def _date(val):
+def parse_date(val):
     if not(val):
         return None
-    dy = None
-    yr = None
-    mo = None
-    # regular expressions would be good here...
     val = string.lower(val)
-    chk = val[:3]
     now = None
+
+    # optimized check for YYYY-MM-DD
     strict = val.split("-")
     if len(strict) == 3:
         (y,m,d) = strict
@@ -207,13 +205,20 @@ def _date(val):
             d = d.split(" ")[0]
         now = date(int(y),int(m),int(d))
         val = "xxx" + val[10:]
-    if not now and 'now' == chk:
-        now = date.today()
-    if not now and chk in wkdy:
-        now = date.today()
-        idx = list(wkdy).index(chk)
-        while now.day_of_week != idx:
-            now += _one_day
+
+    # allow for 'now', 'mon', 'tue', etc.
+    if not now:
+        chk = val[:3]
+        if 'now' == chk:
+            now = date.today()
+        elif chk in _wkdy:
+            now = date.today()
+            idx = list(_wkdy).index(chk)
+            while now.day_of_week != idx:
+                now += _one_day
+
+    # allow dates to be modified via + or - /w number of days, so
+    # that now+3 is three days from now
     if now:
         tail = val[3:].strip()
         tail = tail.replace("+"," +").replace("-"," -")
@@ -224,11 +229,13 @@ def _date(val):
                 pass
             else:
                 now += timedelta(days=days)
-        return (now.year,now.month,now.day,0, 0, 0, 0, 0, 0)
-    #
+        return now
+
+    # ok, standard parsing
+    yr = mo = dy = None
     for noise in ('/','-',',','*'):
         val = string.replace(val,noise,' ')
-    for noise in wkdy:
+    for noise in _wkdy:
         val = string.replace(val,noise,' ')
     out = []
     last = False
@@ -330,33 +337,13 @@ def _date(val):
     if mo is None: mo = tm[1]
     if dy is None: dy = tm[2]
     if yr is None: yr = tm[0]
-    if mo > 12 or mo < 1: mo = 1
-    if dy < 1: dy = 1
-    max = _days_in_month[mo]
-    if 2 == mo:
-        if not(yr%400) or ( not(yr%4) and yr%100 ):
-            max = 29
-        else:
-            max = 28
-    if dy > max:
-        raise TypeError("day too large for %s %s: '%s'" % \
-               (num2str[mo], yr, dy))
-    return (yr,mo,dy)
-
-def _format_date(val, iso8601=True):
-    if iso8601:
-        return "%4d-%02d-%02d" % (val[0],val[1],val[2])
-    return "%02d %s %4d" % (val[2],num2str[val[1]],val[0])
-
-def parse_date(val, iso8601=True):
-    if not val:
-        return None
-    (yr,mo,dy) = _date(val)
     return date(yr,mo,dy)
 
 def normalize_date(val, iso8601=True):
     if not val:
         return ''
-    return _format_date(_date(val),iso8601)
-
-
+    if type(val) == str:
+        val = parse_date(val)
+    if iso8601:
+        return "%4d-%02d-%02d" % (val.year, val.month, val.day)
+    return "%02d %s %4d" % (val.day,_num2str[val.month],val.year)

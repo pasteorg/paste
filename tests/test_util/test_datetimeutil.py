@@ -2,28 +2,28 @@
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 # Some of this code was funded by: http://prometheusresearch.com
-import time
+from time import localtime
+from datetime import date
 from paste.util.datetimeutil import *
-from paste.util.datetimeutil import _format_date
 
 def test_timedelta():
     assert('' == normalize_timedelta(""))
-    assert('00.10' == normalize_timedelta("6m"))
-    assert('00.50' == normalize_timedelta("30m"))
-    assert('00.75' == normalize_timedelta("45m"))
-    assert('01.00' == normalize_timedelta("60 min"))
-    assert('01.50' == normalize_timedelta("90min"))
-    assert('01.50' == normalize_timedelta("1.50"))
-    assert('04.50' == normalize_timedelta("4 : 30"))
-    assert('01.50' == normalize_timedelta("1h 30m"))
-    assert('01.00' == normalize_timedelta("1"))
-    assert('01.00' == normalize_timedelta("1 hour"))
-    assert('08.00' == normalize_timedelta("480 mins"))
-    assert('08.00' == normalize_timedelta("8h"))
-    assert('00.50' == normalize_timedelta("0.5"))
-    assert('00.10' == normalize_timedelta(".1"))
-    assert('00.50' == normalize_timedelta(".50"))
-    assert('00.75' == normalize_timedelta("0.75"))
+    assert('0.10' == normalize_timedelta("6m"))
+    assert('0.50' == normalize_timedelta("30m"))
+    assert('0.75' == normalize_timedelta("45m"))
+    assert('1.00' == normalize_timedelta("60 min"))
+    assert('1.50' == normalize_timedelta("90min"))
+    assert('1.50' == normalize_timedelta("1.50"))
+    assert('4.50' == normalize_timedelta("4 : 30"))
+    assert('1.50' == normalize_timedelta("1h 30m"))
+    assert('1.00' == normalize_timedelta("1"))
+    assert('1.00' == normalize_timedelta("1 hour"))
+    assert('8.00' == normalize_timedelta("480 mins"))
+    assert('8.00' == normalize_timedelta("8h"))
+    assert('0.50' == normalize_timedelta("0.5"))
+    assert('0.10' == normalize_timedelta(".1"))
+    assert('0.50' == normalize_timedelta(".50"))
+    assert('0.75' == normalize_timedelta("0.75"))
 
 def test_time():
     assert('03:00 PM' == normalize_time("3p", ampm=True))
@@ -43,23 +43,22 @@ def test_time():
     assert("12:00 AM" == normalize_time("1200 AM", ampm=True))
 
 def test_date():
-    tm = time.localtime()
+    tm = localtime()
     yr = tm[0]
     mo = tm[1]
-    dy = tm[2]
-    assert(_format_date((yr,4,11))  == normalize_date("411"))
-    assert(_format_date((yr,4,11))  == normalize_date("APR11"))
-    assert(_format_date((yr,4,11))  == normalize_date("11APR"))
-    assert(_format_date((yr,4,11))  == normalize_date("4 11"))
-    assert(_format_date((yr,4,11))  == normalize_date("11 APR"))
-    assert(_format_date((yr,4,11))  == normalize_date("APR 11"))
-    assert(_format_date((yr,mo,11)) == normalize_date("11"))
-    assert(_format_date((yr,4,1))   == normalize_date("APR"))
-    assert(_format_date((yr,4,11))  == normalize_date("4/11"))
-    assert(_format_date(tm)         == normalize_date("today"))
-    assert(_format_date(tm)         == normalize_date("now"))
-    assert(''                       == normalize_date(""))
-    assert(''                       == normalize_date(None))
+    assert(date(yr,4,11)  == parse_date("411"))
+    assert(date(yr,4,11)  == parse_date("APR11"))
+    assert(date(yr,4,11)  == parse_date("11APR"))
+    assert(date(yr,4,11)  == parse_date("4 11"))
+    assert(date(yr,4,11)  == parse_date("11 APR"))
+    assert(date(yr,4,11)  == parse_date("APR 11"))
+    assert(date(yr,mo,11) == parse_date("11"))
+    assert(date(yr,4,1)   == parse_date("APR"))
+    assert(date(yr,4,11)  == parse_date("4/11"))
+    assert(date.today()   == parse_date("today"))
+    assert(date.today()   == parse_date("now"))
+    assert(None           == parse_date(""))
+    assert(''             == normalize_date(None))
 
     assert('2001-02-03' == normalize_date("20010203"))
     assert('1999-04-11' == normalize_date("1999 4 11"))
