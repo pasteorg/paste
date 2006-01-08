@@ -42,7 +42,6 @@ def test_time():
     assert("12:00 PM" == normalize_time("0", ampm=True))
     assert("12:00 AM" == normalize_time("1200 AM", ampm=True))
 
-
 def test_date():
     tm = time.localtime()
     yr = tm[0]

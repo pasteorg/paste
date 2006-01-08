@@ -115,71 +115,58 @@ def normalize_timedelta(val):
 #
 # time
 #
-def _time(val):
-    try:
-        hr = None
-        mi = None
-        val = string.lower(val)
-        amflag = (-1 != string.find(val,'a'))  # set if AM is found
-        pmflag = (-1 != string.find(val,'p'))  # set if PM is found
-        zzflag = (-1 != string.find(val,'00')) # if 'o hundred found
-        for noise in (':','a','p','m','00',';','.'):
-            val = string.replace(val,noise,' ')
-        val = string.split(val)
-        if len(val) > 1:
-            hr = _number(val[0])
-            mi = _number(val[1])
-        else:
-            val = val[0]
-            if len(val) < 1:
-                pass
-            elif 'now' == val:
-                tm = localtime()
-                hr = tm[3]
-                mi = tm[4]
-            elif len(val) < 3:
-                hr = _number(val)
-                if     not amflag and not pmflag \
-                   and not zzflag and hr < 7:
-                         hr += 12
-            elif len(val) < 5:
-                hr = _number(val[:-2])
-                mi = _number(val[-2:])
-            else:
-                hr = _number(val[:1])
-    finally:
-        pass
-    if hr is None: hr = 12
-    if mi is None: mi = 0
-    if amflag  and hr >= 12: hr = hr - 12
-    if pmflag  and hr < 12 : hr = hr + 12
-    if hr >= 24 or hr < 0  : hr = 0
-    if mi > 59  or mi < 0  : mi = 0
-    return (hr, mi)
-
 def parse_time(val):
     if not val:
         return None
-    (hi,mi) = _time(val)
+    hr = mi = 0
+    val = string.lower(val)
+    amflag = (-1 != string.find(val,'a'))  # set if AM is found
+    pmflag = (-1 != string.find(val,'p'))  # set if PM is found
+    for noise in ":amp.":
+        val = string.replace(val,noise,' ')
+    val = string.split(val)
+    if len(val) > 1:
+        hr = int(val[0])
+        mi = int(val[1])
+    else:
+        val = val[0]
+        if len(val) < 1:
+            pass
+        elif 'now' == val:
+            tm = localtime()
+            hr = tm[3]
+            mi = tm[4]
+        elif 'noon' == val:
+            hr = 12
+        elif len(val) < 3:
+            hr = int(val)
+            if not amflag and not pmflag and hr < 7:
+                hr += 12
+        elif len(val) < 5:
+            hr = int(val[:-2])
+            mi = int(val[-2:])
+        else:
+            hr = int(val[:1])
+    if amflag  and hr >= 12: hr = hr - 12
+    if pmflag  and hr < 12 : hr = hr + 12
     return time(hr,mi)
 
-def _format_time(value, ampm):
-    (hr,mi) = value
+def normalize_time(value, ampm):
+    if not value:
+        return ''
+    if type(value) == str:
+        value = parse_time(value)
     if not ampm:
-        return "%02d:%02d" % (hr,mi)
+        return "%02d:%02d" % (value.hour, value.minute)
+    hr = value.hour
     am = "AM"
-    pos = "+"
-    neg = "-"
     if hr < 1 or hr > 23:
         hr = 12
     elif hr >= 12:
         am = "PM"
         if hr > 12:
             hr = hr - 12
-    return "%02d:%02d %s" % (hr,mi,am)
-
-def normalize_time(val, ampm=False):
-    return _format_time(_time(val),ampm)
+    return "%02d:%02d %s" % (hr,value.minute,am)
 
 #
 # Date Processing
