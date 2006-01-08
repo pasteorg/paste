@@ -1,0 +1,113 @@
+NEWS
+====
+
+.. contents::
+
+SVN trunk
+---------
+
+(nothing at this time)
+
+0.4
+---
+
+* fixed up paste documentation (especially for new packages/modules)
+
+* added ``paste.auth`` package for authentication-related WSGI
+  middle-ware components; this includes a number of lower-level
+  utilities upon which a framework can be constructed:
+
+  - The ``basic`` and ``digest`` support HTTP authentication as
+    described by RFC 2617.
+
+  - The ``cas`` authentication module supports Yale's Central
+    Authentication System (as used by many other universities).
+
+  - The ``open_id`` module provides support for single sign-on
+    originally developed for LiveJournal (see http://openid.net)
+
+  - The ``cookie`` module provides for digitally signed cookies
+    to record the current authenticated user, session identifier,
+    and other WSGI entries in the ``environ``.
+
+  - The ``form`` module (to be used with ``cookie`` or an equivalent)
+    provides a simple HTML based form authentication.
+
+  - The ``multi`` module is an *experimental* mechanism for choosing
+    an authentication mechanism based on the request.  It is meant
+    to address environments with multiple routes to user authentication.
+
+* added ``wsgi.util.httpserver`` module which provides a very simple
+  WSGI server built upon python's ``BaseHTTPServer``; this server has
+  support for several features:
+
+  - It supports SSL connections via OpenSSL
+
+  - It supports HTTP/1.1 ``100 Continue`` messages as required by the
+    WSGI specification (many HTTP server implementations don't do this)
+
+  - It is implemented as a Mix-In so that it can be used with other
+    more enchanced versions of ``BaseHTTPServer``
+
+  - It supports 'Keep-Alive' (standard in HTTP/1.1) by either providing
+    a content-length or closing a connection if one is not available.
+
+  - It is being used in medium-traffic production making paste a
+    one-stop shopping source for web-framework development.
+
+* improved the ``paste.httpexceptions`` module:
+
+  - It now supports plain/text messages for text-only clients such
+    as curl, python's urllib, or Microsoft Excel.
+
+  - added missing exception objects, and better descriptions
+
+  - fixed several bugs in how exceptions are caught and propagated
+
+  - added a ``wsgi_application()`` method so that they can be used
+    without raising an exception
+
+* added ``paste.httpheaders`` module which provides a uniform
+  mechanism to access/update standard HTTP headers in a WSGI
+  ``environ`` and ``response_headers`` collection; it includes
+  specific support for:
+
+  - providing "common" header names and sorting them as suggested
+    by RFC 2616
+
+  - validated support for ``Cache-Control`` header construction
+
+  - validated support for ``Content-Disposition`` header construction
+
+  - parsing of ``If-Modified-Since`` and other date oriented headers
+
+  - parsing of Range header for partial-content delivery
+
+  - composition of HTTP/1.1 digest ``Authorization`` responses
+
+* added a ``paste.fileapp`` module to support static-content; this
+  module supports:
+
+  - static in-memory resources
+
+  - incremental downloading of files from disk
+
+  - responding to 'Range' requests to handle partial downloads
+
+  - allowing cache settings to be easily provided; including
+    support for HTTP/1.0 'Expires' and HTTP/1.1 'Cache-Control'
+
+* added an *experimental* ``paste.transaction`` module for handling
+  commit/rollback of standard DBAPI database connections
+
+* added a ``paste.util.datetimeutil`` module for parsing standard
+  date/time user-generated text values
+
+* added a ``debug`` package, which includes:
+
+  - previous top-level modules ``prints``, ``profile``,
+    ``wdg_validate`` and ``doctest_webapp``
+
+  - a ``testserver`` module suitable to test HTTP socket
+    connections via ``py.test``
+
