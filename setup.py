@@ -165,6 +165,6 @@ For the latest changes see the `news file
       evalerror = paste.evalexception:EvalException
 
       [paste.server_runner]
-      http = paste.util.httpserver:server_runner
+      http = paste.httpserver:server_runner
       """,
       )
