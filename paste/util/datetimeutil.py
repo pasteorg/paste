@@ -203,8 +203,11 @@ def parse_date(val):
             d = d.split("+")[0]
         if " " in d:
             d = d.split(" ")[0]
-        now = date(int(y),int(m),int(d))
-        val = "xxx" + val[10:]
+        try:
+            now = date(int(y),int(m),int(d))
+            val = "xxx" + val[10:]
+        except ValueError:
+            pass
 
     # allow for 'now', 'mon', 'tue', etc.
     if not now:
