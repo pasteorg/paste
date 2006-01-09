@@ -11,69 +11,61 @@ SVN trunk
 0.4
 ---
 
-* fixed up paste documentation (especially for new packages/modules)
+* Fixed up paste documentation (especially for new packages/modules)
 
-* added ``paste.auth`` package for authentication-related WSGI
-  middle-ware components; this includes a number of lower-level
-  utilities upon which a framework can be constructed:
+* Added `paste.auth <module-paste.auth.html>`_ package for authentication
+  related WSGI middle-ware components:
 
-  - The ``basic`` and ``digest`` support HTTP authentication as
-    described by RFC 2617.
+  - ``basic`` and ``digest`` HTTP authentication as described by RFC 2617
 
-  - The ``cas`` authentication module supports Yale's Central
-    Authentication System (as used by many other universities).
+  - support for Yale's Central Authentication System (``cas``)
 
-  - The ``open_id`` module provides support for single sign-on
-    originally developed for LiveJournal (see http://openid.net)
+  - ``open_id`` supports single sign-on originally developed for
+    LiveJournal (see http://openid.net)
 
-  - The ``cookie`` module provides for digitally signed cookies
-    to record the current authenticated user, session identifier,
-    and other WSGI entries in the ``environ``.
+  - ``cookie`` digitally signs cookies to record the current
+    authenticated user (``REMOTE_USER``), session identifier
+    (``REMOTE_SESSION``), and other WSGI entries in the ``environ``.
 
-  - The ``form`` module (to be used with ``cookie`` or an equivalent)
+  - a ``form`` module (to be used with ``cookie`` or an equivalent)
     provides a simple HTML based form authentication.
 
-  - The ``multi`` module is an *experimental* mechanism for choosing
-    an authentication mechanism based on the request.  It is meant
-    to address environments with multiple routes to user authentication.
+  - the ``multi`` module is an *experimental* mechanism for choosing
+    an authentication mechanism based on the WSGI ``environ``
 
-* added ``wsgi.util.httpserver`` module which provides a very simple
-  WSGI server built upon python's ``BaseHTTPServer``; this server has
-  support for several features:
+* Added `paste.httpserver <module-paste.httpserver.html>`_ module which
+  provides a very simple WSGI server built upon python's
+  ``BaseHTTPServer``; this server has support for several features:
 
-  - It supports SSL connections via OpenSSL
+  - support for SSL connections via OpenSSL
 
-  - It supports HTTP/1.1 ``100 Continue`` messages as required by the
+  - support for HTTP/1.1 ``100 Continue`` messages as required by the
     WSGI specification (many HTTP server implementations don't do this)
 
-  - It is implemented as a Mix-In so that it can be used with other
+  - implemented as a Mix-In so that it can be used with other
     more enchanted versions of ``BaseHTTPServer``
 
-  - It supports 'Keep-Alive' (standard in HTTP/1.1) by either providing
-    a content-length or closing a connection if one is not available.
+  - support for 'Keep-Alive' (standard in HTTP/1.1) by either providing
+    a content-length or closing a connection if one is not available
 
-  - It is being used in medium-traffic production making paste a
-    one-stop shopping source for web-framework development.
-
-* improved the ``paste.httpexceptions`` module:
+* Improved the `paste.httpexceptions <module-paste.httpexceptions.html>`_
+  module:
 
   - added missing exception objects, and better descriptions
 
   - fixed several bugs in how exceptions are caught and propagated
 
-  - Exceptions can now be re-used without raising them via the
-    ``wsgi_application()`` method (or just use ``__call__``).
+  - usage as a ``wsgi_application()`` enables exceptions to be
+    returned without throwing or catching the error
 
-  - The module now supports plain/text messages for text-only clients
-    such as curl, python's urllib, or Microsoft Excel.
+  - support for plain/text messages for text-only clients such as
+    curl, python's urllib, or Microsoft Excel
 
-  - It is now possible to override the HTML template so that
-    higher-level frameworks can re-use this module with their own
-    exception styling.
+  - allows customization of the HTML template for higher-level frameworks
 
-* added ``paste.httpheaders`` module which provides a uniform
-  mechanism to access/update standard HTTP headers in a WSGI
-  ``environ`` and ``response_headers`` collection; it includes
+* Added `paste.httpheaders <module-paste.httpheaders.html>`_ module
+  to provide a uniform mechanism to access/update standard HTTP headers
+  in a WSGI ``environ`` and ``response_headers`` collection; it includes
   specific support for:
 
   - providing "common" header names and sorting them as suggested
@@ -89,28 +81,25 @@ SVN trunk
 
   - composition of HTTP/1.1 digest ``Authorization`` responses
 
-* added a ``paste.fileapp`` module to support static-content; this
-  module supports:
+* Improved `paste.fileapp <module-paste.fileapp.html>`_ to support:
 
   - static in-memory resources
 
   - incremental downloading of files from disk
-
-  - handling of content-type (guessing from the file extension,
-    but allowing overrides) and content-length
 
   - responding to 'Range' requests to handle partial downloads
 
   - allowing cache settings to be easily provided; including
     support for HTTP/1.0 'Expires' and HTTP/1.1 'Cache-Control'
 
-* added an *experimental* ``paste.transaction`` module for handling
+* Added an *experimental* `paste.transaction
+  <module-paste.transaction.html`_ module for handling
   commit/rollback of standard DBAPI database connections
 
-* added a ``paste.util.datetimeutil`` module for parsing standard
-  date/time user-generated text values
+* Added a `paste.util.datetimeutil <module-paste.util.datetimeutil.html`_
+  module for parsing standard date/time user-generated text values
 
-* added a ``debug`` package, which includes:
+* Added a `debug <module-paste.debug.html>`_ package, which includes:
 
   - previous top-level modules ``prints``, ``profile``,
     ``wdg_validate`` and ``doctest_webapp``
@@ -118,15 +107,16 @@ SVN trunk
   - a ``testserver`` module suitable to test HTTP socket
     connections via ``py.test``
 
-* re-factored ``paste.wsgilib`` into several sub-modules:
+* Re-factored `paste.wsgilib <module-paste.wsgilib.html>`_ into
+  several other modules:
 
-  - added depreciation warnings to all functions that have moved
+  - functions regarding header manipulation moved to
+    `paste.response <module-paste.response.html`_
 
-  - functions regarding header manipulation moved to ``paste.response``
+  - functions regarding cookies and arguments moved to
+    `paste.request <module-paste.request.html`_
 
-  - functions regarding cookies and arguments moved to ``paste.request``
-
-* significant improvements to ``wsgiutils.wsgilib`` module:
+* Significant improvements to ``wsgiutils.wsgilib`` module:
 
   - added a ``dump_environ`` application to help debugging
 
