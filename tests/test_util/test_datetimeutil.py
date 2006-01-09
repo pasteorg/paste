@@ -79,12 +79,14 @@ def test_date():
     assert('1999-04-18' == normalize_date("1999-04-11 7"))
     assert('1999-04-11' == normalize_date("11 apr 1999"))
     assert('1999-04-11' == normalize_date("11 Apr 1999"))
+    assert('1999-04-11' == normalize_date("11-apr-1999"))
     assert('1999-04-11' == normalize_date("11 April 1999"))
     assert('1999-04-11' == normalize_date("11 APRIL 1999"))
     assert('1999-04-11' == normalize_date("11 april 1999"))
     assert('1999-04-11' == normalize_date("11 aprick 1999"))
     assert('1999-04-11' == normalize_date("APR 11, 1999"))
     assert('1999-04-11' == normalize_date("4/11/1999"))
+    assert('1999-04-11' == normalize_date("4-11-1999"))
     assert('1999-04-11' == normalize_date("1999-4-11"))
     assert('1999-04-11' == normalize_date("19990411"))
 
@@ -115,7 +117,6 @@ def test_date():
             return
         raise "type error expected", val
 
-    assertError("4-11-1999")
     assertError("2000-13-11")
     assertError("APR 99")
     assertError("29 FEB 1900")
