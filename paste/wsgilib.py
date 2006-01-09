@@ -27,7 +27,7 @@ __all__ = ['get_cookies', 'add_close', 'raw_interactive',
            'interactive', 'construct_url', 'error_body_response',
            'error_response', 'send_file', 'has_header', 'header_value',
            'path_info_split', 'path_info_pop', 'capture_output',
-           'catch_errors', 'dump_environ']
+           'catch_errors', 'dump_environ', 'intercept_output']
 
 
 class add_close:
