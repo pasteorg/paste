@@ -13,7 +13,7 @@ takes care of requesting and handling authentication requests.  This
 module has been tested with several common browsers "out-in-the-wild".
 
 >>> from paste.wsgilib import dump_environ
->>> from paste.util.httpserver import serve
+>>> from paste.httpserver import serve
 >>> # from paste.auth.digest import digest_password, AuthDigestHandler
 >>> realm = 'Test Realm'
 >>> def authfunc(realm, username):
