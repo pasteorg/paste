@@ -11,7 +11,7 @@ are using SSL or need to work with very out-dated clients, instead
 use ``digest`` authentication.
 
 >>> from paste.wsgilib import dump_environ
->>> from paste.util.httpserver import serve
+>>> from paste.httpserver import serve
 >>> # from paste.auth.basic import AuthBasicHandler
 >>> realm = 'Test Realm'
 >>> def authfunc(username, password):

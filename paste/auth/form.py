@@ -13,7 +13,7 @@ code or way to save the user's authorization; however, it is easy enough
 to put ``paste.auth.cookie`` in your application stack.
 
 >>> from paste.wsgilib import dump_environ
->>> from paste.util.httpserver import serve
+>>> from paste.httpserver import serve
 >>> from paste.auth.cookie import AuthCookieHandler
 >>> from paste.auth.form import AuthFormHandler
 >>> def authfunc(username, password):

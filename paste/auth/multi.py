@@ -15,7 +15,7 @@ stack; by default it uses form-based authentication unless
 
 >>> from paste.auth import form, cookie, digest, multi
 >>> from paste.wsgilib import dump_environ
->>> from paste.util.httpserver import serve
+>>> from paste.httpserver import serve
 >>>
 >>> multi = multi.MultiHandler(dump_environ)
 >>> def authfunc(realm, user):

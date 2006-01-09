@@ -16,7 +16,7 @@ Following is a very simple example where a form is presented asking for
 a user name (no actual checking), and dummy session identifier (perhaps
 corresponding to a database session id) is stored in the cookie.
 
->>> from paste.util.httpserver import serve
+>>> from paste.httpserver import serve
 >>> from paste.fileapp import DataApp
 >>> from paste.httpexceptions import *
 >>> # from paste.auth.cookie import AuthCookiehandler
