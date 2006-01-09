@@ -107,7 +107,7 @@ Other Tools
   HTML code, in ``paste.url``
 
 The latest version is available in a `Subversion repository
-<http://svn.pythonpaste.org/Paste/trunk#egg=Paste==dev>`_.
+<http://svn.pythonpaste.org/Paste/trunk#egg=Paste-dev>`_.
 
 For the latest changes see the `news file
 <http://pythonpaste.org/news.html>`_.
