@@ -47,7 +47,7 @@ SVN trunk
     WSGI specification (many HTTP server implementations don't do this)
 
   - It is implemented as a Mix-In so that it can be used with other
-    more enchanced versions of ``BaseHTTPServer``
+    more enchanted versions of ``BaseHTTPServer``
 
   - It supports 'Keep-Alive' (standard in HTTP/1.1) by either providing
     a content-length or closing a connection if one is not available.
@@ -118,7 +118,7 @@ SVN trunk
   - a ``testserver`` module suitable to test HTTP socket
     connections via ``py.test``
 
-* refactored ``paste.wsgilib`` into several sub-modules:
+* re-factored ``paste.wsgilib`` into several sub-modules:
 
   - added depreciation warnings to all functions that have moved
 
@@ -126,7 +126,7 @@ SVN trunk
 
   - functions regarding cookies and arguments moved to ``paste.request``
 
-* signficant improvemtns to ``wsgiutils.wsgilib`` module:
+* significant improvements to ``wsgiutils.wsgilib`` module:
 
   - added a ``dump_environ`` application to help debugging
 
