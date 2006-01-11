@@ -66,7 +66,6 @@ class ContinueHook(object):
         self._ContinueFile_send()
         return self._ContinueFile_rfile.readlines(sizehint)
 
-
 class WSGIHandlerMixin:
     """
     WSGI mix-in for HTTPRequestHandler
@@ -232,6 +231,7 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
     A WSGI handler that overrides POST, GET and HEAD to delegate
     requests to the server's ``wsgi_application``.
     """
+    server_version = 'PasteWSGIServer/' + __version__
     do_POST = do_GET = do_HEAD = do_DELETE = do_PUT = do_TRACE = \
         WSGIHandlerMixin.wsgi_execute
 
@@ -307,7 +307,6 @@ else:
             return (conn,info)
 
 class WSGIServer(ThreadingMixIn, SecureHTTPServer):
-    server_version = 'PasteWSGIServer/' + __version__
     daemon_threads = False
 
     def __init__(self, wsgi_application, server_address,
