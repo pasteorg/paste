@@ -312,6 +312,7 @@ else:
 
 class WSGIServer(SocketServer.ThreadingMixIn, SecureHTTPServer):
     server_version = 'WSGIServer/' + __version__
+    # daemon_threads = False
     def __init__(self, wsgi_application, server_address,
                  RequestHandlerClass=None, ssl_context=None):
         SecureHTTPServer.__init__(self, server_address,
