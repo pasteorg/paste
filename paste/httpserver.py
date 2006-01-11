@@ -212,6 +212,8 @@ class WSGIHandlerMixin:
             try:
                 for chunk in result:
                     self.wsgi_write_chunk(chunk)
+                if not self.wsgi_headers_sent:
+                    self.wsgi_write_chunk('')
             finally:
                 if hasattr(result,'close'):
                     result.close()
