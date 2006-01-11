@@ -325,7 +325,7 @@ class WSGIServer(ThreadingMixIn, SecureHTTPServer):
 
 def serve(application, host=None, port=None, handler=None, ssl_pem=None,
           server_version=None, protocol_version=None, start_loop=True,
-          deamon_threads=None, socket_timeout=None):
+          daemon_threads=None, socket_timeout=None):
     """
     Serves your ``application`` over HTTP(S) via WSGI interface
 
@@ -415,8 +415,8 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         handler.protocol_version = protocol_version
 
     server = WSGIServer(application, server_address, handler, ssl_context)
-    if deamon_threads:
-        server.deamon_threads = deamon_threads
+    if daemon_threads:
+        server.daemon_threads = daemon_threads
     if socket_timeout:
         server.wsgi_socket_timeout = int(socket_timeout)
 
