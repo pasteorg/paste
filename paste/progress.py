@@ -13,6 +13,7 @@ a list of all files being uploaded by particular session/user.
 >>> from paste.urlmap import URLMap
 >>> from paste.auth.basic import AuthBasicHandler
 >>> from paste.debug.debugapp import SlowConsumer, SimpleApplication
+>>> # from paste.progress import *
 >>> realm = 'Test Realm'
 >>> def authfunc(username, password):
 ...     return username == password
