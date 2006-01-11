@@ -15,12 +15,12 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 # @@: add support for chunked encoding, this is not a 1.1 server
 #     till this is completed.
 
-
-import BaseHTTPServer, SocketServer
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from SocketServer import ThreadingMixIn
 import urlparse, sys, socket
 
 __all__ = ['WSGIHandlerMixin','WSGIServer','WSGIHandler', 'serve']
-__version__ = "0.2"
+__version__ = "0.5"
 
 class ContinueHook(object):
     """
@@ -146,7 +146,7 @@ class WSGIHandlerMixin:
 
         rfile = self.rfile
         if 'HTTP/1.1' == self.protocol_version and \
-                '100-continue' == self.headers.get('Expect',''):
+                '100-continue' == self.headers.get('Expect','').lower():
             rfile = ContinueHook(rfile, self.wfile.write)
 
         self.wsgi_environ = {
@@ -192,7 +192,7 @@ class WSGIHandlerMixin:
         self.wsgi_curr_headers = None
         self.wsgi_headers_sent = False
 
-    def wsgi_connection_drop(self, environ, exce):
+    def wsgi_connection_drop(self, exce, environ=None):
         """
         Override this if you're interested in socket exceptions, such
         as when the user clicks 'Cancel' during a file download.
@@ -218,7 +218,7 @@ class WSGIHandlerMixin:
                 if hasattr(result,'close'):
                     result.close()
         except socket.error, exce:
-            self.wsgi_connection_drop(environ, exce)
+            self.wsgi_connection_drop(exce, environ)
             return
         except:
             if not self.wsgi_headers_sent:
@@ -227,13 +227,20 @@ class WSGIHandlerMixin:
                 self.wsgi_write_chunk("Internal Server Error\n")
             raise
 
-class WSGIHandler(WSGIHandlerMixin, BaseHTTPServer.BaseHTTPRequestHandler):
+class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
     """
     A WSGI handler that overrides POST, GET and HEAD to delegate
     requests to the server's ``wsgi_application``.
     """
     do_POST = do_GET = do_HEAD = do_DELETE = do_PUT = do_TRACE = \
         WSGIHandlerMixin.wsgi_execute
+
+    def handle(self):
+        # don't bother logging disconnects while handling a request
+        try:
+            BaseHTTPRequestHandler.handle(self)
+        except socket.error, exce:
+            self.wsgi_connection_drop(exce)
 
 #
 # SSL Functionality
@@ -247,12 +254,11 @@ except ImportError:
     # Do not require pyOpenSSL to be installed, but disable SSL
     # functionality in that case.
     SSL = None
-    class SecureHTTPServer(BaseHTTPServer.HTTPServer):
+    class SecureHTTPServer(HTTPServer):
         def __init__(self, server_address, RequestHandlerClass,
                      ssl_context=None):
             assert not ssl_context, "pyOpenSSL not installed"
-            BaseHTTPServer.HTTPServer.__init__(self, server_address,
-                                               RequestHandlerClass)
+            HTTPServer.__init__(self, server_address, RequestHandlerClass)
 else:
 
     class _ConnFixer(object):
@@ -264,7 +270,7 @@ else:
         def __getattr__(self, attrib):
             return getattr(self.__conn, attrib)
 
-    class SecureHTTPServer(BaseHTTPServer.HTTPServer):
+    class SecureHTTPServer(HTTPServer):
         """
         Provides SSL server functionality on top of the BaseHTTPServer
         by overriding _private_ members of Python's standard
@@ -275,15 +281,6 @@ else:
               cntx.use_privatekey_file("host.pem")
               cntx.use_certificate_file("host.pem")
 
-        The certificates can be generated with openssl as follows:
-
-            $ openssl genrsa 1024 > host.key
-            $ chmod 400 host.key
-            $ openssl req -new -x509 -nodes -sha1 -days 365  \
-                          -key host.key > host.cert
-            $ cat host.cert host.key > host.pem
-            $ chmod 400 host.pem
-
         """
 
         def __init__(self, server_address, RequestHandlerClass,
@@ -291,8 +288,7 @@ else:
             # This overrides the implementation of __init__ in python's
             # SocketServer.TCPServer (which BaseHTTPServer.HTTPServer
             # does not override, thankfully).
-            BaseHTTPServer.HTTPServer.__init__(self, server_address,
-                                               RequestHandlerClass)
+            HTTPServer.__init__(self, server_address, RequestHandlerClass)
             self.socket = socket.socket(self.address_family,
                                         self.socket_type)
             self.ssl_context = ssl_context
@@ -310,38 +306,121 @@ else:
                 conn = _ConnFixer(conn)
             return (conn,info)
 
-class WSGIServer(SocketServer.ThreadingMixIn, SecureHTTPServer):
-    server_version = 'WSGIServer/' + __version__
-    # daemon_threads = False
+class WSGIServer(ThreadingMixIn, SecureHTTPServer):
+    server_version = 'PasteWSGIServer/' + __version__
+    daemon_threads = False
+
     def __init__(self, wsgi_application, server_address,
                  RequestHandlerClass=None, ssl_context=None):
         SecureHTTPServer.__init__(self, server_address,
                                   RequestHandlerClass, ssl_context)
         self.wsgi_application = wsgi_application
+        self.wsgi_socket_timeout = None
+
+    def get_request(self):
+        # If there is a socket_timeout, set it on the accepted
+        (conn,info) = SecureHTTPServer.get_request(self)
+        if self.wsgi_socket_timeout:
+            conn.settimeout(self.wsgi_socket_timeout)
+        return (conn, info)
 
 def serve(application, host=None, port=None, handler=None, ssl_pem=None,
-          server_version=None, protocol_version=None, start_loop=True):
+          server_version=None, protocol_version=None, start_loop=True,
+          deamon_threads=None, socket_timeout=None):
+    """
+    Serves your ``application`` over HTTP(S) via WSGI interface
 
+    ``host``
+
+        This is the ipaddress to bind to (or a hostname if your
+        nameserver is properly configured).  This defaults to
+        127.0.0.1, which is not a public interface.
+
+    ``port``
+
+        The port to run on, defaults to 8080 for HTTP, or 4443 for
+        HTTPS. This can be a string or an integer value.
+
+    ``handler``
+
+        This is the HTTP request handler to use, it defaults to
+        ``WSGIHandler`` in this module.
+
+    ``ssl_pem``
+
+        This an optional SSL certificate file (via OpenSSL) You can
+        generate a self-signed test PEM certificate file as follows:
+
+            $ openssl genrsa 1024 > host.key
+            $ chmod 400 host.key
+            $ openssl req -new -x509 -nodes -sha1 -days 365  \
+                          -key host.key > host.cert
+            $ cat host.cert host.key > host.pem
+            $ chmod 400 host.pem
+
+    ``server_version``
+
+        The version of the server as reported in HTTP response line. This
+        defaults to something like "PasteWSGIServer/0.5".  Many servers
+        hide their code-base identity with a name like 'Amnesiac/1.0'
+
+    ``protocol_version``
+
+        This sets the protocol used by the server, by default
+        ``HTTP/1.0``. There is some support for ``HTTP/1.1``, which
+        defaults to nicer keep-alive connections.  This server supports
+        ``100 Continue``, but does not yet support HTTP/1.1 Chunked
+        Encoding. Hence, if you use HTTP/1.1, you're somewhat in error
+        since chunked coding is a mandatory requirement of a HTTP/1.1
+        server.  If you specify HTTP/1.1, every response *must* have a
+        ``Content-Length`` and you must be careful not to read past the
+        end of the socket.
+
+    ``start_loop``
+
+        This specifies if the server loop (aka ``server.serve_forever()``)
+        should be called; it defaults to ``True``.
+
+    ``daemon_threads``
+
+        This flag specifies if when your webserver terminates all
+        in-progress client connections should be droppped.  It defaults
+        to ``False``.   You might want to set this to ``True`` if you
+        are using ``HTTP/1.1`` and don't set a ``socket_timeout``.
+
+    ``socket_timeout``
+
+        This specifies the maximum amount of time that a connection to a
+        given client will be kept open.  At this time, it is a rude
+        disconnect, but at a later time it might follow the RFC a bit
+        more closely.
+
+    """
     ssl_context = None
     if ssl_pem:
         assert SSL, "pyOpenSSL is not installed"
-        port = port or 4443
+        port = int(port or 4443)
         ssl_context = SSL.Context(SSL.SSLv23_METHOD)
         ssl_context.use_privatekey_file(ssl_pem)
         ssl_context.use_certificate_file(ssl_pem)
 
-    server_address = (host or "127.0.0.1", port or 8080)
+    server_address = (host or "127.0.0.1", int(port or 8080))
 
     if not handler:
         handler = WSGIHandler
     if server_version:
         handler.server_version = server_version
         handler.sys_version = None
-
     if protocol_version:
+        assert protocol_version in ('HTTP/0.9','HTTP/1.0','HTTP/1.1')
         handler.protocol_version = protocol_version
 
     server = WSGIServer(application, server_address, handler, ssl_context)
+    if deamon_threads:
+        server.deamon_threads = deamon_threads
+    if socket_timeout:
+        server.wsgi_socket_timeout = int(socket_timeout)
+
     print "serving on %s:%s" % server.server_address
     if start_loop:
         try:
@@ -354,17 +433,12 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
 # For paste.deploy server instantiation (egg:Paste#http)
 # Note: this gets a separate function because it has to expect string
 # arguments (though that's not much of an issue yet, ever?)
-def server_runner(wsgi_app, global_conf, host=None, port=None, ssl_pem=None,
-                  server_version=None, protocol_version=None):
+def server_runner(wsgi_app, global_conf, *args, **kwargs):
     """
     A simple HTTP server.  Also supports SSL if you give it an
-    ``ssl_pem`` argument.
+    ``ssl_pem`` argument, see documentation for ``serve()``.
     """
-    if port:
-        port = int(port)
-    serve(wsgi_app, host=host, port=port, ssl_pem=ssl_pem,
-          server_version=server_version, protocol_version=protocol_version,
-          start_loop=True)
+    serve(wsgi_app, *args, **kwargs)
 
 if __name__ == '__main__':
     # serve exactly 3 requests and then stop, use an external
@@ -372,5 +446,5 @@ if __name__ == '__main__':
     from paste.wsgilib import dump_environ
     #serve(dump_environ, ssl_pem="test.pem")
     serve(dump_environ, server_version="Wombles/1.0",
-          protocol_version="HTTP/1.1")
+          protocol_version="HTTP/1.1", port="8888")
 
