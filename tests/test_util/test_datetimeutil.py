@@ -77,6 +77,7 @@ def test_date():
 
     assert('1999-04-18' == normalize_date("1999-04-11+7"))
     assert('1999-04-18' == normalize_date("1999-04-11 7"))
+    assert('1999-04-01' == normalize_date("1 apr 1999"))
     assert('1999-04-11' == normalize_date("11 apr 1999"))
     assert('1999-04-11' == normalize_date("11 Apr 1999"))
     assert('1999-04-11' == normalize_date("11-apr-1999"))

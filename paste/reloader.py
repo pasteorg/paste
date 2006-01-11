@@ -23,45 +23,42 @@ import os
 import sys
 import time
 import threading
-import atexit
 from paste.util.classinstance import classinstancemethod
 
-def install(poll_interval=1, raise_keyboard_interrupt=True):
+def install(poll_interval=1):
     """
     Install the reloading monitor.
+
+    On some platforms server threads may not terminate when the main
+    thread does, causing ports to remain open/locked.  The
+    ``raise_keyboard_interrupt`` option creates a unignorable signal
+    which causes the whole application to shut-down (rudely).
     """
-    mon = Monitor(poll_interval=poll_interval,
-                  raise_keyboard_interrupt=raise_keyboard_interrupt)
+    mon = Monitor(poll_interval=poll_interval)
     t = threading.Thread(target=mon.periodic_reload)
+    t.setDaemon(True)
     t.start()
-    
+
 class Monitor:
 
     instances = []
     global_extra_files = []
 
-    def __init__(self, poll_interval, raise_keyboard_interrupt):
+    def __init__(self, poll_interval):
         self.module_mtimes = {}
-        atexit.register(self.atexit)
         self.keep_running = True
         self.poll_interval = poll_interval
-        self.raise_keyboard_interrupt = raise_keyboard_interrupt
         self.extra_files = self.global_extra_files[:]
         self.instances.append(self)
 
-    def atexit(self):
-        self.keep_running = False
-        if self.raise_keyboard_interrupt:
-            # This exception is somehow magic, because it applies
-            # to more threads and situations (like socket.accept)
-            # that a mere SystemExit will not.
-            raise KeyboardInterrupt("Exiting process")
-
     def periodic_reload(self):
         while 1:
-            if not self.keep_running:
-                break
             if not self.check_reload():
+                # use os._exit() here and not sys.exit() since within a
+                # thread sys.exit() just closes the given thread and
+                # won't kill the process; note os._exit does not call
+                # any atexit callbacks, nor does it do finally blocks,
+                # flush open files, etc.  In otherwords, it is rude.
                 os._exit(3)
                 break
             time.sleep(self.poll_interval)
