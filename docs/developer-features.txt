@@ -28,7 +28,7 @@ Web Application
 ---------------
 
 * Run CGI programs as WSGI applications in ``paste.cgiapp`` (and
-  Python-sepcific CGI programs with ``paste.pycgiwrapper``)
+  Python-specific CGI programs with ``paste.pycgiwrapper``)
 
 * Traverse files and load WSGI applications from ``.py`` files (or
   static files), in ``paste.urlparser``
