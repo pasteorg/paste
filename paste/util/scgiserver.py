@@ -76,7 +76,7 @@ class SWAP(scgi_server.SCGIHandler):
         ## REQUEST_URI.
 
         prefix = self.prefix
-        path = environ['REQUEST_URI'][len(prefix):]
+        path = environ['REQUEST_URI'][len(prefix):].split('?', 1)[0]
 
         environ['SCRIPT_NAME'] = prefix
         environ['PATH_INFO'] = path
