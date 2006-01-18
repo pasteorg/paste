@@ -185,6 +185,8 @@ class TestApp(object):
             environ['HTTP_%s' % header.replace('-', '_').upper()] = value
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
+        else:
+            environ['QUERY_STRING'] = ''
         environ.update(extra_environ)
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
