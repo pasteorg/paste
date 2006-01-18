@@ -3,10 +3,17 @@ NEWS
 
 .. contents::
 
-SVN trunk
+0.4.1
 ---------
 
-(nothing at this time)
+* Some bug fixes to the `built-in HTTP server
+  <module-paste.httpserver.html>`_.
+
+* Experimental `paste.progress <module-paste.progress.html>`_
+  middleware for tracking upload progress
+
+* Some tweaking of how `paste.reload <module-paste.reload.html>`_
+  works, especially with respect to shutdown.
 
 0.4
 ---
