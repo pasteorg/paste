@@ -14,6 +14,7 @@ import fileapp
 from paste.util import import_string
 from paste.deploy import converters
 import httpexceptions
+from httpheaders import ETAG
 
 class NoDefault:
     pass
@@ -433,6 +434,15 @@ class StaticURLParser(object):
             return self.__class__(full)(environ, start_response)
         if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
             return self.error_extra_path(environ, start_response)
+        if_none_match = environ.get('HTTP_IF_NONE_MATCH')
+        if if_none_match:
+            mytime = os.stat(full).st_mtime
+            if str(mytime) == if_none_match:
+                headers = []
+                ETAG.update(headers, mytime)
+                start_response('304 Not Modified',headers)
+                return [''] # empty body
+        
         return fileapp.FileApp(full)(environ, start_response)
 
     def add_slash(self, environ, start_response):
