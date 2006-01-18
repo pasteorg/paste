@@ -85,6 +85,7 @@ class DataApp(object):
 
     def __call__(self, environ, start_response):
         headers = self.headers[:]
+        ETAG.update(headers, self.last_modified)
         if self.expires is not None:
             EXPIRES.update(headers, delta=self.expires)
 
