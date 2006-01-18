@@ -16,26 +16,28 @@ Following is a very simple example where a form is presented asking for
 a user name (no actual checking), and dummy session identifier (perhaps
 corresponding to a database session id) is stored in the cookie.
 
->>> from paste.httpserver import serve
->>> from paste.fileapp import DataApp
->>> from paste.httpexceptions import *
->>> # from paste.auth.cookie import AuthCookiehandler
->>> from paste.wsgilib import parse_querystring
->>> def testapp(environ, start_response):
-...     user = dict(parse_querystring(environ)).get('user','')
-...     if user:
-...         environ['REMOTE_USER'] = user
-...         environ['REMOTE_SESSION'] = 'a-session-id'
-...     if environ.get('REMOTE_USER'):
-...         page = '<html><body>Welcome %s (%s)</body></html>'
-...         page %= (environ['REMOTE_USER'], environ['REMOTE_SESSION'])
-...     else:
-...         page = ('<html><body><form><input name="user" />'
-...                 '<input type="submit" /></form></body></html>')
-...     return DataApp(page, content_type="text/html")(
-...                    environ, start_response)
->>> serve(AuthCookieHandler(testapp))
-serving on...
+::
+
+  >>> from paste.httpserver import serve
+  >>> from paste.fileapp import DataApp
+  >>> from paste.httpexceptions import *
+  >>> # from paste.auth.cookie import AuthCookiehandler
+  >>> from paste.wsgilib import parse_querystring
+  >>> def testapp(environ, start_response):
+  ...     user = dict(parse_querystring(environ)).get('user','')
+  ...     if user:
+  ...         environ['REMOTE_USER'] = user
+  ...         environ['REMOTE_SESSION'] = 'a-session-id'
+  ...     if environ.get('REMOTE_USER'):
+  ...         page = '<html><body>Welcome %s (%s)</body></html>'
+  ...         page %= (environ['REMOTE_USER'], environ['REMOTE_SESSION'])
+  ...     else:
+  ...         page = ('<html><body><form><input name="user" />'
+  ...                 '<input type="submit" /></form></body></html>')
+  ...     return DataApp(page, content_type="text/html")(
+  ...                    environ, start_response)
+  >>> serve(AuthCookieHandler(testapp))
+  serving on...
 
 """
 
