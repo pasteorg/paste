@@ -3,8 +3,15 @@ NEWS
 
 .. contents::
 
-0.4.1
+SVN trunk
 ---------
+
+* Added `paste.auth.auth_tkt <module-paste.auth.auth_tkt.html>`_
+
+* Added `paste.auth.grantip <module-paste.auth.grantip.html>`_
+
+0.4.1
+-----
 
 * Some bug fixes to the `built-in HTTP server
   <module-paste.httpserver.html>`_.
@@ -100,10 +107,10 @@ NEWS
     support for HTTP/1.0 'Expires' and HTTP/1.1 'Cache-Control'
 
 * Added an *experimental* `paste.transaction
-  <module-paste.transaction.html`_ module for handling
+  <module-paste.transaction.html>`_ module for handling
   commit/rollback of standard DBAPI database connections
 
-* Added a `paste.util.datetimeutil <module-paste.util.datetimeutil.html`_
+* Added a `paste.util.datetimeutil <module-paste.util.datetimeutil.html>`_
   module for parsing standard date/time user-generated text values
 
 * Added a `debug <module-paste.debug.html>`_ package, which includes:
@@ -118,10 +125,10 @@ NEWS
   several other modules:
 
   - functions regarding header manipulation moved to
-    `paste.response <module-paste.response.html`_
+    `paste.response <module-paste.response.html>`_
 
   - functions regarding cookies and arguments moved to
-    `paste.request <module-paste.request.html`_
+    `paste.request <module-paste.request.html>`_
 
 * Significant improvements to ``wsgiutils.wsgilib`` module:
 
