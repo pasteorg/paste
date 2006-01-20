@@ -72,7 +72,11 @@ class Monitor:
                 continue
         for filename in filenames:
             try:
-                mtime = os.stat(filename).st_mtime
+                stat = os.stat(filename)
+                if stat:
+                    mtime = stat.st_mtime
+                else:
+                    mtime = 0
             except (OSError, IOError):
                 continue
             if filename.endswith('.pyc') and os.path.exists(filename[:-1]):
