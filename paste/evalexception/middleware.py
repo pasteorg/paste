@@ -233,7 +233,12 @@ class EvalException(object):
         try:
             __traceback_supplement__ = errormiddleware.Supplement, self, environ
             app_iter = self.application(environ, detect_start_response)
-            return self.catching_iter(app_iter, environ)
+            try:
+                return_iter = list(app_iter)
+                return return_iter
+            finally:
+                if hasattr(app_iter, 'close'):
+                    app_iter.close()
         except:
             exc_info = sys.exc_info()
             for expected in environ.get('paste.expected_exceptions', []):
@@ -293,6 +298,18 @@ class EvalException(object):
                         '<hr noshade>Error in .close():<br>%s'
                         % close_response)
             yield response
+
+    def exception_handler(self, exc_info, environ):
+        simple_html_error = False
+        if self.xmlhttp_key:
+            get_vars = wsgilib.parse_querystring(environ)
+            if dict(get_vars).get(self.xmlhttp_key):
+                simple_html_error = True
+        return errormiddleware.handle_exception(
+            exc_info, environ['wsgi.errors'],
+            html=True,
+            debug_mode=True,
+            simple_html_error=simple_html_error)
 
     def eval_javascript(self, base_path, counter):
         base_path += '/_debug'
