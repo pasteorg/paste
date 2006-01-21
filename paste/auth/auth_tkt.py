@@ -228,7 +228,7 @@ class AuthTKTMiddleware(object):
             if environ.get('REMOTE_USER_TOKENS'):
                 # We want to add tokens/roles to what's there:
                 tokens = environ['REMOTE_USER_TOKENS'] + ',' + tokens
-            environ['REMOTE_USER_TOKENS'] = 
+            #environ['REMOTE_USER_TOKENS'] = @@needs fix
             environ['REMOTE_USER_DATA'] = user_data
             environ['AUTH_TYPE'] = 'cookie'
         set_cookies = []
