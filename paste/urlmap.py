@@ -97,7 +97,9 @@ class URLMap(DictMixin):
                 return -len(url), '\xff'
             else:
                 return -len(url), domain
-        self.applications.sort(key=key)
+        apps = [(key(desc), desc) for desc in self.applications]
+        apps.sort()
+        self.applications = [desc for (sortable, desc) in apps]
 
     def __setitem__(self, url, app):
         if app is None:
