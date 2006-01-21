@@ -1,19 +1,19 @@
 # -*- coding: iso-8859-15 -*-
-# From http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/466286
-"""IntSet.py
+"""Immutable integer set type.
 
 Integer set class.
 
 Copyright (C) 2006, Heiko Wundram.
+Released under the MIT license.
 """
 
 # Version information
 # -------------------
 
-__author__ = "Heiko Wundram <modelnine@asta.mh-hannover.de>"
-__version__ = "0.1"
-__revision__ = "5"
-__date__ = "2006-01-15"
+__author__ = "Heiko Wundram <me@modelnine.org>"
+__version__ = "0.2"
+__revision__ = "6"
+__date__ = "2006-01-20"
 
 
 # Utility classes
@@ -93,6 +93,16 @@ class IntSet(object):
         infinity, which is also the default.
         """
 
+        # Special case copy constructor.
+        if len(args) == 1 and isinstance(args[0],IntSet):
+            if kwargs:
+                raise ValueError("No keyword arguments for copy constructor.")
+            self._min = args[0]._min
+            self._max = args[0]._max
+            self._ranges = args[0]._ranges
+            self._hash = args[0]._hash
+            return
+
         # Initialize set.
         self._ranges = []
 
@@ -170,23 +180,17 @@ class IntSet(object):
             if i < imax and ( ( j < jmax and
                                 r1[i>>1][i&1] < r2[j>>1][j&1] ) or
                               j == jmax ):
-                cur_r1 = r1[i>>1][i&1]
-                if curval < cur_r1:
-                    if cur_r1 > maxval:
-                        break
-                    yield curstates, (curval,cur_r1)
-                    curval = cur_r1
-                curstates["r1"] = not (i&1)
+                cur_r, newname, newstate = r1[i>>1][i&1], "r1", not (i&1)
                 i += 1
             else:
-                cur_r2 = r2[j>>1][j&1]
-                if curval < cur_r2:
-                    if cur_r2 > maxval:
-                        break
-                    yield curstates, (curval,cur_r2)
-                    curval = cur_r2
-                curstates["r2"] = not (j&1)
+                cur_r, newname, newstate = r2[j>>1][j&1], "r2", not (j&1)
                 j += 1
+            if curval < cur_r:
+                if cur_r > maxval:
+                    break
+                yield curstates, (curval,cur_r)
+                curval = cur_r
+            curstates[newname] = newstate
         if curval < maxval:
             yield curstates, (curval,maxval)
 
@@ -221,11 +225,7 @@ class IntSet(object):
             try:
                 return self, self.__class__(*other)
             except TypeError:
-                # Catch a type error, in that case the structure specified by
-                # other is something we can't coerce, return NotImplemented.
-                # ValueErrors are not caught, they signal that the data was
-                # invalid for the constructor. This is appropriate to signal
-                # as a ValueError to the caller.
+                # See above.
                 return NotImplemented
         return NotImplemented
 
@@ -348,6 +348,10 @@ class IntSet(object):
                                     "Returns true if self is true superset of other.",
                                     lambda s: s["r1"] or not s["r2"],
                                     lambda s: s["r1"] and not s["r2"])
+    overlaps = _make_function("overlaps","bool",
+                              "Returns true if self overlaps with other.",
+                              lambda s: True,
+                              lambda s: s["r1"] and s["r2"])
 
     # Comparison.
     __eq__ = _make_function("__eq__","bool",
@@ -394,8 +398,28 @@ class IntSet(object):
     # ---------
 
     def __len__(self):
-        """Get length of this integer set. In case the length is infinite, -1
-        is returned instead."""
+        """Get length of this integer set. In case the length is larger than
+        2**31 (including infinitely sized integer sets), it raises an
+        OverflowError. This is due to len() restricting the size to
+        0 <= len < 2**31."""
+
+        if not self._ranges:
+            return 0
+        if self._ranges[0][0] is _MININF or self._ranges[-1][1] is _MAXINF:
+            raise OverflowError("Infinitely sized integer set.")
+        rlen = 0
+        for r in self._ranges:
+            rlen += r[1]-r[0]
+        if rlen >= 2**31:
+            raise OverflowError("Integer set bigger than 2**31.")
+        return rlen
+
+    def len(self):
+        """Returns the length of this integer set as an integer. In case the
+        length is infinite, returns -1. This function exists because of a
+        limitation of the builtin len() function which expects values in
+        the range 0 <= len < 2**31. Use this function in case your integer
+        set might be larger."""
 
         if not self._ranges:
             return 0
@@ -405,6 +429,11 @@ class IntSet(object):
         for r in self._ranges:
             rlen += r[1]-r[0]
         return rlen
+
+    def __nonzero__(self):
+        """Returns true if this integer set contains at least one item."""
+
+        return bool(self._ranges)
 
     def __iter__(self):
         """Iterate over all values in this integer set. Iteration always starts
@@ -453,6 +482,7 @@ class IntSet(object):
         return "%s(%s)" % (self.__class__.__name__,",".join(rv))
 
 if __name__ == "__main__":
+    # Little test script demonstrating functionality.
     x = IntSet((10,20),30)
     y = IntSet((10,20))
     z = IntSet((10,20),30,(15,19),min=0,max=40)
@@ -475,3 +505,4 @@ if __name__ == "__main__":
     print hash(x)
     print hash(z)
     print len(x)
+    print x.len()

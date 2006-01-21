@@ -1,32 +1,32 @@
 # -*- coding: iso-8859-15 -*-
-# From: http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/466298
-"""ip4.py
+"""IP4 address range set implementation.
 
 Implements an IPv4-range type.
 
 Copyright (C) 2006, Heiko Wundram.
+Released under the MIT-license.
 """
 
 # Version information
 # -------------------
 
-__author__ = "Heiko Wundram <modelnine@asta.mh-hannover.de>"
-__version__ = "0.1"
-__revision__ = "2"
-__date__ = "2006-01-15"
+__author__ = "Heiko Wundram <me@modelnine.org>"
+__version__ = "0.2"
+__revision__ = "3"
+__date__ = "2006-01-20"
 
 
 # Imports
 # -------
 
-import intset # Source file of recipe 466286
+import lib.IntSet
 import socket
 
 
 # IP4Range class
 # --------------
 
-class IP4Range(intset.IntSet):
+class IP4Range(lib.IntSet.IntSet):
     """IP4 address range class with efficient storage of address ranges.
     Supports all set operations."""
 
@@ -40,7 +40,6 @@ class IP4Range(intset.IntSet):
         number of arguments that may either be tuples in the form (start,stop),
         integers, longs or strings, where start and stop in a tuple may
         also be of the form integer, long or string.
-
 
         Passing an integer or long means passing an IPv4-address that's already
         been converted to integer notation, whereas passing a string specifies
@@ -62,9 +61,13 @@ class IP4Range(intset.IntSet):
         because '-' might be present in a hostname. '<->' shouldn't be, ever.
         """
 
-        args = list(args)
+        # Special case copy constructor.
+        if len(args) == 1 and isinstance(args[0],IP4Range):
+            super(IP4Range,self).__init__(args[0])
+            return
 
         # Convert arguments to tuple syntax.
+        args = list(args)
         for i in range(len(args)):
             argval = args[i]
             if isinstance(argval,str):
@@ -201,7 +204,10 @@ class IP4Range(intset.IntSet):
         (e.g. '1.2.3.4-2.3.4.5')."""
 
         for r in self._ranges:
-            yield '%s-%s' % (self._int2ip(r[0]),self._int2ip(r[1]-1))
+            if r[1]-r[0] == 1:
+                yield self._int2ip(r[0])
+            else:
+                yield '%s-%s' % (self._int2ip(r[0]),self._int2ip(r[1]-1))
 
     def itermasks(self):
         """Returns an iterator which iterates over ip/mask pairs which build
@@ -247,42 +253,8 @@ class IP4Range(intset.IntSet):
                                        self._int2ip(stop-1)))
         return "%s(%s)" % (self.__class__.__name__,",".join(rv))
 
-
-def int2ip(num):
-    rv = []
-    for i in range(4):
-        rv.append(str(num&255))
-        num >>= 8
-    return ".".join(reversed(rv))
-
-
-def _parseAddr(addr, lookup=True):
-    if lookup and addr.translate(IP4Range._UNITYTRANS, IP4Range._IPREMOVE):
-        try:
-            addr = socket.gethostbyname(addr)
-        except socket.error:
-            raise ValueError("Invalid Hostname as argument.")
-    naddr = 0
-    for naddrpos, part in enumerate(addr.split(".")):
-        if naddrpos >= 4:
-            raise ValueError("Address contains more than four parts.")
-        try:
-            if not part:
-                part = 0
-            else:
-                part = int(part)
-            if not 0 <= part < 256:
-                raise ValueError
-        except ValueError:
-            raise ValueError("Address part out of range.")
-        naddr <<= 8
-        naddr += part
-    return naddr, naddrpos+1
-
-def ip2int(addr, lookup=True):
-    return _parseAddr(addr, lookup=lookup)[0]
-
 if __name__ == "__main__":
+    # Little test script.
     x = IP4Range("172.22.162.250/24")
     y = IP4Range("172.22.162.250","172.22.163.250","172.22.163.253<->255")
     print x
@@ -292,9 +264,7 @@ if __name__ == "__main__":
         print val
     for val in (x|y).itermasks():
         print val
-    for val in (x&y).iterranges():
+    for val in (x^y).iterranges():
         print val
-    print int2ip(ip2int('172.22.162.250')), '=', ip2int('172.22.162.250')
-    for ip in '172.22.162.250', '172.22.161.250':
-        print ip, 'in', x, ip2int(ip) in x
-
+    for val in x:
+        print val
