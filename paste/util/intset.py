@@ -282,7 +282,10 @@ class IntSet(object):
                 return found
         else:
             raise ValueError("Invalid type of function to create.")
-        f.func_name = name
+        try:
+            f.func_name = name
+        except TypeError:
+            pass
         f.func_doc = doc
         return f
 

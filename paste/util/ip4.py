@@ -19,20 +19,20 @@ __date__ = "2006-01-20"
 # Imports
 # -------
 
-import lib.IntSet
+import intset
 import socket
 
 
 # IP4Range class
 # --------------
 
-class IP4Range(lib.IntSet.IntSet):
+class IP4Range(intset.IntSet):
     """IP4 address range class with efficient storage of address ranges.
     Supports all set operations."""
 
     _MINIP4 = 0
     _MAXIP4 = (1<<32) - 1
-    _UNITYTRANS = "".join(chr(n) for n in range(256))
+    _UNITYTRANS = "".join([chr(n) for n in range(256)])
     _IPREMOVE = "0123456789."
 
     def __init__(self,*args):
