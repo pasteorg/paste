@@ -208,6 +208,25 @@ def path_info_pop(environ):
         environ['SCRIPT_NAME'] += segment
         return segment
 
+_parse_headers_special = {
+    # This is a Zope convention, but we'll allow it here:
+    'HTTP_CGI_AUTHORIZATION': 'Authorization',
+    'CONTENT_LENGTH': 'Content-Length',
+    'CONTENT_TYPE': 'Content-Type',
+    }
+
+def parse_headers(environ):
+    """
+    Parse the headers in the environment (like ``HTTP_HOST``) and
+    yield a sequence of those (header_name, value) tuples.
+    """
+    # @@: Maybe should parse out comma-separated headers?
+    for cgi_var, value in environ.iteritems():
+        if cgi_var in _parse_headers_special:
+            yield _parse_headers_special[cgi_var], value
+        elif cgi_var.startswith('HTTP_'):
+            yield cgi_var[5:].title().replace('_', '-'), value
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
