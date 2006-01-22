@@ -67,6 +67,12 @@ def strip_html(s):
     s = s.replace('&gt;', '>').replace('&amp;','&')
     return s
 
+def no_quote(s):
+    """
+    Quoting that doesn't do anything
+    """
+    return s
+
 url_quote = urllib.quote
 url_unquote = urllib.unquote
 
