@@ -74,7 +74,7 @@ References:
 import types
 from wsgilib import catch_errors_app
 from response import has_header, header_value
-from util.quoting import strip_html, html_quote
+from util.quoting import strip_html, html_quote, no_quote
 
 SERVER_NAME = 'WSGI Server'
 TEMPLATE = """\
@@ -191,10 +191,11 @@ class HTTPException(Exception):
         Exception.__init__(self,"%s %s\n%s\n%s\n" % (
             self.code, self.title, self.explanation, self.detail))
 
-    def make_body(self, environ, template, escfunc):
+    def make_body(self, environ, template, escfunc, comment_escfunc=None):
+        comment_escfunc = comment_escfunc or escfunc
         args = {'explanation': escfunc(self.explanation),
                 'detail': escfunc(self.detail),
-                'comment': escfunc(self.comment)}
+                'comment': comment_escfunc(self.comment)}
         if HTTPException.template == self.template:
             return template % args
         for (k, v) in environ.items():
@@ -206,13 +207,12 @@ class HTTPException(Exception):
 
     def plain(self, environ):
         """ text/plain representation of the exception """
-        noop = lambda _: _
-        body = self.make_body(environ, strip_html(self.template), noop)
+        body = self.make_body(environ, strip_html(self.template), no_quote)
         return ('%s %s\r\n%s\r\n' % (self.code, self.title, body))
 
     def html(self, environ):
         """ text/html representation of the exception """
-        body = self.make_body(environ, self.template, html_quote)
+        body = self.make_body(environ, self.template, html_quote, no_quote)
         return TEMPLATE % {
                    'title': self.title,
                    'code': self.code,
