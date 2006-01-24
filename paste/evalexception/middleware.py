@@ -220,6 +220,8 @@ class EvalException(object):
     exec_input = wsgiapp()(get_debug_info(exec_input))
 
     def respond(self, environ, start_response):
+        if environ.get('paste.throw_errors'):
+            return self.application(environ, start_response)
         base_path = environ['SCRIPT_NAME']
         environ['paste.throw_errors'] = True
         started = []
