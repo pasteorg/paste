@@ -324,8 +324,9 @@ class TestApp(object):
                 res.status >= 300 and res.status < 400):
                 return
             raise AppError(
-                "Bad response: %s (not 200 OK or 3xx redirect for %s)"
-                % (res.full_status, res.request.url))
+                "Bad response: %s (not 200 OK or 3xx redirect for %s)\n%s"
+                % (res.full_status, res.request.url,
+                   res.body))
         if status != res.status:
             raise AppError(
                 "Bad response: %s (not %s)" % (res.full_status, status))
