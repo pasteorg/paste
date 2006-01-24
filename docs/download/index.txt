@@ -6,39 +6,11 @@ distribution is a complete set of documentation, tests, and the source
 files themselves.  There are also two "Egg" files: these are files
 `easy_install <http://peak.telecommunity.com/DevCenter/EasyInstall>`_
 can install directly into your ``site-packages/`` directory, and are
-Python-version specific.
+Python-version specific.  The download files for the latest version
+are always located on the Cheese Shop pages (listed below).
 
-Paste
------
-
-* http://cheeseshop.python.org/packages/source/P/Paste/Paste-0.3.tar.gz
-* http://cheeseshop.python.org/packages/2.4/P/Paste/Paste-0.3-py2.4.egg
-* http://cheeseshop.python.org/packages/2.3/P/Paste/Paste-0.3-py2.3.egg
-
-Paste Deploy
-------------
-
-* http://cheeseshop.python.org/packages/source/P/PasteDeploy/PasteDeploy-0.3.tar.gz
-* http://cheeseshop.python.org/packages/2.4/P/PasteDeploy/PasteDeploy-0.3-py2.4.egg
-* http://cheeseshop.python.org/packages/2.3/P/PasteDeploy/PasteDeploy-0.3-py2.3.egg
-
-Paste Script
-------------
-
-* http://cheeseshop.python.org/packages/source/P/PasteScript/PasteScript-0.3.tar.gz
-* http://cheeseshop.python.org/packages/2.4/P/PasteScript/PasteScript-0.3-py2.4.egg
-* http://cheeseshop.python.org/packages/2.3/P/PasteScript/PasteScript-0.3-py2.3.egg
-
-Paste WebKit
-------------
-
-* http://cheeseshop.python.org/packages/source/P/PasteWebKit/PasteWebKit-0.3.tar.gz
-* http://cheeseshop.python.org/packages/2.4/P/PasteWebKit/PasteWebKit-0.3-py2.4.egg
-* http://cheeseshop.python.org/packages/2.3/P/PasteWebKit/PasteWebKit-0.3-py2.3.egg
-
-Wareweb
--------
-
-* http://cheeseshop.python.org/packages/source/W/Wareweb/Wareweb-0.1.tar.gz
-* http://cheeseshop.python.org/packages/2.4/W/Wareweb/Wareweb-0.1-py2.4.egg
-* (Wareweb is not Python 2.3 compatible)
+* `Paste <http://cheeseshop.python.org/pypi/Paste>`_
+* `Paste Script <http://cheeseshop.python.org/pypi/PasteScript>`_
+* `Paste Deploy <http://cheeseshop.python.org/pypi/PasteDeploy>`_
+* `Paste WebKit <http://cheeseshop.python.org/pypi/PasteWebKit>`_
+* `Wareweb <http://cheeseshop.python.org/pypi/Wareweb>`_
