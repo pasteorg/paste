@@ -219,7 +219,7 @@ class URLParser(object):
         exc = httpexceptions.HTTPMovedPermanently(
             'The resource has moved to %s - you should be redirected '
             'automatically.''' % url,
-            headers={'location': url})
+            headers=[('location', url)])
         return exc.wsgi_application(environ, start_response)
 
     def find_file(self, environ, base_filename):
@@ -457,7 +457,7 @@ class StaticURLParser(object):
         exc = httpexceptions.HTTPMovedPermanently(
             'The resource has moved to %s - you should be redirected '
             'automatically.''' % url,
-            headers={'location': url})
+            headers=[('location', url)])
         return exc.wsgi_application(environ, start_response)
         
     def not_found(self, environ, start_response, debug_message=None):
