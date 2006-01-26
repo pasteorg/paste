@@ -191,7 +191,7 @@ class TestApp(object):
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
 
-    def post(self, url, params=None, headers={}, extra_environ={},
+    def post(self, url, params='', headers={}, extra_environ={},
              status=None, upload_files=None, expect_errors=False):
         """
         Do a POST request.  Very like the ``.get()`` method.
