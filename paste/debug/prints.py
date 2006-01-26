@@ -59,6 +59,10 @@ class PrintDebugMiddleware(object):
             # @@: Not strictly threadsafe
             _threadedprint_installed = True
             threadedprint.install(leave_stdout=True)
+        removed = []
+        def remove_printdebug():
+            removed.append(None)
+        environ['paste.remove_printdebug'] = remove_printdebug
         logged = StringIO()
         if self.print_wsgi_errors:
             replacement_stdout = TeeFile(environ['wsgi.errors'], logged)
@@ -77,9 +81,10 @@ class PrintDebugMiddleware(object):
                 if not body:
                     body = 'An error occurred'
             content_type = response.header_value(headers, 'content-type')
-            if (not self.force_content_type and
-                (not content_type
-                 or not content_type.startswith('text/html'))):
+            if (removed or
+                (not self.force_content_type and
+                 (not content_type
+                  or not content_type.startswith('text/html')))):
                 if replacement_stdout == logged:
                     # Then the prints will be lost, unless...
                     environ['wsgi.errors'].write(logged.getvalue())
