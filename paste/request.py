@@ -12,13 +12,16 @@ environment to solve common requirements.
                    script_name=None, path_info=None, querystring=None)
    * path_info_split(path_info)
    * path_info_pop(environ)
+   * resolve_relative_url(url, environ)
 
 """
 import cgi
 from Cookie import SimpleCookie
+import urlparse
 
 __all__ = ['get_cookies', 'parse_querystring', 'parse_formvars',
-           'construct_url', 'path_info_split', 'path_info_pop']
+           'construct_url', 'path_info_split', 'path_info_pop',
+           'resolve_relative_url']
 
 def get_cookies(environ):
     """
@@ -150,6 +153,17 @@ def construct_url(environ, with_query_string=True, with_path_info=True,
         elif querystring:
             url += '?' + querystring
     return url
+
+def resolve_relative_url(url, environ):
+    """
+    Resolve the given relative URL as being relative to the
+    location represented by the environment.  This can be used
+    for redirecting to a relative path.  Note: if url is already
+    absolute, this function will (intentionally) have no effect
+    on it.
+    """
+    cur_url = construct_url(environ, with_query_string=False)
+    return urlparse.urljoin(cur_url, url)
 
 def path_info_split(path_info):
     """
