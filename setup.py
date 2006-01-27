@@ -136,6 +136,7 @@ For the latest changes see the `news file
         'hotshot': [],
         'Flup': ['flup'],
         'Paste': [],
+        'openid': ['python-openid'],
         },
       entry_points="""
       [paste.app_factory]
@@ -164,6 +165,7 @@ For the latest changes see the `news file
       evalerror = paste.evalexception:EvalException
       auth_tkt = paste.auth.auth_tkt:make_auth_tkt_middleware
       grantip = paste.auth.grantip:make_grantip
+      openid = paste.auth.open_id:make_middleware [openid]
 
       [paste.server_runner]
       http = paste.httpserver:server_runner
