@@ -62,6 +62,7 @@ import sys
 import re
 
 import paste.request
+from paste import httpexceptions
 
 def quoteattr(s):
     qs = cgi.escape(s, 1)
@@ -84,7 +85,8 @@ class AuthOpenIDHandler(object):
     """
 
     def __init__(self, app, data_store_path, auth_prefix='/oid',
-                 login_redirect=None, catch_401=False):
+                 login_redirect=None, catch_401=False,
+                 url_to_username=None):
         """
         Initialize the OpenID middleware
 
@@ -99,6 +101,14 @@ class AuthOpenIDHandler(object):
             
         ``login_redirect``
             Location to load after successful process of login
+            
+        ``catch_401``
+            If true, then any 401 responses will turn into open ID login
+            requirements.
+            
+        ``url_to_username``
+            A function called like ``url_to_username(environ, url)``, which should
+            return a string username.  If not given, the URL will be the username.
         """
         store = filestore.FileOpenIDStore(data_store_path)
         self.oidconsumer = consumer.OpenIDConsumer(store)
@@ -108,6 +118,7 @@ class AuthOpenIDHandler(object):
         self.data_store_path = data_store_path
         self.login_redirect = login_redirect
         self.catch_401 = catch_401
+        self.url_to_username = url_to_username
 
     def __call__(self, environ, start_response):
         if environ['PATH_INFO'].startswith(self.auth_prefix):
@@ -246,15 +257,27 @@ class AuthOpenIDHandler(object):
                 # was a real application, we would do our login,
                 # comment posting, etc. here.
                 openid_url = info
+                if self.url_to_username:
+                    username = self.url_to_username(request['environ'], openid_url)
+                else:
+                    username = openid_url
+                print "login! %r" % username
+                print request['environ'].keys()
+                if 'paste.auth_tkt.set_user' in request['environ']:
+                    print "Set with", request['environ']['paste.auth_tkt.set_user']
+                    request['environ']['paste.auth_tkt.set_user'](username)
                 if not self.login_redirect:
-                    fmt = "If you had supplied a login redirect path, you would've"
-                    fmt += "been redirected there."
-                    fmt += "You have successfully verified %s as your identity."
+                    fmt = ("If you had supplied a login redirect path, you would have "
+                           "been redirected there.  "
+                           "You have successfully verified %s as your identity.")
                     message = fmt % (cgi.escape(openid_url),)
                 else:
-                    request['environ']['paste.auth.open_id'] = openid_url
-                    request['environ']['PATH_INFO'] = self.login_redirect
-                    return self.app(request['environ'], request['start'])
+                    # @@: This stuff doesn't make sense to me; why not a remote redirect?
+                    #request['environ']['paste.auth.open_id'] = openid_url
+                    #request['environ']['PATH_INFO'] = self.login_redirect
+                    #return self.app(request['environ'], request['start'])
+                    exc = httpexceptions.HTTPTemporaryRedirect(self.login_redirect)
+                    return exc.wsgi_application(request['environ'], request['start'])
             else:
                 # cancelled
                 message = 'Verification cancelled'
@@ -365,16 +388,30 @@ class AuthOpenIDHandler(object):
 
 middleware = AuthOpenIDHandler
 
-def make_middleware(
+def make_open_id_middleware(
     app,
     global_conf,
     # Should this default to something, or inherit something from global_conf?:
     data_store_path,
     auth_prefix='/oid',
     login_redirect=None,
-    catch_401=False):
+    catch_401=False,
+    url_to_username=None,
+    apply_auth_tkt=False,
+    auth_tkt_logout_path=None):
     from paste.deploy.converters import asbool
+    from paste.util import import_string
     catch_401 = asbool(catch_401)
-    return AuthOpenIDHandler(
+    if url_to_username and isinstance(url_to_username, basestring):
+        url_to_username = import_string.eval_import(url_to_username)
+    apply_auth_tkt = asbool(apply_auth_tkt)
+    new_app = AuthOpenIDHandler(
         app, data_store_path=data_store_path, auth_prefix=auth_prefix,
-        login_redirect=login_redirect, catch_401=catch_401)
+        login_redirect=login_redirect, catch_401=catch_401,
+        url_to_username=url_to_username or None)
+    if apply_auth_tkt:
+        print "Applying auth_tkt"
+        from paste.auth import auth_tkt
+        new_app = auth_tkt.make_auth_tkt_middleware(
+            new_app, global_conf, logout_path=auth_tkt_logout_path)
+    return new_app
