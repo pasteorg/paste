@@ -84,16 +84,21 @@ class AuthOpenIDHandler(object):
     """
 
     def __init__(self, app, data_store_path, auth_prefix='/oid',
-                                             login_redirect=None):
+                 login_redirect=None, catch_401=False):
         """
         Initialize the OpenID middleware
 
-        app - Your WSGI app to call
-        data_store_path - Directory to store crypto data in for use with
-              OpenID servers.
-        auth_prefix - Location for authentication process/verification
-        login_redirect - Location to load after successful process of
-              login
+        ``app``
+            Your WSGI app to call
+            
+        ``data_store_path``
+            Directory to store crypto data in for use with OpenID servers.
+            
+        ``auth_prefix``
+            Location for authentication process/verification
+            
+        ``login_redirect``
+            Location to load after successful process of login
         """
         store = filestore.FileOpenIDStore(data_store_path)
         self.oidconsumer = consumer.OpenIDConsumer(store)
@@ -102,13 +107,14 @@ class AuthOpenIDHandler(object):
         self.auth_prefix = auth_prefix
         self.data_store_path = data_store_path
         self.login_redirect = login_redirect
+        self.catch_401 = catch_401
 
     def __call__(self, environ, start_response):
         if environ['PATH_INFO'].startswith(self.auth_prefix):
             # Let's load everything into a request dict to pass around easier
             request = dict(environ=environ, start=start_response, body=[])
             request['base_url'] = paste.request.construct_url(environ, with_path_info=False,
-                                                           with_query_string=False)
+                                                              with_query_string=False)
 
             path = re.sub(self.auth_prefix, '', environ['PATH_INFO'])
             request['parsed_uri'] = urlparse.urlparse(path)
@@ -124,7 +130,37 @@ class AuthOpenIDHandler(object):
             else:
                 return self.not_found(request)
         else:
+            if self.catch_401:
+                return self.catch_401_app_call(environ, start_response)
             return self.app(environ, start_response)
+
+    def catch_401_app_call(self, environ, start_response):
+        """
+        Call the application, and redirect if the app returns a 401 response
+        """
+        was_401 = []
+        def replacement_start_response(status, headers, exc_info=None):
+            if int(status.split(None, 1)) == 401:
+                # @@: Do I need to append something to go back to where we
+                # came from?
+                was_401.append(1)
+                def dummy_writer(v): pass
+                return dummy_writer
+            else:
+                return start_response(status, headers, exc_info)
+        app_iter = self.app(environ, replacement_start_response)
+        if was_401:
+            try:
+                list(app_iter)
+            finally:
+                if hasattr(app_iter, 'close'):
+                    app_iter.close()
+            redir_url = paste.request.construct_url(environ, with_path_info=False,
+                                                    with_query_string=False)
+            exc = httpexceptions.HTTPTemporaryRedirect(redir_url)
+            return exc.wsgi_application(environ, start_response)
+        else:
+            return app_iter
 
     def do_verify(self, request):
         """Process the form submission, initating OpenID verification.
@@ -328,3 +364,17 @@ class AuthOpenIDHandler(object):
 
 
 middleware = AuthOpenIDHandler
+
+def make_middleware(
+    app,
+    global_conf,
+    # Should this default to something, or inherit something from global_conf?:
+    data_store_path,
+    auth_prefix='/oid',
+    login_redirect=None,
+    catch_401=False):
+    from paste.deploy.converters import asbool
+    catch_401 = asbool(catch_401)
+    return AuthOpenIDHandler(
+        app, data_store_path=data_store_path, auth_prefix=auth_prefix,
+        login_redirect=login_redirect, catch_401=catch_401)
