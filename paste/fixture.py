@@ -214,6 +214,10 @@ class TestApp(object):
             content_type, params = self.encode_multipart(
                 params, upload_files)
             environ['CONTENT_TYPE'] = content_type
+        if '?' in url:
+            url, environ['QUERY_STRING'] = url.split('?', 1)
+        else:
+            environ['QUERY_STRING'] = ''
         environ['CONTENT_LENGTH'] = str(len(params))
         environ['REQUEST_METHOD'] = 'POST'
         environ['wsgi.input'] = StringIO(params)
