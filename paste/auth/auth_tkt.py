@@ -185,6 +185,32 @@ class AuthTKTMiddleware(object):
     middleware, since Apache will set the environmental variables for
     you).
 
+    Arguments:
+    
+    ``secret``:
+        A secret that should be shared by any instances of this application.
+        If this app is served from more than one machine, they should all 
+        have the same secret.
+        
+    ``cookie_name``:
+        The name of the cookie to read and write from.  Default ``auth_tkt``.
+        
+    ``secure``:
+        If the cookie should be set as 'secure' (only sent over SSL) and if
+        the login must be over SSL.
+        
+    ``include_ip``:
+        If the cookie should include the user's IP address.  If so, then 
+        if they change IPs their cookie will be invalid.
+        
+    ``logout_path``:
+        The path under this middleware that should signify a logout.  The
+        page will be shown as usual, but the user will also be logged out
+        when they visit this page.
+        
+    If used with mod_auth_tkt, then these settings (except logout_path) should 
+    match the analogous Apache configuration settings.
+
     This also adds two functions to the request:
 
     ``environ['set_user'](username, tokens='', user_data='')``
@@ -199,12 +225,13 @@ class AuthTKTMiddleware(object):
     """
 
     def __init__(self, app, secret, cookie_name='auth_tkt', secure=False,
-                 include_ip=True):
+                 include_ip=True, logout_path=None):
         self.app = app
         self.secret = secret
         self.cookie_name = cookie_name
         self.secure = secure
         self.include_ip = include_ip
+        self.logout_path = logout_path
 
     def __call__(self, environ, start_response):
         cookies = request.get_cookies(environ)
@@ -222,7 +249,7 @@ class AuthTKTMiddleware(object):
             # @@: This should handle bad signatures better:
             # Also, timeouts should cause cookie refresh
             timestamp, userid, tokens, user_data = parse_ticket(
-                secret, cookie, remote_addr)
+                self.secret, cookie_value, remote_addr)
             tokens = ','.join(tokens)
             environ['REMOTE_USER'] = userid
             if environ.get('REMOTE_USER_TOKENS'):
@@ -239,6 +266,8 @@ class AuthTKTMiddleware(object):
             set_cookies.extend(self.logout_user_cookie(environ))
         environ['paste.auth_tkt.set_user'] = set_user
         environ['paste.auth_tkt.logout_user'] = logout_user
+        if self.logout_path and environ.get('PATH_INFO') == self.logout_path:
+            logout_user()
         def cookie_setting_start_response(status, headers, exc_info=None):
             headers.extend(set_cookies)
             return start_response(status, headers, exc_info)
@@ -284,7 +313,8 @@ def make_auth_tkt_middleware(
     secret=None,
     cookie_name='auth_tkt',
     secure=False,
-    include_ip=True):
+    include_ip=True,
+    logout_path=None):
     """
     Creates the `AuthTKTMiddleware
     <class-paste.auth.auth_tkt.AuthTKTMiddleware.html>`_.
@@ -300,4 +330,4 @@ def make_auth_tkt_middleware(
         raise ValueError(
             "You must provide a 'secret' (in global or local configuration)")
     return AuthTKTMiddleware(
-        app, secret, cookie_name, secure, include_ip)
+        app, secret, cookie_name, secure, include_ip, logout_path or None)
