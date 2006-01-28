@@ -15,12 +15,56 @@ def urlmap_factory(loader, global_conf, **local_conf):
     if 'not_found_app' in local_conf:
         not_found_app = local_conf.pop('not_found_app')
     else:
-        not_found_app = None
-    urlmap = URLMap(global_conf, not_found_app=not_found_app)
+        not_found_app = global_conf.get('not_found_app')
+    if not_found_app:
+        not_found_app = loader.get_app(app_name, global_conf=global_conf)
+    urlmap = URLMap(not_found_app=not_found_app)
     for path, app_name in local_conf.items():
+        path = parse_path_expression(path)
         app = loader.get_app(app_name, global_conf=global_conf)
         urlmap[path] = app
     return urlmap
+
+def parse_path_expression(path):
+    """
+    Parses a path expression like 'domain foobar.com port 20 /' or
+    just '/foobar' for a path alone.  Returns as an address that
+    URLMap likes.
+    """
+    parts = path.split()
+    domain = port = path = None
+    while parts:
+        if parts[0] == 'domain':
+            parts.pop(0)
+            if not parts:
+                raise ValueError("'domain' must be followed with a domain name")
+            if domain:
+                raise ValueError("'domain' given twice")
+            domain = parts.pop(0)
+        elif parts[0] == 'port':
+            parts.pop(0)
+            if not parts:
+                raise ValueError("'port' must be followed with a port number")
+            if domain:
+                raise ValueError("'port' given twice")
+            port = parts.pop(0)
+        else:
+            if path:
+                raise ValueError("more than one path given (have %r, got %r)"
+                                 % (path, parts[0]))
+            path = parts.pop(0)
+    s = ''
+    if domain:
+        s = 'http://%s' % domain
+    if port:
+        if not domain:
+            raise ValueError("If you give a port, you must also give a domain")
+        s += ':' + port
+    if path:
+        if s:
+            s += '/'
+        s += path
+    return s
 
 class URLMap(DictMixin):
 
@@ -39,10 +83,8 @@ class URLMap(DictMixin):
     the ``http://domain`` or with a domain of ``None`` any domain will be
     matched (so long as no other explicit domain matches).  """
     
-    def __init__(self, global_conf, not_found_app=None):
+    def __init__(self, not_found_app=None):
         self.applications = []
-        if not_found_app is None:
-            not_found_app = global_conf.get('not_found_app')
         self.not_found_application = self.not_found_app
 
     norm_url_re = re.compile('//+')
@@ -198,3 +240,4 @@ class PathProxyURLMap(object):
     not_found_application = property(not_found_application__get,
                                      not_found_application__set)
         
+    
