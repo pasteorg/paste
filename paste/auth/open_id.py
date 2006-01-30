@@ -261,10 +261,7 @@ class AuthOpenIDHandler(object):
                     username = self.url_to_username(request['environ'], openid_url)
                 else:
                     username = openid_url
-                print "login! %r" % username
-                print request['environ'].keys()
                 if 'paste.auth_tkt.set_user' in request['environ']:
-                    print "Set with", request['environ']['paste.auth_tkt.set_user']
                     request['environ']['paste.auth_tkt.set_user'](username)
                 if not self.login_redirect:
                     fmt = ("If you had supplied a login redirect path, you would have "
@@ -410,7 +407,6 @@ def make_open_id_middleware(
         login_redirect=login_redirect, catch_401=catch_401,
         url_to_username=url_to_username or None)
     if apply_auth_tkt:
-        print "Applying auth_tkt"
         from paste.auth import auth_tkt
         new_app = auth_tkt.make_auth_tkt_middleware(
             new_app, global_conf, logout_path=auth_tkt_logout_path)
