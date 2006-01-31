@@ -3,7 +3,7 @@ Python Paste
 
 .. comment:
 
-   I want to put these somewhere sometime, but not place for them now...
+   I want to put these somewhere sometime, but no place for them now...
    Python Paste -- 50% tastier than Elmer's!  
    Paste: making the web sticky.  
    Fix broken websites by applying Paste liberally.
@@ -18,6 +18,7 @@ Python Paste
    LAMP?  LAMPP!
    Putting the P in Wep 2.0!
    Frankenweb crush tiny humans!
+   DSL? DSF!
 
 Python Paste brings consistency to Python web development and web
 application installation, providing tools for both developers and
