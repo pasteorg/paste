@@ -1,0 +1,208 @@
+A Do-It-Yourself Framework
+++++++++++++++++++++++++++
+
+:author: Ian Bicking <ianb@colorstudy.com>
+:revision: $Rev$
+:date: $LastChangedDate$
+
+.. contents::
+
+Introduction and Audience
+=========================
+
+This short tutorial is meant to teach you some about WSGI, and some
+about the architecture that Paste enabled and encourages.
+
+This isn't an introduction to all the parts of Paste -- in fact, we'll
+only use a few, and explain each part.  This isn't encouraging
+everyone to go off and make their own framework (though honestly I
+wouldn't mind).  Hopefully when through this will help you feel more
+comfortable with some of the frameworks built using this
+architecture, and a little more secure that they are comprehensible if
+you just look under the hood a bit.
+
+Writing a WSGI Application
+==========================
+
+The first part is about how to use `WSGI
+<http://www.python.org/peps/pep-0333.html>`_ at its most basic.  You
+can read the spec, but I'll do a very brief summary:
+
+* You will be writing a *WSGI application*.  That's an object that
+  responds to requests.  An application is just a callable object
+  (like a function) that takes two arguments: ``environ`` and
+  ``start_response``.
+
+* The environment looks a lot like a CGI environment, with keys like
+  ``REQUEST_METHOD``, ``HTTP_HOST``, etc.
+
+* The environment also has some special keys like ``wsgi.input`` (the
+  input stream, like the body of a POST request).
+
+* ``start_response`` is a function that starts the response -- you
+  give the status and headers here.
+
+* Lastly the application returns an iterator with the body response
+  (commonly this is just a list of strings, or just a list containing
+  one string that is the entire body.)
+
+So, here's a simple application::
+
+    def app(environ, start_response):
+        start_response('200 OK', [('content-type', 'text/html')])
+        return ['Hello world!']
+
+Well... that's unsatisfying.  Sure, you can imagine what it does, but
+you can't exactly point your web browser at it.
+
+There's other cleaner ways to do this, but this tutorial isn't about
+*clean* it's about *easy-to-understand*.  So just add this to the
+bottom of your file::
+
+    if __name__ == '__main__':
+        from paste import httpserver
+        httpserver.serve(app, host='127.0.0.1', port='8080')
+
+Now visit http://localhost:8080 and you should see your new app.
+If you want to understand how a WSGI server works, I'd recommend
+looking at the `CGI WSGI server
+<http://www.python.org/peps/pep-0333.html#the-server-gateway-side>`_
+in the WSGI spec.
+
+An Interactive App
+------------------
+
+That last app wasn't very interesting.  Let's at least make it
+interactive.  To do that we'll give a form, and then parse the form
+fields::
+
+    from paste.request import parse_formvars
+
+    def app(environ, start_response):
+        fields = parse_formvars(environ)
+        if environ['REQUEST_METHOD'] == 'POST':
+            start_response('200 OK', [('content-type', 'text/html')])
+            return ['Hello, ', fields['name'], '!']
+        else:
+            start_response('200 OK', [('content-type', 'text/html')])
+            return ['<form method="POST">Name: <input type="text" '
+                    'name="name"><input type="submit"></form>']
+
+The ``parse_formvars`` function just takes the WSGI environment and
+calls the `cgi <http://python.org/doc/current/lib/module-cgi.html>`_
+module (the ``FieldStorage`` class) and turns that into a dictionary.
+
+Now For a Framework
+===================
+
+Now, this probably feels a bit crude.  After all, we're testing for
+things like REQUEST_METHOD to handle more than one thing, and it's
+unclear how you can have more than one page.
+
+We want to build a framework, which is just a kind of generic
+application.  In this tutorial we'll implement an *object publisher*,
+which is something you may have seen in Zope, Quixote, or CherryPy.
+
+Object Publishing
+-----------------
+
+In a typical Python object publisher you translate ``/`` to ``.``.  So
+``/articles/view?id=5`` turns into ``root.articles.view(id=5)``.  We
+have to start with some root object, of course, which we'll pass in...
+
+    class ObjectPublisher(object):
+
+        def __init__(self, root):
+            self.root = root
+
+        def __call__(self, environ, start_response):
+            ...
+
+    application = ObjectPublisher(my_root_object)
+
+We override ``__call__`` to make instances of ``ObjectPublisher``
+callable objects, just like a function, and just like WSGI
+applications.  Now all we have to do is translate that ``environ``
+into the thing we are publishing, then call that thing, then turn the
+response into what WSGI wants.
+
+The Path
+--------
+
+WSGI puts the requested path into two variables: ``SCRIPT_NAME`` and
+``PATH_INFO``.  ``SCRIPT_NAME`` is everything that was used up
+*getting here*.  ``PATH_INFO`` is everything left over -- it's
+the part the framework should be using to find the object.  If you put
+the two back together, you get the full path used to get to where we
+are right now; this is very useful for generating correct URLs, and
+we'll make sure we preserve this.
+
+So here's how we might implement ``__call__``::
+
+    def __call__(self, environ, start_response):
+        fields = parse_formvars(environ)
+        obj = self.find_object(self.root, environ)
+        response = obj(**fields)
+        start_response('200 OK', [('content-type', 'text/html')])
+        return [response]
+
+    def find_object(self, obj, environ):
+        path_info = environ.get('PATH_INFO', '')
+        if not path_info or path_info == '/':
+            # We've arrived!
+            return obj
+        # PATH_INFO always starts with a /, so we'll get rid of it:
+        path_info = path_info.lstrip('/')
+        # Then split the path into the "next" chunk, and everything
+        # after it ("rest"):
+        parts = path_info.split('/', 1)
+        next = parts[0]
+        if len(parts) == 1:
+            rest = ''
+        else:
+            rest = '/' + parts[1]
+        # Hide private methods/attributes:
+        assert not next.startswith('_')
+        # Now we get the attribute; getattr(a, 'b') is equivalent
+        # to a.b...
+        next_obj = getattr(obj, next)
+        # Now fix up SCRIPT_NAME and PATH_INFO...
+        environ['SCRIPT_NAME'] += '/' + next
+        environ['PATH_INFO'] = rest
+        # and now parse the remaining part of the URL...
+        return self.find_object(environ, next_obj)
+
+And that's it, we've got a framework.
+
+Taking It For a Ride
+--------------------
+
+Now, let's write a little application.  Put that ``ObjectPublisher``
+class into a module ``objectpub``::
+
+    from objectpub import ObjectPublisher
+
+    class Root(object):
+
+        # The "index" method:
+        def __call__(self):
+            return '''
+            <form action="welcome">
+            Name: <input type="text" name="name">
+            <input type="submit">
+            </form>
+            '''
+
+        def welcome(self, name):
+            return 'Hello %s!' % name
+
+    application = ObjectPublisher(Root())
+
+    if __name__ == '__main__':
+        from paste import httpserver
+        httpserver.serve(app, host='127.0.0.1', port='8080')
+
+Alright, done!  Oh, wait.  There's still some big missing features,
+like how do you set headers?  And instead of giving ``404 Not Found``
+responses in some places, you'll just get an attribute error.  We'll
+fix those up in a later installment...
