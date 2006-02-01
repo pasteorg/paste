@@ -148,7 +148,10 @@ class EvalException(object):
         self.application = application
         self.debug_infos = {}
         if xmlhttp_key is None:
-            xmlhttp_key = global_conf.get('xmlhttp_key', '_')
+            if global_conf is None:
+                xmlhttp_key = '_'
+            else:
+                xmlhttp_key = global_conf.get('xmlhttp_key', '_')
         self.xmlhttp_key = xmlhttp_key
 
     def __call__(self, environ, start_response):
