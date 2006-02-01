@@ -219,7 +219,7 @@ class AuthTKTMiddleware(object):
         string (comma-separated groups) or a list of strings.
         ``user_data`` is a string for your own use.
 
-    ``environ['logout_user']``()
+    ``environ['logout_user']()``
 
         Logs out the user.
     """

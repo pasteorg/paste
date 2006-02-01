@@ -118,7 +118,7 @@ have to start with some root object, of course, which we'll pass in...
         def __call__(self, environ, start_response):
             ...
 
-    application = ObjectPublisher(my_root_object)
+    app = ObjectPublisher(my_root_object)
 
 We override ``__call__`` to make instances of ``ObjectPublisher``
 callable objects, just like a function, and just like WSGI
@@ -142,9 +142,9 @@ So here's how we might implement ``__call__``::
     def __call__(self, environ, start_response):
         fields = parse_formvars(environ)
         obj = self.find_object(self.root, environ)
-        response = obj(**fields)
+        response_body = obj(**fields)
         start_response('200 OK', [('content-type', 'text/html')])
-        return [response]
+        return [response_body]
 
     def find_object(self, obj, environ):
         path_info = environ.get('PATH_INFO', '')
@@ -196,7 +196,7 @@ class into a module ``objectpub``::
         def welcome(self, name):
             return 'Hello %s!' % name
 
-    application = ObjectPublisher(Root())
+    app = ObjectPublisher(Root())
 
     if __name__ == '__main__':
         from paste import httpserver
@@ -206,3 +206,214 @@ Alright, done!  Oh, wait.  There's still some big missing features,
 like how do you set headers?  And instead of giving ``404 Not Found``
 responses in some places, you'll just get an attribute error.  We'll
 fix those up in a later installment...
+
+Give Me More!
+-------------
+
+You'll notice some things are missing here.  Most specifically,
+there's no way to set the output headers, and the information on the
+request is a little slim.
+
+::
+
+    # This is just a dictionary-like object that has case-
+    # insensitive keys:
+    from paste.response import HeaderDict
+
+    class Request(object):
+        def __init__(self, environ):
+            self.environ = environ
+            self.fields = parse_formvars(environ)
+
+    class Response(object):
+        def __init__(self):
+            self.headers_out = HeaderDict(
+                {'content-type': 'text/html'})
+
+Now I'll each you a little trick.  We don't want to change the
+signature of the methods.  But we can't put the request and response
+objects in normal global variables, because we want to be
+thread-friendly, and all threads see the same global variables (even
+if they are processing different requests).
+
+But Python 2.4 introduced a concept of "thread-local values".  That's
+a value that just this one thread can see.  This is in the
+`threading.local <http://docs.python.org/lib/module-threading.html>`_
+object.  When you create an instance of ``local`` any attributes you
+set on that object can only be seen by the thread you set them in.  So
+we'll attach the request and response objects here.
+
+So, let's remind ourselves of what the ``__call__`` function looked
+like::
+
+    class ObjectPublisher(object):
+        ...
+
+        def __call__(self, environ, start_response):
+            fields = parse_formvars(environ)
+            obj = self.find_object(self.root, environ)
+            response_body = obj(**fields)
+            start_response('200 OK', [('content-type', 'text/html')])
+            return [response_body]
+
+Lets's update that:
+
+    import threading
+    webinfo = threading.local()
+
+        def __call__(self, environ, start_response):
+            webinfo.request = Request(environ)
+            webinfo.response = Response()
+            obj = self.find_object(self.root, environ)
+            response_body = obj(**fields)
+            start_response('200 OK', response.headers.items())
+            return [response_body]
+
+Now in our method we might do:
+
+    class Root:
+        def rss(self):
+            webinfo.response.headers['content-type'] = 'text/xml'
+            ...
+
+If we were being fancier we would do things like handle `cookies
+<http://python.org/doc/current/lib/module-Cookie.html>`_ in these
+objects.  But we aren't going to do that now.  You have a framework,
+be happy!
+
+WSGI Middleware
+===============
+
+`Middleware
+<http://www.python.org/peps/pep-0333.html#middleware-components-that-play-both-sides>`_
+is where people get a little intimidated by WSGI and Paste.  So lets
+write one.  We'll write an authentication middleware, so that you can
+keep your greeting from being seen by just anyone.
+
+Let's use HTTP authentication, which also can mystify people a bit.
+HTTP authentication is fairly simple:
+
+* When authentication is requires, we give a ``401 Authentication
+  Required`` status with a ``WWW-Authenticate: Basic realm="This
+  Realm"`` header
+
+* The client then sends back a header ``Authorization: Basic
+  encoded_info``
+
+* The "encoded_info" is a base-64 encoded version of
+  ``username:password``
+
+So how does this work?  Well, we're writing "middleware", which means
+we'll typically pass the request on to another application.  We could
+change the request, or change the response, but in this case sometimes
+we *won't* pass the request on (like, when we need to give that 401
+response).
+
+To give an example of a really really simple middleware, here's one
+that capitalizes the response::
+
+    class Capitalizer(object):
+
+        # We generally pass in the application to be wrapped to
+        # the middleware constructor:
+        def __init__(self, wrap_app):
+            self.wrap_app = wrap_app
+
+        def __call__(self, environ, start_response):
+            # We call the application we are wrapping with the
+            # same arguments we get...
+            response_iter = self.wrap_app(environ, start_response)
+            # then change the response...
+            response_string = ''.join(response_iter)
+            return [response_string.upper()]
+
+Techically this isn't quite right, because there there's two ways to
+return the response body, but we're skimming bits.
+`paste.wsgilib.intercept_output
+<http://pythonpaste.org/module-paste.wsgilib.html#intercept_output>`_
+is a somewhat more thorough implementation of this.
+
+So here's some code that does something useful, authentication::
+
+    class AuthMiddleware(object):
+
+        def __init__(self, wrap_app):
+            self.wrap_app = wrap_app
+
+        def __call__(self, environ, start_response):
+            if not self.authorized(environ.get('HTTP_AUTHORIZATION')):
+                # Essentially self.auth_required is a WSGI application
+                # that only knows how to respond with 401...
+                return self.auth_required(environ, start_response)
+            # But if everything is okay, then pass everything through
+            # to the application we are wrapping...
+            return self.wrap_app(environ, start_response)
+
+        def authorized(self, auth_header):
+            if not auth_header:
+                # If they didn't give a header, they better login...
+                return False
+            # .split(None, 1) means split in two parts on whitespace:
+            auth_type, encoded_info = auth_header.split(None, 1)
+            assert auth_type.lower() == 'basic'
+            unencoded_info = encoded_info.decode('base64')
+            username, password = unencoded_info.split(':', 1)
+            return self.check_password(self, username, password)
+
+        def check_password(self, username, password):
+            # Not very high security authentication...
+            return username == password
+
+        def auth_required(self, environ, start_response):
+            start_response('401 Authentication Required',
+                [('Content-type', 'text/html'),
+                 ('WWW-Authenticate', 'Basic realm="this realm"')])
+            return ["""
+            <html>
+             <head><title>Authentication Required</title></head>
+             <body>
+              <h1>Authentication Required</h1>
+              If you can't get in, then stay out.
+             </body>
+            </html>"""]
+
+So, how do we use this?
+
+::
+
+    app = ObjectPublisher(Root())
+    wrapped_app = AuthMiddleware(app)
+
+    if __name__ == '__main__':
+        from paste import httpserver
+        httpserver.serve(wrapped_app, host='127.0.0.1', port='8080')
+
+Now you have middleware!  Hurrah!
+
+Give Me More Middleware!
+------------------------
+
+It's even easier to use other people's middleware than to make your
+own, because then you don't have to program.  If you've been following
+along, you've probably encountered a few exceptions, and have to look
+at the console to see the exception reports.  Let's make that a little
+easier, and show the exceptions in the browser...
+
+::
+
+    app = ObjectPublisher(Root())
+    wrapped_app = AuthMiddleware(app)
+    from paste.exceptions.errormiddleware import ErrorMiddleware
+    exc_wrapped_app = ErrorMiddleware(wrapped_app)
+
+Easy!  But let's make it *more* fancy...
+
+::
+
+    app = ObjectPublisher(Root())
+    wrapped_app = AuthMiddleware(app)
+    from paste.evalexception import EvalException
+    exc_wrapped_app = EvalException(wrapped_app)
+
+So go make an error now.  And hit the little +'s.  And type stuff in
+to the boxes.
