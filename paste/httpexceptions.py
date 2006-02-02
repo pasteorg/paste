@@ -74,6 +74,7 @@ References:
 import types
 from wsgilib import catch_errors_app
 from response import has_header, header_value
+from request import resolve_relative_url
 from util.quoting import strip_html, html_quote, no_quote
 
 SERVER_NAME = 'WSGI Server'
@@ -312,6 +313,18 @@ class _HTTPMove(HTTPRedirection):
         HTTPRedirection.__init__(self, location, headers, comment)
         if detail is not None:
             self.detail = detail
+
+    def relative_redirect(cls, dest_uri, environ, detail=None, headers=None, comment=None):
+        """
+        Create a redirect object with the dest_uri, which may be relative, 
+        considering it relative to the uri implied by the given environ.
+        """
+        location = resolve_relative_url(dest_uri, environ)
+        headers = headers or []
+        headers.append(('Location', location))
+        return cls(detail=detail, headers=headers, comment=comment)
+    
+    relative_redirect = classmethod(relative_redirect)
 
 class HTTPMultipleChoices(_HTTPMove):
     code = 300
