@@ -19,6 +19,7 @@ Python Paste
    Putting the P in Wep 2.0!
    Frankenweb crush tiny humans!
    DSL? DSF!
+   Paste: Comfort for the framework-scarred
 
 Python Paste brings consistency to Python web development and web
 application installation, providing tools for both developers and

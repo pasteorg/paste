@@ -10,16 +10,45 @@ A Do-It-Yourself Framework
 Introduction and Audience
 =========================
 
-This short tutorial is meant to teach you some about WSGI, and some
-about the architecture that Paste enabled and encourages.
+This short tutorial is meant to teach you a little about WSGI, and as
+an example a bit about the architecture that Paste has enabled and
+encourages.
 
 This isn't an introduction to all the parts of Paste -- in fact, we'll
-only use a few, and explain each part.  This isn't encouraging
+only use a few, and explain each part.  This isn't to encourage
 everyone to go off and make their own framework (though honestly I
-wouldn't mind).  Hopefully when through this will help you feel more
-comfortable with some of the frameworks built using this
-architecture, and a little more secure that they are comprehensible if
-you just look under the hood a bit.
+wouldn't mind).  The goal is that when you have finished reading this
+you feel more comfortable with some of the frameworks built using this
+architecture, and a little more secure that you will understand the
+internals if you look under the hood.
+
+What is WSGI?
+=============
+
+At its simplest WSGI is an interface between web servers and web
+applications.  We'll explain the mechanics of WSGI below, but a higher
+level view is to say that WSGI lets code pass around web requests in a
+fairly formal way.  But there's more!  WSGI is more than just HTTP.
+It might seem like it is just *barely* more than HTTP, but that little
+bit is important:
+
+* You pass around a CGI-like environment, which means data like
+  ``REMOTE_USER`` (the logged-in username) can be securely passed
+  about.
+
+* A CGI-like environment can be passed around with more context --
+  specifically instead of just one path you two: ``SCRIPT_NAME`` (how
+  we got here) and ``PATH_INFO`` (what we have left).
+
+* You can -- and often should -- put your own extensions into the WSGI
+  environment.  This allows for callbacks, extra information,
+  arbitrary Python objects, or whatever you want.  These are things
+  you can't put in custom HTTP headers.
+
+This means that WSGI can be used not just between a web server an an
+application, but can be used at all levels for communication.  This
+allows web applications to become more like libraries -- well
+encapsulated and reusable, but still with rich reusable functionality.
 
 Writing a WSGI Application
 ==========================
@@ -170,7 +199,7 @@ So here's how we might implement ``__call__``::
         environ['SCRIPT_NAME'] += '/' + next
         environ['PATH_INFO'] = rest
         # and now parse the remaining part of the URL...
-        return self.find_object(environ, next_obj)
+        return self.find_object(next_obj, environ)
 
 And that's it, we've got a framework.
 
@@ -227,7 +256,7 @@ request is a little slim.
 
     class Response(object):
         def __init__(self):
-            self.headers_out = HeaderDict(
+            self.headers = HeaderDict(
                 {'content-type': 'text/html'})
 
 Now I'll each you a little trick.  We don't want to change the
@@ -256,7 +285,7 @@ like::
             start_response('200 OK', [('content-type', 'text/html')])
             return [response_body]
 
-Lets's update that:
+Lets's update that::
 
     import threading
     webinfo = threading.local()
@@ -265,11 +294,11 @@ Lets's update that:
             webinfo.request = Request(environ)
             webinfo.response = Response()
             obj = self.find_object(self.root, environ)
-            response_body = obj(**fields)
-            start_response('200 OK', response.headers.items())
+            response_body = obj(**webinfo.request.fields)
+            start_response('200 OK', webinfo.response.headers.items())
             return [response_body]
 
-Now in our method we might do:
+Now in our method we might do::
 
     class Root:
         def rss(self):
@@ -286,7 +315,13 @@ WSGI Middleware
 
 `Middleware
 <http://www.python.org/peps/pep-0333.html#middleware-components-that-play-both-sides>`_
-is where people get a little intimidated by WSGI and Paste.  So lets
+is where people get a little intimidated by WSGI and Paste.  
+
+What is middleware?  Middleware is software that serves as an
+intermediary.  
+
+
+So lets
 write one.  We'll write an authentication middleware, so that you can
 keep your greeting from being seen by just anyone.
 
@@ -358,7 +393,7 @@ So here's some code that does something useful, authentication::
             assert auth_type.lower() == 'basic'
             unencoded_info = encoded_info.decode('base64')
             username, password = unencoded_info.split(':', 1)
-            return self.check_password(self, username, password)
+            return self.check_password(username, password)
 
         def check_password(self, username, password):
             # Not very high security authentication...
@@ -417,3 +452,11 @@ Easy!  But let's make it *more* fancy...
 
 So go make an error now.  And hit the little +'s.  And type stuff in
 to the boxes.
+
+What's Next?
+============
+
+Stay tuned, I'll be talking about configuration (using `Paste Deploy
+<http://pythonpaste.org/deploy/>`_) later, and I hope to give a short
+introduction to packaging and plugins as well.  When that happens I'll
+note it on `my blog <http://blog.ianbicking.org>`_.
