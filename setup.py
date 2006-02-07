@@ -4,8 +4,6 @@ RELEASE = False
 
 __version__ = '0.5'
 
-from ez_setup import use_setuptools
-use_setuptools()
 from setuptools import setup, find_packages
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__),
