@@ -3,7 +3,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 # Some of this code was funded by: http://prometheusresearch.com
 """
-HTTP Message Headers
+HTTP Message Header Fields (see RFC 4229)
 
 This contains general support for HTTP/1.1 message headers [1]_ in a
 manner that supports WSGI ``environ`` [2]_ and ``response_headers``
