@@ -144,7 +144,7 @@ class ErrorMiddleware(object):
                     # Only delegate expected exceptions if the response
                     # has not been started.
                     for expect in environ.get('paste.expected_exceptions', []):
-                        if issubclass(exc_info[0], expect):
+                        if isinstance(exc_info[1], expect):
                             raise
                     start_response('500 Internal Server Error',
                                    [('content-type', 'text/html')],
