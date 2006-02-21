@@ -14,6 +14,13 @@ environments both work.
 
 This shouldn't be used in production in any way.  That would just be
 silly.
+
+If calling from an XMLHttpRequest call, if the GET variable ``_`` is
+given then it will make the response more compact (and less
+Javascripty), since if you use innerHTML it'll kill your browser.  You
+can look for the header X-Debug-URL in your 500 responses if you want
+to see the full debuggable traceback.  Also, this URL is printed to
+``wsgi.errors``, so you can open it up in another browser window.
 """
 import sys
 import os
@@ -190,6 +197,15 @@ class EvalException(object):
         return app(environ, start_response)
     mochikit.exposed = True
 
+    def view(self, environ, start_response):
+        id = int(wsgilib.path_info_pop(environ))
+        debug_info = self.debug_infos[id]
+        return debug_info.wsgi_application(environ, start_response)
+    view.exposed = True
+
+    def make_view_url(self, environ, base_path, count):
+        return base_path + '/_debug/view/%s' % count
+
     #@wsgiapp()
     #@get_debug_info
     def show_frame(self, tbid, debug_info, **kw):
@@ -225,7 +241,8 @@ class EvalException(object):
     def respond(self, environ, start_response):
         if environ.get('paste.throw_errors'):
             return self.application(environ, start_response)
-        base_path = environ['SCRIPT_NAME']
+        base_path = request.construct_url(environ, with_path_info=False,
+                                          with_query_string=False)
         environ['paste.throw_errors'] = True
         started = []
         def detect_start_response(status, headers, exc_info=None):
@@ -250,10 +267,15 @@ class EvalException(object):
                 if issubclass(exc_info[0], expected):
                     raise
                 
+            count = debug_counter.next()
+            view_uri = self.make_view_url(environ, base_path, count)
             if not started:
+                headers = [('content-type', 'text/html')]
+                headers.append(('X-Debug-URL', view_uri))
                 start_response('500 Internal Server Error',
-                               [('content-type', 'text/html')],
+                               headers,
                                exc_info)
+            environ['wsgi.errors'].write('Debug at: %s\n' % view_uri)
 
             if self.xmlhttp_key:
                 get_vars = wsgilib.parse_querystring(environ)
@@ -264,21 +286,13 @@ class EvalException(object):
                         include_reusable=False, show_extra_data=False)
                     return [html]
 
-            count = debug_counter.next()
-            debug_info = DebugInfo(count, exc_info)
+            exc_data = collector.collect_exception(*exc_info)
+            debug_info = DebugInfo(count, exc_info, exc_data, base_path,
+                                   environ)
             assert count not in self.debug_infos
             self.debug_infos[count] = debug_info
             # @@: it would be nice to deal with bad content types here
-            exc_data = collector.collect_exception(*exc_info)
-            html = format_eval_html(exc_data, base_path, count)
-            head_html = (formatter.error_css + formatter.hide_display_js)
-            head_html += self.eval_javascript(base_path, count)
-            repost_button = make_repost_button(environ)
-            page = error_template % {
-                'repost_button': repost_button or '',
-                'head_html': head_html,
-                'body': html}
-            return [page]
+            return debug_info.content()
 
     def catching_iter(self, app_iter, environ):
         __traceback_supplement__ = errormiddleware.Supplement, self, environ
@@ -316,23 +330,14 @@ class EvalException(object):
             debug_mode=True,
             simple_html_error=simple_html_error)
 
-    def eval_javascript(self, base_path, counter):
-        base_path += '/_debug'
-        return (
-            '<script type="text/javascript" src="%s/mochikit/MochiKit.js">'
-            '</script>\n'
-            '<script type="text/javascript" src="%s/media/debug.js">'
-            '</script>\n'
-            '<script type="text/javascript">\n'
-            'debug_base = %r;\n'
-            'debug_count = %r;\n'
-            '</script>\n'
-            % (base_path, base_path, base_path, counter))
-
 class DebugInfo(object):
 
-    def __init__(self, counter, exc_info):
+    def __init__(self, counter, exc_info, exc_data, base_path,
+                 environ):
         self.counter = counter
+        self.exc_data = exc_data
+        self.base_path = base_path
+        self.environ = environ
         self.exc_type, self.exc_value, self.tb = exc_info
         __exception_formatter__ = 1
         self.frames = []
@@ -353,6 +358,34 @@ class DebugInfo(object):
         else:
             raise ValueError, (
                 "No frame by id %s found from %r" % (tbid, self.frames))
+
+    def wsgi_application(self, environ, start_response):
+        start_response('200 OK', [('content-type', 'text-html')])
+        return self.content()
+
+    def content(self):
+        html = format_eval_html(self.exc_data, self.base_path, self.counter)
+        head_html = (formatter.error_css + formatter.hide_display_js)
+        head_html += self.eval_javascript()
+        repost_button = make_repost_button(self.environ)
+        page = error_template % {
+            'repost_button': repost_button or '',
+            'head_html': head_html,
+            'body': html}
+        return [page]
+
+    def eval_javascript(self):
+        base_path = self.base_path + '/_debug'
+        return (
+            '<script type="text/javascript" src="%s/mochikit/MochiKit.js">'
+            '</script>\n'
+            '<script type="text/javascript" src="%s/media/debug.js">'
+            '</script>\n'
+            '<script type="text/javascript">\n'
+            'debug_base = %r;\n'
+            'debug_count = %r;\n'
+            '</script>\n'
+            % (base_path, base_path, base_path, self.counter))
 
 class EvalHTMLFormatter(formatter.HTMLFormatter):
 
