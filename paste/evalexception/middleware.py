@@ -380,7 +380,10 @@ def make_table(items):
     for name, value in items:
         i += 1
         out = StringIO()
-        pprint.pprint(value, out)
+        try:
+            pprint.pprint(value, out)
+        except Exception, e:
+            print >> out, 'Error: %s' % e
         value = html_quote(out.getvalue())
         if len(value) > 100:
             # @@: This can actually break the HTML :(
