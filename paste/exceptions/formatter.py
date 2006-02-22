@@ -211,7 +211,7 @@ class TextFormatter(AbstractFormatter):
             else:
                 return '%s: %s' % (title, s)
         elif isinstance(value, dict):
-            lines = [title, '-'*len(title)]
+            lines = ['\n', title, '-'*len(title)]
             items = value.items()
             items.sort()
             for n, v in items:
@@ -219,7 +219,7 @@ class TextFormatter(AbstractFormatter):
                     v = repr(v)
                 except Exception, e:
                     v = 'Cannot display: %s' % e
-                lines.append('%s: %s' % (n, v))
+                lines.append('  %s: %s' % (n, v))
             return '\n'.join(lines)
         elif (isinstance(value, (list, tuple))
               and self.long_item_list(value)):
