@@ -19,7 +19,7 @@ __all__ = ['PrintDebugMiddleware']
 
 class TeeFile(object):
 
-    def __init__(self, *files):
+    def __init__(self, files):
         self.files = files
 
     def write(self, v):
@@ -35,6 +35,13 @@ class PrintDebugMiddleware(object):
     This middleware captures all the printed statements, and inlines
     them in HTML pages, so that you can see all the (debug-intended)
     print statements in the page itself.
+
+    There are two keys added to the environment to control this:
+    ``environ['paste.printdebug_listeners']`` is a list of functions
+    that will be called everytime something is printed.
+
+    ``environ['paste.remove_printdebug']`` is a function that, if
+    called, will disable printing of output for that request.
     """
 
     log_template = (
@@ -64,11 +71,11 @@ class PrintDebugMiddleware(object):
             removed.append(None)
         environ['paste.remove_printdebug'] = remove_printdebug
         logged = StringIO()
+        listeners = [logged]
+        environ['paste.printdebug_listeners'] = listeners
         if self.print_wsgi_errors:
-            replacement_stdout = TeeFile(environ['wsgi.errors'], logged)
-        else:
-            replacement_stdout = logged
-        output = StringIO()
+            listeners.append(environ['wsgi.errors'])
+        replacement_stdout = TeeFile(listeners)
         try:
             threadedprint.register(replacement_stdout)
             status, headers, body = wsgilib.intercept_output(
