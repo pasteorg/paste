@@ -448,6 +448,7 @@ def format_eval_html(exc_data, base_path, counter):
         show_hidden_frames=True,
         show_extra_data=False,
         include_reusable=False).format_collected_data(exc_data)
+    text_er = formatter.format_text(exc_data, show_hidden_frames=True)
     return """
     %s
     <br>
@@ -457,7 +458,14 @@ def format_eval_html(exc_data, base_path, counter):
     <div id="full_traceback" class="hidden-data">
     %s
     </div>
-    """ % (short_er, long_er)
+    <br>
+    <script type="text/javascript">
+    show_button('text_version', 'text version')
+    </script>
+    <div id="text_version" class="hidden-data">
+    <textarea style="width: 100%%" rows=10 cols=60>%s</textarea>
+    </div>
+    """ % (short_er, long_er, cgi.escape(text_er))
 
 def make_repost_button(environ):
     url = request.construct_url(environ)
