@@ -18,12 +18,12 @@ stack; by default it uses form-based authentication unless
 >>> from paste.httpserver import serve
 >>>
 >>> multi = multi.MultiHandler(dump_environ)
->>> def authfunc(realm, user):
-...     return digest.digest_password(user, realm, user)
+>>> def authfunc(environ, realm, user):
+...     return digest.digest_password(realm, user, user)
 >>> multi.add_method('digest', digest.middleware, "Test Realm", authfunc)
 >>> multi.set_query_argument('digest')
 >>>
->>> def authfunc(username, password):
+>>> def authfunc(environ, username, password):
 ...     return username == password
 >>> multi.add_method('form', form.middleware, authfunc)
 >>> multi.set_default('form')

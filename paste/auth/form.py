@@ -16,7 +16,7 @@ to put ``paste.auth.cookie`` in your application stack.
 >>> from paste.httpserver import serve
 >>> from paste.auth.cookie import AuthCookieHandler
 >>> from paste.auth.form import AuthFormHandler
->>> def authfunc(username, password):
+>>> def authfunc(environ, username, password):
 ...    return username == password
 >>> serve(AuthCookieHandler(
 ...           AuthFormHandler(dump_environ, authfunc)))
@@ -66,9 +66,9 @@ class AuthFormHandler:
         ``authfunc``
 
             This is a mandatory user-defined function which takes a
-            ``username`` and ``password`` for its first and second
-            arguments respectively.  It should return ``True`` if
-            the user is authenticated.
+            ``environ``, ``username`` and ``password`` for its first
+            three arguments.  It should return ``True`` if the user is
+            authenticated.
 
         ``template``
 
@@ -103,7 +103,7 @@ class AuthFormHandler:
             username = formvars.get('username')
             password = formvars.get('password')
             if username and password:
-                if self.authfunc(username,password):
+                if self.authfunc(environ, username, password):
                     environ['AUTH_TYPE'] = 'form'
                     environ['REMOTE_USER'] = username
                     environ['REQUEST_METHOD'] = 'GET'

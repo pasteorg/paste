@@ -16,8 +16,8 @@ module has been tested with several common browsers "out-in-the-wild".
 >>> from paste.httpserver import serve
 >>> # from paste.auth.digest import digest_password, AuthDigestHandler
 >>> realm = 'Test Realm'
->>> def authfunc(realm, username):
-...     return digest_password(username, realm, username)
+>>> def authfunc(environ, realm, username):
+...     return digest_password(realm, username, username)
 >>> serve(AuthDigestHandler(dump_environ, realm, authfunc))
 serving on...
 
@@ -33,7 +33,7 @@ from paste.httpexceptions import HTTPUnauthorized
 from paste.httpheaders import *
 import md5, time, random, urllib2
 
-def digest_password(username, realm, password):
+def digest_password(realm, username, password):
     """ construct the appropriate hashcode needed for HTTP digest """
     return md5.md5("%s:%s:%s" % (username,realm,password)).hexdigest()
 
@@ -79,12 +79,13 @@ class AuthDigestAuthenticator:
         self.nonce[nonce] = nc
         return username
 
-    def authenticate(self, authorization, path, method):
-        """ This function takes the value of the 'Authorization' header,
-            the method used (e.g. GET), and the path of the request
-            relative to the server. The function either returns an
-            authenticated user or it returns the authentication error.
+    def authenticate(self, environ):
+        """ This function takes a WSGI environment and authenticates
+            the request returning authenticated user or error.
         """
+        method = REQUEST_METHOD(environ)
+        fullpath = SCRIPT_NAME(environ) + PATH_INFO(environ)
+        authorization = AUTHORIZATION(environ)
         if not authorization:
             return self.build_authentication()
         (authmeth, auth) = authorization.split(" ",1)
@@ -100,7 +101,7 @@ class AuthDigestAuthenticator:
             nonce    = amap['nonce']
             realm    = amap['realm']
             response = amap['response']
-            assert authpath.split("?",1)[0] in path
+            assert authpath.split("?",1)[0] in fullpath
             assert realm == self.realm
             qop      = amap.get('qop','')
             cnonce   = amap.get('cnonce','')
@@ -110,7 +111,7 @@ class AuthDigestAuthenticator:
                 assert nonce and nc
         except:
             return self.build_authentication()
-        ha1 = self.authfunc(realm,username)
+        ha1 = self.authfunc(environ, realm, username)
         return self.compute(ha1, username, response, method, authpath,
                             nonce, nc, cnonce, qop)
 
@@ -157,7 +158,7 @@ class AuthDigestHandler:
             This is a callback function which performs the actual
             authentication; the signature of this callback is:
 
-              authfunc(realm, username) -> hashcode
+              authfunc(environ, realm, username) -> hashcode
 
             This module provides a 'digest_password' helper function
             which can help construct the hashcode; it is recommended
@@ -171,10 +172,7 @@ class AuthDigestHandler:
     def __call__(self, environ, start_response):
         username = REMOTE_USER(environ)
         if not username:
-            method = REQUEST_METHOD(environ)
-            fullpath = SCRIPT_NAME(environ) + PATH_INFO(environ)
-            authorization = AUTHORIZATION(environ)
-            result = self.authenticate(authorization, fullpath, method)
+            result = self.authenticate(environ)
             if isinstance(result, str):
                 AUTH_TYPE.update(environ,'digest')
                 REMOTE_USER.update(environ, result)

@@ -14,7 +14,7 @@ use ``digest`` authentication.
 >>> from paste.httpserver import serve
 >>> # from paste.auth.basic import AuthBasicHandler
 >>> realm = 'Test Realm'
->>> def authfunc(username, password):
+>>> def authfunc(environ, username, password):
 ...     return username == password
 >>> serve(AuthBasicHandler(dump_environ, realm, authfunc))
 serving on...
@@ -46,7 +46,7 @@ class AuthBasicAuthenticator:
             return self.build_authentication()
         auth = auth.strip().decode('base64')
         username, password = auth.split(':',1)
-        if self.authfunc(username, password):
+        if self.authfunc(environ, username, password):
             return username
         return self.build_authentication()
 
@@ -74,9 +74,9 @@ class AuthBasicHandler:
         ``authfunc``
 
             This is a mandatory user-defined function which takes a
-            ``username`` and ``password`` for its first and second
-            arguments respectively.  It should return ``True`` if
-            the user is authenticated.
+            ``environ``, ``username`` and ``password`` for its first
+            three arguments.  It should return ``True`` if the user is
+            authenticated.
 
     """
     def __init__(self, application, realm, authfunc):
