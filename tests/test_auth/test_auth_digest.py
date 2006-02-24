@@ -17,12 +17,12 @@ def application(environ, start_response):
 
 realm = "tag:clarkevans.com,2005:testing"
 
-def backwords(realm,username):
+def backwords(environ, realm, username):
     """ dummy password hash, where user password is just reverse """
     password = list(username)
     password.reverse()
     password = "".join(password)
-    return digest_password(username,realm,password)
+    return digest_password(realm, username, password)
 
 application = AuthDigestHandler(application,realm,backwords)
 application = HTTPExceptionHandler(application)
