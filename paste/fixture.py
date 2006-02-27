@@ -183,6 +183,7 @@ class TestApp(object):
         environ = self._make_environ()
         for header, value in headers.items():
             environ['HTTP_%s' % header.replace('-', '_').upper()] = value
+        url = str(url)
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
         else:
