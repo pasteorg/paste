@@ -212,9 +212,6 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
                 if headers_sent:
                     # Re-raise original exception only if headers sent
                     raise exc_info[0], exc_info[1], exc_info[2]
-                else:
-                    print_exception(exc_info[0], exc_info[1], exc_info[2],
-                                    file=errors)
             finally:
                 # avoid dangling circular reference
                 exc_info = None
