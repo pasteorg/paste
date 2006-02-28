@@ -326,6 +326,13 @@ class _HTTPMove(HTTPRedirection):
     
     relative_redirect = classmethod(relative_redirect)
 
+    def location(self):
+        for name, value in self.headers:
+            if name.lower() == 'location':
+                return value
+        else:
+            raise KeyError("No location set for %s" % self)
+
 class HTTPMultipleChoices(_HTTPMove):
     code = 300
     title = 'Multiple Choices'
