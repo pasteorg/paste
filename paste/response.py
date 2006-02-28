@@ -70,6 +70,15 @@ class HeaderDict(dict):
                 result.append((key, str(self[key])))
         return result
 
+    #@classmethod
+    def fromlist(cls, seq):
+        self = cls()
+        for name, value in seq:
+            self.add(key, value)
+        return self
+    
+    fromlist = classmethod(fromlist)
+
 def has_header(headers, name):
     """
     Is header named ``name`` present in headers?
