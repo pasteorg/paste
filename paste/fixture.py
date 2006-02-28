@@ -34,6 +34,7 @@ except ImportError:
 
 from paste import wsgilib
 from paste import lint
+from paste.response import HeaderDict
 
 def tempnam_no_warning(*args):
     """
@@ -314,10 +315,12 @@ class TestApp(object):
         if not req.expect_errors:
             self._check_status(status, res)
             self._check_errors(res)
+        res.cookies_set = {}
         for header in res.all_headers('set-cookie'):
             c = SimpleCookie(header)
             for key, morsel in c.items():
                 self.cookies[key] = morsel.value
+                res.cookies_set[key] = morsel.value
         if self.namespace is None:
             # It's annoying to return the response in doctests, as it'll
             # be printed, so we only return it is we couldn't assign
@@ -365,6 +368,7 @@ class TestResponse(object):
         self.status = int(status.split()[0])
         self.full_status = status
         self.headers = headers
+        self.header_dict = HeaderDict.fromlist(self.headers)
         self.body = body
         self.errors = errors
         self._normal_body = None
