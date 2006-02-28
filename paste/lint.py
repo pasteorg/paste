@@ -228,7 +228,7 @@ def check_environ(environ):
         "SCRIPT_NAME doesn't start with /: %r" % environ['SCRIPT_NAME'])
     assert (not environ.get('PATH_INFO')
             or environ['PATH_INFO'].startswith('/')), (
-        "PATH_INFO doesn't start with /: %s" % environ['PATH_INFO'])
+        "PATH_INFO doesn't start with /: %r" % environ['PATH_INFO'])
     if environ.get('CONTENT_LENGTH'):
         assert int(environ['CONTENT_LENGTH']) >= 0, (
             "Invalid CONTENT_LENGTH: %r" % environ['CONTENT_LENGTH'])
