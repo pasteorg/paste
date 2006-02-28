@@ -74,7 +74,7 @@ class HeaderDict(dict):
     def fromlist(cls, seq):
         self = cls()
         for name, value in seq:
-            self.add(key, value)
+            self.add(name, value)
         return self
     
     fromlist = classmethod(fromlist)
