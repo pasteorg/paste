@@ -160,12 +160,16 @@ class _wrap_app_iter_app(object):
             self.next = app_iter.next
             return self.next()
 
-def raw_interactive(application, path='', **environ):
+def raw_interactive(application, path='', raise_on_wsgi_error=False,
+                    **environ):
     """
     Runs the application in a fake environment.
     """
     assert "path_info" not in environ, "argument list changed"
-    errors = StringIO()
+    if raise_on_wsgi_errors:
+        errors = ErrorRaiser()
+    else:
+        errors = StringIO()
     basic_environ = {
         # mandatory CGI variables
         'REQUEST_METHOD': 'GET',     # always mandatory
@@ -240,6 +244,19 @@ def raw_interactive(application, path='', **environ):
             app_iter.close()
     return (data['status'], data['headers'], ''.join(output),
             errors.getvalue())
+
+class ErrorRaiser(object):
+
+    def flush(self):
+        pass
+
+    def write(self, value):
+        raise AssertionError(
+            "No errors should be written (got: %r)" % value)
+
+    def writelines(self, seq):
+        raise AssertionError(
+            "No errors should be written (got lines: %s)" % list(seq))
 
 def interactive(*args, **kw):
     """
