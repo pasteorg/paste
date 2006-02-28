@@ -199,7 +199,7 @@ def raw_interactive(application, path='', **environ):
         basic_environ['wsgi.input'] = StringIO(istream)
         basic_environ['CONTENT_LENGTH'] = len(istream)
     data = {}
-    output = StringIO()
+    output = []
     headers_set = []
     headers_sent = []
     def start_response(status, headers, exc_info=None):
@@ -221,7 +221,7 @@ def raw_interactive(application, path='', **environ):
         headers_set.append(True)
         data['status'] = status
         data['headers'] = headers
-        return output.write
+        return output.append
     app_iter = application(basic_environ, start_response)
     try:
         try:
@@ -229,7 +229,7 @@ def raw_interactive(application, path='', **environ):
                 headers_sent.append(True)
                 if not headers_set:
                     raise AssertionError("Content sent w/o headers!")
-                output.write(s)
+                output.append(s)
         except TypeError, e:
             # Typically "iteration over non-sequence", so we want
             # to give better debugging information...
@@ -238,7 +238,7 @@ def raw_interactive(application, path='', **environ):
     finally:
         if hasattr(app_iter, 'close'):
             app_iter.close()
-    return (data['status'], data['headers'], output.getvalue(),
+    return (data['status'], data['headers'], ''.join(output),
             errors.getvalue())
 
 def interactive(*args, **kw):
