@@ -224,14 +224,16 @@ class HTTPException(Exception):
         """
         This exception as a WSGI application
         """
+        if self.headers:
+            headers = list(self.headers)
+        else:
+            headers = []
         if 'html' in environ.get('HTTP_ACCEPT',''):
-            headers = [('content-type', 'text/html')]
+            replace_header(headers, 'content-type', 'text/html')
             content = self.html(environ)
         else:
-            headers = [('content-type', 'text/plain')]
+            replace_header(headers, 'content-type', 'text/plain')
             content = self.plain(environ)
-        if self.headers:
-            headers.extend(self.headers)
         if isinstance(content, unicode):
             content = content.encode('utf8')
             cur_content_type = (
