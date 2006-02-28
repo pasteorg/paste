@@ -299,7 +299,7 @@ class TestApp(object):
             raise_on_wsgi_error = not req.expect_errors
             raw_res = wsgilib.raw_interactive(
                 app, req.url,
-                raise_on_wsgi_error=raise_on_wsgi_error
+                raise_on_wsgi_error=raise_on_wsgi_error,
                 **req.environ)
             end_time = time.time()
         finally:

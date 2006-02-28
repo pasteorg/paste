@@ -166,7 +166,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     Runs the application in a fake environment.
     """
     assert "path_info" not in environ, "argument list changed"
-    if raise_on_wsgi_errors:
+    if raise_on_wsgi_error:
         errors = ErrorRaiser()
     else:
         errors = StringIO()
@@ -257,6 +257,9 @@ class ErrorRaiser(object):
     def writelines(self, seq):
         raise AssertionError(
             "No errors should be written (got lines: %s)" % list(seq))
+
+    def getvalue(self):
+        return ''
 
 def interactive(*args, **kw):
     """
