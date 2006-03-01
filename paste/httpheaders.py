@@ -428,19 +428,6 @@ class HTTPHeader(object):
         assert len(values) == 1, "more than one value: %s" % repr(values)
         return str(values[0]).strip()
 
-    def __call__(self, *args, **kwargs):
-        """
-        converts ``values()`` into a string value
-
-        This method converts the results of ``values()`` into a string
-        value for common usage.  If more than one result are found; they
-        are comma delimited as described by section 4.2 of RFC 2616.
-        """
-        results = self.values(*args, **kwargs)
-        if not results:
-            return ''
-        return ", ".join([str(v).strip() for v in results])
-
     def delete(self, collection):
         """
         removes all occurances of the header from the collection provided
@@ -654,8 +641,8 @@ class _CacheControl(_MultiValueHeader):
       ``no_cache``
 
           if True, this argument specifies that the response, as a
-          whole, may be cashed; this implementation does not support
-          the enumeration of private fields
+          whole, may not be cashed; this implementation does not
+          support the enumeration of private fields
 
     In general, only one of the above three may be True, the other 2
     must then be False or None.  If all three are None, then the cache
