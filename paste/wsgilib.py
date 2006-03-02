@@ -227,6 +227,10 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     try:
         try:
             for s in app_iter:
+                if not isinstance(s, str):
+                    raise ValueError(
+                        "The app_iter response can only contain str (not "
+                        "unicode); got: %r" % s)
                 headers_sent.append(True)
                 if not headers_set:
                     raise AssertionError("Content sent w/o headers!")
