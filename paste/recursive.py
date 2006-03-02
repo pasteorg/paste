@@ -2,6 +2,24 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
 Middleware to make internal requests and forward requests internally.
+
+When applied, several keys are added to the environment that will allow
+you to trigger recursive redirects and forwards.
+
+``paste.recursive.include``:
+    When you call ``environ['paste.recursive.include'](new_path_info)``
+    a response will be returned.  The response has a ``body`` attribute,
+    a ``status`` attribute, and a ``headers`` attribute.
+
+``paste.recursive.script_name``:
+    The ``SCRIPT_NAME`` at the point that recursive lives.  Only paths
+    underneath this path can be redirected to.
+
+``paste.recursive.old_path_info``:
+    A list of previous ``PATH_INFO`` values from previous redirects.
+
+Raise ``ForewardRequestException(new_path_info)`` to do a forward
+(aborting the current request).
 """
 
 from cStringIO import StringIO
@@ -28,7 +46,33 @@ class RecursiveMiddleware(object):
             self.application, environ, start_response)
         environ['paste.recursive.include'] = Includer(
             self.application, environ, start_response)
-        return self.application(environ, start_response)
+        my_script_name = environ.get('SCRIPT_NAME', '')
+        current_path_info = environ.get('PATH_INFO', '')
+        environ['paste.recursive.script_name'] = my_script_name
+        try:
+            return self.application(environ, start_response)
+        except ForwardRequestException, e:
+            if e.path_info in environ.get(
+                'paste.recursive.old_path_info', []):
+                raise AssertionError(
+                    "Forwarding loop detected; %r visited twice (internal "
+                    "redirect path: %s)"
+                    % (e.path_info, environ['paste.recursive.old_path_info']))
+            environ.setdefault('paste.recursive.old_path_info', []).append(current_path_info)
+            environ['SCRIPT_NAME'] = my_script_name
+            environ['PATH_INFO'] = e.path_info
+            return self(environ, start_response)
+
+class ForwardRequestException(Exception):
+
+    """
+    Used to signal that a request should be forwarded to a different location.
+    The ``path_info`` attribute (passed in as an argument to the constructor)
+    is the position under the recursive middleware to redirect to.
+    """
+
+    def __init__(self, path_info):
+        self.path_info = path_info
 
 class Recursive(object):
 
@@ -81,6 +125,13 @@ class Forwarder(Recursive):
     sent directly to the server and cannot be inspected or
     rewritten.
     """
+
+    def __init__(self, *args, **kw):
+        warnings.warn(
+            "recursive.Forwarder has been deprecated; please use "
+            "ForwardRequestException",
+            DeprecationWarning, 2)
+        Recursive.__init__(self, *args, **kw)
 
     def activate(self, environ):
         return self.application(environ, self.start_response)
