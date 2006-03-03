@@ -23,6 +23,7 @@ Raise ``ForewardRequestException(new_path_info)`` to do a forward
 """
 
 from cStringIO import StringIO
+import warnings
 
 __all__ = ['RecursiveMiddleware']
 
