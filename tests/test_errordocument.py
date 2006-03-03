@@ -15,7 +15,7 @@ correctly requested by the middleware.
 """
 import os
 import py.test
-from paste.error_document import forward, custom_forward
+from paste.errordocument import forward, custom_forward
 from paste.fixture import *
 
 def simple_app(environ, start_response):
