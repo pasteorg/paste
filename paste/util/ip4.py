@@ -103,32 +103,9 @@ class IP4Range(intset.IntSet):
     # Parsing functions
     # -----------------
 
-    def _parseAddr(self,addr,lookup=True):
-        if lookup and addr.translate(self._UNITYTRANS,self._IPREMOVE):
-            try:
-                addr = socket.gethostbyname(addr)
-            except socket.error:
-                raise ValueError("Invalid Hostname as argument.")
-        naddr = 0
-        for naddrpos, part in enumerate(addr.split(".")):
-            if naddrpos >= 4:
-                raise ValueError("Address contains more than four parts.")
-            try:
-                if not part:
-                    part = 0
-                else:
-                    part = int(part)
-                if not 0 <= part < 256:
-                    raise ValueError
-            except ValueError:
-                raise ValueError("Address part out of range.")
-            naddr <<= 8
-            naddr += part
-        return naddr, naddrpos+1
-
     def _parseRange(self,addr1,addr2):
-        naddr1, naddr1len = self._parseAddr(addr1)
-        naddr2, naddr2len = self._parseAddr(addr2)
+        naddr1, naddr1len = _parseAddr(addr1)
+        naddr2, naddr2len = _parseAddr(addr2)
         if naddr2len < naddr1len:
             naddr2 += naddr1&(((1<<((naddr1len-naddr2len)*8))-1)<<
                               (naddr2len*8))
@@ -141,7 +118,7 @@ class IP4Range(intset.IntSet):
         return (naddr1,naddr2)
 
     def _parseMask(self,addr,mask):
-        naddr, naddrlen = self._parseAddr(addr)
+        naddr, naddrlen = _parseAddr(addr)
         naddr <<= (4-naddrlen)*8
         try:
             if not mask:
@@ -152,7 +129,7 @@ class IP4Range(intset.IntSet):
                 raise ValueError
         except ValueError:
             try:
-                mask = self._parseAddr(mask,False)
+                mask = _parseAddr(mask,False)
             except ValueError:
                 raise ValueError("Mask isn't parseable.")
             remaining = 0
@@ -172,7 +149,7 @@ class IP4Range(intset.IntSet):
         return (naddr1,naddr2)
 
     def _parseAddrRange(self,addr):
-        naddr, naddrlen = self._parseAddr(addr)
+        naddr, naddrlen = _parseAddr(addr)
         naddr1 = naddr<<((4-naddrlen)*8)
         naddr2 = ( (naddr<<((4-naddrlen)*8)) +
                    (1<<((4-naddrlen)*8)) - 1 )
@@ -252,6 +229,32 @@ class IP4Range(intset.IntSet):
                 rv.append("(%r,%r)" % (self._int2ip(start),
                                        self._int2ip(stop-1)))
         return "%s(%s)" % (self.__class__.__name__,",".join(rv))
+
+def _parseAddr(addr,lookup=True):
+    if lookup and addr.translate(IP4Range._UNITYTRANS, IP4Range._IPREMOVE):
+        try:
+            addr = socket.gethostbyname(addr)
+        except socket.error:
+            raise ValueError("Invalid Hostname as argument.")
+    naddr = 0
+    for naddrpos, part in enumerate(addr.split(".")):
+        if naddrpos >= 4:
+            raise ValueError("Address contains more than four parts.")
+        try:
+            if not part:
+                part = 0
+            else:
+                part = int(part)
+            if not 0 <= part < 256:
+                raise ValueError
+        except ValueError:
+            raise ValueError("Address part out of range.")
+        naddr <<= 8
+        naddr += part
+    return naddr, naddrpos+1
+
+def ip2int(addr, lookup=True):
+    return _parseAddr(addr, lookup=lookup)[0]
 
 if __name__ == "__main__":
     # Little test script.
