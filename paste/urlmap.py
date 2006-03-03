@@ -169,7 +169,7 @@ class URLMap(DictMixin):
         url = self.normalize_url(url)
         for app_url, app in self.applications:
             if app_url == url:
-                self.applications.remove((app_url, url))
+                self.applications.remove((app_url, app))
                 break
         else:
             raise KeyError(
