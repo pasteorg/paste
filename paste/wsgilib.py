@@ -252,6 +252,8 @@ class ErrorRaiser(object):
         pass
 
     def write(self, value):
+        if not value:
+            return
         raise AssertionError(
             "No errors should be written (got: %r)" % value)
 
