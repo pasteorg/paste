@@ -226,22 +226,6 @@ class WSGIHandlerMixin:
                 self.wsgi_write_chunk("Internal Server Error\n")
             raise
 
-class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
-    """
-    A WSGI handler that overrides POST, GET and HEAD to delegate
-    requests to the server's ``wsgi_application``.
-    """
-    server_version = 'PasteWSGIServer/' + __version__
-    do_POST = do_GET = do_HEAD = do_DELETE = do_PUT = do_TRACE = \
-        WSGIHandlerMixin.wsgi_execute
-
-    def handle(self):
-        # don't bother logging disconnects while handling a request
-        try:
-            BaseHTTPRequestHandler.handle(self)
-        except socket.error, exce:
-            self.wsgi_connection_drop(exce)
-
 #
 # SSL Functionality
 #
@@ -250,10 +234,12 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
 #
 try:
     from OpenSSL import SSL
+    SocketErrors = (socket.error, SSL.ZeroReturnError, SSL.SysCallError)
 except ImportError:
     # Do not require pyOpenSSL to be installed, but disable SSL
     # functionality in that case.
     SSL = None
+    SocketErrors = (socket.error,)
     class SecureHTTPServer(HTTPServer):
         def __init__(self, server_address, RequestHandlerClass,
                      ssl_context=None):
@@ -305,6 +291,22 @@ else:
             if self.ssl_context:
                 conn = _ConnFixer(conn)
             return (conn,info)
+
+class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
+    """
+    A WSGI handler that overrides POST, GET and HEAD to delegate
+    requests to the server's ``wsgi_application``.
+    """
+    server_version = 'PasteWSGIServer/' + __version__
+    do_POST = do_GET = do_HEAD = do_DELETE = do_PUT = do_TRACE = \
+        WSGIHandlerMixin.wsgi_execute
+
+    def handle(self):
+        # don't bother logging disconnects while handling a request
+        try:
+            BaseHTTPRequestHandler.handle(self)
+        except SocketErrors, exce:
+            self.wsgi_connection_drop(exce)
 
 class WSGIServer(ThreadingMixIn, SecureHTTPServer):
     daemon_threads = False
