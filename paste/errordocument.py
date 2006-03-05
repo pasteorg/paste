@@ -85,7 +85,7 @@ def forward(app, codes):
         app = RecursiveMiddleware(app)
         
         # Set up the error document forwarding
-        from paste.error_document import forward
+        from paste.errordocument import forward
         app = forward(app, codes={404:'/error404.html'})
         
     """
@@ -135,7 +135,7 @@ def custom_forward(app, mapper, global_conf={}, **kw):
     If you wanted to write an application to handle all your error docuemnts
     in a consitent way you might do this::
     
-        from paste.error_document import custom_forward
+        from paste.errordocument import custom_forward
         from paste.recursive import RecursiveMiddleware
         from urllib import urlencode
         
@@ -162,7 +162,7 @@ def custom_forward(app, mapper, global_conf={}, **kw):
     Example
     -------
     
-    For example the ``paste.error_document.forward`` middleware actaully
+    For example the ``paste.errordocument.forward`` middleware actaully
     uses ``custom_forward``. It looks like this::
     
     def forward(app, codes):
