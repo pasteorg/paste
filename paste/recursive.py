@@ -127,14 +127,11 @@ class Forwarder(Recursive):
     rewritten.
     """
 
-    def __init__(self, *args, **kw):
+    def activate(self, environ):
         warnings.warn(
             "recursive.Forwarder has been deprecated; please use "
             "ForwardRequestException",
             DeprecationWarning, 2)
-        Recursive.__init__(self, *args, **kw)
-
-    def activate(self, environ):
         return self.application(environ, self.start_response)
     
 

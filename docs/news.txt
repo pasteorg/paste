@@ -6,6 +6,15 @@ NEWS
 SVN trunk
 ---------
 
+* Avoid annoying warning from paste.recursive
+
+* Allow for conditional ``paste.wsgilib.intercept_output`` which
+  should be slightly faster (and streamable) compared to doing the
+  condition manually.
+
+0.5
+---
+
 * Added `paste.auth.auth_tkt <module-paste.auth.auth_tkt.html>`_
 
 * Added `paste.auth.grantip <module-paste.auth.grantip.html>`_

@@ -359,7 +359,8 @@ def capture_output(environ, start_response, application):
     data.append(output.getvalue())
     return data
 
-def intercept_output(environ, application):
+def intercept_output(environ, application, conditional=None,
+                     start_response=None):
     """
     Runs application with environ and captures status, headers, and
     body.  None are sent on; you must send them on yourself (unlike
@@ -370,7 +371,7 @@ def intercept_output(environ, application):
         def dehtmlifying_middleware(application):
             def replacement_app(environ, start_response):
                 status, headers, body = capture_output(
-                    environ, start_response, application)
+                    environ, application)
                 content_type = header_value(headers, 'content-type')
                 if (not content_type
                     or not content_type.startswith('text/html')):
@@ -378,16 +379,44 @@ def intercept_output(environ, application):
                 body = re.sub(r'<.*?>', '', body)
                 return [body]
             return replacement_app
+
+    A third optional argument ``conditional`` should be a function
+    that takes ``conditional(status, headers)`` and returns False if
+    the request should not be intercepted.  In that case
+    ``start_response`` will be called and ``(None, None, app_iter)``
+    will be returned.  You must detect that in your code and return
+    the app_iter, like::
+
+        def dehtmlifying_middleware(application):
+            def replacement_app(environ, start_response):
+                status, headers, body = capture_output(
+                    environ, application,
+                    lambda s, h: header_value(headers, 'content-type').startswith('text/html'),
+                    start_response)
+                if status is None:
+                    return body
+                body = re.sub(r'<.*?>', '', body)
+                return [body]
+            return replacement_app
     """
+    if conditional is not None and start_response is None:
+        raise TypeError(
+            "If you provide conditional you must also provide "
+            "start_response")
     data = []
     output = StringIO()
     def replacement_start_response(status, headers, exc_info=None):
+        if conditional is not None and not conditional(status, headers):
+            data.append(None)
+            return start_response(status, headers)
         if data:
             data[:] = []
         data.append(status)
         data.append(headers)
         return output.write
     app_iter = application(environ, replacement_start_response)
+    if data[0] is None:
+        return (None, None, app_iter)
     try:
         for item in app_iter:
             output.write(item)
