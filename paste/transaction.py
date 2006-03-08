@@ -32,7 +32,7 @@ class ConnectionFactory(object):
         if hasattr(self.module,'PgQuoteString'):
             self.quote = self.module.PgQuoteString
 
-    def __call__(self, environ):
+    def __call__(self, environ=None):
         conn = self.module.connect(*self.args,**self.kwargs)
         conn.__dict__['module'] = self.module
         conn.__dict__['quote'] = self.quote
@@ -72,8 +72,9 @@ __all__ = ['ConnectionFactory','BasicTransactionHandler']
 if '__main__' == __name__ and False:
     from pyPgSQL import PgSQL
     factory = ConnectionFactory(PgSQL,database="testing")
-    conn = factory(None)
+    conn = factory()
     curr = conn.cursor()
     curr.execute("SELECT now(), %s" % conn.quote("B'n\\'gles"))
     (time,bing) = curr.fetchone()
     print bing, time
+
