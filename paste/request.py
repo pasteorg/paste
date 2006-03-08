@@ -306,8 +306,8 @@ class LazyCache(object):
             self.result = self.fn(*args)
         return self.result
         
-class Request(object):
-    """Request API Object
+class WSGIRequest(object):
+    """WSGI Request API Object
     
     This object represents a WSGI request with a more friendly interface.
     This does not expose every detail of the WSGI environment, and does not
