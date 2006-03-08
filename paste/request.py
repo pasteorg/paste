@@ -23,11 +23,26 @@ __all__ = ['get_cookies', 'parse_querystring', 'parse_formvars',
            'construct_url', 'path_info_split', 'path_info_pop',
            'resolve_relative_url']
 
+class environ_getter(object):
+    """For delegating an attribute to a key in self.environ."""
+    # @@: Also __set__?  Should setting be allowed?
+    def __init__(self, key, default=''):
+        self.key = key
+        self.default = default
+    def __get__(self, obj, type=None):
+        if type == None:
+            return self
+        return obj.environ.get(self.key, self.default)
+
+    def __repr__(self):
+        return '<Proxy for WSGI environ %r key>' % self.key
+
 def get_cookies(environ):
     """
     Gets a cookie object (which is a dictionary-like object) from the
     request environment; caches this value in case get_cookies is
     called again for the same request.
+    
     """
     header = environ.get('HTTP_COOKIE', '')
     if environ.has_key('paste.cookies'):
@@ -48,6 +63,7 @@ def parse_querystring(environ):
     You can pass the result to ``dict()``, but be aware that keys that
     appear multiple times will be lost (only the last value will be
     preserved).
+    
     """
     source = environ.get('QUERY_STRING', '')
     if not source:
@@ -61,9 +77,32 @@ def parse_querystring(environ):
     environ['paste.parsed_querystring'] = (parsed, source)
     return parsed
 
-def parse_formvars(environ, all_as_list=False, include_get_vars=True):
+def parse_dict_querystring(environ):
+    """Parses a query string like parse_querystring, but returns a dict
+    
+    Caches this value in case parse_dict_querystring is called again
+    for the same request.
+    
+    The dict values are one of:  a string, or a list of strings.
+        
     """
-    Parses the request, returning a dictionary of the keys.
+    source = environ.get('QUERY_STRING', '')
+    if not source:
+        return {}
+    if 'paste.parsed_dict_querystring' in environ:
+        parsed, check_source = environ['paste.parsed_dict_querystring']
+        if check_source == source:
+            return parsed
+    parsed = cgi.parse_qs(source, keep_blank_values=True,
+                           strict_parsing=False)
+    for k, v in parsed.iteritems():
+        if len(v) < 2:
+            parsed[k] = v[0]
+    environ['paste.parsed_dict_querystring'] = parsed
+    return parsed
+
+def parse_formvars(environ, all_as_list=False, include_get_vars=True):
+    """Parses the request, returning a dictionary of the keys.
 
     If ``all_as_list`` is true, then all values will be lists.  If
     not, then only values that show up multiple times will be lists.
@@ -74,6 +113,7 @@ def parse_formvars(environ, all_as_list=False, include_get_vars=True):
 
     All values should be strings, except for file uploads which are
     left as FieldStorage instances.
+    
     """
     source = (environ.get('QUERY_STRING', ''),
               environ['wsgi.input'], environ['REQUEST_METHOD'],
@@ -118,10 +158,11 @@ def parse_formvars(environ, all_as_list=False, include_get_vars=True):
 
 def construct_url(environ, with_query_string=True, with_path_info=True,
                   script_name=None, path_info=None, querystring=None):
-    """
-    Reconstructs the URL from the WSGI environment.  You may override
-    SCRIPT_NAME, PATH_INFO, and QUERYSTRING with the keyword
-    arguments.
+    """Reconstructs the URL from the WSGI environment.
+    
+    You may override SCRIPT_NAME, PATH_INFO, and QUERYSTRING with
+    the keyword arguments.
+    
     """
     url = environ['wsgi.url_scheme']+'://'
 
@@ -161,6 +202,7 @@ def resolve_relative_url(url, environ):
     for redirecting to a relative path.  Note: if url is already
     absolute, this function will (intentionally) have no effect
     on it.
+    
     """
     cur_url = construct_url(environ, with_query_string=False)
     return urlparse.urljoin(cur_url, url)
@@ -171,6 +213,7 @@ def path_info_split(path_info):
     rest_of_path).  first_part can be None (if PATH_INFO is empty), ''
     (if PATH_INFO is '/'), or a name without any /'s.  rest_of_path
     can be '' or a string starting with /.
+    
     """
     if not path_info:
         return None, ''
@@ -205,6 +248,7 @@ def path_info_pop(environ):
         SCRIPT_NAME='/1'; PATH_INFO='/2/3'; returns='1'
         >>> call_it('', '//1/2')
         SCRIPT_NAME='//1'; PATH_INFO='/2'; returns='1'
+    
     """
     path = environ.get('PATH_INFO', '')
     if not path:
@@ -240,6 +284,137 @@ def parse_headers(environ):
             yield _parse_headers_special[cgi_var], value
         elif cgi_var.startswith('HTTP_'):
             yield cgi_var[5:].title().replace('_', '-'), value
+
+class LazyCache(object):
+    """Lazy and Caching Function Executer
+    
+    LazyCache takes a function, and will hold onto it to be called at a 
+    later time. When the function is called, its result will be cached and
+    used when called in the future.
+    
+    This style is ideal for functions that may require processing that is
+    only done in rare cases, but when it is done, caching the results is
+    desired.
+    
+    """
+    def __init__(self, func):
+        self.fn = func
+        self.result = None
+    
+    def __call__(self, *args):
+        if not self.result:
+            self.result = self.fn(*args)
+        return self.result
+        
+class Request(object):
+    """Request API Object
+    
+    This object represents a WSGI request with a more friendly interface.
+    This does not expose every detail of the WSGI environment, and does not
+    in any way express anything beyond what is available in the environment
+    dictionary.  *All* state is kept in the environment dictionary; this
+    is essential for interoperability.
+    
+    You are free to subclass this object.
+    
+    """
+    
+    def __init__(self, environ):
+        self.environ = environ
+
+    scheme = environ_getter('wsgi.url_scheme') # ?
+    method = environ_getter('REQUEST_METHOD')
+    # wsgi.config would be better, of course:
+    config = environ_getter('paste.config')
+    script_name = environ_getter('SCRIPT_NAME')
+    path_info = environ_getter('PATH_INFO')
+    # Other possible variables:
+    # REMOTE_USER, CONTENT_TYPE, CONTENT_LENGTH?  Probably not
+    # REMOTE_ADDR, REMOTE_HOST, AUTH_TYPE?  Even less interesting
+    # SERVER_PORT?  Maybe
+    # SERVER_PROTOCOL, SERVER_SOFTWARE, GATEWAY_INTERFACE?  Definitely not
+    
+    def host():
+        doc = """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
+        def fget(self):
+            return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
+    host = property(**host())
+    
+    def get():
+        doc = """\
+Dictionary-like object representing the QUERY_STRING parameters.
+Always present, if possibly empty.
+
+If the same key is present in the query string multiple times, it
+will be present as a list."""
+        def fget(self):
+            return parse_dict_querystring(self.environ)
+    get = property(**get())
+    
+    def post():
+        doc = """\
+Dictionary-like object representing the POST body.  Most values
+are strings, but file uploads can be FieldStorage objects.  If
+this is not a POST request, or the body is not encoded fields
+(e.g., an XMLRPC request) then this will be None.
+
+This will consume wsgi.input when first accessed if applicable,
+but the output will be put in environ['paste.post_vars'] 
+(or wsgi.post_vars?)"""
+        def fget(self):
+            
+            pass # FieldStorage? Processing needs to be cached as well
+                 # probably the actual object, not the list or FieldStorage
+                 # would be cached -- some multidict object
+    post = property(**post())
+    
+    def params(self):
+        """Uses cascading dict to pull from the params
+        
+        Return a key value from the parameters, they are checked in the
+        following order:
+            POST, GET, URL
+        
+        If a key is not found in the first dict, the next is checked. As with
+        dict.get, None will be returned if the key is not found in all three.
+        
+        Additional methods supported:
+        
+        getall(key)
+            Returns a list keyed by parameter location of all the values by
+            that key in that parameter location
+        getone(key)
+            Return one value (like __getitem__) but an error if more than
+            one key exists.  (Or the other way around?)
+        The object returned by .get and .post is a dictionary of this style
+        as well.  .urlvars is a plain dict (?)
+        
+        Should this decode input to unicode on some level?
+        """
+        pass
+    
+    def urlvars():
+        doc = """\
+Return a plain dictionary representing any variables captured from
+the URL parsing (the parsed URL portion is in SCRIPT_NAME); frequently
+{}, but never None"""
+        def fget(self):
+            pass
+    urlvars = property(**urlvars())
+    
+    def cookies(self):
+        """Dictionary of cookies keyed by cookie name.
+        
+        Just a plain dictionary, may be empty but not None.
+        
+        """
+        pass
+    
+    def headers():
+        doc = """Access to incoming headers"""
+        def fget(self):
+            pass
+    headers = property(**headers())
 
 if __name__ == '__main__':
     import doctest
