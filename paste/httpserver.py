@@ -75,6 +75,22 @@ class WSGIHandlerMixin:
     This assumes a ``wsgi_application`` handler on ``self.server``.
     """
 
+    def log_request(self, *args, **kwargs):
+        """ disable success request logging
+
+        Logging transactions should not be part of a WSGI server,
+        if you want logging; look at paste.translogger
+        """
+        pass
+
+    def log_message(self, *args, **kwargs):
+        """ disable error message logging
+
+        Logging transactions should not be part of a WSGI server,
+        if you want logging; look at paste.translogger
+        """
+        pass
+
     def version_string(self):
         """ behavior that BaseHTTPServer should have had """
         if not self.sys_version:
