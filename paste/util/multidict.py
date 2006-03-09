@@ -28,7 +28,7 @@ class multidict(DictMixin):
             self._items = kw.items()
         else:
             self._items = []
-        
+
     def __getitem__(self, key):
         for k, v in self._items:
             if k == key:
@@ -128,6 +128,7 @@ class multidict(DictMixin):
                 self._items.append((k, v))
         if kwargs:
             self.update(kwargs)
+
     def __repr__(self):
         items = ', '.join(['(%r, %r)' % v for v in self._items])
         return 'multidict([%s])' % items
