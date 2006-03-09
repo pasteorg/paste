@@ -357,8 +357,9 @@ class WSGIRequest(object):
 
     """
 
-    def __init__(self, environ):
+    def __init__(self, environ, urlvars={}):
         self.environ = environ
+        self.urlvars = urlvars
 
     scheme = environ_getter('wsgi.url_scheme') # ?
     method = environ_getter('REQUEST_METHOD')
@@ -372,81 +373,65 @@ class WSGIRequest(object):
     # SERVER_PORT?  Maybe
     # SERVER_PROTOCOL, SERVER_SOFTWARE, GATEWAY_INTERFACE?  Definitely not
 
-    def host():
-        doc = textwrap.dedent("""\
-            Host name provided in HTTP_HOST, with fall-back to
-            SERVER_NAME
-            """)
-        def fget(self):
-            return self.environ.get('HTTP_HOST',
-                                    self.environ.get('SERVER_NAME'))
-        return locals()
-    host = property(**host())
+    def host(self):
+        """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
+        return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
+    host = property(host, doc=host.__doc__)
 
-    def get():
-        doc = textwrap.dedent("""\
-            Dictionary-like object representing the QUERY_STRING
-            parameters. Always present, if possibly empty.
+    def get(self):
+        """
+        Dictionary-like object representing the QUERY_STRING
+        parameters. Always present, if possibly empty.
 
-            If the same key is present in the query string multiple
-            times, it will be present as a list.
-            """)
-        def fget(self):
-            return parse_dict_querystring(self.environ)
-        return locals()
-    get = property(**get())
+        If the same key is present in the query string multiple
+        times, it will be present as a list.
+        """
+        return parse_dict_querystring(self.environ)
+    get = property(get, doc=get.__doc__)
 
-    def post():
-        doc = textwrap.dedent("""\
-            Dictionary-like object representing the POST body.
+    def post(self):
+        """Dictionary-like object representing the POST body.
 
-            Most values are strings, but file uploads can be FieldStorage
-            objects. If this is not a POST request, or the body is not
-            encoded fields (e.g., an XMLRPC request) then this will be None.
+        Most values are strings, but file uploads can be FieldStorage
+        objects. If this is not a POST request, or the body is not
+        encoded fields (e.g., an XMLRPC request) then this will be None.
 
-            This will consume wsgi.input when first accessed if applicable,
-            but the output will be put in environ['paste.post_vars']
-            """)
-        def fget(self):
-            formvars = MultiDict()
-            formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
-            return formvars
-        fget = LazyCache(fget)
-        return locals()
-    post = property(**post())
+        This will consume wsgi.input when first accessed if applicable,
+        but the output will be put in environ['paste.post_vars']
+        
+        """
+        formvars = MultiDict()
+        formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
+        return formvars
+    post = property(LazyCache(post), doc=post.__doc__)
 
-    def params():
-        doc = textwrap.dedent("""\
-            MultiDict of keys from POST, GET, URL dicts
+    def params(self):
+        """MultiDict of keys from POST, GET, URL dicts
 
-            Return a key value from the parameters, they are checked in the
-            following order:
-                POST, GET, URL
+        Return a key value from the parameters, they are checked in the
+        following order:
+            POST, GET, URL
 
-            Additional methods supported:
+        Additional methods supported:
 
-            getlist(key)
-                Returns a list keyed by parameter location of all the
-                values by that key in that parameter location
-            """)
-        def fget(self):
-            pms = MultiDict()
-            pms.update(self.post)
-            pms.update(self.get)
-            return pms
-        fget = LazyCache(fget)
-        return locals()
-    params = property(**params())
+        getlist(key)
+            Returns a list keyed by parameter location of all the values by
+            that key in that parameter location
+        """
+        pms = MultiDict()
+        pms.update(self.post)
+        pms.update(self.get)
+        return pms
+    params = property(params, doc=params.__doc__)
 
-    def urlvars():
-        doc = textwrap.dedent("""\
-            Return a plain dictionary representing any variables
-            captured from the URL parsing (the parsed URL portion is in
-            SCRIPT_NAME); frequently {}, but never None""")
-        def fget(self):
-            pass
-        return locals()
-    urlvars = property(**urlvars())
+    def urlvars(self):
+        """
+        Return a plain dictionary representing any variables
+        captured from the URL parsing (the parsed URL portion is in
+        SCRIPT_NAME); frequently {}, but never None
+        """
+        return self.urlvars
+    urlvars = property(urlvars, doc=urlvars.__doc__)
 
     def cookies(self):
         """Dictionary of cookies keyed by cookie name.
@@ -456,12 +441,10 @@ class WSGIRequest(object):
         """
         pass
 
-    def headers():
-        doc = """Access to incoming headers"""
-        def fget(self):
-            pass
-        return locals()
-    headers = property(**headers())
+    def headers(self):
+        """Access to incoming headers"""
+        pass
+    headers = property(headers, doc=headers.__doc__)
 
 if __name__ == '__main__':
     import doctest
