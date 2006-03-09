@@ -3,7 +3,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 """
 This module provides helper routines with work directly on a WSGI
-environment to solve common requirements. 
+environment to solve common requirements.
 
    * get_cookies(environ)
    * parse_querystring(environ)
@@ -64,14 +64,14 @@ class MultiDict(UserDict):
                     self[k] = [v]
                 else:
                     self[k] = v
-    
+
 
 def get_cookies(environ):
     """
     Gets a cookie object (which is a dictionary-like object) from the
     request environment; caches this value in case get_cookies is
     called again for the same request.
-    
+
     """
     header = environ.get('HTTP_COOKIE', '')
     if environ.has_key('paste.cookies'):
@@ -92,7 +92,7 @@ def parse_querystring(environ):
     You can pass the result to ``dict()``, but be aware that keys that
     appear multiple times will be lost (only the last value will be
     preserved).
-    
+
     """
     source = environ.get('QUERY_STRING', '')
     if not source:
@@ -108,22 +108,22 @@ def parse_querystring(environ):
 
 def parse_dict_querystring(environ):
     """Parses a query string like parse_querystring, but returns a multidict
-    
+
     Caches this value in case parse_dict_querystring is called again
     for the same request.
-    
+
     Example::
-    
+
         #environ['QUERY_STRING'] -  day=Monday&user=fred&user=jane
         >>> parsed = parse_dict_querystring(environ)
-        
+
         >>> parsed['day']
         'Monday'
         >>> parsed['user']
         'fred'
         >>> parsed.getlist['user']
         ['fred', 'jane']
-    
+
     """
     source = environ.get('QUERY_STRING', '')
     if not source:
@@ -151,7 +151,7 @@ def parse_formvars(environ, all_as_list=False, include_get_vars=True):
 
     All values should be strings, except for file uploads which are
     left as FieldStorage instances.
-    
+
     """
     source = (environ.get('QUERY_STRING', ''),
               environ['wsgi.input'], environ['REQUEST_METHOD'],
@@ -197,10 +197,10 @@ def parse_formvars(environ, all_as_list=False, include_get_vars=True):
 def construct_url(environ, with_query_string=True, with_path_info=True,
                   script_name=None, path_info=None, querystring=None):
     """Reconstructs the URL from the WSGI environment.
-    
+
     You may override SCRIPT_NAME, PATH_INFO, and QUERYSTRING with
     the keyword arguments.
-    
+
     """
     url = environ['wsgi.url_scheme']+'://'
 
@@ -240,7 +240,7 @@ def resolve_relative_url(url, environ):
     for redirecting to a relative path.  Note: if url is already
     absolute, this function will (intentionally) have no effect
     on it.
-    
+
     """
     cur_url = construct_url(environ, with_query_string=False)
     return urlparse.urljoin(cur_url, url)
@@ -251,7 +251,7 @@ def path_info_split(path_info):
     rest_of_path).  first_part can be None (if PATH_INFO is empty), ''
     (if PATH_INFO is '/'), or a name without any /'s.  rest_of_path
     can be '' or a string starting with /.
-    
+
     """
     if not path_info:
         return None, ''
@@ -286,7 +286,7 @@ def path_info_pop(environ):
         SCRIPT_NAME='/1'; PATH_INFO='/2/3'; returns='1'
         >>> call_it('', '//1/2')
         SCRIPT_NAME='//1'; PATH_INFO='/2'; returns='1'
-    
+
     """
     path = environ.get('PATH_INFO', '')
     if not path:
@@ -325,38 +325,38 @@ def parse_headers(environ):
 
 class LazyCache(object):
     """Lazy and Caching Function Executer
-    
-    LazyCache takes a function, and will hold onto it to be called at a 
+
+    LazyCache takes a function, and will hold onto it to be called at a
     later time. When the function is called, its result will be cached and
     used when called in the future.
-    
+
     This style is ideal for functions that may require processing that is
     only done in rare cases, but when it is done, caching the results is
     desired.
-    
+
     """
     def __init__(self, func):
         self.fn = func
         self.result = None
-    
+
     def __call__(self, *args):
         if not self.result:
             self.result = self.fn(*args)
         return self.result
-        
+
 class WSGIRequest(object):
     """WSGI Request API Object
-    
+
     This object represents a WSGI request with a more friendly interface.
     This does not expose every detail of the WSGI environment, and does not
     in any way express anything beyond what is available in the environment
     dictionary.  *All* state is kept in the environment dictionary; this
     is essential for interoperability.
-    
+
     You are free to subclass this object.
-    
+
     """
-    
+
     def __init__(self, environ):
         self.environ = environ
 
@@ -371,31 +371,35 @@ class WSGIRequest(object):
     # REMOTE_ADDR, REMOTE_HOST, AUTH_TYPE?  Even less interesting
     # SERVER_PORT?  Maybe
     # SERVER_PROTOCOL, SERVER_SOFTWARE, GATEWAY_INTERFACE?  Definitely not
-    
+
     def host():
-        doc = """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
+        doc = textwrap.dedent("""\
+            Host name provided in HTTP_HOST, with fall-back to
+            SERVER_NAME
+            """)
         def fget(self):
-            return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
+            return self.environ.get('HTTP_HOST',
+                                    self.environ.get('SERVER_NAME'))
         return locals()
     host = property(**host())
-    
+
     def get():
         doc = textwrap.dedent("""\
-            Dictionary-like object representing the QUERY_STRING parameters.
-            Always present, if possibly empty.
+            Dictionary-like object representing the QUERY_STRING
+            parameters. Always present, if possibly empty.
 
-            If the same key is present in the query string multiple times, it
-            will be present as a list.
+            If the same key is present in the query string multiple
+            times, it will be present as a list.
             """)
         def fget(self):
             return parse_dict_querystring(self.environ)
         return locals()
     get = property(**get())
-    
+
     def post():
         doc = textwrap.dedent("""\
             Dictionary-like object representing the POST body.
-            
+
             Most values are strings, but file uploads can be FieldStorage
             objects. If this is not a POST request, or the body is not
             encoded fields (e.g., an XMLRPC request) then this will be None.
@@ -410,7 +414,7 @@ class WSGIRequest(object):
         fget = LazyCache(fget)
         return locals()
     post = property(**post())
-    
+
     def params():
         doc = textwrap.dedent("""\
             MultiDict of keys from POST, GET, URL dicts
@@ -422,8 +426,8 @@ class WSGIRequest(object):
             Additional methods supported:
 
             getlist(key)
-                Returns a list keyed by parameter location of all the values by
-                that key in that parameter location
+                Returns a list keyed by parameter location of all the
+                values by that key in that parameter location
             """)
         def fget(self):
             pms = MultiDict()
@@ -433,25 +437,25 @@ class WSGIRequest(object):
         fget = LazyCache(fget)
         return locals()
     params = property(**params())
-    
+
     def urlvars():
         doc = textwrap.dedent("""\
-            Return a plain dictionary representing any variables captured from
-            the URL parsing (the parsed URL portion is in SCRIPT_NAME); frequently
-            {}, but never None""")
+            Return a plain dictionary representing any variables
+            captured from the URL parsing (the parsed URL portion is in
+            SCRIPT_NAME); frequently {}, but never None""")
         def fget(self):
             pass
         return locals()
     urlvars = property(**urlvars())
-    
+
     def cookies(self):
         """Dictionary of cookies keyed by cookie name.
-        
+
         Just a plain dictionary, may be empty but not None.
-        
+
         """
         pass
-    
+
     def headers():
         doc = """Access to incoming headers"""
         def fget(self):
@@ -462,4 +466,4 @@ class WSGIRequest(object):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    
+
