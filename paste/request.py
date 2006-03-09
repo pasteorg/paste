@@ -44,8 +44,26 @@ class MultiDict(UserDict):
     retrieves the full list"""
     def __getitem__(self, key):
         return self.data[key][0]
+
     def getlist(self, key):
         return self.data[key]
+
+    def update(self, dict):
+        if isinstance(dct, UserDict):
+            self.data.update(dict.data)
+        elif isinstance(dict, type(self.data)):
+            self.data.update(dict)
+        else:
+            for k, v in dict.items():
+                if self.has_key(k) and isinstance(v, list):
+                    self[k].extend(v)
+                elif self.has_key(k):
+                    self[k].append(v)
+                elif not isinstance(v, list):
+                    self[k] = [v]
+                else:
+                    self[k] = v
+    
 
 def get_cookies(environ):
     """
@@ -357,6 +375,7 @@ class WSGIRequest(object):
         doc = """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
         def fget(self):
             return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
+        return locals()
     host = property(**host())
     
     def get():
@@ -368,6 +387,7 @@ If the same key is present in the query string multiple times, it
 will be present as a list."""
         def fget(self):
             return parse_dict_querystring(self.environ)
+        return locals()
     get = property(**get())
     
     def post():
@@ -384,32 +404,30 @@ but the output will be put in environ['paste.post_vars']"""
             formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
             return formvars
         fget = LazyCache(fget)
+        return locals()
     post = property(**post())
     
-    def params(self):
-        """Uses cascading dict to pull from the params
-        
-        Return a key value from the parameters, they are checked in the
-        following order:
-            POST, GET, URL
-        
-        If a key is not found in the first dict, the next is checked. As with
-        dict.get, None will be returned if the key is not found in all three.
-        
-        Additional methods supported:
-        
-        getall(key)
-            Returns a list keyed by parameter location of all the values by
-            that key in that parameter location
-        getone(key)
-            Return one value (like __getitem__) but an error if more than
-            one key exists.  (Or the other way around?)
-        The object returned by .get and .post is a dictionary of this style
-        as well.  .urlvars is a plain dict (?)
-        
-        Should this decode input to unicode on some level?
-        """
-        pass
+    def params():
+        doc = """\
+MultiDict of keys from POST, GET, URL dicts
+
+Return a key value from the parameters, they are checked in the
+following order:
+    POST, GET, URL
+
+Additional methods supported:
+
+getlist(key)
+    Returns a list keyed by parameter location of all the values by
+    that key in that parameter location"""
+        def fget(self):
+            pms = MultiDict()
+            pms.update(self.post)
+            pms.update(self.get)
+            return pms
+        fget = LazyCache(fget)
+        return locals()
+    params = property(**params())
     
     def urlvars():
         doc = """\
@@ -418,6 +436,7 @@ the URL parsing (the parsed URL portion is in SCRIPT_NAME); frequently
 {}, but never None"""
         def fget(self):
             pass
+        return locals()
     urlvars = property(**urlvars())
     
     def cookies(self):
@@ -432,6 +451,7 @@ the URL parsing (the parsed URL portion is in SCRIPT_NAME); frequently
         doc = """Access to incoming headers"""
         def fget(self):
             pass
+        return locals()
     headers = property(**headers())
 
 if __name__ == '__main__':
