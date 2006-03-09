@@ -360,7 +360,8 @@ class WSGIRequest(object):
     def __init__(self, environ, urlvars={}):
         self.environ = environ
         self.urlvars = urlvars
-
+    
+    body = environ_getter('wsgi.input')
     scheme = environ_getter('wsgi.url_scheme') # ?
     method = environ_getter('REQUEST_METHOD')
     # wsgi.config would be better, of course:
@@ -448,10 +449,15 @@ class WSGIRequest(object):
 
     def headers(self):
         """Access to incoming headers"""
-        pass
+        # @@ Just needs a header table object
+        headertable = someheaderdict
+        for key in self.environ.keys():
+            if key.startswith('HTTP'):
+                headertable.add(key[5:], self.environ[key])
+        return headertable
     headers = property(headers, doc=headers.__doc__)
+
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-
