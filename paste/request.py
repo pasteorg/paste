@@ -18,6 +18,7 @@ environment to solve common requirements.
 import cgi
 from Cookie import SimpleCookie
 import urlparse
+from util.UserDict24 import UserDict
 
 __all__ = ['get_cookies', 'parse_querystring', 'parse_formvars',
            'construct_url', 'path_info_split', 'path_info_pop',
@@ -36,6 +37,15 @@ class environ_getter(object):
 
     def __repr__(self):
         return '<Proxy for WSGI environ %r key>' % self.key
+
+class MultiDict(UserDict):
+    """Acts as a normal dict, but assumes all values are lists, and
+    retrieving an item retrieves the first value in the list. getlist
+    retrieves the full list"""
+    def __getitem__(self, key):
+        return self.data[key][0]
+    def getlist(self, key):
+        return self.data[key]
 
 def get_cookies(environ):
     """
@@ -78,13 +88,23 @@ def parse_querystring(environ):
     return parsed
 
 def parse_dict_querystring(environ):
-    """Parses a query string like parse_querystring, but returns a dict
+    """Parses a query string like parse_querystring, but returns a multidict
     
     Caches this value in case parse_dict_querystring is called again
     for the same request.
     
-    The dict values are one of:  a string, or a list of strings.
+    Example::
+    
+        #environ['QUERY_STRING'] -  day=Monday&user=fred&user=jane
+        >>> parsed = parse_dict_querystring(environ)
         
+        >>> parsed['day']
+        'Monday'
+        >>> parsed['user']
+        'fred'
+        >>> parsed.getlist['user']
+        ['fred', 'jane']
+    
     """
     source = environ.get('QUERY_STRING', '')
     if not source:
@@ -95,11 +115,10 @@ def parse_dict_querystring(environ):
             return parsed
     parsed = cgi.parse_qs(source, keep_blank_values=True,
                            strict_parsing=False)
-    for k, v in parsed.iteritems():
-        if len(v) < 2:
-            parsed[k] = v[0]
-    environ['paste.parsed_dict_querystring'] = parsed
-    return parsed
+    multi = MultiDict()
+    multi.update(parsed)
+    environ['paste.parsed_dict_querystring'] = multi
+    return multi
 
 def parse_formvars(environ, all_as_list=False, include_get_vars=True):
     """Parses the request, returning a dictionary of the keys.
@@ -359,13 +378,12 @@ this is not a POST request, or the body is not encoded fields
 (e.g., an XMLRPC request) then this will be None.
 
 This will consume wsgi.input when first accessed if applicable,
-but the output will be put in environ['paste.post_vars'] 
-(or wsgi.post_vars?)"""
+but the output will be put in environ['paste.post_vars']"""
         def fget(self):
-            
-            pass # FieldStorage? Processing needs to be cached as well
-                 # probably the actual object, not the list or FieldStorage
-                 # would be cached -- some multidict object
+            formvars = MultiDict()
+            formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
+            return formvars
+        fget = LazyCache(fget)
     post = property(**post())
     
     def params(self):
