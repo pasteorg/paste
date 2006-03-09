@@ -449,13 +449,12 @@ class WSGIRequest(object):
 
     def headers(self):
         """Access to incoming headers"""
-        # @@ Just needs a header table object
-        headertable = someheaderdict
+        headertable = {}
         for key in self.environ.keys():
             if key.startswith('HTTP'):
-                headertable.add(key[5:], self.environ[key])
+                headertable[key[5:]] = self.environ[key]
         return headertable
-    headers = property(headers, doc=headers.__doc__)
+    headers = property(LazyCache(headers), doc=headers.__doc__)
 
 
 if __name__ == '__main__':
