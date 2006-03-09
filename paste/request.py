@@ -394,7 +394,7 @@ class WSGIRequest(object):
 
         Most values are strings, but file uploads can be FieldStorage
         objects. If this is not a POST request, or the body is not
-        encoded fields (e.g., an XMLRPC request) then this will be None.
+        encoded fields (e.g., an XMLRPC request) then this will be empty.
 
         This will consume wsgi.input when first accessed if applicable,
         but the output will be put in environ['paste.post_vars']
@@ -415,8 +415,8 @@ class WSGIRequest(object):
         Additional methods supported:
 
         getlist(key)
-            Returns a list keyed by parameter location of all the values by
-            that key in that parameter location
+            Returns a list of all the values by that key, collected from
+            POST, GET, URL dicts
         """
         pms = MultiDict()
         pms.update(self.post)
@@ -437,9 +437,14 @@ class WSGIRequest(object):
         """Dictionary of cookies keyed by cookie name.
 
         Just a plain dictionary, may be empty but not None.
-
+        
         """
-        pass
+        fresh_cookies = get_cookies(self.environ)
+        cookie_dict = {}
+        for k, morsel in fresh_cookies.iteritems():
+            cookie_dict[k] = morsel.value
+        return cookie_dict
+    cookies = property(LazyCache(cookies), doc=cookies.__doc__)
 
     def headers(self):
         """Access to incoming headers"""
