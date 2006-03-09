@@ -16,6 +16,7 @@ environment to solve common requirements.
 
 """
 import cgi
+import textwrap
 from Cookie import SimpleCookie
 import urlparse
 from util.UserDict24 import UserDict
@@ -379,26 +380,29 @@ class WSGIRequest(object):
     host = property(**host())
     
     def get():
-        doc = """\
-Dictionary-like object representing the QUERY_STRING parameters.
-Always present, if possibly empty.
+        doc = textwrap.dedent("""\
+            Dictionary-like object representing the QUERY_STRING parameters.
+            Always present, if possibly empty.
 
-If the same key is present in the query string multiple times, it
-will be present as a list."""
+            If the same key is present in the query string multiple times, it
+            will be present as a list.
+            """)
         def fget(self):
             return parse_dict_querystring(self.environ)
         return locals()
     get = property(**get())
     
     def post():
-        doc = """\
-Dictionary-like object representing the POST body.  Most values
-are strings, but file uploads can be FieldStorage objects.  If
-this is not a POST request, or the body is not encoded fields
-(e.g., an XMLRPC request) then this will be None.
+        doc = textwrap.dedent("""\
+            Dictionary-like object representing the POST body.
+            
+            Most values are strings, but file uploads can be FieldStorage
+            objects. If this is not a POST request, or the body is not
+            encoded fields (e.g., an XMLRPC request) then this will be None.
 
-This will consume wsgi.input when first accessed if applicable,
-but the output will be put in environ['paste.post_vars']"""
+            This will consume wsgi.input when first accessed if applicable,
+            but the output will be put in environ['paste.post_vars']
+            """)
         def fget(self):
             formvars = MultiDict()
             formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
@@ -408,18 +412,19 @@ but the output will be put in environ['paste.post_vars']"""
     post = property(**post())
     
     def params():
-        doc = """\
-MultiDict of keys from POST, GET, URL dicts
+        doc = textwrap.dedent("""\
+            MultiDict of keys from POST, GET, URL dicts
 
-Return a key value from the parameters, they are checked in the
-following order:
-    POST, GET, URL
+            Return a key value from the parameters, they are checked in the
+            following order:
+                POST, GET, URL
 
-Additional methods supported:
+            Additional methods supported:
 
-getlist(key)
-    Returns a list keyed by parameter location of all the values by
-    that key in that parameter location"""
+            getlist(key)
+                Returns a list keyed by parameter location of all the values by
+                that key in that parameter location
+            """)
         def fget(self):
             pms = MultiDict()
             pms.update(self.post)
@@ -430,10 +435,10 @@ getlist(key)
     params = property(**params())
     
     def urlvars():
-        doc = """\
-Return a plain dictionary representing any variables captured from
-the URL parsing (the parsed URL portion is in SCRIPT_NAME); frequently
-{}, but never None"""
+        doc = textwrap.dedent("""\
+            Return a plain dictionary representing any variables captured from
+            the URL parsing (the parsed URL portion is in SCRIPT_NAME); frequently
+            {}, but never None""")
         def fget(self):
             pass
         return locals()
