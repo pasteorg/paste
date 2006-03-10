@@ -45,7 +45,6 @@ the calling stack below it and be assured that it is using the object you
 registered with Registry.
 
 """
-import weakref
 import paste.util.threadinglocal as threadinglocal
 from paste import wsgilib
 
@@ -64,10 +63,10 @@ class StackedObjectProxy(object):
     
     """
     def __init__(self):
-        self.local = threadinglocal.local()
+        self.__dict__['local'] = threadinglocal.local()
         
     def current_obj(self):
-        objects = getattr(self.local, 'objects', None)
+        objects = getattr(self.__dict__['local'], 'objects', None)
         if objects:
             return objects[-1]
         else:
@@ -151,21 +150,11 @@ class Registry(object):
     def register(self, stacked, obj):
         stacked.push_object(obj)
         myreglist = self.reglist[-1]
-        myreglist[id(stacked)] = (weakref.ref(stacked), weakref.ref(obj))
+        myreglist[id(stacked)] = (stacked, obj)
     
     def cleanup(self):
         for id, val in self.reglist[-1].iteritems():
             stacked, obj = val
-            stacked = stacked()
-            obj = obj()
-            if not stacked and not obj:
-                continue
-            if not stacked:
-                raise AssertionError(
-                    "The stacked object no longer exists, but the object to be removed does.")
-            if not obj:
-                raise AssertionError(
-                    "The object no longer exists, but the stacked object does.")
             stacked.pop_object(obj)
         self.reglist.pop()
     
