@@ -52,7 +52,11 @@ class RegistryMiddleMan(object):
         if type(app_iter) in (list, tuple):
             app_response.extend(app_iter)
         else:
-            app_response.extend(list(app_iter))
+            response = []
+            for line in app_iter:
+                response.append(line)
+            app_iter.close()
+            app_response.extend(response)
         app_response.extend(['\nAppended by middleware!\nAppendValue at \
             depth %s is %s' % (self.depth, str(testobj))])
         return app_response
@@ -120,7 +124,6 @@ def test_iterating_response():
     wsgiapp = RegistryManager(wsgiapp)
     app = TestApp(wsgiapp)
     res = app.get('/')
-    print res.body
     assert 'Hello world' in res
     assert 'The variable is' in res
     assert "{'hi': 'people'}" in res

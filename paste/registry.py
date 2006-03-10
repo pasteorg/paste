@@ -157,22 +157,7 @@ class Registry(object):
             stacked, obj = val
             stacked.pop_object(obj)
         self.reglist.pop()
-    
-class IterWrap(object):
-    def __init__(self, iter, close_func):
-        self.iter = iter
-        self.close_func = close_func
-    
-    def __iter__(self):
-        return self
-    
-    def next(self):
-        try:
-            return self.iter.next()
-        except StopIteration:
-            self.close_func()
-            raise StopIteration
-    
+        
 class RegistryManager(object):
     def __init__(self, application):
         self.application = application
@@ -194,7 +179,7 @@ class RegistryManager(object):
             reg.cleanup()
             return app_iter
         else:
-            new_app_iter = iter(IterWrap(app_iter, reg.cleanup))
+            new_app_iter = wsgilib.add_close(app_iter, reg.cleanup)
             return new_app_iter
 
 
