@@ -1,17 +1,32 @@
 # (c) 2005 Ben Bangert
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
+import py.test
 
 from paste.fixture import *
 from paste.registry import *
 
 testobj = StackedObjectProxy()
+secondobj = StackedObjectProxy(default=dict(hi='people'))
 
 def simpleapp(environ, start_response):
     status = '200 OK'
     response_headers = [('Content-type','text/plain')]
     start_response(status, response_headers)
     return ['Hello world!\n']
+
+def simpleapp_withregistry(environ, start_response):
+    status = '200 OK'
+    response_headers = [('Content-type','text/plain')]
+    start_response(status, response_headers)
+    return ['Hello world!Value is %s\n' % testobj]
+
+def simpleapp_withregistry_default(environ, start_response):
+    status = '200 OK'
+    response_headers = [('Content-type','text/plain')]
+    start_response(status, response_headers)
+    return ['Hello world!Value is %s\n' % secondobj]
+
 
 class RegistryUsingApp(object):
     def __init__(self, var, value):
@@ -80,7 +95,18 @@ def test_solo_registry():
     assert 'Hello world' in res
     assert 'The variable is' in res
     assert "{'hi': 'people'}" in res
-    
+
+def test_registry_no_object_error():
+    app = TestApp(simpleapp_withregistry)
+    py.test.raises(TypeError, "app.get('/')")
+
+def test_with_default_object():
+    app = TestApp(simpleapp_withregistry_default)
+    res = app.get('/')
+    print res
+    assert 'Hello world' in res
+    assert "Value is {'hi': 'people'}" in res
+
 def test_double_registry():
     obj = {'hi':'people'}
     secondobj = {'bye':'friends'}
