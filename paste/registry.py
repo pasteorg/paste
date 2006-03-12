@@ -65,9 +65,16 @@ class StackedObjectProxy(object):
     objects can be removed with pop_object. 
     
     """
-    def __init__(self):
-        """Create a new StackedObjectProxy"""
+    def __init__(self, default=None):
+        """Create a new StackedObjectProxy
+        
+        If a default is given, its used in every thread if no other object
+        has been pushed on.
+        
+        """
         self.__dict__['local'] = threadinglocal.local()
+        if default:
+            self.__dict__['_default_object'] = default
     
     def __getattr__(self, attr):
         return getattr(self.current_obj(), attr)
@@ -99,13 +106,22 @@ class StackedObjectProxy(object):
         return self.current_obj().has_key(key)
     
     def current_obj(self):
-        """Returns the current active object being proxied to"""
+        """Returns the current active object being proxied to
+        
+        In the event that no object was pushed, the default object if
+        provided will be used. Otherwise, a TypeError will be raised.
+        
+        """
         objects = getattr(self.__dict__['local'], 'objects', None)
         if objects:
             return objects[-1]
         else:
-            raise TypeError(
-                "No object has been registered for this thread")
+            object = self.__dict__.get('_default_object')
+            if object:
+                return object
+            else:
+                raise TypeError(
+                    "No object has been registered for this thread")
     
     def push_object(self, obj):
         """Make ``obj`` the active object for this thread-local.
