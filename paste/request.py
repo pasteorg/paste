@@ -19,22 +19,30 @@ import cgi
 import textwrap
 from Cookie import SimpleCookie
 import urlparse
-from util.UserDict24 import UserDict
+from util.UserDict24 import UserDict, DictMixin
 
-__all__ = ['get_cookies', 'parse_querystring', 'parse_formvars',
-           'construct_url', 'path_info_split', 'path_info_pop',
-           'resolve_relative_url', 'WSGIRequest']
+__all__ = ['get_cookies', 'get_cookie_dict', 'parse_querystring',
+           'parse_formvars', 'construct_url', 'path_info_split',
+           'path_info_pop', 'resolve_relative_url', 'EnvironHeaders',
+           'WSGIRequest']
 
 class environ_getter(object):
     """For delegating an attribute to a key in self.environ."""
     # @@: Also __set__?  Should setting be allowed?
-    def __init__(self, key, default=''):
+    def __init__(self, key, default='', default_factory=None):
         self.key = key
         self.default = default
+        self.default_factory = default_factory
     def __get__(self, obj, type=None):
-        if type == None:
+        if type is None:
             return self
-        return obj.environ.get(self.key, self.default)
+        if self.key not in obj.environ:
+            if self.default_factory:
+                val = obj.environ[self.key] = self.default_factory()
+                return val
+            else:
+                return self.default
+        return obj.environ[self.key]
 
     def __repr__(self):
         return '<Proxy for WSGI environ %r key>' % self.key
@@ -65,7 +73,6 @@ class MultiDict(UserDict):
                 else:
                     self[k] = v
 
-
 def get_cookies(environ):
     """
     Gets a cookie object (which is a dictionary-like object) from the
@@ -82,6 +89,29 @@ def get_cookies(environ):
     cookies.load(header)
     environ['paste.cookies'] = (cookies, header)
     return cookies
+
+def get_cookie_dict(environ):
+    """Return a *plain* dictionary of cookies as found in the request.
+
+    Unlike ``get_cookies`` this returns a dictionary, not a
+    ``SimpleCookie`` object.  For incoming cookies a dictionary fully
+    represents the information.  Like ``get_cookies`` this caches and
+    checks the cache.
+    """
+    header = environ.get('HTTP_COOKIE')
+    if not header:
+        return {}
+    if environ.has_key('paste.cookies.dict'):
+        cookies, check_header = environ['paste.cookies.dict']
+        if check_header == header:
+            return cookies
+    cookies = SimpleCookie()
+    cookies.load(header)
+    result = {}
+    for name in cookies:
+        result[name] = cookies[name].value
+    environ['paste.cookies.dict'] = (result, header)
+    return result
 
 def parse_querystring(environ):
     """
@@ -323,6 +353,47 @@ def parse_headers(environ):
         elif cgi_var.startswith('HTTP_'):
             yield cgi_var[5:].title().replace('_', '-'), value
 
+class EnvironHeaders(DictMixin):
+    """An object that represents the headers as present in a
+    WSGI environment.
+
+    This object is a wrapper (with no internal state) for a WSGI
+    request object, representing the CGI-style HTTP_* keys as a
+    dictionary.  Because a CGI environment can only hold one value for
+    each key, this dictionary is single-valued (unlike outgoing
+    headers).
+    """
+
+    def __init__(self, environ):
+        self.environ = environ
+        
+    def __getitem__(self, item):
+        item = item.replace('-', '_').upper()
+        return self.environ['HTTP_'+item]
+
+    def __setitem__(self, item, value):
+        # @@: Should this dictionary be writable at all?
+        item = item.replace('-', '_').upper()
+        self.environ['HTTP_'+item] = value
+
+    def __delitem__(self, item):
+        item = item.replace('-', '_').upper()
+        del self.environ['HTTP_'+item]
+
+    def __iter__(self):
+        for key in self.environ:
+            if not key.startswith('HTTP_'):
+                continue
+            key = key[5:].replace('_', '-').title()
+            yield key
+
+    def keys(self):
+        return list(self)
+
+    def __contains__(self, item):
+        item = item.replace('-', '_').upper()
+        return 'HTTP_'+item in self.environ
+
 class LazyCache(object):
     """Lazy and Caching Function Executer
 
@@ -358,13 +429,15 @@ class WSGIRequest(object):
     """
     def __init__(self, environ, urlvars={}):
         self.environ = environ
-        self.__dict__['urlvars'] = urlvars
+        # This isn't "state" really, since the object is derivative:
+        self.headers = EnvironHeaders(environ)
     
     body = environ_getter('wsgi.input')
     scheme = environ_getter('wsgi.url_scheme')
     method = environ_getter('REQUEST_METHOD')
     script_name = environ_getter('SCRIPT_NAME')
     path_info = environ_getter('PATH_INFO')
+    urlvars = environ_getter('paste.urlvars', default_factory=dict)
     
     def host(self):
         """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
@@ -417,37 +490,14 @@ class WSGIRequest(object):
         return pms
     params = property(params, doc=params.__doc__)
 
-    def urlvars(self):
-        """
-        Return a plain dictionary representing any variables
-        captured from the URL parsing (the parsed URL portion is in
-        SCRIPT_NAME); frequently {}, but never None
-        """
-        return self.urlvars
-    urlvars = property(urlvars, doc=urlvars.__doc__)
-
     def cookies(self):
         """Dictionary of cookies keyed by cookie name.
 
         Just a plain dictionary, may be empty but not None.
         
         """
-        fresh_cookies = get_cookies(self.environ)
-        cookie_dict = {}
-        for k, morsel in fresh_cookies.iteritems():
-            cookie_dict[k] = morsel.value
-        return cookie_dict
-    cookies = property(LazyCache(cookies), doc=cookies.__doc__)
-
-    def headers(self):
-        """Access to incoming headers"""
-        headertable = {}
-        for key in self.environ.keys():
-            if key.startswith('HTTP'):
-                headertable[key[5:]] = self.environ[key]
-        return headertable
-    headers = property(LazyCache(headers), doc=headers.__doc__)
-
+        return get_cookie_dict(self.environ)
+    cookies = property(cookies, doc=cookies.__doc__)
 
 if __name__ == '__main__':
     import doctest
