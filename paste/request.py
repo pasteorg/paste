@@ -23,7 +23,7 @@ from util.UserDict24 import UserDict
 
 __all__ = ['get_cookies', 'parse_querystring', 'parse_formvars',
            'construct_url', 'path_info_split', 'path_info_pop',
-           'resolve_relative_url']
+           'resolve_relative_url', 'WSGIRequest']
 
 class environ_getter(object):
     """For delegating an attribute to a key in self.environ."""
@@ -50,7 +50,7 @@ class MultiDict(UserDict):
         return self.data[key]
 
     def update(self, dict):
-        if isinstance(dct, UserDict):
+        if isinstance(dict, UserDict):
             self.data.update(dict.data)
         elif isinstance(dict, type(self.data)):
             self.data.update(dict)
@@ -136,7 +136,7 @@ def parse_dict_querystring(environ):
                            strict_parsing=False)
     multi = MultiDict()
     multi.update(parsed)
-    environ['paste.parsed_dict_querystring'] = multi
+    environ['paste.parsed_dict_querystring'] = (multi, source)
     return multi
 
 def parse_formvars(environ, all_as_list=False, include_get_vars=True):
@@ -356,30 +356,22 @@ class WSGIRequest(object):
     You are free to subclass this object.
 
     """
-
     def __init__(self, environ, urlvars={}):
         self.environ = environ
-        self.urlvars = urlvars
+        self.__dict__['urlvars'] = urlvars
     
     body = environ_getter('wsgi.input')
-    scheme = environ_getter('wsgi.url_scheme') # ?
+    scheme = environ_getter('wsgi.url_scheme')
     method = environ_getter('REQUEST_METHOD')
-    # wsgi.config would be better, of course:
-    config = environ_getter('paste.config')
     script_name = environ_getter('SCRIPT_NAME')
     path_info = environ_getter('PATH_INFO')
-    # Other possible variables:
-    # REMOTE_USER, CONTENT_TYPE, CONTENT_LENGTH?  Probably not
-    # REMOTE_ADDR, REMOTE_HOST, AUTH_TYPE?  Even less interesting
-    # SERVER_PORT?  Maybe
-    # SERVER_PROTOCOL, SERVER_SOFTWARE, GATEWAY_INTERFACE?  Definitely not
-
+    
     def host(self):
         """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
         return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
     host = property(host, doc=host.__doc__)
 
-    def get(self):
+    def GET(self):
         """
         Dictionary-like object representing the QUERY_STRING
         parameters. Always present, if possibly empty.
@@ -388,9 +380,9 @@ class WSGIRequest(object):
         times, it will be present as a list.
         """
         return parse_dict_querystring(self.environ)
-    get = property(get, doc=get.__doc__)
+    GET = property(GET, doc=GET.__doc__)
 
-    def post(self):
+    def POST(self):
         """Dictionary-like object representing the POST body.
 
         Most values are strings, but file uploads can be FieldStorage
@@ -404,7 +396,7 @@ class WSGIRequest(object):
         formvars = MultiDict()
         formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
         return formvars
-    post = property(LazyCache(post), doc=post.__doc__)
+    POST = property(LazyCache(POST), doc=POST.__doc__)
 
     def params(self):
         """MultiDict of keys from POST, GET, URL dicts
