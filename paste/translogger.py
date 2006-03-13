@@ -15,7 +15,9 @@ class TransLogger(object):
     logger will be sent to the console.
     """
 
-    format = '%(REMOTE_ADDR)s - %(REMOTE_USER)s [%(time)s] "%(REQUEST_METHOD)s %(REQUEST_URI)s %(HTTP_VERSION)s" %(status)s %(bytes)s "%(HTTP_REFERER)s" "%(HTTP_USER_AGENT)s"'
+    format = ('%(REMOTE_ADDR)s - %(REMOTE_USER)s [%(time)s] '
+              '"%(REQUEST_METHOD)s %(REQUEST_URI)s %(HTTP_VERSION)s" '
+              '%(status)s %(bytes)s "%(HTTP_REFERER)s" "%(HTTP_USER_AGENT)s"')
 
     def __init__(self, application,
                  logger=None,
