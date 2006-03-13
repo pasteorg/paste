@@ -7,6 +7,10 @@ A Do-It-Yourself Framework
 
 .. contents::
 
+.. comments:
+
+   Explain SCRIPT_NAME/PATH_INFO better
+
 Introduction and Audience
 =========================
 
@@ -452,6 +456,18 @@ Easy!  But let's make it *more* fancy...
 
 So go make an error now.  And hit the little +'s.  And type stuff in
 to the boxes.
+
+Configuration
+=============
+
+Now that you've created your framework and application (I'm sure it's
+much nicer than the one I've given so far) you might find the manually
+plugging together of some of these pieces a little crude.  Well, if
+*you* don't, anyone else who uses your app and wants to install it in
+a different location or configure it differently won't be as happy.
+
+So, we want to separate the application setup from the application
+configuration.  
 
 What's Next?
 ============
