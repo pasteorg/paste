@@ -73,3 +73,10 @@ class Proxy(object):
         body = res.read(int(length))
         conn.close()
         return [body]
+
+def make_proxy(global_conf, address):
+    """
+    Make a WSGI application that proxies to another address --
+    'address' should be the full URL.
+    """
+    return Proxy(address)

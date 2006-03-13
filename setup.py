@@ -142,6 +142,7 @@ For the latest changes see the `news file
       pycgi = paste.pycgiwrapper:CGIWrapper
       static = paste.urlparser:make_static
       pkg_resources = paste.urlparser:make_pkg_resources
+      proxy = paste.proxy:make_proxy
 
       [paste.composit_factory]
       urlmap = paste.urlmap:urlmap_factory
