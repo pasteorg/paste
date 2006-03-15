@@ -14,9 +14,17 @@ Then make sure your server is installed with a shell script like::
         err="$?"
     done
 
-or restart in Python (server.py does this).  Use the watch_file(filename)
-function to cause a reload/restart for other other non-Python files (e.g.,
-configuration files).
+or is run from this .bat file (if you use Windows)::
+
+    @echo off
+    :repeat
+        python server.py
+    if %errorlevel% == 3 goto repeat
+
+or run a monitoring process in Python (``paster serve --reload`` does
+this).  Use the watch_file(filename) function to cause a
+reload/restart for other other non-Python files (e.g., configuration
+files).
 """
 
 import os
