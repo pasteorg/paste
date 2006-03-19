@@ -485,8 +485,8 @@ class WSGIRequest(object):
             POST, GET, URL dicts
         """
         pms = MultiDict()
-        pms.update(self.post)
-        pms.update(self.get)
+        pms.update(self.POST)
+        pms.update(self.GET)
         return pms
     params = property(params, doc=params.__doc__)
 
