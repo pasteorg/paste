@@ -80,7 +80,7 @@ class StackedObjectProxy(object):
         return getattr(self.current_obj(), attr)
     
     def __setattr__(self, attr, value):
-        setattr(self.current_obj(), name, value)
+        setattr(self.current_obj(), attr, value)
     
     def __delattr__(self, name):
         self.current_obj().__delattr__(name)
