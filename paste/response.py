@@ -1,6 +1,4 @@
-"""
-Routines to generate WSGI responses
-"""
+"""Routines to generate WSGI responses"""
 
 ############################################################
 ## Headers
@@ -153,6 +151,7 @@ def replace_header(headers, name, value):
     if not result:
         headers.append((name,value))
     return result
+
 
 ############################################################
 ## Deprecated methods
