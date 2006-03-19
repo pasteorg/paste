@@ -31,27 +31,6 @@ class environ_getter(object):
     def __repr__(self):
         return '<Proxy for WSGI environ %r key>' % self.key
 
-class LazyCache(object):
-    """Lazy and Caching Function Executer
-
-    LazyCache takes a function, and will hold onto it to be called at a
-    later time. When the function is called, its result will be cached and
-    used when called in the future.
-
-    This style is ideal for functions that may require processing that is
-    only done in rare cases, but when it is done, caching the results is
-    desired.
-
-    """
-    def __init__(self, func):
-        self.fn = func
-        self.result = None
-
-    def __call__(self, *args):
-        if not self.result:
-            self.result = self.fn(*args)
-        return self.result
-
 class WSGIRequest(object):
     """WSGI Request API Object
 
@@ -106,7 +85,7 @@ class WSGIRequest(object):
         formvars = MultiDict()
         formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
         return formvars
-    POST = property(LazyCache(POST), doc=POST.__doc__)
+    POST = property(POST, doc=POST.__doc__)
 
     def params(self):
         """MultiDict of keys from POST, GET, URL dicts
