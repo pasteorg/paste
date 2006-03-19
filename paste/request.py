@@ -23,29 +23,8 @@ from util.UserDict24 import UserDict, DictMixin
 
 __all__ = ['get_cookies', 'get_cookie_dict', 'parse_querystring',
            'parse_formvars', 'construct_url', 'path_info_split',
-           'path_info_pop', 'resolve_relative_url', 'EnvironHeaders',
-           'WSGIRequest']
+           'path_info_pop', 'resolve_relative_url', 'EnvironHeaders']
 
-class environ_getter(object):
-    """For delegating an attribute to a key in self.environ."""
-    # @@: Also __set__?  Should setting be allowed?
-    def __init__(self, key, default='', default_factory=None):
-        self.key = key
-        self.default = default
-        self.default_factory = default_factory
-    def __get__(self, obj, type=None):
-        if type is None:
-            return self
-        if self.key not in obj.environ:
-            if self.default_factory:
-                val = obj.environ[self.key] = self.default_factory()
-                return val
-            else:
-                return self.default
-        return obj.environ[self.key]
-
-    def __repr__(self):
-        return '<Proxy for WSGI environ %r key>' % self.key
 
 class MultiDict(UserDict):
     """Acts as a normal dict, but assumes all values are lists, and
@@ -394,110 +373,6 @@ class EnvironHeaders(DictMixin):
         item = item.replace('-', '_').upper()
         return 'HTTP_'+item in self.environ
 
-class LazyCache(object):
-    """Lazy and Caching Function Executer
-
-    LazyCache takes a function, and will hold onto it to be called at a
-    later time. When the function is called, its result will be cached and
-    used when called in the future.
-
-    This style is ideal for functions that may require processing that is
-    only done in rare cases, but when it is done, caching the results is
-    desired.
-
-    """
-    def __init__(self, func):
-        self.fn = func
-        self.result = None
-
-    def __call__(self, *args):
-        if not self.result:
-            self.result = self.fn(*args)
-        return self.result
-
-class WSGIRequest(object):
-    """WSGI Request API Object
-
-    This object represents a WSGI request with a more friendly interface.
-    This does not expose every detail of the WSGI environment, and does not
-    in any way express anything beyond what is available in the environment
-    dictionary.  *All* state is kept in the environment dictionary; this
-    is essential for interoperability.
-
-    You are free to subclass this object.
-
-    """
-    def __init__(self, environ, urlvars={}):
-        self.environ = environ
-        # This isn't "state" really, since the object is derivative:
-        self.headers = EnvironHeaders(environ)
-    
-    body = environ_getter('wsgi.input')
-    scheme = environ_getter('wsgi.url_scheme')
-    method = environ_getter('REQUEST_METHOD')
-    script_name = environ_getter('SCRIPT_NAME')
-    path_info = environ_getter('PATH_INFO')
-    urlvars = environ_getter('paste.urlvars', default_factory=dict)
-    
-    def host(self):
-        """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
-        return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
-    host = property(host, doc=host.__doc__)
-
-    def GET(self):
-        """
-        Dictionary-like object representing the QUERY_STRING
-        parameters. Always present, if possibly empty.
-
-        If the same key is present in the query string multiple
-        times, it will be present as a list.
-        """
-        return parse_dict_querystring(self.environ)
-    GET = property(GET, doc=GET.__doc__)
-
-    def POST(self):
-        """Dictionary-like object representing the POST body.
-
-        Most values are strings, but file uploads can be FieldStorage
-        objects. If this is not a POST request, or the body is not
-        encoded fields (e.g., an XMLRPC request) then this will be empty.
-
-        This will consume wsgi.input when first accessed if applicable,
-        but the output will be put in environ['paste.post_vars']
-        
-        """
-        formvars = MultiDict()
-        formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
-        return formvars
-    POST = property(LazyCache(POST), doc=POST.__doc__)
-
-    def params(self):
-        """MultiDict of keys from POST, GET, URL dicts
-
-        Return a key value from the parameters, they are checked in the
-        following order:
-            POST, GET, URL
-
-        Additional methods supported:
-
-        getlist(key)
-            Returns a list of all the values by that key, collected from
-            POST, GET, URL dicts
-        """
-        pms = MultiDict()
-        pms.update(self.POST)
-        pms.update(self.GET)
-        return pms
-    params = property(params, doc=params.__doc__)
-
-    def cookies(self):
-        """Dictionary of cookies keyed by cookie name.
-
-        Just a plain dictionary, may be empty but not None.
-        
-        """
-        return get_cookie_dict(self.environ)
-    cookies = property(cookies, doc=cookies.__doc__)
 
 if __name__ == '__main__':
     import doctest
