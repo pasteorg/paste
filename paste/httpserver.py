@@ -438,8 +438,8 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
     if socket_timeout:
         server.wsgi_socket_timeout = int(socket_timeout)
 
-    print "serving on %s:%s" % server.server_address
     if start_loop:
+        print "serving on %s:%s" % server.server_address
         try:
             server.serve_forever()
         except KeyboardInterrupt:
