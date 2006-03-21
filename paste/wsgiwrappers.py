@@ -120,7 +120,7 @@ class WSGIResponse(object):
     def __init__(self, content='', mimetype=None, code=200):
         if not mimetype:
             mimetype = "%s; charset=%s" % (settings['content_type'], settings['charset'])
-        self.content = content
+        self.content = [content]
         self.headers = HeaderDict()
         self.headers['Content-Type'] = mimetype
         self.cookies = SimpleCookie()
@@ -130,7 +130,7 @@ class WSGIResponse(object):
         "Full HTTP message, including headers"
         return '\n'.join(['%s: %s' % (key, value)
             for key, value in self.headers.items()]) \
-            + '\n\n' + self.content
+            + '\n\n' + ''.join(self.content)
     
     def has_header(self, header):
         "Case-insensitive check for a header"
@@ -159,7 +159,7 @@ class WSGIResponse(object):
         necessary.
         """
         if isinstance(self.content, unicode):
-            return self.content.encode(encoding)
+            return [''.join(self.content).encode(encoding)]
         return self.content
     
     def wsgi_response(self, encoding=None):
@@ -170,13 +170,13 @@ class WSGIResponse(object):
         response_headers = self.headers.items()
         for c in self.cookies.values():
             response_headers.append(('Set-Cookie', c.output(header='')))
-        output = [self.get_content_as_string(encoding)]
+        output = self.get_content_as_string(encoding)
         return status, response_headers, output
     
     # The remaining methods partially implement the file-like object interface.
     # See http://docs.python.org/lib/bltin-file-objects.html
     def write(self, content):
-        self.content += content
+        self.content.append(content)
 
     def flush(self):
         pass
