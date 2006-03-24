@@ -49,7 +49,7 @@ class SessionMiddleware(object):
                  cookie_name=NoDefault,
                  **store_config
                  ):
-        self.app = app
+        self.application = app
         if session_type is NoDefault:
             session_type = global_conf.get('session_type', 'disk')
         self.session_type = session_type
