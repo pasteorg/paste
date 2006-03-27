@@ -47,6 +47,42 @@ registered with Registry.
 RegisterManager can be in the WSGI stack multiple times, each time it
 appears it registers a new request context.
 
+
+Performance
+===========
+
+The overhead of the proxy object is very minimal, however if you are using
+proxy objects extensively (Thousands of accesses per request or more), there
+are some ways to avoid them. A proxy object runs approximately 3-20x slower
+than direct access to the object, this is rarely your performance bottleneck
+when developing web applications.
+
+Should you be developing a system which may be accessing the proxy object
+thousands of times per request, the performance of the proxy will start to
+become more noticeabe. In that circumstance, the problem can be avoided by
+getting at the actual object via the proxy with the ``curent_obj`` function::
+    
+    #sessions.py
+    Session = StackedObjectProxy()
+    # ... initialization code, etc.
+    
+    # somemodule.py
+    import sessions
+    
+    def somefunc():
+        session = sessions.Session.current_obj()
+        # ... tons of session access
+
+This way the proxy is used only once to retrieve the object for the current
+context and the overhead is minimized while still making it easy to access
+the underlying object.
+
+**NOTE:** This is *highly* unlikely to be an issue in the vast majority of
+cases, and requires incredibly large amounts of proxy object access before
+one should consider the proxy object to be causing slow-downs. This section
+is provided solely in the extremely rare case that it is an issue so that a
+quick way to work around it is documented.
+
 """
 import paste.util.threadinglocal as threadinglocal
 from paste import wsgilib
@@ -101,6 +137,9 @@ class StackedObjectProxy(object):
     def __iter__(self):
         """Only works for proxying to a dict"""
         return iter(self.current_obj().keys())
+    
+    def __len__(self):
+        return len(self.current_obj())
     
     def __contains__(self, key):
         # I thought __getattr__ would catch this, but apparently not
