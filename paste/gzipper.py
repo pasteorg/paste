@@ -20,7 +20,7 @@ class middleware(object):
         self.compress_level = int(compress_level)
 
     def __call__(self, environ, start_response):
-        if 'gzip' not in environ.get('HTTP_ACCEPT_ENCODING'):
+        if 'gzip' not in environ.get('HTTP_ACCEPT_ENCODING', ''):
             # nothing for us to do, so this middleware will
             # be a no-op:
             return self.application(environ, start_response)
