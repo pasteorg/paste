@@ -478,6 +478,10 @@ class StaticURLParser(object):
         return '<%s %r>' % (self.__class__.__name__, self.directory)
 
 def make_static(global_conf, document_root):
+    """
+    Return a WSGI application that serves a directory (configured
+    with document_root)
+    """
     return StaticURLParser(document_root)
 
 class PkgResourcesParser(StaticURLParser):
