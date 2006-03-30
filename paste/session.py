@@ -89,6 +89,14 @@ class SessionFactory(object):
         self.session = session
         return session.data()
 
+    def has_session(self):
+        if self.session is not None:
+            return True
+        cookies = request.get_cookies(self.environ)
+        if cookies.has_key(self.cookie_name):
+            return True
+        return False
+
     def make_sid(self):
         # @@: need better algorithm
         return (''.join(['%02d' % x for x in time.localtime(time.time())[:6]])
