@@ -421,7 +421,13 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         ssl_context.use_privatekey_file(ssl_pem)
         ssl_context.use_certificate_file(ssl_pem)
 
-    server_address = (host or "127.0.0.1", int(port or 8080))
+    host = host or '127.0.0.1'
+    if not port:
+        if ':' in host:
+            host, port = host.split(':', 1)
+        else:
+            port = 8080
+    server_address = (host, int(port))
 
     if not handler:
         handler = WSGIHandler
