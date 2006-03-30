@@ -935,7 +935,7 @@ class _ContentRange(_SingleValueHeader):
     """
     def compose(self, first_byte=None, last_byte=None, total_length=None):
         retval = "%d-%d/%d" % (first_byte, last_byte, total_length)
-        assert first_byte <= last_byte
+        assert last_byte == -1 or first_byte <= last_byte
         assert last_byte  < total_length
         return (retval,)
 _ContentRange('Content-Range', 'entity', 'RFC 2616, 14.6')
