@@ -143,6 +143,8 @@ For the latest changes see the `news file
       static = paste.urlparser:make_static
       pkg_resources = paste.urlparser:make_pkg_resources
       proxy = paste.proxy:make_proxy
+      test = paste.debug.debugapp:make_test_app
+      test_slow = paste.debug.debugapp:make_slow_app
 
       [paste.composit_factory]
       urlmap = paste.urlmap:urlmap_factory
@@ -165,6 +167,8 @@ For the latest changes see the `news file
       auth_tkt = paste.auth.auth_tkt:make_auth_tkt_middleware
       grantip = paste.auth.grantip:make_grantip
       openid = paste.auth.open_id:make_open_id_middleware [openid]
+      recorder = paste.debug.recorder.record:make_recorder
+      pony = paste.pony:make_pony
 
       [paste.server_runner]
       http = paste.httpserver:server_runner
