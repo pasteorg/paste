@@ -12,6 +12,9 @@ SVN trunk
   should be slightly faster (and streamable) compared to doing the
   condition manually.
 
+* Added entry point for ``paste.proxy``, plus improvements from Brad
+  Clements (support path in target, filter request methods)
+
 0.5
 ---
 
