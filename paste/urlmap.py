@@ -95,11 +95,12 @@ class URLMap(DictMixin):
         if mapper:
             matches = [p for p, a in mapper.applications]
             extra = 'defined apps: %s' % (
-                ', '.join(map(repr, matches)))
+                ',\n  '.join(map(repr, matches)))
         else:
             extra = ''
         extra += '\nSCRIPT_NAME: %r' % environ.get('SCRIPT_NAME')
         extra += '\nPATH_INFO: %r' % environ.get('PATH_INFO')
+        extra += '\nHTTP_HOST: %r' % environ.get('HTTP_HOST')
         app = httpexceptions.HTTPNotFound(
             'The resource was not found',
             comment=extra).wsgi_application
@@ -181,11 +182,16 @@ class URLMap(DictMixin):
     def __call__(self, environ, start_response):
         host = environ.get('HTTP_HOST', environ.get('SERVER_NAME')).lower()
         if ':' in host:
-            host = host.split(':', 1)[0]
+            host, port = host.split(':', 1)[0]
+        else:
+            if environ['wsgi.url_scheme'] == 'http':
+                port = '80'
+            else:
+                port = '443'
         path_info = environ.get('PATH_INFO')
         path_info = self.normalize_url(path_info, False)[1]
         for (domain, app_url), app in self.applications:
-            if domain and domain != host:
+            if domain and domain != host and domain != host+':'+port:
                 continue
             if (path_info == app_url
                 or path_info.startswith(app_url + '/')):
