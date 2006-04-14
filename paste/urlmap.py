@@ -45,7 +45,7 @@ def parse_path_expression(path):
             parts.pop(0)
             if not parts:
                 raise ValueError("'port' must be followed with a port number")
-            if domain:
+            if port:
                 raise ValueError("'port' given twice")
             port = parts.pop(0)
         else:
