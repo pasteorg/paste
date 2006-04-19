@@ -3,17 +3,35 @@ NEWS
 
 .. contents::
 
-SVN trunk
----------
+0.9
+---
+
+* Added `paste.request.WSGIRequest
+  <class-paste.request.WSGIRequest.html>`_, a request object that
+  wraps the WSGI environment.
+
+* Added `paste.registry <module-paste.registry.html>`_, which is
+  middleware for registering threadlocal objects in a request.
 
 * Avoid annoying warning from paste.recursive
+
+* ``paste.httpserver`` now removes HTTPServer's transaction logging,
+  which was doing a reverse DNS lookup.
+
+* Added ``has_session`` to ``paste.session``
 
 * Allow for conditional ``paste.wsgilib.intercept_output`` which
   should be slightly faster (and streamable) compared to doing the
   condition manually.
 
-* Added entry point for ``paste.proxy``, plus improvements from Brad
-  Clements (support path in target, filter request methods)
+* Added entry point for `paste.proxy <module-paste.proxy.html>`_, plus
+  improvements from Brad Clements (support path in target, filter
+  request methods)
+
+* Added `paste.pony <module-paste.pony.html>`_ so pony power can be
+  added to any WSGI application.
+
+* Added port matching to ``paste.urlmap``.
 
 0.5
 ---
