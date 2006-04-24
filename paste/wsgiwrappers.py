@@ -91,12 +91,11 @@ class WSGIRequest(object):
         """MultiDict of keys from POST, GET, URL dicts
 
         Return a key value from the parameters, they are checked in the
-        following order:
-            POST, GET, URL
+        following order: POST, GET, URL
 
         Additional methods supported:
 
-        getlist(key)
+        ``getlist(key)``
             Returns a list of all the values by that key, collected from
             POST, GET, URL dicts
         """
