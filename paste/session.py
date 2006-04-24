@@ -177,4 +177,4 @@ class FileSession(object):
                 cPickle.dump(self._data, f)
                 f.close()
                 if not exists and self.chmod:
-                    os.chmod(self.chmod, filename)
+                    os.chmod(filename, self.chmod)
