@@ -136,7 +136,11 @@ class SessionFactory(object):
 
 class FileSession(object):
     
-    def __init__(self, sid, create=False, session_file_path='/tmp'):
+    def __init__(self, sid, create=False, session_file_path='/tmp',
+                 chmod=None):
+        if isinstance(chmod, basestring):
+            chmod = oct(chmod)
+        self.chmod = chmod
         if not sid:
             # Invalid...
             raise KeyError
@@ -164,10 +168,13 @@ class FileSession(object):
     def close(self):
         if self._data is not None:
             filename = self.filename()
+            exists = os.path.exists(filename)
             if not self._data:
-                if os.path.exists(filename):
+                if exists:
                     os.unlink(filename)
             else:
-                f = open(self.filename(), 'wb')
+                f = open(filename, 'wb')
                 cPickle.dump(self._data, f)
                 f.close()
+                if not exists and self.chmod:
+                    os.chmod(self.chmod, filename)
