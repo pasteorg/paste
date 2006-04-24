@@ -165,17 +165,17 @@ def custom_forward(app, mapper, global_conf={}, **kw):
     For example the ``paste.errordocument.forward`` middleware actaully
     uses ``custom_forward``. It looks like this::
     
-    def forward(app, codes):
-        for code in codes:
-            if not isinstance(code, int):
-                raise TypeError('All status codes should be type int. '
-                    '%s is not valid'%repr(code))
-        def error_codes_mapper(code, message, environ, global_conf, codes):
-            if codes.has_key(code):
-                return codes[code]
-            else:
-                return None
-        return custom_forward(app, error_codes_mapper, codes=codes)
+      def forward(app, codes):
+          for code in codes:
+              if not isinstance(code, int):
+                  raise TypeError('All status codes should be type int. '
+                      '%s is not valid'%repr(code))
+          def error_codes_mapper(code, message, environ, global_conf, codes):
+              if codes.has_key(code):
+                  return codes[code]
+              else:
+                  return None
+          return custom_forward(app, error_codes_mapper, codes=codes)
     """
     return _StatusBasedRedirect(app, mapper, global_conf, **kw)
 
