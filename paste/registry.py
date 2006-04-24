@@ -259,7 +259,7 @@ class RegistryManager(object):
     
     Registering objects is done inside a WSGI application under the
     RegistryManager instance, using the ``environ['paste.registry']``
-    object which is a `Registry`_ instance.
+    object which is a Registry instance.
         
     """
     def __init__(self, application):
