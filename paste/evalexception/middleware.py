@@ -198,7 +198,15 @@ class EvalException(object):
     mochikit.exposed = True
 
     def view(self, environ, start_response):
-        id = int(wsgilib.path_info_pop(environ))
+        id = int(request.path_info_pop(environ))
+        if id not in self.debug_infos:
+            start_response(
+                '500 Server Error',
+                [('Content-type', 'text/html')])
+            return [
+                "Traceback by id %s does not exist (maybe "
+                "the server has been restarted?)"
+                % id]
         debug_info = self.debug_infos[id]
         return debug_info.wsgi_application(environ, start_response)
     view.exposed = True
@@ -277,6 +285,12 @@ class EvalException(object):
                                exc_info)
             environ['wsgi.errors'].write('Debug at: %s\n' % view_uri)
 
+            exc_data = collector.collect_exception(*exc_info)
+            debug_info = DebugInfo(count, exc_info, exc_data, base_path,
+                                   environ)
+            assert count not in self.debug_infos
+            self.debug_infos[count] = debug_info
+
             if self.xmlhttp_key:
                 get_vars = wsgilib.parse_querystring(environ)
                 if dict(get_vars).get(self.xmlhttp_key):
@@ -286,11 +300,6 @@ class EvalException(object):
                         include_reusable=False, show_extra_data=False)
                     return [html]
 
-            exc_data = collector.collect_exception(*exc_info)
-            debug_info = DebugInfo(count, exc_info, exc_data, base_path,
-                                   environ)
-            assert count not in self.debug_infos
-            self.debug_infos[count] = debug_info
             # @@: it would be nice to deal with bad content types here
             return debug_info.content()
 
