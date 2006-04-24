@@ -138,8 +138,8 @@ class FileSession(object):
     
     def __init__(self, sid, create=False, session_file_path='/tmp',
                  chmod=None):
-        if isinstance(chmod, basestring):
-            chmod = oct(chmod)
+        if chmod and isinstance(chmod, basestring):
+            chmod = int(chmod, 8)
         self.chmod = chmod
         if not sid:
             # Invalid...
