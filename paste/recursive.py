@@ -102,6 +102,7 @@ class Recursive(object):
         assert not path.startswith('/')
         path_info = '/' + path
         environ['PATH_INFO'] = path_info
+        environ['REQUEST_METHOD'] = 'GET'
         return self.activate(environ)
 
     def __repr__(self):
