@@ -3,6 +3,12 @@ NEWS
 
 .. contents::
 
+0.9.1
+-----
+
+* A fix for paste.errordocument, when doing an internal redirect from 
+  a POST request (the request is rewritten as a GET request)
+
 0.9
 ---
 
