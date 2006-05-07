@@ -395,7 +395,7 @@ tr.even {
 }
 
 table.variables td {
-  verticle-align: top;
+  vertical-align: top;
   overflow: auto;
 }
 
@@ -415,7 +415,7 @@ code.source {
 }
 
 a.switch_source {
-  color: #0990;
+  color: #090;
   text-decoration: none;
 }
 
