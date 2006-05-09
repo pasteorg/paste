@@ -186,18 +186,40 @@ class EvalException(object):
         return method(environ, start_response)
 
     def media(self, environ, start_response):
+        """
+        Static path where images and other files live
+        """
         app = urlparser.StaticURLParser(
             os.path.join(os.path.dirname(__file__), 'media'))
         return app(environ, start_response)
     media.exposed = True
 
     def mochikit(self, environ, start_response):
+        """
+        Static path where MochiKit lives
+        """
         app = urlparser.StaticURLParser(
             os.path.join(os.path.dirname(__file__), 'mochikit'))
         return app(environ, start_response)
     mochikit.exposed = True
 
+    def summary(self, environ, start_response):
+        """
+        Returns a JSON-format summary of all the cached
+        exception reports
+        """
+        start_response('200 OK', [('Content-type', 'text/x-json')])
+        data = [];
+        items = self.debug_infos.values()
+        items.sort(lambda a, b: cmp(a.created, b.created))
+        data = [item.json() for item in items]
+        return [repr(data)]
+    summary.exposed = True
+
     def view(self, environ, start_response):
+        """
+        View old exception reports
+        """
         id = int(request.path_info_pop(environ))
         if id not in self.debug_infos:
             start_response(
@@ -287,7 +309,7 @@ class EvalException(object):
 
             exc_data = collector.collect_exception(*exc_info)
             debug_info = DebugInfo(count, exc_info, exc_data, base_path,
-                                   environ)
+                                   environ, view_uri)
             assert count not in self.debug_infos
             self.debug_infos[count] = debug_info
 
@@ -342,11 +364,13 @@ class EvalException(object):
 class DebugInfo(object):
 
     def __init__(self, counter, exc_info, exc_data, base_path,
-                 environ):
+                 environ, view_uri):
         self.counter = counter
         self.exc_data = exc_data
         self.base_path = base_path
         self.environ = environ
+        self.view_uri = view_uri
+        self.created = time.time()
         self.exc_type, self.exc_value, self.tb = exc_info
         __exception_formatter__ = 1
         self.frames = []
@@ -359,6 +383,16 @@ class DebugInfo(object):
             self.frames.append(tb)
             tb = tb.tb_next
             n += 1
+
+    def json(self):
+        """Return the JSON-able representation of this object"""
+        return {
+            'uri': self.view_uri,
+            'created': time.strftime('%c', time.gmtime(self.created)),
+            'created_timestamp': self.created,
+            'exception_type': str(self.exc_type),
+            'exception': str(self.exc_value),
+            }
 
     def frame(self, tbid):
         for frame in self.frames:
