@@ -186,13 +186,14 @@ class WSGIHandlerMixin:
                ,'REMOTE_ADDR': self.client_address[0]
                ,'REMOTE_HOST': self.address_string()
                }
-
+        
         for k,v in self.headers.items():
-            k = 'HTTP_' + k.replace("-","_").upper()
-            if k in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
+            key = 'HTTP_' + k.replace("-","_").upper()
+            if key in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
                 continue
-            self.wsgi_environ[k] = v
-
+            print k, key
+            self.wsgi_environ[key] = ','.join(self.headers.getheaders(k))
+        
         if hasattr(self.connection,'get_context'):
             self.wsgi_environ['wsgi.url_scheme'] = 'https'
             # @@: extract other SSL parameters from pyOpenSSL at...
