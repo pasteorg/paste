@@ -171,7 +171,7 @@ class WSGIHandlerMixin:
                ,'wsgi.errors': sys.stderr
                ,'wsgi.multithread': True
                ,'wsgi.multiprocess': False
-               ,'wsgi.run_once': True
+               ,'wsgi.run_once': False
                # CGI variables required by PEP-333
                ,'REQUEST_METHOD': self.command
                ,'SCRIPT_NAME': '' # application is root of server
