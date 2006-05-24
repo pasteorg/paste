@@ -2,7 +2,7 @@
 # revision (set to True for real releases)
 RELEASE = False
 
-__version__ = '0.9.3'
+__version__ = '0.9.4'
 
 from setuptools import setup, find_packages
 import sys, os
@@ -142,6 +142,7 @@ For the latest changes see the `news file
       pycgi = paste.pycgiwrapper:CGIWrapper
       static = paste.urlparser:make_static
       pkg_resources = paste.urlparser:make_pkg_resources
+      selenium_index = paste.debug.recorder.selenium_suite:make_selenium_index_app
       proxy = paste.proxy:make_proxy
       test = paste.debug.debugapp:make_test_app
       test_slow = paste.debug.debugapp:make_slow_app

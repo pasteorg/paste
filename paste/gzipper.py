@@ -1,3 +1,4 @@
+
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
@@ -8,14 +9,19 @@ Gzip-encodes the response.
 """
 
 import gzip
-import wsgilib
+from paste.response import header_value
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 class GzipOutput(object):
     pass
 
 class middleware(object):
 
-    def __init__(self, application, global_conf, compress_level=5):
+    def __init__(self, application, compress_level=6):
         self.application = application
         self.compress_level = int(compress_level)
 
@@ -27,41 +33,55 @@ class middleware(object):
         response = GzipResponse(start_response, self.compress_level)
         app_iter = self.application(environ,
                                     response.gzip_start_response)
-        try:
-            if app_iter:
-                response.finish_response(app_iter)
-        finally:
-            response.close()
-        return None
+        if app_iter:
+            response.finish_response(app_iter)
+
+        return response.write()
 
 class GzipResponse(object):
 
     def __init__(self, start_response, compress_level):
         self.start_response = start_response
         self.compress_level = compress_level
-        self.gzip_fileobj = None
+        self.buffer = StringIO()
+        self.compressible = False
 
     def gzip_start_response(self, status, headers, exc_info=None):
-        # This isn't part of the spec yet:
-        if wsgilib.has_header(headers, 'content-encoding'):
-            # we won't double-encode
-            return self.start_response(status, headers, exc_info)
+        ct = header_value(headers,'content-type')
+        ce = header_value(headers,'content-encoding')
+        self.compressible = False
+        if (ct.startswith('text') or ct.startswith('application')) \
+            and not 'z' in ct:
+            self.compressible = True
+        if ce:
+            self.compressible = False
+        if self.compressible:
+            headers.append(('content-encoding', 'gzip'))
+        return self.start_response(status, headers, exc_info)
 
-        headers.append(('content-encoding', 'gzip'))
-        raw_writer = self.start_response(status, headers, exc_info)
-        dummy_fileobj = GzipOutput()
-        dummy_fileobj.write = raw_writer
-        self.gzip_fileobj = gzip.GzipFile('', 'wb', self.compress_level,
-                                          dummy_fileobj)
-        return self.gzip_fileobj.write
+    def write(self):
+        out = self.buffer
+        out.seek(0)
+        s = out.getvalue()
+        out.close()
+        return [s]
 
     def finish_response(self, app_iter):
+        if self.compressible:
+            output = gzip.GzipFile(mode='wb', compresslevel=self.compress_level,
+                fileobj=self.buffer)
+        else:
+            output = self.buffer
         try:
             for s in app_iter:
-                self.gzip_fileobj.write(s)
+                output.write(s)
+            if self.compressible:
+                output.close()
         finally:
             if hasattr(app_iter, 'close'):
                 app_iter.close()
 
-    def close(self):
-        self.gzip_fileobj.close()
+def filter_factory(application, **conf):
+    def filter(application):
+        return middleware(application)
+    return filter
