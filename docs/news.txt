@@ -3,6 +3,12 @@ NEWS
 
 .. contents::
 
+0.9.3
+-----
+
+* 0.9.2 Included a version of MochiKit that was no longer compatible with
+  evalexception; 0.9.3 reverts to a previous version.
+
 0.9.2
 -----
 
