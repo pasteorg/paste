@@ -61,3 +61,13 @@ class SlowConsumer:
         start_response("200 OK",[('Content-Type', 'text/html'),
                                  ('Content-Length', len(body))])
         return [body]
+
+def make_test_app(global_conf):
+    return SimpleApplication()
+
+def make_slow_app(global_conf, chunk_size=4096, delay=1, progress=True):
+    from paste.deploy.converters import asbool
+    return SlowConsumer(
+        chunk_size=int(chunk_size),
+        delay=int(delay),
+        progress=asbool(progress))
