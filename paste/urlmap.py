@@ -182,7 +182,7 @@ class URLMap(DictMixin):
     def __call__(self, environ, start_response):
         host = environ.get('HTTP_HOST', environ.get('SERVER_NAME')).lower()
         if ':' in host:
-            host, port = host.split(':', 1)[0]
+            host, port = host.split(':', 1)
         else:
             if environ['wsgi.url_scheme'] == 'http':
                 port = '80'
