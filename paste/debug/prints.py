@@ -3,6 +3,18 @@
 """
 Middleware that displays everything that is printed inline in
 application pages.
+
+Anything printed during the request will get captured and included on
+the page.  It will usually be included as a floating element in the
+top right hand corner of the page.  If you want to override this
+you can include a tag in your template where it will be placed::
+
+  <pre id="paste.debug.prints"></pre>
+
+You might want to include ``style="white-space: normal"``, as all the
+whitespace will be quoted, and this allows the text to wrap if
+necessary.
+
 """
 
 from cStringIO import StringIO
@@ -105,15 +117,19 @@ class PrintDebugMiddleware(object):
             threadedprint.deregister()
 
     _body_re = re.compile(r'<body[^>]*>', re.I)
-        
+    _explicit_re = re.compile(r'<pre\s*[^>]*id="paste.debug.prints".*?>',
+                              re.I+re.S)
+    
     def add_log(self, html, log):
         if not log:
             return html
         text = cgi.escape(log)
         text = text.replace('\n', '<br>\n')
         text = text.replace('  ', '&nbsp; ')
-        log = self.log_template % text
-        match = self._body_re.search(html)
+        match = self._explicit_re.search(html)
+        if not match:
+            log = self.log_template % log
+            match = self._body_re.search(html)
         if not match:
             return log + html
         else:
