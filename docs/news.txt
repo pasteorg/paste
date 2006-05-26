@@ -3,6 +3,11 @@ NEWS
 
 .. contents::
 
+0.9.4
+-----
+
+* More control of where the output of ``paste.debug.prints`` goes
+
 0.9.3
 -----
 
