@@ -9,7 +9,7 @@ the page.  It will usually be included as a floating element in the
 top right hand corner of the page.  If you want to override this
 you can include a tag in your template where it will be placed::
 
-  <pre id="paste.debug.prints"></pre>
+  <pre id="paste-debug-prints"></pre>
 
 You might want to include ``style="white-space: normal"``, as all the
 whitespace will be quoted, and this allows the text to wrap if
@@ -117,20 +117,20 @@ class PrintDebugMiddleware(object):
             threadedprint.deregister()
 
     _body_re = re.compile(r'<body[^>]*>', re.I)
-    _explicit_re = re.compile(r'<pre\s*[^>]*id="paste.debug.prints".*?>',
+    _explicit_re = re.compile(r'<pre\s*[^>]*id="paste-debug-prints".*?>',
                               re.I+re.S)
     
     def add_log(self, html, log):
         if not log:
             return html
         text = cgi.escape(log)
-        text = text.replace('\n', '<br>\n')
+        text = text.replace('\n', '<br>')
         text = text.replace('  ', '&nbsp; ')
         match = self._explicit_re.search(html)
         if not match:
-            log = self.log_template % log
+            text = self.log_template % text
             match = self._body_re.search(html)
         if not match:
-            return log + html
+            return text + html
         else:
-            return html[:match.end()] + log + html[match.end():]
+            return html[:match.end()] + text + html[match.end():]
