@@ -228,7 +228,8 @@ class HTTPException(Exception):
             headers = list(self.headers)
         else:
             headers = []
-        if 'html' in environ.get('HTTP_ACCEPT',''):
+        if 'html' in environ.get('HTTP_ACCEPT','') or \
+            '*/*' in environ.get('HTTP_ACCEPT',''):
             replace_header(headers, 'content-type', 'text/html')
             content = self.html(environ)
         else:
