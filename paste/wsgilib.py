@@ -40,6 +40,7 @@ class add_close:
         self.app_iterable = app_iterable
         self.app_iter = iter(app_iterable)
         self.close_func = close_func
+        self._closed = False
 
     def __iter__(self):
         return self
@@ -48,9 +49,18 @@ class add_close:
         return self.app_iter.next()
 
     def close(self):
+        self._closed = True
         if hasattr(self.app_iterable, 'close'):
             self.app_iterable.close()
         self.close_func()
+
+    def __del__(self):
+        if not self._closed:
+            # We can't raise an error or anything at this stage
+            print >> sys.stderr, (
+                "Error: app_iter.close() was not called when finishing "
+                "WSGI request.  finalization function %s not called"
+                % self.close_func)
 
 def catch_errors(application, environ, start_response, error_callback,
                  ok_callback=None):
