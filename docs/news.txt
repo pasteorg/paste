@@ -8,6 +8,9 @@ NEWS
 
 * More control of where the output of ``paste.debug.prints`` goes
 
+* Added a warning to ``paste.wsgilib.add_close`` if the upstream
+  app_iter consumer doesn't call the ``app_iter.close()`` method.
+
 0.9.3
 -----
 
