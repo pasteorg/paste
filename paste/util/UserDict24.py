@@ -162,3 +162,6 @@ class DictMixin:
         return cmp(dict(self.iteritems()), other)
     def __len__(self):
         return len(self.keys())
+    
+    def __nonzero__(self):
+        return bool(self.iteritems())
