@@ -100,7 +100,7 @@ def forward(app, codes):
             return None
     return _StatusBasedRedirect(app, error_codes_mapper, codes=codes)
         
-def custom_forward(app, mapper, global_conf={}, **kw):
+def custom_forward(app, mapper, global_conf=None, **kw):
     """
     Intercepts a response with a particular status code and returns the
     content from the URL specified by a user-defined mapper object
@@ -177,6 +177,8 @@ def custom_forward(app, mapper, global_conf={}, **kw):
                   return None
           return custom_forward(app, error_codes_mapper, codes=codes)
     """
+    if global_conf is None:
+        global_conf = {}
     return _StatusBasedRedirect(app, mapper, global_conf, **kw)
 
 class _StatusBasedRedirect:
@@ -185,7 +187,9 @@ class _StatusBasedRedirect:
     the documentation for ``error_document_mapper`` for details or 
     ``error_document_redirect()`` for an different example of its use.
     """
-    def __init__(self, app, mapper, global_conf={}, **kw):
+    def __init__(self, app, mapper, global_conf=None, **kw):
+        if global_conf is None:
+            global_conf = {}
         self.application = app
         self.mapper = mapper
         self.global_conf = global_conf

@@ -139,7 +139,7 @@ class TestApp(object):
         environ['paste.throw_errors'] = True
         return environ
 
-    def get(self, url, params=None, headers={}, extra_environ={},
+    def get(self, url, params=None, headers=None, extra_environ=None,
             status=None, expect_errors=False):
         """
         Get the given url (well, actually a path like
@@ -171,6 +171,10 @@ class TestApp(object):
         Returns a `response object
         <class-paste.fixture.TestResponse.html>`_
         """
+        if headers is None:
+            headers = {}
+        if extra_environ is None:
+            extra_environ = {}
         # Hide from py.test:
         __tracebackhide__ = True
         if params:
@@ -193,7 +197,7 @@ class TestApp(object):
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
 
-    def post(self, url, params='', headers={}, extra_environ={},
+    def post(self, url, params='', headers=None, extra_environ=None,
              status=None, upload_files=None, expect_errors=False):
         """
         Do a POST request.  Very like the ``.get()`` method.
@@ -207,6 +211,10 @@ class TestApp(object):
         Returns a `response object
         <class-paste.fixture.TestResponse.html>`_
         """
+        if headers is None:
+            headers = {}
+        if extra_environ is None:
+            extra_environ = {}
         environ = self._make_environ()
         # @@: Should this be all non-strings?
         if params and isinstance(params, (list, tuple, dict)):
