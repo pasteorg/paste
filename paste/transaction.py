@@ -87,7 +87,7 @@ def BasicTransactionHandler(application, factory):
         should_commit = [500]
         def finalizer(exc_info=None):
             if exc_info:
-                if issubclass(exc_info[0], HTTPException):
+                if isinstance(exc_info[1], HTTPException):
                     should_commit.append(exc_info[1].code)
             if should_commit.pop() < 400:
                 conn.commit()
