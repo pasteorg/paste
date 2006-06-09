@@ -294,7 +294,7 @@ class EvalException(object):
         except:
             exc_info = sys.exc_info()
             for expected in environ.get('paste.expected_exceptions', []):
-                if issubclass(exc_info[0], expected):
+                if isinstance(exc_info[1], expected):
                     raise
                 
             count = debug_counter.next()
