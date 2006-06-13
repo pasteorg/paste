@@ -95,7 +95,5 @@ Components
 License
 =======
 
-Paste is distributed under the `Python Software Foundation`__
-license.  This is a BSD/MIT-style license.
-
-.. __: http://www.python.org/psf/license.html
+Paste is distributed under the `MIT license <>
+<http://www.opensource.org/licenses/mit-license.php>`_.
