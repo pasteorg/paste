@@ -1,3 +1,5 @@
+# (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
+# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import paste.httpexceptions
 from paste.request import EnvironHeaders, parse_formvars, parse_dict_querystring, get_cookie_dict, MultiDict
 from paste.response import HeaderDict
