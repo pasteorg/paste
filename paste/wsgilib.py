@@ -399,7 +399,7 @@ def intercept_output(environ, application, conditional=None,
 
         def dehtmlifying_middleware(application):
             def replacement_app(environ, start_response):
-                status, headers, body = capture_output(
+                status, headers, body = intercept_output(
                     environ, application,
                     lambda s, h: header_value(headers, 'content-type').startswith('text/html'),
                     start_response)
