@@ -825,7 +825,7 @@ class Form(object):
                                           'selected' in attrs))
                 continue
             if tag == 'input' and attrs.get('type') == 'radio':
-                field = self.fields.get(name)
+                field = fields.get(name)
                 if not field:
                     field = Radio(self, tag, name, match.start(), **attrs)
                     fields.setdefault(name, []).append(field)
