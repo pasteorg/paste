@@ -51,9 +51,9 @@ class ProfileMiddleware(object):
     def __call__(self, environ, start_response):
         catch_response = []
         body = []
-        def replace_start_response(status, headers):
+        def replace_start_response(status, headers, exc_info=None):
             catch_response.extend([status, headers])
-            start_response(status, headers)
+            start_response(status, headers, exc_info)
             return body.append
         def run_app():
             body.extend(self.app(environ, replace_start_response))
