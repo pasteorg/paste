@@ -16,6 +16,9 @@ NEWS
 * Fixed ``paste.translogger.TransLogger`` to log to the Apache combined
   log format as advertised.
 
+* Fixed ``paste.urlparser`` classes to handle quoted characters (e.g.
+  %20) in URL paths.
+
 0.9.3
 -----
 

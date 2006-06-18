@@ -7,6 +7,7 @@ WSGI applications that parse the URL and dispatch to on-disk resources
 import os
 import sys
 import imp
+import urllib
 import pkg_resources
 import mimetypes
 import request
@@ -192,7 +193,8 @@ class URLParser(object):
                 # None of the index files found
                 filename = None
         else:
-            filename = self.find_file(environ, name)
+            # Handle quoted chars (e.g. %20)
+            filename = self.find_file(environ, urllib.unquote(name))
         if filename is None:
             return None, filename
         else:
@@ -425,7 +427,8 @@ class StaticURLParser(object):
             # @@: This should obviously be configurable
             filename = 'index.html'
         else:
-            filename = request.path_info_pop(environ)
+            # Handle quoted chars (e.g. %20)
+            filename = urllib.unquote(request.path_info_pop(environ))
         full = os.path.join(self.directory, filename)
         if not os.path.exists(full):
             return self.not_found(environ, start_response)
@@ -510,7 +513,8 @@ class PkgResourcesParser(StaticURLParser):
             # @@: This should obviously be configurable
             filename = 'index.html'
         else:
-            filename = request.path_info_pop(environ)
+            # Handle quoted chars (e.g. %20)
+            filename = urllib.unquote(request.path_info_pop(environ))
         resource = self.resource_name + '/' + filename
         if not self.egg.has_resource(resource):
             return self.not_found(environ, start_response)
