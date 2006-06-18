@@ -13,6 +13,9 @@ NEWS
 
 * Fixed ``testapp.post(params={})``
 
+* Fixed ``paste.translogger.TransLogger`` to log to the Apache combined
+  log format as advertised.
+
 0.9.3
 -----
 
