@@ -80,7 +80,7 @@ class TransLogger(object):
             'REMOTE_USER': environ.get('REMOTE_USER') or '-',
             'REQUEST_METHOD': environ['REQUEST_METHOD'],
             'REQUEST_URI': req_uri,
-            'HTTP_VERSION': 'HTTP/1.0', # @@ Fix
+            'HTTP_VERSION': environ.get('SERVER_PROTOCOL'),
             'time': time.strftime('%d/%b/%Y:%H:%M:%S ', start) + offset,
             'status': status.split(None, 1)[0],
             'bytes': bytes,
