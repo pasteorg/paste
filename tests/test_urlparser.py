@@ -25,6 +25,18 @@ def test_find_file():
     res = app.get('/test2.html')
     assert 'test2' in res
     assert res.header('content-type') == 'text/html'
+    res = app.get('/test 3.html')
+    assert 'test 3' in res
+    assert res.header('content-type') == 'text/html'
+    res = app.get('/test%203.html')
+    assert 'test 3' in res
+    assert res.header('content-type') == 'text/html'
+    res = app.get('/dir with spaces/test 4.html')
+    assert 'test 4' in res
+    assert res.header('content-type') == 'text/html'
+    res = app.get('/dir%20with%20spaces/test%204.html')
+    assert 'test 4' in res
+    assert res.header('content-type') == 'text/html'
 
 def test_deep():
     app = make_app('deep')
@@ -83,6 +95,14 @@ def test_static_parser():
     res = testapp.get('/index.txt')
     assert res.body.strip() == 'index1'
     res = testapp.get('/index.txt/foo', status=400)
+    res = testapp.get('/test 3.html')
+    assert res.body.strip() == 'test 3'
+    res = testapp.get('/test%203.html')
+    assert res.body.strip() == 'test 3'
+    res = testapp.get('/dir with spaces/test 4.html')
+    assert res.body.strip() == 'test 4'
+    res = testapp.get('/dir%20with%20spaces/test%204.html')
+    assert res.body.strip() == 'test 4'
     
 def test_egg_parser():
     app = PkgResourcesParser('Paste', 'paste')
