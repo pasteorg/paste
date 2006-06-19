@@ -148,8 +148,7 @@ def test_egg_parser():
         level += 1
     assert unreachable_test_file is not None, \
            'test_egg_parser requires a readable file in a parent dir of the\n' \
-           'Paste pkg\'s root dir:\n%s' \
-           % pkg_root_path
+           'Paste pkg\'s root dir:\n%s' % pkg_root_path
 
     unreachable_path = '/' + '../'*level + unreachable_test_file
     unreachable_path_quoted = '/' + '%2e%2e/'*level + unreachable_test_file
