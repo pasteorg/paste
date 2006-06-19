@@ -414,10 +414,13 @@ class StaticURLParser(object):
     """
     # @@: Should URLParser subclass from this?
 
-    def __init__(self, directory):
+    def __init__(self, directory, root_directory=None):
         if os.path.sep != '/':
             directory = directory.replace(os.path.sep, '/')
         self.directory = directory
+        self.root_directory = root_directory
+        if root_directory is not None:
+            self.root_directory = os.path.normpath(self.root_directory)
 
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
@@ -429,12 +432,18 @@ class StaticURLParser(object):
         else:
             # Handle quoted chars (e.g. %20)
             filename = urllib.unquote(request.path_info_pop(environ))
-        full = os.path.join(self.directory, filename)
+        full = os.path.normpath(os.path.join(self.directory, filename))
+        if self.root_directory is not None and not full.startswith(self.root_directory):
+            # Out of bounds
+            return self.not_found(environ, start_response)
         if not os.path.exists(full):
             return self.not_found(environ, start_response)
         if os.path.isdir(full):
             # @@: Cache?
-            return self.__class__(full)(environ, start_response)
+            child_root = self.root_directory is not None and \
+                self.root_directory or self.directory
+            return self.__class__(full, root_directory=child_root)(environ,
+                                                                   start_response)
         if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
             return self.error_extra_path(environ, start_response)
         if_none_match = environ.get('HTTP_IF_NONE_MATCH')
@@ -489,7 +498,7 @@ def make_static(global_conf, document_root):
 
 class PkgResourcesParser(StaticURLParser):
 
-    def __init__(self, egg_or_spec, resource_name, manager=None):
+    def __init__(self, egg_or_spec, resource_name, manager=None, root_resource=None):
         if isinstance(egg_or_spec, (str, unicode)):
             self.egg = pkg_resources.get_distribution(egg_or_spec)
         else:
@@ -498,6 +507,9 @@ class PkgResourcesParser(StaticURLParser):
         if manager is None:
             manager = pkg_resources.ResourceManager()
         self.manager = manager
+        self.root_resource = root_resource
+        if root_resource is not None:
+            self.root_resource = os.path.normpath(self.root_resource)
 
     def __repr__(self):
         return '<%s for %s:%r>' % (
@@ -515,12 +527,18 @@ class PkgResourcesParser(StaticURLParser):
         else:
             # Handle quoted chars (e.g. %20)
             filename = urllib.unquote(request.path_info_pop(environ))
-        resource = self.resource_name + '/' + filename
+        resource = os.path.normpath(self.resource_name + '/' + filename)
+        if self.root_resource is not None and not resource.startswith(self.root_resource):
+            # Out of bounds
+            return self.not_found(environ, start_response)
         if not self.egg.has_resource(resource):
             return self.not_found(environ, start_response)
         if self.egg.resource_isdir(resource):
             # @@: Cache?
-            return self.__class__(self.egg, resource, self.manager)(environ, start_response)
+            child_root = self.root_resource is not None and self.root_resource or \
+                self.resource_name
+            return self.__class__(self.egg, resource, self.manager,
+                                  root_resource=child_root)(environ, start_response)
         if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
             return self.error_extra_path(environ, start_response)
         
