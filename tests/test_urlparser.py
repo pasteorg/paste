@@ -132,9 +132,10 @@ def test_egg_parser():
     unreachable_test_file = None
     search_path = pkg_root_path = get_distribution('Paste').location
     level = 0
-    # This test might break if there's no readable files in the pkg's root
-    # directory (this is likely when Paste is installed as a .egg in
-    # site-packages). Traverse up the directory tree until one is found
+    # We might not find any readable files in the pkg's root directory (this
+    # is likely when Paste is installed as a .egg in site-packages). We
+    # (hopefully) can prevent this by traversing up the directory tree until
+    # a usable file is found
     while unreachable_test_file is None and \
             os.path.normpath(search_path) != os.path.sep:
         for file in os.listdir(search_path):
