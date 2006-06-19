@@ -1,6 +1,7 @@
 import os
 from paste.urlparser import *
 from paste.fixture import *
+from pkg_resources import get_distribution
 
 def path(name):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -37,6 +38,11 @@ def test_find_file():
     res = app.get('/dir%20with%20spaces/test%204.html')
     assert 'test 4' in res
     assert res.header('content-type') == 'text/html'
+    # Ensure only data under the app's root directory is accessible
+    res = app.get('/../secured.txt', status=404)
+    res = app.get('/dir with spaces/../../secured.txt', status=404)
+    res = app.get('/%2e%2e/secured.txt', status=404)
+    res = app.get('/dir%20with%20spaces/%2e%2e/%2e%2e/secured.txt', status=404)
 
 def test_deep():
     app = make_app('deep')
@@ -103,6 +109,11 @@ def test_static_parser():
     assert res.body.strip() == 'test 4'
     res = testapp.get('/dir%20with%20spaces/test%204.html')
     assert res.body.strip() == 'test 4'
+    # Ensure only data under the app's root directory is accessible
+    res = testapp.get('/../secured.txt', status=404)
+    res = testapp.get('/dir with spaces/../../secured.txt', status=404)
+    res = testapp.get('/%2e%2e/secured.txt', status=404)
+    res = testapp.get('/dir%20with%20spaces/%2e%2e/%2e%2e/secured.txt', status=404)
     
 def test_egg_parser():
     app = PkgResourcesParser('Paste', 'paste')
@@ -115,3 +126,33 @@ def test_egg_parser():
     res = testapp.get('/util/classinit', status=404)
     res = testapp.get('/util', status=301)
     res = testapp.get('/util/classinit.py/foo', status=400)
+    
+    # Find a readable file in the Paste pkg's root directory (or upwards the
+    # directory tree). Ensure it's not accessible via the URLParser
+    unreachable_test_file = None
+    search_path = pkg_root_path = get_distribution('Paste').location
+    level = 0
+    # This test might break if there's no readable files in the pkg's root
+    # directory (this is likely when Paste is installed as a .egg in
+    # site-packages). Traverse up the directory tree until one is found
+    while unreachable_test_file is None and \
+            os.path.normpath(search_path) != os.path.sep:
+        for file in os.listdir(search_path):
+            full_path = os.path.join(search_path, file)
+            if os.path.isfile(full_path) and os.access(full_path, os.R_OK):
+                unreachable_test_file = file
+                break
+
+        search_path = os.path.dirname(search_path)
+        level += 1
+    assert unreachable_test_file is not None, \
+           'test_egg_parser requires a readable file in a parent dir of the\n' \
+           'Paste pkg\'s root dir:\n%s' \
+           % pkg_root_path
+
+    unreachable_path = '/' + '../'*level + unreachable_test_file
+    unreachable_path_quoted = '/' + '%2e%2e/'*level + unreachable_test_file
+    res = testapp.get(unreachable_path, status=404)
+    res = testapp.get('/util/..' + unreachable_path, status=404)
+    res = testapp.get(unreachable_path_quoted, status=404)
+    res = testapp.get('/util/%2e%2e' + unreachable_path_quoted, status=404)    

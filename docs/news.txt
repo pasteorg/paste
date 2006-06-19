@@ -19,6 +19,9 @@ NEWS
 * Fixed ``paste.urlparser`` classes to handle quoted characters (e.g.
   %20) in URL paths.
 
+* Fixed a security vulnerability in ``paste.urlparser``'s StaticURLParser
+  and PkgResourcesParser when running under paste's httpserver.
+
 0.9.3
 -----
 
