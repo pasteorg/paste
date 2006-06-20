@@ -21,14 +21,14 @@ import cgi
 import textwrap
 from Cookie import SimpleCookie
 import urlparse
-from util.UserDict24 import UserDict, DictMixin
+from util.UserDict24 import DictMixin, IterableUserDict, UserDict
 
 __all__ = ['get_cookies', 'get_cookie_dict', 'parse_querystring',
            'parse_formvars', 'construct_url', 'path_info_split',
            'path_info_pop', 'resolve_relative_url', 'EnvironHeaders']
 
 
-class MultiDict(UserDict):
+class MultiDict(IterableUserDict):
     """Acts as a normal dict, but assumes all values are lists, and
     retrieving an item retrieves the first value in the list. getlist
     retrieves the full list"""
