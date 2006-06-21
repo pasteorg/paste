@@ -317,6 +317,11 @@ class TestApp(object):
         res = self._make_response(raw_res, end_time - start_time)
         res.request = req
         for name, value in req.environ['paste.testing_variables'].items():
+            if hasattr(res, name):
+                raise ValueError(
+                    "paste.testing_variables contains the variable %r, but "
+                    "the response object already has an attribute by that "
+                    "name" % name)
             setattr(res, name, value)
         if self.namespace is not None:
             self.namespace['res'] = res
