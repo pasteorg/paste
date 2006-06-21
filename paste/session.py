@@ -42,18 +42,29 @@ class SessionMiddleware(object):
     def __call__(self, environ, start_response):
         session_factory = SessionFactory(environ, **self.factory_kw)
         environ['paste.session.factory'] = session_factory
+        remember_headers = []
 
         def session_start_response(status, headers, exc_info=None):
             if not session_factory.created:
+                remember_headers[:] = [status, headers]
                 return start_response(status, headers)
             headers.append(session_factory.set_cookie_header())
             return start_response(status, headers, exc_info)
 
         app_iter = self.application(environ, session_start_response)
-        if session_factory.used:
-            return wsgilib.add_close(app_iter, session_factory.close)
-        else:
-            return app_iter
+        def start():
+            if session_factory.created and remember_headers:
+                # Tricky bastard used the session after start_response
+                status, headers = remember_headers
+                headers.append(session_factory.set_cookie_header())
+                exc = ValueError(
+                    "You cannot get the session after content from the "
+                    "app_iter has been returned")
+                start_response(status, headers, (exc.__class__, exc, None))
+        def close():
+            if session_factory.used:
+                session_factory.close()
+        return wsgilib.add_start_close(app_iter, start, close)
 
 class SessionFactory(object):
 
