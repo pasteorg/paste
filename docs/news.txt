@@ -29,6 +29,9 @@ NEWS
 * Added ``paste.wsgilib.add_start_close`` which calls a function just
   before returning the first chunk of the app_iter.
 
+* Changed ``paste.urlmap`` so that it matches domain-specific mappings
+  before domain-neutral mappings.
+
 0.9.3
 -----
 
