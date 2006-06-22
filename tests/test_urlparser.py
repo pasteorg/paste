@@ -42,6 +42,8 @@ def test_find_file():
     res = app.get('/../secured.txt', status=404)
     res = app.get('/dir with spaces/../../secured.txt', status=404)
     res = app.get('/%2e%2e/secured.txt', status=404)
+    res = app.get('/%2e%2e%3fsecured.txt', status=404)
+    res = app.get('/..%3fsecured.txt', status=404)
     res = app.get('/dir%20with%20spaces/%2e%2e/%2e%2e/secured.txt', status=404)
 
 def test_deep():
