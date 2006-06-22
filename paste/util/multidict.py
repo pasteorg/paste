@@ -14,10 +14,6 @@ class multidict(DictMixin):
         if len(args) > 1:
             raise TypeError(
                 "multidict can only be called with one positional argument")
-        if args and kw:
-            raise TypeError(
-                "multidict can be called with a positional argument *or* "
-                "keyword arguments, not both")
         if args:
             if hasattr(args[0], 'iteritems'):
                 items = list(args[0].iteritems())
@@ -26,10 +22,9 @@ class multidict(DictMixin):
             else:
                 items = list(args[0])
             self._items = items
-        elif kw:
-            self._items = kw.items()
         else:
             self._items = []
+        self._items.extend(kw.iteritems())
 
     def __getitem__(self, key):
         for k, v in self._items:
@@ -183,6 +178,8 @@ __test__ = {
     ['a', 'a', 'b']
     >>> d.items()
     [('a', 1), ('a', 2), ('b', 4)]
+    >>> multidict([('a', 'b')], c=2)
+    multidict([('a', 'b'), ('c', 2)])
     """}
 
 if __name__ == '__main__':
