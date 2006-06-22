@@ -6,7 +6,11 @@ NEWS
 0.9.4
 -----
 
-* More control of where the output of ``paste.debug.prints`` goes
+* Fixed a security vulnerability in ``paste.urlparser``'s StaticURLParser
+  and PkgResourcesParser where, with some servers, you could escape
+  the document root.
+
+* More control of where the output of ``paste.debug.prints`` goes.
 
 * Added a warning to ``paste.wsgilib.add_close`` if the upstream
   app_iter consumer doesn't call the ``app_iter.close()`` method.
@@ -19,8 +23,11 @@ NEWS
 * Fixed ``paste.urlparser`` classes to handle quoted characters (e.g.
   %20) in URL paths.
 
-* Fixed a security vulnerability in ``paste.urlparser``'s StaticURLParser
-  and PkgResourcesParser when running under paste's httpserver.
+* Changed ``paste.session`` to allow manipulating a session for the
+  first time after ``start_response`` is called.
+
+* Added ``paste.wsgilib.add_start_close`` which calls a function just
+  before returning the first chunk of the app_iter.
 
 0.9.3
 -----
