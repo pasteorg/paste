@@ -139,9 +139,9 @@ class URLMap(DictMixin):
             (domain, url), app = app_desc
             if not domain:
                 # Make sure empty domains sort last:
-                return -len(url), '\xff'
+                return '\xff', -len(url)
             else:
-                return -len(url), domain
+                return domain, -len(url)
         apps = [(key(desc), desc) for desc in self.applications]
         apps.sort()
         self.applications = [desc for (sortable, desc) in apps]
