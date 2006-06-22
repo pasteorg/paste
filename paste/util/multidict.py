@@ -6,8 +6,8 @@ class multidict(DictMixin):
 
     """
     An ordered dictionary that can have multiple values for each key.
-    Adds the methods getall, getone, and add to the normal dictionary
-    interface.
+    Adds the methods getall, getone, mixed, and add to the normal
+    dictionary interface.
     """
 
     def __init__(self, *args, **kw):
@@ -66,6 +66,29 @@ class multidict(DictMixin):
         if len(v) > 1:
             raise KeyError('Multiple values match %r: %r' % (key, v))
         return v[0]
+
+    def mixed(self):
+        """
+        Returns a dictionary where the values are either single
+        values, or a list of values when a key/value appears more than
+        once in this dictionary.  This is similar to the kind of
+        dictionary often used to represent the variables in a web
+        request.
+        """
+        result = {}
+        multi = {}
+        for key, value in self._items:
+            if key in result:
+                # We do this to not clobber any lists that are
+                # *actual* values in this dictionary:
+                if key in multi:
+                    result[key].append(value)
+                else:
+                    result[key] = [result[key], value]
+                    multi[key] = None
+            else:
+                result[key] = value
+        return result
 
     def __delitem__(self, key):
         items = self._items
@@ -178,6 +201,8 @@ __test__ = {
     ['a', 'a', 'b']
     >>> d.items()
     [('a', 1), ('a', 2), ('b', 4)]
+    >>> d.mixed()
+    {'a': [1, 2], 'b': 4}
     >>> multidict([('a', 'b')], c=2)
     multidict([('a', 'b'), ('c', 2)])
     """}
