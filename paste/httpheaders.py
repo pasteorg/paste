@@ -609,10 +609,7 @@ class _DateHeader(_SingleValueHeader):
         value = self.__call__(*args, **kwargs)
         if value:
             try:
-                # Split on ';' incase the date header includes extra attributes.
-                # E.g. IE 6 is known to send:
-                # If-Modified-Since: Sun, 25 Jun 2006 20:36:35 GMT; length=1506
-                return mktime_tz(parsedate_tz(value.split(';')[0]))
+                return mktime_tz(parsedate_tz(value))
             except TypeError:
                 raise HTTPBadRequest((
                     "Received an ill-formed timestamp for %s: %s\r\n") %
@@ -863,6 +860,15 @@ class _IfModifiedSince(_DateHeader):
     If-Modified-Since, RFC 2616 section 14.25
     """
     version = '1.0'
+
+    def __call__(self, *args, **kwargs):
+        """
+        Split the value on ';' incase the header includes extra attributes. E.g.
+        IE 6 is known to send:
+        If-Modified-Since: Sun, 25 Jun 2006 20:36:35 GMT; length=1506
+        """
+        return _DateHeader.__call__(self, *args, **kwargs).split(';')[0]
+
     def parse(self, *args, **kwargs):
         value = _DateHeader.parse(self, *args, **kwargs)
         if value and value > now():

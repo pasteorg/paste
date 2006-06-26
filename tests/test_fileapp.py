@@ -69,8 +69,11 @@ def test_modified():
     harness = TestApp(DataApp('mycontent'))
     res = harness.get("/")
     assert "<Response 200 OK 'mycontent'>" == repr(res)
-    res = harness.get("/",headers={'if-modified-since':
-                                    res.header('last-modified')})
+    last_modified = res.header('last-modified')
+    res = harness.get("/",headers={'if-modified-since': last_modified})
+    assert "<Response 304 Not Modified ''>" == repr(res)
+    res = harness.get("/",headers={'if-modified-since': last_modified + \
+                                   '; length=1506'})
     assert "<Response 304 Not Modified ''>" == repr(res)
     res = harness.get("/",status=400,
             headers={'if-modified-since': 'garbage'})
