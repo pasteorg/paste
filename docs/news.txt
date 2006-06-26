@@ -32,6 +32,12 @@ NEWS
 * Changed ``paste.urlmap`` so that it matches domain-specific mappings
   before domain-neutral mappings.
 
+* Fixed IE 6 potentially receiving the following ``"400 Bad Request"``
+  error on file downloads:
+  'Please check your system clock.
+   According to this server, the time provided in the
+   If-Modified-Since header is in the future.'
+
 0.9.3
 -----
 
