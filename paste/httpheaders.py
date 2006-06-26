@@ -134,7 +134,6 @@ dashes to give CamelCase style names.
 .. [3] http://www.python.org/peps/pep-0333.html#the-start-response-callable
 
 """
-
 import urllib2
 from mimetypes import guess_type
 from rfc822 import formatdate, parsedate_tz, mktime_tz
@@ -610,7 +609,10 @@ class _DateHeader(_SingleValueHeader):
         value = self.__call__(*args, **kwargs)
         if value:
             try:
-                return mktime_tz(parsedate_tz(value))
+                # Split on ';' incase the date header includes extra attributes.
+                # E.g. IE 6 is known to send:
+                # If-Modified-Since: Sun, 25 Jun 2006 20:36:35 GMT; length=1506
+                return mktime_tz(parsedate_tz(value.split(';')[0]))
             except TypeError:
                 raise HTTPBadRequest((
                     "Received an ill-formed timestamp for %s: %s\r\n") %
