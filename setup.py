@@ -166,6 +166,9 @@ For the latest changes see the `news file
       wdg_validate = paste.debug.wdg_validate:WDGValidateMiddleware [subprocess]
       evalerror = paste.evalexception:EvalException
       auth_tkt = paste.auth.auth_tkt:make_auth_tkt_middleware
+      auth_basic = paste.auth.basic:make_basic
+      auth_digest = paste.auth.digest:make_digest
+      auth_form = paste.auth.form:make_form
       grantip = paste.auth.grantip:make_grantip
       openid = paste.auth.open_id:make_open_id_middleware [openid]
       recorder = paste.debug.recorder.record:make_recorder
