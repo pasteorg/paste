@@ -163,6 +163,15 @@ class URLResource(object):
                               attrs=self.attrs,
                               params=self.original_params)
 
+    def setvars(self, **kw):
+        """
+        Creates a copy of this URL, but with all the variables set/reset
+        (like .setvar(), except clears past variables at the same time)
+        """
+        return self.__class__(self.url, vars=kw.items(),
+                              attrs=self.attrs,
+                              params=self.original_params)
+
     def addpath(self, *paths):
         u = self
         for path in paths:
