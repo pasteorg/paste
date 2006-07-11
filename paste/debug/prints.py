@@ -88,8 +88,8 @@ class PrintDebugMiddleware(object):
         if self.print_wsgi_errors:
             listeners.append(environ['wsgi.errors'])
         replacement_stdout = TeeFile(listeners)
+        threadedprint.register(replacement_stdout)
         try:
-            threadedprint.register(replacement_stdout)
             status, headers, body = wsgilib.intercept_output(
                 environ, self.app)
             if status is None:
