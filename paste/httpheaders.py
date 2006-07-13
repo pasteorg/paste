@@ -607,6 +607,8 @@ class _DateHeader(_SingleValueHeader):
     def parse(self, *args, **kwargs):
         """ return the time value (in seconds since 1970) """
         value = self.__call__(*args, **kwargs)
+        if ';' in value:
+            value = value.split(';', 1)[0]
         if value:
             try:
                 return mktime_tz(parsedate_tz(value))
@@ -614,7 +616,8 @@ class _DateHeader(_SingleValueHeader):
                 raise HTTPBadRequest((
                     "Received an ill-formed timestamp for %s: %s\r\n") %
                     (self.name, value))
-
+        else:
+            return None
 #
 # Following are specific HTTP headers. Since these classes are mostly
 # singletons, there is no point in keeping the class around once it has
