@@ -99,7 +99,7 @@ def forward(app, codes):
         else:
             return None
     return _StatusBasedRedirect(app, error_codes_mapper, codes=codes)
-        
+
 def custom_forward(app, mapper, global_conf=None, **kw):
     """
     Intercepts a response with a particular status code and returns the
@@ -305,3 +305,25 @@ class _StatusBasedRedirect:
                     return app_iter
             else:
                 return app_iter
+
+def make_errordocument(app, global_conf, **kw):
+    """
+    Paste Deploy entry point to create a error document wrapper.
+    Use like::
+
+      [filter-app:main]
+      use = egg:Paste#errordocument
+      next = real-app
+      500 = /lib/msg/500.html
+      404 = /lib/msg/404.html
+
+    """
+    map = {}
+    for status, redir_loc in kw.items():
+        try:
+            status = int(status)
+        except ValueError:
+            raise ValueError('Bad status code: %r' % status)
+        map[status] = redir_loc
+    forwarder = forward(app, map)
+    return forwarder
