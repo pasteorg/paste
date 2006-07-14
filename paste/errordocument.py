@@ -59,6 +59,7 @@ base path of the application is.
 
 from urllib import urlencode
 from urlparse import urlparse
+from paste.wsgilib import chained_app_iters
 
 def forward(app, codes):
     """
@@ -327,3 +328,51 @@ def make_errordocument(app, global_conf, **kw):
         map[status] = redir_loc
     forwarder = forward(app, map)
     return forwarder
+
+
+def make_empty_error(app, global_conf, **kw):
+    """
+    Use like:
+
+      [filter-app:main]
+      use = egg:Paste#emptyerror
+      next = real-app
+
+    This will clear the body of any bad responses (e.g., 404, 500,
+    etc).  If running behind Apache, Apache will replace the empty
+    response with whatever its configured ``ErrorDocument`` (but
+    Apache doesn't overwrite responses that do have content, which is
+    why this middlware is necessary)
+    """
+    if kw:
+        raise ValueError(
+            'emptyerror does not take any configuration')
+    return empty_error(app)
+
+def empty_error(app):
+    def filtered_app(environ, start_response):
+        got_status = []
+        def replace_start_response(status, headers, exc_info=None):
+            got_status.append(status)
+            return start_response(status, headers, exc_info)
+        app_iter = app(environ, replace_start_response)
+        item1 = None
+        if not got_status:
+            item1 = ''
+            for item in app_iter:
+                item1 = item
+                break
+            if not got_status:
+                raise ValueError(
+                    "start_response not called from application")
+        status = int(got_status[0].split()[0])
+        if status >= 400:
+            if hasattr(app_iter, 'close'):
+                app_iter.close()
+            return ['']
+        else:
+            if item1 is not None:
+                return chained_app_iters([item1], app_iter)
+            else:
+                return app_iter
+    return filtered_app

@@ -14,8 +14,7 @@ I also need to find out how to test that another response was
 correctly requested by the middleware.
 """
 import os
-import py.test
-from paste.errordocument import forward, custom_forward
+from paste.errordocument import forward, custom_forward, empty_error
 from paste.fixture import *
 
 def simple_app(environ, start_response):
@@ -32,3 +31,15 @@ def test_ok():
     assert res.header('content-type') == 'text/plain'
     assert res.full_status == '200 OK'
     assert 'requested page returned' in res
+
+def test_empty():
+    app = TestApp(empty_error(simple_app))
+    res = app.get('/')
+    assert res.header('content-type') == 'text/plain'
+    assert res.full_status == '200 OK'
+    assert 'requested page returned' in res
+    app = TestApp(empty_error(not_found_app))
+    res = app.get('/', status=404)
+    assert 'requested page returned' not in res
+    assert res.body == ''
+    assert res.status == 404
