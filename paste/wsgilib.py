@@ -27,7 +27,8 @@ __all__ = ['get_cookies', 'add_close', 'raw_interactive',
            'interactive', 'construct_url', 'error_body_response',
            'error_response', 'send_file', 'has_header', 'header_value',
            'path_info_split', 'path_info_pop', 'capture_output',
-           'catch_errors', 'dump_environ', 'intercept_output']
+           'catch_errors', 'dump_environ', 'intercept_output',
+           'chained_app_iters']
 
 
 class add_close:
@@ -92,6 +93,51 @@ class add_start_close:
             self.app_iterable.close()
         if self.close_func is not None:
             self.close_func()
+
+    def __del__(self):
+        if not self._closed:
+            # We can't raise an error or anything at this stage
+            print >> sys.stderr, (
+                "Error: app_iter.close() was not called when finishing "
+                "WSGI request.  finalization function %s not called"
+                % self.close_func)
+
+class chained_app_iters:
+
+    """
+    Chains several app_iters together, also delegating .close() to each
+    of them.
+    """
+
+    def __init__(self, *chained):
+        self.app_iters = chained
+        self.chained = [iter(item) for item in chained]
+        self._closed = False
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if len(self.chained) == 1:
+            return self.chained[0].next()
+        else:
+            try:
+                return self.chained[0].next()
+            except StopIteration:
+                self.chained.pop(0)
+                return self.next()
+
+    def close(self):
+        self._closed = True
+        got_exc = None
+        for app_iter in self.app_iters:
+            try:
+                if hasattr(app_iter, 'close'):
+                    app_iter.close()
+            except:
+                got_exc = sys.exc_info()
+        if got_exc:
+            raise got_exc[0], got_exc[1], got_exc[2]
 
     def __del__(self):
         if not self._closed:
