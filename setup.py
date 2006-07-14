@@ -173,8 +173,11 @@ For the latest changes see the `news file
       openid = paste.auth.open_id:make_open_id_middleware [openid]
       recorder = paste.debug.recorder.record:make_recorder
       pony = paste.pony:make_pony
+      errordocument = paste.errordocument:make_errordocument
 
       [paste.server_runner]
       http = paste.httpserver:server_runner
       """,
       )
+
+
