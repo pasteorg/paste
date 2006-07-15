@@ -38,6 +38,15 @@ NEWS
    According to this server, the time provided in the
    If-Modified-Since header is in the future.'
 
+* Added a 'no' keyword argument to ``TestResponse.mustcontain``, so
+  you can assert that a response does contain some strings at the same
+  time that you assert that a response *does not* contain other
+  strings, like::
+
+    res = app.get('/')
+    res.mustcontain('this must be there',
+                    no=['error', 'unexpected'])
+
 0.9.3
 -----
 
