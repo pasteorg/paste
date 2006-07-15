@@ -685,7 +685,7 @@ class TestResponse(object):
         return (self.body.find(s) != -1
                 or self.normal_body.find(s) != -1)
 
-    def mustcontain(self, *strings):
+    def mustcontain(self, *strings, **kw):
         """
         Assert that the response contains all of the strings passed
         in as arguments.
@@ -694,12 +694,28 @@ class TestResponse(object):
 
             assert string in res
         """
+        if 'no' in kw:
+            no = kw['no']
+            del kw['no']
+            if isinstance(no, basestring):
+                no = [no]
+        else:
+            no = []
+        if kw:
+            raise TypeError(
+                "The only keyword argument allowed is 'no'")
         for s in strings:
             if not s in self:
                 print >> sys.stderr, "Actual response (no %r):" % s
                 print >> sys.stderr, self
                 raise IndexError(
                     "Body does not contain string %r" % s)
+        for no_s in no:
+            if no_s in self:
+                print >> sys.stderr, "Actual response (has %r)" % s
+                print >> sys.stderr, self
+                raise IndexError(
+                    "Body contains string %r" % s)
 
     def __repr__(self):
         return '<Response %s %r>' % (self.full_status, self.body[:20])
