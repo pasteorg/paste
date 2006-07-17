@@ -508,6 +508,13 @@ class _MultiValueHeader(HTTPHeader):
             return ''
         return ", ".join([str(v).strip() for v in results])
 
+    def parse(self, *args, **kwargs):
+        value = self.__call__(*args, **kwargs)
+        values = value.split(',')
+        return [
+            v.strip() for v in values
+            if v.strip()]
+
 class _MultiEntryHeader(HTTPHeader):
     """
     a multi-value ``HTTPHeader`` where items cannot be combined with a comma

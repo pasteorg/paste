@@ -87,7 +87,8 @@ class DataApp(object):
 
     def __call__(self, environ, start_response):
         headers = self.headers[:]
-        ETAG.update(headers, self.last_modified)
+        current_etag = str(self.last_modified)
+        ETAG.update(headers, current_etag)
         if self.expires is not None:
             EXPIRES.update(headers, delta=self.expires)
 
@@ -99,6 +100,19 @@ class DataApp(object):
                     head.delete(headers)
                 start_response('304 Not Modified',headers)
                 return [''] # empty body
+        except HTTPBadRequest, exce:
+            return exce.wsgi_application(environ, start_response)
+
+        try:
+            client_etags = IF_NONE_MATCH.parse(environ)
+            if client_etags:
+                for etag in client_etags:
+                    if etag == current_etag or etag == '*':
+                        # horribly inefficient, n^2 performance, yuck!
+                        for head in list_headers(entity=True):
+                            head.delete(headers)
+                        start_response('304 Not Modified', headers)
+                        return ['']
         except HTTPBadRequest, exce:
             return exce.wsgi_application(environ, start_response)
 
