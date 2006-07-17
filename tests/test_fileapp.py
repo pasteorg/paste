@@ -174,3 +174,24 @@ def test_file_range():
     finally:
         import os
         os.unlink(tempfile)
+
+def test_file_cache():
+    from paste import fileapp
+    filename = os.path.join(os.path.dirname(__file__),
+                            'urlparser_data', 'secured.txt')
+    app = TestApp(fileapp.FileApp(filename))
+    res = app.get('/')
+    etag = res.header('ETag')
+    last_mod = res.header('Last-Modified')
+    res = app.get('/', headers={'If-Modified-Since': last_mod},
+                  status=304)
+    res = app.get('/', headers={'If-None-Match': etag},
+                  status=304)
+    res = app.get('/', headers={'If-None-Match': 'asdf'},
+                  status=200)
+    res = app.get('/', headers={'If-Modified-Since': 'Sat, 1 Jan 2005 12:00:00 GMT'},
+                  status=200)
+    res = app.get('/', headers={'If-Modified-Since': last_mod + '; length=100'},
+                  status=304)
+    res = app.get('/', headers={'If-Modified-Since': 'invalid date'},
+                  status=400)

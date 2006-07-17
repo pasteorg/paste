@@ -47,6 +47,12 @@ NEWS
     res.mustcontain('this must be there',
                     no=['error', 'unexpected'])
 
+* Fixed ``fileapp.FileApp`` to pay attention to the ``If-None-Match``
+  header, which does ETag matching; before only ``If-Modified-Since``
+  was supported, even though an ``ETag`` header was being sent; in
+  particular Firefox would then only send ``If-None-Match`` and so
+  conditional requests never worked.
+
 0.9.3
 -----
 
