@@ -10,6 +10,15 @@ NEWS
   and PkgResourcesParser where, with some servers, you could escape
   the document root.
 
+* Significantly improved ``paste.httpserver``'s (egg:Paste#http)
+  performance. It now uses a thread pool: previously it created a new
+  thread for every request. To revert back to the old, slower behavior,
+  set:
+
+  use_threadpool = false
+
+  in the [server:main] section of the config file.
+
 * More control of where the output of ``paste.debug.prints`` goes.
 
 * Added a warning to ``paste.wsgilib.add_close`` if the upstream
