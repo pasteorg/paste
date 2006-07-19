@@ -22,37 +22,11 @@ import textwrap
 from Cookie import SimpleCookie
 import urlparse
 from util.UserDict24 import DictMixin, IterableUserDict, UserDict
+from paste.util.multidict import multidict
 
 __all__ = ['get_cookies', 'get_cookie_dict', 'parse_querystring',
            'parse_formvars', 'construct_url', 'path_info_split',
            'path_info_pop', 'resolve_relative_url', 'EnvironHeaders']
-
-
-class MultiDict(IterableUserDict):
-    """Acts as a normal dict, but assumes all values are lists, and
-    retrieving an item retrieves the first value in the list. getlist
-    retrieves the full list"""
-    def __getitem__(self, key):
-        return self.data[key][0]
-
-    def getlist(self, key):
-        return self.data[key]
-
-    def update(self, dict):
-        if isinstance(dict, UserDict):
-            self.data.update(dict.data)
-        elif isinstance(dict, type(self.data)):
-            self.data.update(dict)
-        else:
-            for k, v in dict.items():
-                if self.has_key(k) and isinstance(v, list):
-                    self[k].extend(v)
-                elif self.has_key(k):
-                    self[k].append(v)
-                elif not isinstance(v, list):
-                    self[k] = [v]
-                else:
-                    self[k] = v
 
 def get_cookies(environ):
     """
@@ -143,10 +117,9 @@ def parse_dict_querystring(environ):
         parsed, check_source = environ['paste.parsed_dict_querystring']
         if check_source == source:
             return parsed
-    parsed = cgi.parse_qs(source, keep_blank_values=True,
+    parsed = cgi.parse_qsl(source, keep_blank_values=True,
                            strict_parsing=False)
-    multi = MultiDict()
-    multi.update(parsed)
+    multi = multidict(parsed)
     environ['paste.parsed_dict_querystring'] = (multi, source)
     return multi
 

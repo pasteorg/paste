@@ -62,6 +62,10 @@ NEWS
   particular Firefox would then only send ``If-None-Match`` and so
   conditional requests never worked.
 
+* Changed usage of ``paste.request.MultiDict`` to
+  ``paste.util.multidict``, particularly in ``paste.wsgiwrappers``
+  where ``request.GET`` returns a new style of dictionary interface.
+
 0.9.3
 -----
 

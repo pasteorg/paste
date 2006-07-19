@@ -1,7 +1,8 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import paste.httpexceptions
-from paste.request import EnvironHeaders, parse_formvars, parse_dict_querystring, get_cookie_dict, MultiDict
+from paste.request import EnvironHeaders, parse_formvars, parse_dict_querystring, get_cookie_dict
+from paste.util.multidict import multidict
 from paste.response import HeaderDict
 import paste.registry as registry
 import paste.httpexceptions
@@ -84,7 +85,7 @@ class WSGIRequest(object):
         but the output will be put in environ['paste.post_vars']
         
         """
-        formvars = MultiDict()
+        formvars = multidict()
         formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
         return formvars
     POST = property(POST, doc=POST.__doc__)
