@@ -148,9 +148,23 @@ def parse_formvars(environ, all_as_list=False, include_get_vars=True):
         parsed, check_source = environ['paste.parsed_formvars']
         if check_source == source:
             return parsed
-    fs = cgi.FieldStorage(fp=environ['wsgi.input'],
+    type = environ.get('CONTENT_TYPE', '').lower()
+    fake_out_cgi = type not in ('', 'multipart/form-data', 
+                                'application/x-www-form-urlencoded')
+    if fake_out_cgi:
+        input = StringIO('')
+        old_content_type = environ.get('CONTENT_TYPE')
+        old_content_length = environ.get('CONTENT_LENGTH')
+        environ['CONTENT_LENGTH'] = '0'
+        environ['CONTENT_TYPE'] = ''    
+    else:
+        input = environ['wsgi.input']
+    fs = cgi.FieldStorage(fp=input,
                           environ=environ,
                           keep_blank_values=1)
+    if fake_out_cgi:
+        environ['CONTENT_TYPE'] = old_content_type
+        environ['CONTENT_LENGTH'] = old_content_length
     formvars = {}
     if not isinstance(fs.value, list):
         # Non-HTML form submission, so we just
