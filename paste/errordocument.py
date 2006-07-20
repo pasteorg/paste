@@ -95,6 +95,7 @@ def forward(app, codes):
             raise TypeError('All status codes should be type int. '
                 '%s is not valid'%repr(code))
     def error_codes_mapper(code, message, environ, global_conf, codes):
+        codes = codes['codes']
         if codes.has_key(code):
             return codes[code]
         else:
