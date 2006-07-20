@@ -1,21 +1,6 @@
-"""
-Error Document Support Test
-+++++++++++++++++++++++++++
-
-WARNING: These tests aren't yet finished. A call to test_ok() using
-not_found_app rather than simple_app currently fails complaining of
-start_response not having been called before content is returned.
-
-This isn't the full story since start_response will have been called
-by the original response but I need advice on how to modify the 
-test suite to be able to test this.
-
-I also need to find out how to test that another response was
-correctly requested by the middleware.
-"""
-import os
-from paste.errordocument import forward, custom_forward
+from paste.errordocument import forward
 from paste.fixture import *
+from paste.recursive import RecursiveMiddleware
 
 def simple_app(environ, start_response):
     start_response("200 OK", [('Content-type', 'text/plain')])
@@ -26,8 +11,51 @@ def not_found_app(environ, start_response):
     return ['requested page returned']
     
 def test_ok():
-    app = TestApp(forward(simple_app, codes={404:'/error'}))
+    app = TestApp(simple_app)
     res = app.get('')
     assert res.header('content-type') == 'text/plain'
     assert res.full_status == '200 OK'
     assert 'requested page returned' in res
+    
+def error_docs_app(environ, start_response):
+    if environ['PATH_INFO'] == '/not_found':
+        start_response("404 Not found", [('Content-type', 'text/plain')])
+        return ['Not found']
+    elif environ['PATH_INFO'] == '/error':
+        start_response("200 OK", [('Content-type', 'text/plain')])
+        return ['Page not found']
+    else:
+        return simple_app(environ, start_response)
+    
+def test_error_docs_app():
+    app = TestApp(error_docs_app)
+    res = app.get('')
+    assert res.header('content-type') == 'text/plain'
+    assert res.full_status == '200 OK'
+    assert 'requested page returned' in res
+    res = app.get('/error')
+    assert res.header('content-type') == 'text/plain'
+    assert res.full_status == '200 OK'
+    assert 'Page not found' in res
+    res = app.get('/not_found', status=404)
+    assert res.header('content-type') == 'text/plain'
+    assert res.full_status == '404 Not found'
+    assert 'Not found' in res
+
+def test_forward():    
+    app = forward(error_docs_app, codes={404:'/error'})
+    app = TestApp(RecursiveMiddleware(app))
+    res = app.get('')
+    assert res.header('content-type') == 'text/plain'
+    assert res.full_status == '200 OK'
+    assert 'requested page returned' in res
+    res = app.get('/error')
+    assert res.header('content-type') == 'text/plain'
+    assert res.full_status == '200 OK'
+    assert 'Page not found' in res
+    res = app.get('/not_found', status=404)
+    assert res.header('content-type') == 'text/plain'
+    assert res.full_status == '404 Not found'
+    # Note changed response
+    assert 'Page not found' in res
+    
