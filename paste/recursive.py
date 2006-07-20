@@ -23,9 +23,27 @@ Raise ``ForewardRequestException(new_path_info)`` to do a forward
 """
 
 from cStringIO import StringIO
+from urlparse import urlparse
 import warnings
 
 __all__ = ['RecursiveMiddleware']
+__pudge_all__ =  ['RecursiveMiddleware', 'ForwardRequestException']
+
+class CheckForRecursionMiddleware:
+    def __init__(self, app, env):
+        self.app = app
+        self.env = env
+        
+    def __call__(self, environ, start_response):
+        path_info = environ.get('PATH_INFO','')
+        if path_info in self.env.get(
+            'paste.recursive.old_path_info', []):
+            raise AssertionError(
+                "Forwarding loop detected; %r visited twice (internal "
+                "redirect path: %s)"
+                % (path_info, self.env['paste.recursive.old_path_info']))
+        self.env.setdefault('paste.recursive.old_path_info', []).append(self.env.get('PATH_INFO', ''))
+        return self.app(environ, start_response)
 
 class RecursiveMiddleware(object):
 
@@ -42,38 +60,165 @@ class RecursiveMiddleware(object):
     def __init__(self, application, global_conf=None):
         self.application = application
 
+
     def __call__(self, environ, start_response):
         environ['paste.recursive.forward'] = Forwarder(
-            self.application, environ, start_response)
+            self.application, 
+            environ, 
+            start_response,
+        )
         environ['paste.recursive.include'] = Includer(
-            self.application, environ, start_response)
+            self.application, 
+            environ, 
+            start_response
+        )
         my_script_name = environ.get('SCRIPT_NAME', '')
         current_path_info = environ.get('PATH_INFO', '')
         environ['paste.recursive.script_name'] = my_script_name
         try:
             return self.application(environ, start_response)
         except ForwardRequestException, e:
-            if e.path_info in environ.get(
-                'paste.recursive.old_path_info', []):
-                raise AssertionError(
-                    "Forwarding loop detected; %r visited twice (internal "
-                    "redirect path: %s)"
-                    % (e.path_info, environ['paste.recursive.old_path_info']))
-            environ.setdefault('paste.recursive.old_path_info', []).append(current_path_info)
-            environ['SCRIPT_NAME'] = my_script_name
-            environ['PATH_INFO'] = e.path_info
-            return self(environ, start_response)
+            return CheckForRecursionMiddleware(e.factory(self), environ)(environ, start_response)
 
 class ForwardRequestException(Exception):
-
     """
     Used to signal that a request should be forwarded to a different location.
-    The ``path_info`` attribute (passed in as an argument to the constructor)
-    is the position under the recursive middleware to redirect to.
+    
+    ``url``
+        The URL to forward to starting with a ``/`` and relative to 
+        ``RecursiveMiddleware``. URL fragments can also contain query strings 
+        so ``/error?code=404`` would be a valid URL fragment.
+    
+    ``environ``
+        An altertative WSGI environment dictionary to use for the forwarded 
+        request. If specified is used *instead* of the ``url_fragment``
+     
+    ``factory``
+        If specifed ``factory`` is used instead of ``url`` or ``environ``. 
+        ``factory`` is a callable that takes a WSGI application object 
+        as the first argument and returns an initialised WSGI middleware
+        which can alter the forwarded response.
+
+    Basic usage (must have ``RecursiveMiddleware`` present) ::
+    
+        from paste.recursive import ForwardRequestException
+        def app(environ, start_response):
+            if environ['PATH_INFO'] == '/hello':
+                start_response("200 OK", [('Content-type', 'text/plain')])
+                return ['Hello World!']
+            elif environ['PATH_INFO'] == '/error':
+                start_response("404 Not Found", [('Content-type', 'text/plain')])
+                return ['Page not found']
+            else:
+                raise ForwardRequestException('/error')
+                
+        from paste.recursive import RecursiveMiddleware
+        app = RecursiveMiddleware(app)
+        
+    If you ran this application and visited ``/hello`` you would get a 
+    ``Hello World!`` message. If you ran the application and visited 
+    ``/not_found`` a ``ForwardRequestException`` would be raised and the caught
+    by the ``RecursiveMiddleware``. The ``RecursiveMiddleware`` would then 
+    return the headers and response from the ``/error`` URL but would display 
+    a ``404 Not found`` status message.
+    
+    You could also specify an ``environ`` dictionary instead of a url. Using 
+    the same example as before::
+    
+        def app(environ, start_response):
+            ... same as previous example ...
+            else:
+                new_environ = environ.copy()
+                new_environ['PATH_INFO'] = '/error'
+                raise ForwardRequestException(environ=new_environ)
+                
+    Finally, if you want complete control over every aspect of the forward you
+    can specify a middleware factory. For example to keep the old status code 
+    but use the headers and resposne body from the forwarded response you might
+    do this::
+
+        from paste.recursive import ForwardRequestException
+        from paste.recursive import RecursiveMiddleware
+        from paste.errordocument import StatusKeeper
+
+        def app(environ, start_response):
+            if environ['PATH_INFO'] == '/hello':
+                start_response("200 OK", [('Content-type', 'text/plain')])
+                return ['Hello World!']
+            elif environ['PATH_INFO'] == '/error':
+                start_response("404 Not Found", [('Content-type', 'text/plain')])
+                return ['Page not found']
+            else:
+                def factory(app):
+                    return StatusKeeper(app, status='404 Not Found', url='/error')
+                raise ForwardRequestException(factory=factory)
+
+        app = RecursiveMiddleware(app)
     """
 
-    def __init__(self, path_info):
-        self.path_info = path_info
+    def __init__(
+        self, 
+        url=None, 
+        environ={}, 
+        factory=None, 
+        path_info=None,
+    ):
+        # Check no incompatible options have been chosen
+        if factory and url:
+            raise TypeError('You cannot specify factory and a url in ForwardRequestException')
+        elif factory and environ:
+            raise TypeError('You cannot specify factory and environ in ForwardRequestException')
+        if url and environ:
+            raise TypeError('You cannot specify environ and url in ForwardRequestException')
+
+        # set the path_info or warn about its use.
+        if path_info:
+            if not url:
+                warnings.warn(
+                    "ForwardRequestException(path_info=...) has been deprecated; please "
+                    "use ForwardRequestException(url=...)",
+                    DeprecationWarning, 2)
+            else:
+                raise TypeError('You cannot use url and path_info in ForwardRequestException')
+            self.path_info = path_info
+    
+        # If the url can be treated as a path_info do that
+        if url and not '?' in str(url): 
+            self.path_info = url
+            
+        # Base middleware
+        class ForwardRequestExceptionMiddleware:
+            def __init__(self, app):
+                self.app = app
+                            
+        # Otherwise construct the appropriate middleware factory
+        if hasattr(self, 'path_info'):
+            p = self.path_info
+            def factory_(app):
+                class PathInfoForward(ForwardRequestExceptionMiddleware):
+                    def __call__(self, environ, start_response):
+                        environ['PATH_INFO'] = p
+                        return self.app(environ, start_response)
+                return PathInfoForward(app)
+            self.factory = factory_
+        elif url:
+            def factory_(app):
+                class URLForward(ForwardRequestExceptionMiddleware):
+                    def __call__(self, environ, start_response):
+                        environ['PATH_INFO'] = url.split('?')[0]
+                        environ['QUERY_STRING'] = url.split('?')[1]
+                        return self.app(environ, start_response)
+                return URLForward(app)
+            self.factory = factory_
+        elif environ:
+            def factory_(app):
+                class EnvironForward(ForwardRequestExceptionMiddleware):
+                    def __call__(self, environ_, start_response):
+                        return self.app(environ, start_response)
+                return EnvironForward(app)
+            self.factory = factory_
+        else:
+            self.factory = factory
 
 class Recursive(object):
 
