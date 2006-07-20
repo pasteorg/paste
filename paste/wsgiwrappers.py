@@ -91,7 +91,7 @@ class WSGIRequest(object):
     POST = property(POST, doc=POST.__doc__)
 
     def params(self):
-        """MultiDict of keys from POST, GET, URL dicts
+        """multidict of keys from POST, GET, URL dicts
 
         Return a key value from the parameters, they are checked in the
         following order: POST, GET, URL
@@ -102,7 +102,7 @@ class WSGIRequest(object):
             Returns a list of all the values by that key, collected from
             POST, GET, URL dicts
         """
-        pms = MultiDict()
+        pms = multidict()
         pms.update(self.POST)
         pms.update(self.GET)
         return pms
