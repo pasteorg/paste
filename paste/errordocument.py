@@ -2,64 +2,18 @@
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 """
-Error Document Support
-++++++++++++++++++++++
-
-Please note: Full tests are not yet available for this module so you
-may not wish to use it in production environments yet.
+Middleware to display error documents for certain status codes
 
 The middleware in this module can be used to intercept responses with
 specified status codes and internally forward the request to an appropriate
 URL where the content can be displayed to the user as an error document.
-
-Two middleware are provided:
-
-``forward``
-    Intercepts a response with a particular status code and returns the 
-    content from a specified URL instead.
-
-``custom_forward``
-    Intercepts a response with a particular status code and returns the
-    content from the URL specified by a user-defined mapper object
-    allowing full control over the forwarding based on status code, 
-    message, environ, configuration and any custom arguments specified
-    when constructing the middleware.
-    
-For example the ``custom_forward`` middleware is used in Pylons to redirect 
-404, 401 and 403 responses to the error.py controller with the ``code``
-and ``message`` as part of the query string. The controller then uses the
-code and message to display an appropriate error document.
-
-The mapper used in Pylons looks something like this::
-
-    from urllib import urlencode
-    from pylons.util import get_prefix
-    
-    def error_mapper(code, message, environ, global_conf, **kw):
-        codes = [401, 403, 404]
-        if not asbool(global_conf.get('debug', 'true')):
-            codes.append(500)
-        if code in codes:
-            url = '%s/error/document/?%s'%(
-                get_prefix(environ), 
-                urlencode({'message':message, 'code':code})
-            )
-            return url
-        return None
-
-If the configuration is in debug mode the middleware doesn't 
-intercept ``500`` status codes, instead allowing the debug display
-that is produced earlier in the middleware chain to be displayed to 
-the user.
-
-In this case the Pylons ``get_prefix()`` function returns the base part
-of the URL so that the redirection will be valid no matter what the
-base path of the application is. 
 """
 
+import warnings
 from urllib import urlencode
 from urlparse import urlparse
 from paste.wsgilib import chained_app_iters
+from paste.recursive import ForwardRequestException, RecursiveMiddleware
 
 def forward(app, codes):
     """
@@ -69,7 +23,7 @@ def forward(app, codes):
     The arguments are:
     
     ``app``
-        The WSGI application or middleware chain
+        The WSGI application or middleware chain.
 
     ``codes``
         A dictionary of integer status codes and the URL to be displayed
@@ -80,64 +34,83 @@ def forward(app, codes):
     ``forward`` middleware to catch all 404 status codes and display the page
     you created. In this example ``app`` is your exisiting WSGI 
     applicaiton::
-        
-        # Add the RecursiveMiddleware if it is not already in place
-        from paste.recursive import RecursiveMiddleware
-        app = RecursiveMiddleware(app)
-        
-        # Set up the error document forwarding
+
         from paste.errordocument import forward
         app = forward(app, codes={404:'/error404.html'})
-        
+
     """
     for code in codes:
         if not isinstance(code, int):
             raise TypeError('All status codes should be type int. '
                 '%s is not valid'%repr(code))
+                
     def error_codes_mapper(code, message, environ, global_conf, codes):
-        codes = codes['codes']
         if codes.has_key(code):
             return codes[code]
         else:
             return None
-    return _StatusBasedRedirect(app, error_codes_mapper, codes=codes)
 
-def custom_forward(app, mapper, global_conf=None, **kw):
+    #return _StatusBasedRedirect(app, error_codes_mapper, codes=codes)
+    return RecursiveMiddleware(
+        StatusBasedForward(
+            app, 
+            error_codes_mapper, 
+            codes=codes,
+        )
+    )
+
+class StatusKeeper:
+    def __init__(self, app, status, url):
+        self.app = app
+        self.status = status
+        self.url = url
+    def __call__(self, environ, start_response):
+        def keep_status_start_response(status, headers, exc_info=None):
+            return start_response(self.status, headers, exc_info)
+        parts = self.url.split('?')
+        environ['PATH_INFO'] = parts[0]
+        if len(parts) > 1:
+            environ['QUERY_STRING'] = parts[1]
+        else:
+            environ['QUERY_STRING'] = ''
+        #raise Exception(self.url, self.status)
+        return self.app(environ, keep_status_start_response)
+        
+class StatusBasedForward:
     """
-    Intercepts a response with a particular status code and returns the
-    content from the URL specified by a user-defined mapper object
-    allowing full control over the forwarding based on status code, 
-    message, environ, configuration and any custom parameters specified.
+    Middleware that lets you test a response against a custom mapper object to
+    programatically determine whether to internally forward to another URL and
+    if so, which URL to forward to.
     
+    If you don't need the full power of this middleware you might choose to use
+    the simpler ``forward`` middleware instead.
+
     The arguments are:
     
     ``app``
-        The WSGI application or middleware chain
+        The WSGI application or middleware chain.
         
     ``mapper`` 
-        An error document mapper object which will be used to map a code to 
-        a URL if the code isn't already found in the dictionary specified by
-        ``codes``.
+        A callable that takes a status code as the
+        first parameter, a message as the second, and accepts optional environ,
+        global_conf and named argments afterwards. It should return a
+        URL to forward to or ``None`` if the code is not to be intercepted.
 
     ``global_conf``
-        Optional, the default configuration from your config file
+        Optional default configuration from your config file. If ``debug`` is
+        set to ``true`` a message will be written to ``wsgi.errors`` on each
+        internal forward stating the URL forwarded to.
     
-    ``**kw`` 
+    ``**params`` 
         Optional, any other configuration and extra arguments you wish to 
-        pass to middleware will also be passed to the custom mapper object.
+        pass which will in turn be passed back to the custom mapper object.
 
-    Writing a Mapper Object
-    -----------------------
+    Here is an example where a ``404 File Not Found`` status response would be
+    redirected to the URL ``/error?code=404&message=File%20Not%20Found``. This 
+    could be useful for passing the status code and message into another 
+    application to display an error document::
     
-    ``mapper`` should be a callable that takes a status code as the
-    first parameter, a message as the second, and accepts optional environ, 
-    global_conf and kw positional argments afterwards. It should return an
-    error message to display or None if the code is not to be intercepted.
-
-    If you wanted to write an application to handle all your error docuemnts
-    in a consitent way you might do this::
-    
-        from paste.errordocument import custom_forward
+        from paste.errordocument import StatusBasedForward
         from paste.recursive import RecursiveMiddleware
         from urllib import urlencode
         
@@ -150,46 +123,126 @@ def custom_forward(app, mapper, global_conf=None, **kw):
                 return None
     
         app = RecursiveMiddleware(
-            custom_forward(app, error_mapper=error_mapper),
+            StatusBasedForward(app, mapper=error_mapper),
         )
-        
-    In the above example a ``404 File Not Found`` status response would be 
-    redirected to the URL ``/error?code=404&message=File%20Not%20Found``.
-    
-    You would have to ensure this URL correctly displayed the error page you
-    wanted to display or a static fallback error doucment would be displayed 
-    and a description of the error that occured trying to display your error
-    document would be logged to the WSGI error stream.
-    
-    Example
-    -------
-    
-    For example the ``paste.errordocument.forward`` middleware actaully
-    uses ``custom_forward``. It looks like this::
-    
-      def forward(app, codes):
-          for code in codes:
-              if not isinstance(code, int):
-                  raise TypeError('All status codes should be type int. '
-                      '%s is not valid'%repr(code))
-          def error_codes_mapper(code, message, environ, global_conf, codes):
-              if codes.has_key(code):
-                  return codes[code]
-              else:
-                  return None
-          return custom_forward(app, error_codes_mapper, codes=codes)
+
     """
+
+    def __init__(self, app, mapper, global_conf=None, **params):
+        if global_conf is None:
+            global_conf = {}
+        if global_conf.has_key('debug') and global_conf['debug'].lower() == 'true':
+            self.debug = True
+        else:
+            self.debug = False
+        self.application = app
+        self.mapper = mapper
+        self.global_conf = global_conf
+        self.params = params
+
+    def __call__(self, environ, start_response):
+
+        url = []
+        
+        def change_response(status, headers, exc_info=None):
+            
+            status_code = status.split(' ')
+            try:
+                code = int(status_code[0])
+            except ValueError, TypeError:
+                raise Exception(
+                    'StatusBasedForward middleware '
+                    'received an invalid status code %s'%repr(status_code[0])
+                )
+            message = ' '.join(status_code[1:])
+            new_url = self.mapper(
+                code, 
+                message, 
+                environ, 
+                self.global_conf, 
+                **self.params
+            )
+            if not (new_url == None or isinstance(new_url, str)):
+                raise TypeError(
+                    'Expected the url to internally '
+                    'redirect to in the StatusBasedForward mapper'
+                    'to be a string or None, not %s'%repr(new_url)
+                )
+            if new_url:
+                url.append([new_url, status])
+            else:
+                return start_response(status, headers, exc_info)
+
+        app_iter = self.application(environ, change_response)
+        if url:
+            if self.debug:
+                environ['wsgi.errors'].write(
+                    '=> paste.errordocuments: -> %r\n'%url[0][0]
+                )
+            def factory(app):
+                return StatusKeeper(app, status=url[0][1], url=url[0][0])
+            raise ForwardRequestException(factory=factory)
+        else:
+            return app_iter
+
+def make_errordocument(app, global_conf, **kw):
+    """
+    Paste Deploy entry point to create a error document wrapper. 
+    
+    Use like::
+
+        [filter-app:main]
+        use = egg:Paste#errordocument
+        next = real-app
+        500 = /lib/msg/500.html
+        404 = /lib/msg/404.html
+    """
+    map = {}
+    for status, redir_loc in kw.items():
+        try:
+            status = int(status)
+        except ValueError:
+            raise ValueError('Bad status code: %r' % status)
+        map[status] = redir_loc
+    forwarder = forward(app, map)
+    return forwarder
+
+__pudge_all__ = [
+    'forward',
+    'make_errordocument',
+    'empty_error',
+    'make_empty_error',
+    'StatusBasedForward',
+]
+
+
+###############################################################################
+## Deprecated
+###############################################################################
+
+def custom_forward(app, mapper, global_conf=None, **kw):
+    """
+    Deprectated; use StatusBasedForward instead.
+    """
+    warnings.warn(
+        "errordocuments.custom_forward has been deprecated; please "
+        "use errordocuments.StatusBasedForward",
+        DeprecationWarning, 2)
     if global_conf is None:
         global_conf = {}
     return _StatusBasedRedirect(app, mapper, global_conf, **kw)
 
 class _StatusBasedRedirect:
     """
-    The class that does all the work for the ``error_document_mapper()`` see
-    the documentation for ``error_document_mapper`` for details or 
-    ``error_document_redirect()`` for an different example of its use.
+    Deprectated; use StatusBasedForward instead.
     """
     def __init__(self, app, mapper, global_conf=None, **kw):
+
+        warnings.warn(
+            "errordocuments._StatusBasedRedirect has been deprecated; please "
+            "use errordocuments.StatusBasedForward",
+            DeprecationWarning, 2)
+
         if global_conf is None:
             global_conf = {}
         self.application = app
@@ -307,26 +360,3 @@ class _StatusBasedRedirect:
                     return app_iter
             else:
                 return app_iter
-
-def make_errordocument(app, global_conf, **kw):
-    """
-    Paste Deploy entry point to create a error document wrapper.
-    Use like::
-
-      [filter-app:main]
-      use = egg:Paste#errordocument
-      next = real-app
-      500 = /lib/msg/500.html
-      404 = /lib/msg/404.html
-
-    """
-    map = {}
-    for status, redir_loc in kw.items():
-        try:
-            status = int(status)
-        except ValueError:
-            raise ValueError('Bad status code: %r' % status)
-        map[status] = redir_loc
-    forwarder = forward(app, map)
-    return forwarder
-
