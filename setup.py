@@ -174,7 +174,6 @@ For the latest changes see the `news file
       recorder = paste.debug.recorder.record:make_recorder
       pony = paste.pony:make_pony
       errordocument = paste.errordocument:make_errordocument
-      emptyerror = paste.errordocument:make_empty_error
 
       [paste.server_runner]
       http = paste.httpserver:server_runner
