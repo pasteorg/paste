@@ -269,7 +269,7 @@ class TestApp(object):
     def _get_file_info(self, file_info):
         if len(file_info) == 2:
             # It only has a filename
-            filename = file_info[2]
+            filename = file_info[1]
             if self.relative_to:
                 filename = os.path.join(self.relative_to, filename)
             f = open(filename, 'rb')
