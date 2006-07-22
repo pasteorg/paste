@@ -359,7 +359,8 @@ class HTTPSeeOther(_HTTPMove):
 
 class HTTPNotModified(HTTPRedirection):
     # @@: but not always (HTTP section 14.18.1)...?
-    required_headers = ('date',)
+    # @@: Removed 'date' requirement, as its not required for an ETag
+    # @@: FIXME: This should require either an ETag or a date header
     code = 304
     title = 'Not Modified'
     message = ''
