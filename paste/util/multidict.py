@@ -41,7 +41,7 @@ class multidict(DictMixin):
 
     def add(self, key, value):
         """
-        Add they key and value, not overwriting any previous value.
+        Add the key and value, not overwriting any previous value.
         """
         self._items.append((key, value))
 
@@ -110,6 +110,9 @@ class multidict(DictMixin):
 
     def clear(self):
         self._items = []
+
+    def copy(self):
+        return multidict(self)
 
     def setdefault(self, key, default=None):
         for k, v in self._items:
