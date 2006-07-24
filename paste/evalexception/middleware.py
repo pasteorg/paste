@@ -105,13 +105,14 @@ def wsgiapp():
                 environ, start_response = args
                 args = []
             def application(environ, start_response):
-                form = wsgilib.parse_formvars(environ)
+                form = wsgilib.parse_formvars(environ,
+                                              include_get_vars=True)
                 headers = wsgilib.ResponseHeaderDict(
                     {'content-type': 'text/html',
                      'status': '200 OK'})
                 form['environ'] = environ
                 form['headers'] = headers
-                res = func(*args, **form)
+                res = func(*args, **form.mixed())
                 status = headers.pop('status')
                 start_response(status, headers.headeritems())
                 return [res]
@@ -523,16 +524,15 @@ def make_repost_button(environ):
         # I can't get it back :(
         return None
     fields = []
-    for name, value_list in wsgilib.parse_formvars(
-        environ, all_as_list=True, include_get_vars=False).items():
-        for value in value_list:
-            if hasattr(value, 'filename'):
-                # @@: Arg, we'll just submit the body, and leave out
-                # the filename :(
-                value = value.value
-            fields.append(
-                '<input type="hidden" name="%s" value="%s">'
-                % (html_quote(name), html_quote(value)))
+    for name, value in wsgilib.parse_formvars(
+        environ, include_get_vars=False).items():
+        if hasattr(value, 'filename'):
+            # @@: Arg, we'll just submit the body, and leave out
+            # the filename :(
+            value = value.value
+        fields.append(
+            '<input type="hidden" name="%s" value="%s">'
+            % (html_quote(name), html_quote(value)))
     return '''
 <form action="%s" method="POST">
 %s

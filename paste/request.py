@@ -9,7 +9,7 @@ environment to solve common requirements.
 
    * get_cookies(environ)
    * parse_querystring(environ)
-   * parse_formvars(environ, all_as_list=False, include_get_vars=True)
+   * parse_formvars(environ, include_get_vars=True)
    * construct_url(environ, with_query_string=True, with_path_info=True,
                    script_name=None, path_info=None, querystring=None)
    * path_info_split(path_info)
@@ -20,6 +20,7 @@ environment to solve common requirements.
 import cgi
 import textwrap
 from Cookie import SimpleCookie
+from StringIO import StringIO
 import urlparse
 from util.UserDict24 import DictMixin, IterableUserDict, UserDict
 from paste.util.multidict import multidict
@@ -123,34 +124,34 @@ def parse_dict_querystring(environ):
     environ['paste.parsed_dict_querystring'] = (multi, source)
     return multi
 
-def parse_formvars(environ, all_as_list=False, include_get_vars=True):
-    """Parses the request, returning a dictionary of the keys.
+def parse_formvars(environ, include_get_vars=True):
+    """Parses the request, returning a multidict of form variables.
 
-    If ``all_as_list`` is true, then all values will be lists.  If
-    not, then only values that show up multiple times will be lists.
-
-    If ``include_get_vars`` is true and this was a POST request, then
-    GET (query string) variables will also be folded into the
-    dictionary.
+    If ``include_get_vars`` is true then GET (query string) variables
+    will also be folded into the multidict.
 
     All values should be strings, except for file uploads which are
     left as FieldStorage instances.
 
     If the request was not a normal form request (e.g., a POST with an
-    XML body) then the body of the request will be put into
-    ``'__body__'``.  Other variables from the URL (GET) variables may
-    also be present.
+    XML body) then ``environ['wsgi.input']`` won't be read.
     """
     source = (environ.get('QUERY_STRING', ''),
               environ['wsgi.input'], environ['REQUEST_METHOD'],
-              all_as_list, include_get_vars)
+              include_get_vars)
     if 'paste.parsed_formvars' in environ:
         parsed, check_source = environ['paste.parsed_formvars']
         if check_source == source:
             return parsed
+    # @@: Shouldn't bother FieldStorage parsing during GET/HEAD and
+    # fake_out_cgi requests
     type = environ.get('CONTENT_TYPE', '').lower()
-    fake_out_cgi = type not in ('', 'multipart/form-data', 
-                                'application/x-www-form-urlencoded')
+    fake_out_cgi = type not in ('', 'application/x-www-form-urlencoded') and \
+        not type.startswith('multipart/form-data')
+    # Prevent FieldStorage from parsing QUERY_STRING during GET/HEAD
+    # requests
+    old_query_string = environ['QUERY_STRING']
+    environ['QUERY_STRING'] = ''
     if fake_out_cgi:
         input = StringIO('')
         old_content_type = environ.get('CONTENT_TYPE')
@@ -162,15 +163,12 @@ def parse_formvars(environ, all_as_list=False, include_get_vars=True):
     fs = cgi.FieldStorage(fp=input,
                           environ=environ,
                           keep_blank_values=1)
+    environ['QUERY_STRING'] = old_query_string
     if fake_out_cgi:
         environ['CONTENT_TYPE'] = old_content_type
         environ['CONTENT_LENGTH'] = old_content_length
-    formvars = {}
-    if not isinstance(fs.value, list):
-        # Non-HTML form submission, so we just
-        # return the field
-        formvars['__body__'] = fs.value
-    else:
+    formvars = multidict()
+    if isinstance(fs.value, list):
         for name in fs.keys():
             values = fs[name]
             if not isinstance(values, list):
@@ -178,26 +176,9 @@ def parse_formvars(environ, all_as_list=False, include_get_vars=True):
             for value in values:
                 if not value.filename:
                     value = value.value
-                if name in formvars:
-                    if isinstance(formvars[name], list):
-                        formvars[name].append(value)
-                    else:
-                        formvars[name] = [formvars[name], value]
-                elif all_as_list:
-                    formvars[name] = [value]
-                else:
-                    formvars[name] = value
-    if environ['REQUEST_METHOD'] == 'POST' and include_get_vars:
-        for name, value in parse_querystring(environ):
-            if name in formvars:
-                if isinstance(formvars[name], list):
-                    formvars[name].append(value)
-                else:
-                    formvars[name] = [formvars[name], value]
-            elif all_as_list:
-                formvars[name] = [value]
-            else:
-                formvars[name] = value
+                formvars.add(name, value)
+    if include_get_vars:
+        formvars.update(parse_querystring(environ))
     environ['paste.parsed_formvars'] = (formvars, source)
     return formvars
 
