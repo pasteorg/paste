@@ -123,7 +123,7 @@ fields::
 
 The ``parse_formvars`` function just takes the WSGI environment and
 calls the `cgi <http://python.org/doc/current/lib/module-cgi.html>`_
-module (the ``FieldStorage`` class) and turns that into a dictionary.
+module (the ``FieldStorage`` class) and turns that into a multidict.
 
 Now For a Framework
 ===================
@@ -175,7 +175,7 @@ So here's how we might implement ``__call__``::
     def __call__(self, environ, start_response):
         fields = parse_formvars(environ)
         obj = self.find_object(self.root, environ)
-        response_body = obj(**fields)
+        response_body = obj(**fields.mixed())
         start_response('200 OK', [('content-type', 'text/html')])
         return [response_body]
 
@@ -285,7 +285,7 @@ like::
         def __call__(self, environ, start_response):
             fields = parse_formvars(environ)
             obj = self.find_object(self.root, environ)
-            response_body = obj(**fields)
+            response_body = obj(**fields.mixed())
             start_response('200 OK', [('content-type', 'text/html')])
             return [response_body]
 

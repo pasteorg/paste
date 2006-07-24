@@ -85,9 +85,7 @@ class WSGIRequest(object):
         but the output will be put in environ['paste.post_vars']
         
         """
-        formvars = multidict()
-        formvars.update(parse_formvars(self.environ, all_as_list=True, include_get_vars=False))
-        return formvars
+        return parse_formvars(self.environ, include_get_vars=False)
     POST = property(POST, doc=POST.__doc__)
 
     def params(self):
