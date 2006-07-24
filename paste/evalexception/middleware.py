@@ -523,6 +523,8 @@ def make_repost_button(environ):
         # the POST body is probably lost at this point, and
         # I can't get it back :(
         return None
+    # @@: Use or lose the following code block
+    """
     fields = []
     for name, value in wsgilib.parse_formvars(
         environ, include_get_vars=False).items():
@@ -538,6 +540,7 @@ def make_repost_button(environ):
 %s
 <input type="submit" value="Re-POST Page">
 </form>''' % (url, '\n'.join(fields))
+"""
     
 
 def input_form(tbid, debug_info):
