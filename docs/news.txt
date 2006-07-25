@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+0.9.6
+-----
+
+* Renamed the ``paste.util.multidict.multidict`` class to
+  ``paste.util.multidict.MultiDict``
+
 0.9.5
 -----
 

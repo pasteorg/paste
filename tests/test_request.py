@@ -21,5 +21,5 @@ def test_gets():
     assert "get is {}" in res
     
     res = app.get('/?name=george')
-    res.mustcontain("get is multidict([('name', 'george')])")
+    res.mustcontain("get is MultiDict([('name', 'george')])")
     res.mustcontain("Val is george")

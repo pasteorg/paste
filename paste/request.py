@@ -23,7 +23,7 @@ from Cookie import SimpleCookie
 from StringIO import StringIO
 import urlparse
 from util.UserDict24 import DictMixin, IterableUserDict, UserDict
-from paste.util.multidict import multidict
+from paste.util.multidict import MultiDict
 
 __all__ = ['get_cookies', 'get_cookie_dict', 'parse_querystring',
            'parse_formvars', 'construct_url', 'path_info_split',
@@ -93,7 +93,7 @@ def parse_querystring(environ):
     return parsed
 
 def parse_dict_querystring(environ):
-    """Parses a query string like parse_querystring, but returns a multidict
+    """Parses a query string like parse_querystring, but returns a MultiDict
 
     Caches this value in case parse_dict_querystring is called again
     for the same request.
@@ -120,15 +120,15 @@ def parse_dict_querystring(environ):
             return parsed
     parsed = cgi.parse_qsl(source, keep_blank_values=True,
                            strict_parsing=False)
-    multi = multidict(parsed)
+    multi = MultiDict(parsed)
     environ['paste.parsed_dict_querystring'] = (multi, source)
     return multi
 
 def parse_formvars(environ, include_get_vars=True):
-    """Parses the request, returning a multidict of form variables.
+    """Parses the request, returning a MultiDict of form variables.
 
     If ``include_get_vars`` is true then GET (query string) variables
-    will also be folded into the multidict.
+    will also be folded into the MultiDict.
 
     All values should be strings, except for file uploads which are
     left as FieldStorage instances.
@@ -167,7 +167,7 @@ def parse_formvars(environ, include_get_vars=True):
     if fake_out_cgi:
         environ['CONTENT_TYPE'] = old_content_type
         environ['CONTENT_LENGTH'] = old_content_length
-    formvars = multidict()
+    formvars = MultiDict()
     if isinstance(fs.value, list):
         for name in fs.keys():
             values = fs[name]
