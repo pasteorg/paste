@@ -2,7 +2,7 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 from UserDict import DictMixin
 
-class multidict(DictMixin):
+class MultiDict(DictMixin):
 
     """
     An ordered dictionary that can have multiple values for each key.
@@ -13,7 +13,7 @@ class multidict(DictMixin):
     def __init__(self, *args, **kw):
         if len(args) > 1:
             raise TypeError(
-                "multidict can only be called with one positional argument")
+                "MultiDict can only be called with one positional argument")
         if args:
             if hasattr(args[0], 'iteritems'):
                 items = list(args[0].iteritems())
@@ -112,7 +112,7 @@ class multidict(DictMixin):
         self._items = []
 
     def copy(self):
-        return multidict(self)
+        return MultiDict(self)
 
     def setdefault(self, key, default=None):
         for k, v in self._items:
@@ -154,7 +154,7 @@ class multidict(DictMixin):
 
     def __repr__(self):
         items = ', '.join(['(%r, %r)' % v for v in self._items])
-        return 'multidict([%s])' % items
+        return 'MultiDict([%s])' % items
 
     def __len__(self):
         return len(self._items)
@@ -187,7 +187,7 @@ class multidict(DictMixin):
 
 __test__ = {
     'general': """
-    >>> d = multidict(a=1, b=2)
+    >>> d = MultiDict(a=1, b=2)
     >>> d['a']
     1
     >>> d.getall('c')
@@ -206,8 +206,8 @@ __test__ = {
     [('a', 1), ('a', 2), ('b', 4)]
     >>> d.mixed()
     {'a': [1, 2], 'b': 4}
-    >>> multidict([('a', 'b')], c=2)
-    multidict([('a', 'b'), ('c', 2)])
+    >>> MultiDict([('a', 'b')], c=2)
+    MultiDict([('a', 'b'), ('c', 2)])
     """}
 
 if __name__ == '__main__':

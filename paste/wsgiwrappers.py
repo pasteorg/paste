@@ -2,7 +2,7 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import paste.httpexceptions
 from paste.request import EnvironHeaders, parse_formvars, parse_dict_querystring, get_cookie_dict
-from paste.util.multidict import multidict
+from paste.util.multidict import MultiDict
 from paste.response import HeaderDict
 import paste.registry as registry
 import paste.httpexceptions
@@ -89,7 +89,7 @@ class WSGIRequest(object):
     POST = property(POST, doc=POST.__doc__)
 
     def params(self):
-        """multidict of keys from POST, GET, URL dicts
+        """MultiDict of keys from POST, GET, URL dicts
 
         Return a key value from the parameters, they are checked in the
         following order: POST, GET, URL
@@ -100,7 +100,7 @@ class WSGIRequest(object):
             Returns a list of all the values by that key, collected from
             POST, GET, URL dicts
         """
-        pms = multidict()
+        pms = MultiDict()
         pms.update(self.POST)
         pms.update(self.GET)
         return pms
