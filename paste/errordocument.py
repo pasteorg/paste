@@ -175,6 +175,10 @@ class StatusBasedForward:
 
         app_iter = self.application(environ, change_response)
         if url:
+            if hasattr(app_iter, 'close'):
+                list(app_iter)
+                app_iter.close()
+
             if self.debug:
                 environ['wsgi.errors'].write(
                     '=> paste.errordocuments: -> %r\n'%url[0][0]
