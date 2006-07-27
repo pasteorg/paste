@@ -38,6 +38,7 @@ from paste import wsgilib
 from paste import urlparser
 from paste import httpexceptions
 from paste import request
+from paste import response
 import evalcontext
 
 limit = 200
@@ -107,7 +108,7 @@ def wsgiapp():
             def application(environ, start_response):
                 form = wsgilib.parse_formvars(environ,
                                               include_get_vars=True)
-                headers = wsgilib.ResponseHeaderDict(
+                headers = response.HeaderDict(
                     {'content-type': 'text/html',
                      'status': '200 OK'})
                 form['environ'] = environ
