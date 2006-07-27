@@ -532,7 +532,7 @@ class ResponseHeaderDict(HeaderDict):
     def __init__(self, *args, **kw):
         warnings.warn(
             "The class wsgilib.ResponseHeaderDict has been moved "
-            "to paste.response.ResponseHeaderDict",
+            "to paste.response.HeaderDict",
             DeprecationWarning, 2)
         HeaderDict.__init__(self, *args, **kw)
 
