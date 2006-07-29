@@ -407,7 +407,7 @@ class DebugInfo(object):
                 "No frame by id %s found from %r" % (tbid, self.frames))
 
     def wsgi_application(self, environ, start_response):
-        start_response('200 OK', [('content-type', 'text-html')])
+        start_response('200 OK', [('content-type', 'text/html')])
         return self.content()
 
     def content(self):
