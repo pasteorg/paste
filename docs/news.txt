@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+0.9.7
+-----
+
+* Fixed ``EvalException`` returning a Content-type of 'text-html'
+  instead of 'text/html' in some cases.
+
 0.9.6
 -----
 
