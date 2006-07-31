@@ -485,19 +485,24 @@ def make_table(items):
         '\n'.join(rows))
 
 def format_eval_html(exc_data, base_path, counter):
-    short_er = EvalHTMLFormatter(
+    short_formatter = EvalHTMLFormatter(
         base_path=base_path,
         counter=counter,
-        include_reusable=False).format_collected_data(exc_data)
-    long_er = EvalHTMLFormatter(
+        include_reusable=False)
+    short_er = short_formatter.format_collected_data(exc_data)
+    long_formatter = EvalHTMLFormatter(
         base_path=base_path,
         counter=counter,
         show_hidden_frames=True,
         show_extra_data=False,
-        include_reusable=False).format_collected_data(exc_data)
+        include_reusable=False)
+    long_er = long_formatter.format_collected_data(exc_data)
     text_er = formatter.format_text(exc_data, show_hidden_frames=True)
-    return """
-    %s
+    if short_formatter.filter_frames(exc_data.frames) != \
+        long_formatter.filter_frames(exc_data.frames):
+        # Only display the full traceback when it differs from the
+        # short version
+        full_traceback_html = """
     <br>
     <script type="text/javascript">
     show_button('full_traceback', 'full traceback')
@@ -505,6 +510,13 @@ def format_eval_html(exc_data, base_path, counter):
     <div id="full_traceback" class="hidden-data">
     %s
     </div>
+        """ % long_er
+    else:
+        full_traceback_html = ''
+    
+    return """
+    %s
+    %s
     <br>
     <script type="text/javascript">
     show_button('text_version', 'text version')
@@ -512,7 +524,7 @@ def format_eval_html(exc_data, base_path, counter):
     <div id="text_version" class="hidden-data">
     <textarea style="width: 100%%" rows=10 cols=60>%s</textarea>
     </div>
-    """ % (short_er, long_er, cgi.escape(text_er))
+    """ % (short_er, full_traceback_html, cgi.escape(text_er))
 
 def make_repost_button(environ):
     url = request.construct_url(environ)
