@@ -6,6 +6,10 @@ News
 0.9.7
 -----
 
+* The ``EvalException`` 'full traceback' button is now only displayed
+  when the full traceback differs from the regular (includes hidden
+  frames).
+
 * Fixed ``EvalException`` returning a Content-type of 'text-html'
   instead of 'text/html' in some cases.
 
