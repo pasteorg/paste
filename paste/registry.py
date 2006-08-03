@@ -132,7 +132,12 @@ class StackedObjectProxy(object):
         self.current_obj().__delitem__(key)
     
     def __repr__(self):
-        return self.current_obj().__repr__()
+        try:
+            return self.current_obj().__repr__()
+        except TypeError:
+            return '<%s.%s object at 0x%08x>' % (__name__,
+                                                   self.__class__.__name__,
+                                                   id(self))
     
     def __iter__(self):
         """Only works for proxying to a dict"""
