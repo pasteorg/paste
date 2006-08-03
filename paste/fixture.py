@@ -405,6 +405,8 @@ class TestResponse(object):
 
     def form__get(self):
         forms = self.forms
+        assert len(forms) > 0, (
+            "You used response.form, but no forms exist")
         assert len(forms) == 1, (
             "You used response.form, but more than one form exists")
         return forms[0]
