@@ -29,7 +29,7 @@ News
 * Significantly improved ``paste.httpserver``'s (egg:Paste#http)
   performance. It now uses a thread pool: previously it created a new
   thread for every request. To revert back to the old, slower behavior,
-  set:
+  set::
 
   use_threadpool = false
 
@@ -62,7 +62,7 @@ News
 
     Please check your system clock.
     According to this server, the time provided in the
-    If-Modified-Since header is in the future.'
+    If-Modified-Since header is in the future.
 
 * Added a 'no' keyword argument to ``TestResponse.mustcontain``, so
   you can assert that a response does contain some strings at the same
