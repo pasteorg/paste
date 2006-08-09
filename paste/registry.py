@@ -280,14 +280,10 @@ class RegistryManager(object):
             if app_iter is None:
                 # An error occurred...
                 reg.cleanup()
-        if type(app_iter) in (list, tuple):
-            # Because it is a concrete iterator (not a generator) we
-            # know the configuration for this thread is no longer
-            # needed:
-            reg.cleanup()
-            return app_iter
-        else:
-            new_app_iter = wsgilib.add_close(app_iter, reg.cleanup)
-            return new_app_iter
-
-
+        
+        # Regardless of if the content is an iterable, generator, list
+        # or tuple, we clean-up right now. If its an iterable/generator
+        # care should be used to ensure the generator has its own ref
+        # to the actual object
+        reg.cleanup()
+        return app_iter
