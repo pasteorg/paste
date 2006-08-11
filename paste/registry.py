@@ -277,8 +277,6 @@ class RegistryManager(object):
         try:
             app_iter = self.application(environ, start_response)
         finally:
-            if hasattr(app_iter, 'close'):
-                app_iter.close()
             # Regardless of if the content is an iterable, generator, list
             # or tuple, we clean-up right now. If its an iterable/generator
             # care should be used to ensure the generator has its own ref
