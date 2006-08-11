@@ -625,6 +625,8 @@ class HTTPExceptionHandler:
     def send_http_response(self, environ, start_response, exc_info):
         try:
             exc = exc_info[1]
+            assert(isinstance(exc, HTTPException)), \
+                'send_http_response triggered via a non HTTPException'
             return exc.wsgi_application(environ, start_response, exc_info)
         finally:
             exc_info = None
