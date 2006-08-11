@@ -215,18 +215,19 @@ def catch_errors_app(application, environ, start_response, error_callback_app,
     else:
         return _wrap_app_iter_app(
             environ, start_response, app_iter,
-            error_callback_app, ok_callback)
+            error_callback_app, ok_callback, catch=catch)
 
 class _wrap_app_iter_app(object):
 
     def __init__(self, environ, start_response, app_iterable,
-                 error_callback_app, ok_callback):
+                 error_callback_app, ok_callback, catch=Exception):
         self.environ = environ
         self.start_response = start_response
         self.app_iterable = app_iterable
         self.app_iter = iter(app_iterable)
         self.error_callback_app = error_callback_app
         self.ok_callback = ok_callback
+        self.catch = catch
         if hasattr(self.app_iterable, 'close'):
             self.close = self.app_iterable.close
 
@@ -240,7 +241,7 @@ class _wrap_app_iter_app(object):
             if self.ok_callback:
                 self.ok_callback()
             raise
-        except:
+        except self.catch:
             if hasattr(self.app_iterable, 'close'):
                 try:
                     self.app_iterable.close()
@@ -252,6 +253,8 @@ class _wrap_app_iter_app(object):
             app_iter = iter(new_app_iterable)
             if hasattr(new_app_iterable, 'close'):
                 self.close = new_app_iterable.close
+            else:
+                del self.close
             self.next = app_iter.next
             return self.next()
 
