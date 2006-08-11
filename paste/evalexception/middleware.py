@@ -329,30 +329,6 @@ class EvalException(object):
             # @@: it would be nice to deal with bad content types here
             return debug_info.content()
 
-    def catching_iter(self, app_iter, environ):
-        __traceback_supplement__ = errormiddleware.Supplement, self, environ
-        if not app_iter:
-            raise StopIteration
-        error_on_close = False
-        try:
-            for v in app_iter:
-                yield v
-            if hasattr(app_iter, 'close'):
-                error_on_close = True
-                app_iter.close()
-        except:
-            response = self.exception_handler(sys.exc_info(), environ)
-            if not error_on_close and hasattr(app_iter, 'close'):
-                try:
-                    app_iter.close()
-                except:
-                    close_response = self.exception_handler(
-                        sys.exc_info(), environ)
-                    response += (
-                        '<hr noshade>Error in .close():<br>%s'
-                        % close_response)
-            yield response
-
     def exception_handler(self, exc_info, environ):
         simple_html_error = False
         if self.xmlhttp_key:
