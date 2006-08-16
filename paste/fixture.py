@@ -171,8 +171,6 @@ class TestApp(object):
         Returns a `response object
         <class-paste.fixture.TestResponse.html>`_
         """
-        if headers is None:
-            headers = {}
         if extra_environ is None:
             extra_environ = {}
         # Hide from py.test:
@@ -186,19 +184,12 @@ class TestApp(object):
                 url += '?'
             url += params
         environ = self._make_environ()
-        for header, value in headers.items():
-            if header.lower() == 'content-type':
-                var = 'CONTENT_TYPE'
-            elif header.lower() == 'content-length':
-                var = 'CONTENT_LENGTH'
-            else:
-                var = 'HTTP_%s' % header.replace('-', '_').upper()
-            environ[var] = value
         url = str(url)
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
         else:
             environ['QUERY_STRING'] = ''
+        self._set_headers(headers, environ)
         environ.update(extra_environ)
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
@@ -237,11 +228,25 @@ class TestApp(object):
         environ['CONTENT_LENGTH'] = str(len(params))
         environ['REQUEST_METHOD'] = 'POST'
         environ['wsgi.input'] = StringIO(params)
-        for header, value in headers.items():
-            environ['HTTP_%s' % header.replace('-', '_').upper()] = value
+        self._set_headers(headers, environ)
         environ.update(extra_environ)
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
+
+    def _set_headers(self, headers, environ):
+        """
+        Turn any headers into environ variables
+        """
+        if not headers:
+            return
+        for header, value in headers.items():
+            if header.lower() == 'content-type':
+                var = 'CONTENT_TYPE'
+            elif header.lower() == 'content-length':
+                var = 'CONTENT_LENGTH'
+            else:
+                var = 'HTTP_%s' % header.replace('-', '_').upper()
+            environ[var] = value
 
     def encode_multipart(self, params, files):
         """
