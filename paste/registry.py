@@ -60,7 +60,7 @@ when developing web applications.
 Should you be developing a system which may be accessing the proxy object
 thousands of times per request, the performance of the proxy will start to
 become more noticeabe. In that circumstance, the problem can be avoided by
-getting at the actual object via the proxy with the ``curent_obj`` function::
+getting at the actual object via the proxy with the ``_curent_obj`` function::
     
     #sessions.py
     Session = StackedObjectProxy()
@@ -70,12 +70,14 @@ getting at the actual object via the proxy with the ``curent_obj`` function::
     import sessions
     
     def somefunc():
-        session = sessions.Session.current_obj()
+        session = sessions.Session._current_obj()
         # ... tons of session access
 
 This way the proxy is used only once to retrieve the object for the current
 context and the overhead is minimized while still making it easy to access
-the underlying object.
+the underlying object. The ``_current_obj`` function is preceded by an
+underscore to more likely avoid clashing with the contained object's
+attributes.
 
 **NOTE:** This is *highly* unlikely to be an issue in the vast majority of
 cases, and requires incredibly large amounts of proxy object access before
@@ -84,6 +86,7 @@ is provided solely in the extremely rare case that it is an issue so that a
 quick way to work around it is documented.
 
 """
+import warnings
 import paste.util.threadinglocal as threadinglocal
 from paste import wsgilib
 
@@ -114,26 +117,26 @@ class StackedObjectProxy(object):
             self.__dict__['_default_object'] = default
     
     def __getattr__(self, attr):
-        return getattr(self.current_obj(), attr)
+        return getattr(self._current_obj(), attr)
     
     def __setattr__(self, attr, value):
-        setattr(self.current_obj(), attr, value)
+        setattr(self._current_obj(), attr, value)
     
     def __delattr__(self, name):
-        self.current_obj().__delattr__(name)
+        self._current_obj().__delattr__(name)
     
     def __getitem__(self, key):
-        return self.current_obj()[key]
+        return self._current_obj()[key]
     
     def __setitem__(self, key, value):
-        self.current_obj()[key] = value
+        self._current_obj()[key] = value
     
     def __delitem__(self, key):
-        self.current_obj().__delitem__(key)
+        self._current_obj().__delitem__(key)
     
     def __repr__(self):
         try:
-            return self.current_obj().__repr__()
+            return self._current_obj().__repr__()
         except TypeError:
             return '<%s.%s object at 0x%08x>' % (__name__,
                                                    self.__class__.__name__,
@@ -141,16 +144,23 @@ class StackedObjectProxy(object):
     
     def __iter__(self):
         """Only works for proxying to a dict"""
-        return iter(self.current_obj().keys())
+        return iter(self._current_obj().keys())
     
     def __len__(self):
-        return len(self.current_obj())
+        return len(self._current_obj())
     
     def __contains__(self, key):
-        # I thought __getattr__ would catch this, but apparently not
-        return self.current_obj().has_key(key)
+        return self._current_obj().has_key(key)
     
     def current_obj(self):
+        """
+        Deprecated (Aug 15 2006); moved to _current_obj.
+        """
+        warnings.warn('StackedObjectProxy.current_obj has been moved to '
+                      'StackedObjectProxy._current_obj', DeprecationWarning, 2)
+        return self._current_obj()
+
+    def _current_obj(self):
         """Returns the current active object being proxied to
         
         In the event that no object was pushed, the default object if
@@ -168,19 +178,27 @@ class StackedObjectProxy(object):
                 raise TypeError(
                     "No object (Name: %s) has been registered for this \
                     thread" % self.__dict__['_name'])
-    
+
     def push_object(self, obj):
+        """
+        Deprecated (Aug 15 2006); moved to _push_object.
+        """
+        warnings.warn('StackedObjectProxy.push_object has been moved to '
+                      'StackedObjectProxy._push_object', DeprecationWarning, 2)
+        self._push_object(obj)
+
+    def _push_object(self, obj):
         """Make ``obj`` the active object for this thread-local.
         
         This should be used like::
 
             obj = yourobject()
             module.glob = StackedObjectProxy()
-            module.glob.push_object(obj)
+            module.glob._push_object(obj)
             try:
                 ... do stuff ...
             finally:
-                module.glob.pop_object(conf)
+                module.glob._pop_object(conf)
         
         """
         if not hasattr(self.local, 'objects'):
@@ -188,6 +206,14 @@ class StackedObjectProxy(object):
         self.local.objects.append(obj)
     
     def pop_object(self, obj=None):
+        """
+        Deprecated (Aug 15 2006); moved to _pop_object.
+        """
+        warnings.warn('StackedObjectProxy.pop_object has been moved to '
+                      'StackedObjectProxy._pop_object', DeprecationWarning, 2)
+        self._pop_object(obj)
+
+    def _pop_object(self, obj=None):
         """Remove a thread-local object.
         
         If ``obj`` is given, it is checked against the popped object and an
@@ -240,7 +266,7 @@ class Registry(object):
     
     def register(self, stacked, obj):
         """Register an object with a StackedObjectProxy"""
-        stacked.push_object(obj)
+        stacked._push_object(obj)
         myreglist = self.reglist[-1]
         myreglist[id(stacked)] = (stacked, obj)
     
@@ -249,7 +275,7 @@ class Registry(object):
         were tracked at this Registry context"""
         for id, val in self.reglist[-1].iteritems():
             stacked, obj = val
-            stacked.pop_object(obj)
+            stacked._pop_object(obj)
         self.reglist.pop()
         
 class RegistryManager(object):
