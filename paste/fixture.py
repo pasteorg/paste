@@ -187,7 +187,13 @@ class TestApp(object):
             url += params
         environ = self._make_environ()
         for header, value in headers.items():
-            environ['HTTP_%s' % header.replace('-', '_').upper()] = value
+            if header.lower() == 'content-type':
+                var = 'CONTENT_TYPE'
+            elif header.lower() == 'content-length':
+                var = 'CONTENT_LENGTH'
+            else:
+                var = 'HTTP_%s' % header.replace('-', '_').upper()
+            environ[var] = value
         url = str(url)
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
