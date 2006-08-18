@@ -176,8 +176,8 @@ class StackedObjectProxy(object):
                 return object
             else:
                 raise TypeError(
-                    "No object (Name: %s) has been registered for this \
-                    thread" % self.__dict__['_name'])
+                    'No object (name: %s) has been registered for this '
+                    'thread' % self.__dict__['_name'])
 
     def push_object(self, obj):
         """
@@ -221,14 +221,13 @@ class StackedObjectProxy(object):
         
         """
         if not hasattr(self.local, 'objects'):
-            raise AssertionError("No object has been registered for this thread.")
+            raise AssertionError('No object has been registered for this thread')
         popped = self.local.objects.pop()
         if obj:
             if popped is not obj:
                 raise AssertionError(
-                    "The object popped (%s) is not the same as the object "
-                    "expected (%s)"
-                    % (popped, obj))
+                    'The object popped (%s) is not the same as the object '
+                    'expected (%s)' % (popped, obj))
 
 class Registry(object):
     """Track objects and stacked object proxies for removal
