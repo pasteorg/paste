@@ -10,12 +10,15 @@ try:
     import select
 except ImportError:
     select = None
-from paste.deploy import converters
+import warnings
 
 __all__ = ['CGIError', 'CGIApplication']
 
 class CGIError(Exception):
-    pass
+    """
+    Raised when the CGI script can't be found or doesn't
+    act like a proper CGI script.
+    """
 
 class CGIApplication(object):
 
@@ -26,15 +29,22 @@ class CGIApplication(object):
     a path, then ``$PATH`` will be used.
     """
 
-    def __init__(self, global_conf,
+    def __init__(self, 
                  script,
+                 global_conf=None,
                  path=None,
                  include_os_environ=True,
                  query_string=None):
+        if global_conf is not None:
+            raise NotImplemented(
+                "global_conf is no longer supported for CGIApplication "
+                "(use make_cgi_application)")
+        if isinstance(script, dict):
+            # Another sign of global_conf
+            raise NotImplemented(
+                "CGIApplication no longer takes a global_conf argument "
+                "(use make_cgi_application or remove that argument)")
         self.script_filename = script
-        if path is None:
-            path = (global_conf.get('path')
-                    or global_conf.get('PATH'))
         if path is None:
             path = os.environ.get('PATH', '').split(':')
         self.path = converters.aslist(path, ':')
@@ -243,3 +253,18 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
 
     proc.wait()
     
+def make_cgi_application(global_conf, script, path=None, include_os_environ=None,
+                         query_string=None):
+    """
+    This object acts as a proxy to a CGI application.  You pass in the
+    script path (``script``), an optional path to search for the
+    script (if the name isn't absolute) (``path``).  If you don't give
+    a path, then ``$PATH`` will be used.
+    """
+    if path is None:
+        path = global_conf.get('path') or global_conf.get('PATH')
+    from paste.deploy import converters
+    include_os_environ = converters.asbool(include_os_environ)
+    return CGIApplication(
+        script, path=path, include_os_environ=include_os_environ,
+        query_string=query_string)

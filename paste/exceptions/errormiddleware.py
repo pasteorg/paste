@@ -14,7 +14,6 @@ except ImportError:
 from paste.exceptions import formatter, collector, reporter
 from paste import wsgilib
 from paste import request
-from paste.deploy import converters
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
 
@@ -90,10 +89,13 @@ class ErrorMiddleware(object):
                  error_message=None,
                  xmlhttp_key=None):
         self.application = application
+        # @@: global_conf should be handled elsewhere in a separate
+        # function for the entry point
         if global_conf is None:
             global_conf = {}
         if debug is NoDefault:
             debug = global_conf.get('debug')
+        from paste.deploy import converters
         self.debug_mode = converters.asbool(debug)
         if error_email is None:
             error_email = (global_conf.get('error_email')

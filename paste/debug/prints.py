@@ -23,7 +23,6 @@ import cgi
 from paste.util import threadedprint
 from paste import wsgilib
 from paste import response
-from paste.deploy.converters import asbool
 
 _threadedprint_installed = False
 
@@ -64,9 +63,14 @@ class PrintDebugMiddleware(object):
 
     def __init__(self, app, global_conf=None, force_content_type=False,
                  print_wsgi_errors=True):
+        # @@: global_conf should be handled separately and only for
+        # the entry point
         self.app = app
         self.force_content_type = force_content_type
-        self.print_wsgi_errors = asbool(print_wsgi_errors)
+        if isinstance(print_wsgi_errors, basestring):
+            from paste.deploy.converters import asbool
+            print_wsgi_errors = asbool(print_wsgi_errors)
+        self.print_wsgi_errors = print_wsgi_errors
 
     def __call__(self, environ, start_response):
         global _threadedprint_installed

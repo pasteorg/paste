@@ -8,6 +8,17 @@ News
 
 * Added a Paste Deploy entry point for ``paste.auth.cookie``
 
+* Moved Paste Deploy dependencies out of top-level modules and into
+  Paste-Deploy-specific entry point functions.  This should make Paste
+  more-or-less Paste Deploy independent.  ``paste.urlparser`` and
+  ``paste.exceptions.errormiddleware`` still have some leftover bits.
+
+* Added another redirector type to ``paste.recursive``,
+  ``environ['paste.recursive.include_app_iter']`` which gives access
+  to the original app_iter (useful for tranfsering unserialized data
+  in internal WSGI requests, as in `WSGIRemote
+  <http://svn.pythonpaste.org/Paste/WSGIRemote/trunk>`_
+
 0.9.7
 -----
 
