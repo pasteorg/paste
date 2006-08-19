@@ -253,8 +253,6 @@ class _wrap_app_iter_app(object):
             app_iter = iter(new_app_iterable)
             if hasattr(new_app_iterable, 'close'):
                 self.close = new_app_iterable.close
-            else:
-                del self.close
             self.next = app_iter.next
             return self.next()
 

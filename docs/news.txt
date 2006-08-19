@@ -19,6 +19,9 @@ News
   in internal WSGI requests, as in `WSGIRemote
   <http://svn.pythonpaste.org/Paste/WSGIRemote/trunk>`_
 
+* Bug with ``wsgilib.catch_errors`` and app_iters with no ``close()``
+  method.
+
 0.9.7
 -----
 
