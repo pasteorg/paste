@@ -30,24 +30,19 @@ class CGIApplication(object):
     """
 
     def __init__(self, 
+                 global_conf,
                  script,
-                 global_conf=None,
                  path=None,
                  include_os_environ=True,
                  query_string=None):
-        if global_conf is not None:
+        if global_conf:
             raise NotImplemented(
                 "global_conf is no longer supported for CGIApplication "
-                "(use make_cgi_application)")
-        if isinstance(script, dict):
-            # Another sign of global_conf
-            raise NotImplemented(
-                "CGIApplication no longer takes a global_conf argument "
-                "(use make_cgi_application or remove that argument)")
+                "(use make_cgi_application); please pass None instead")
         self.script_filename = script
         if path is None:
             path = os.environ.get('PATH', '').split(':')
-        self.path = converters.aslist(path, ':')
+        self.path = path
         if '?' in script:
             assert query_string is None, (
                 "You cannot have '?' in your script name (%r) and also "
@@ -65,7 +60,7 @@ class CGIApplication(object):
                     % (script, self.path))
         else:
             self.script = script
-        self.include_os_environ = converters.asbool(include_os_environ)
+        self.include_os_environ = include_os_environ
         self.query_string = query_string
 
     def __call__(self, environ, start_response):
