@@ -6,7 +6,6 @@ Cascades through several applications, so long as applications
 return ``404 Not Found``.
 """
 import httpexceptions
-from paste.deploy import converters
 
 __all__ = ['Cascade']
 
@@ -22,6 +21,7 @@ def make_cascade(loader, global_conf, catch='404', **local_conf):
     ...
     catch = 404 500 ...
     """
+    from paste.deploy import converters
     catch = map(int, converters.aslist(catch))
     apps = []
     for name, value in local_conf.items():

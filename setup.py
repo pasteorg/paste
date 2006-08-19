@@ -138,10 +138,10 @@ For the latest changes see the `news file
         },
       entry_points="""
       [paste.app_factory]
-      cgi = paste.cgiapp:CGIApplication [subprocess]
-      pycgi = paste.pycgiwrapper:CGIWrapper
+      cgi = paste.cgiapp:make_cgi_application [subprocess]
       static = paste.urlparser:make_static
       pkg_resources = paste.urlparser:make_pkg_resources
+      urlparser = paste.urlparser:make_url_parser
       selenium_index = paste.debug.recorder.selenium_suite:make_selenium_index_app
       proxy = paste.proxy:make_proxy
       test = paste.debug.debugapp:make_test_app

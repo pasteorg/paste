@@ -12,7 +12,6 @@ for more.
 import cgitb
 from cStringIO import StringIO
 import sys
-from paste.deploy import converters
 
 class NoDefault:
     pass
@@ -25,10 +24,15 @@ class CgitbMiddleware(object):
                  logdir=None,
                  context=5,
                  format="html"):
+        # @@: global_conf should only be present in a seperate
+        # function for the entry point
         self.app = app
         if display is NoDefault:
             display = global_conf.get('debug')
-        self.display = converters.asbool(display)
+        if isinstance(display, basestring):
+            from paste.deploy import converters
+            display = converters.asbool(display)
+        self.display = display
         self.logdir = logdir
         self.context = int(context)
         self.format = format

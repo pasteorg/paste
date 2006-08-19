@@ -13,7 +13,6 @@ import mimetypes
 import request
 import fileapp
 from paste.util import import_string
-from paste.deploy import converters
 import httpexceptions
 from httpheaders import ETAG
 
@@ -94,10 +93,21 @@ class URLParser(object):
         represents, thus any Python modules in this directory will
         be given names under this package.
         """
+        if global_conf:
+            import warnings
+            warnings.warn(
+                'The global_conf argument to URLParser is deprecated; '
+                'either pass in None or {}, or use make_url_parser',
+                DeprecationWarning)
+        else:
+            global_conf = {}
         if os.path.sep != '/':
             directory = directory.replace(os.path.sep, '/')
         self.directory = directory
         self.base_python_name = base_python_name
+        # This logic here should be deprecated since it is in
+        # make_url_parser
+        from paste.deploy import converters
         if index_names is NoDefault:
             index_names = global_conf.get(
                 'index_names', ('index', 'Index', 'main', 'Main'))
@@ -573,3 +583,40 @@ def make_pkg_resources(global_conf, egg, resource_name=''):
     which is the path in the egg that this starts at.
     """
     return PkgResourcesParser(egg, resource_name)
+
+def make_url_parser(global_conf, directory, base_python_name,
+                    index_names=None, hide_extensions=None,
+                    ignore_extensions=None,
+                    **constructor_conf):
+    """
+    Create a URLParser application that looks in ``directory``, which
+    should be the directory for the Python package named in
+    ``base_python_name``.  ``index_names`` are used when viewing the
+    directory (like ``'index'`` for ``'index.html'``).
+    ``hide_extensions`` are extensions that are not viewable (like
+    ``'.pyc'``) and ``ignore_extensions`` are viewable but only if an
+    explicit extension is given.
+    """
+    from paste.deploy import converters
+    if index_names is None:
+        index_names = global_conf.get(
+            'index_names', ('index', 'Index', 'main', 'Main'))
+    index_names = converters.aslist(index_names)
+
+    if hide_extensions is None:
+        hide_extensions = global_conf.get(
+            'hide_extensions', ('.pyc', 'bak', 'py~'))
+    hide_extensions = converters.aslist(hide_extensions)
+    
+    if ignore_extensions is None:
+        ignore_extensions = global_conf.get(
+            'ignore_extensions', ())
+    ignore_extensions = converters.aslist(ignore_extensions)
+    # There's no real way to set constructors currently...
+    
+    return URLParser({}, directory, base_python_name,
+                     index_names=index_names,
+                     hide_extensions=hide_extensions,
+                     ignore_extensions=ignore_extensions,
+                     **constructor_conf)
+
