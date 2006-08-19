@@ -174,6 +174,7 @@ For the latest changes see the `news file
       recorder = paste.debug.recorder.record:make_recorder
       pony = paste.pony:make_pony
       errordocument = paste.errordocument:make_errordocument
+      auth_cookie = paste.auth.cookie:make_auth_cookie
 
       [paste.server_runner]
       http = paste.httpserver:server_runner
