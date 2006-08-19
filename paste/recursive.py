@@ -18,7 +18,7 @@ you to trigger recursive redirects and forwards.
 ``paste.recursive.old_path_info``:
     A list of previous ``PATH_INFO`` values from previous redirects.
 
-Raise ``ForewardRequestException(new_path_info)`` to do a forward
+Raise ``ForwardRequestException(new_path_info)`` to do a forward
 (aborting the current request).
 """
 
@@ -65,13 +65,15 @@ class RecursiveMiddleware(object):
         environ['paste.recursive.forward'] = Forwarder(
             self.application, 
             environ, 
-            start_response,
-        )
+            start_response)
         environ['paste.recursive.include'] = Includer(
             self.application, 
             environ, 
-            start_response
-        )
+            start_response)
+        environ['paste.recursive.include_app_iter'] = IncluderAppIter(
+            self.application,
+            environ,
+            start_response)
         my_script_name = environ.get('SCRIPT_NAME', '')
         current_path_info = environ.get('PATH_INFO', '')
         environ['paste.recursive.script_name'] = my_script_name
@@ -336,3 +338,39 @@ class IncludedResponse(object):
             return self.str
     body = property(body__get)
 
+
+class IncluderAppIter(Recursive):
+    """
+    Like Includer, but just stores the app_iter response
+    (be sure to call close on the response!)
+    """
+
+    def activate(self, environ):
+        response = IncludedAppIterResponse()
+        def start_response(status, headers, exc_info=None):
+            if exc_info:
+                raise exc_info[0], exc_info[1], exc_info[2]
+            response.status = status
+            response.headers = headers
+            return response.write
+        app_iter = self.application(environ, start_response)
+        response.app_iter = app_iter
+        return response
+
+class IncludedAppIterResponse(object):
+
+    def __init__(self):
+        self.status = None
+        self.headers = None
+        self.accumulated = []
+        self.app_iter = None
+        self._closed = False
+
+    def close(self):
+        assert not self._closed, (
+            "Tried to close twice")
+        if hasattr(self.app_iter, 'close'):
+            self.app_iter.close()
+            
+    def write(self, s):
+        self.accumulated.append
