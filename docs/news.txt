@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+0.9.8
+-----
+
+* Added a Paste Deploy entry point for ``paste.auth.cookie``
+
 0.9.7
 -----
 
@@ -31,7 +36,7 @@ News
   thread for every request. To revert back to the old, slower behavior,
   set::
 
-  use_threadpool = false
+    use_threadpool = false
 
   in the [server:main] section of the config file.
 
