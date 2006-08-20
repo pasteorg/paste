@@ -60,7 +60,7 @@ class WSGIRequest(object):
     
     def is_xhr(self):
         """Returns a boolean if X-Requested-With is present and a XMLHttpRequest"""
-        return self.environ.get('X-Requested-With', '') == 'XMLHttpRequest'
+        return self.environ.get('HTTP_X-Requested-With', '') == 'XMLHttpRequest'
     is_xhr = property(is_xhr, doc=is_xhr.__doc__)
     
     def host(self):
