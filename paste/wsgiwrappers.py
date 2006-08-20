@@ -57,7 +57,11 @@ class WSGIRequest(object):
     script_name = environ_getter('SCRIPT_NAME')
     path_info = environ_getter('PATH_INFO')
     urlvars = environ_getter('paste.urlvars', default_factory=dict)
-    xhr = environ_getter('X-Requested-With', default=False)
+    
+    def is_xhr(self):
+        """Returns a boolean if X-Requested-With is present and a XMLHttpRequest"""
+        return self.environ.get('X-Requested-With', '') == 'XMLHttpRequest'
+    is_xhr = property(is_xhr, doc=is_xhr.__doc__)
     
     def host(self):
         """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
