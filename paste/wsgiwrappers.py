@@ -57,6 +57,7 @@ class WSGIRequest(object):
     script_name = environ_getter('SCRIPT_NAME')
     path_info = environ_getter('PATH_INFO')
     urlvars = environ_getter('paste.urlvars', default_factory=dict)
+    xhr = environ_getter('X-Requested-With', default=False)
     
     def host(self):
         """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
