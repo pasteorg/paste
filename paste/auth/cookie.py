@@ -49,6 +49,7 @@ def make_time(value):
 _signature_size = len(hmac.new('x','x',sha).digest())
 _header_size = _signature_size + len(make_time(time.time()))
 
+# @@: Should this be using urllib.quote?
 # build encode/decode functions to safely pack away values
 _encode = [('\\','\\x5c'),('"','\\x22'),('=','\\x3d'),(';','\\x3b')]
 _decode = [(v,k) for (k,v) in _encode]
@@ -116,6 +117,10 @@ class AuthCookieSigner:
     """
     def __init__(self, secret = None, timeout = None, maxlen = None):
         self.timeout = timeout or 30
+        if isinstance(timeout, basestring):
+            raise ValueError(
+                "Timeout must be a number (minutes), not a string (%r)"
+                % timeout)
         self.maxlen  = maxlen or 4096
         self.secret = secret or new_secret()
 
