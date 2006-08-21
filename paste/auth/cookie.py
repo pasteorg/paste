@@ -275,6 +275,11 @@ class AuthCookieHandler:
             for k in scanlist:
                 v = environ.get(k,None)
                 if v is not None:
+                    if type(v) is not str:
+                        raise ValueError(
+                            "The value of the environmental variable %r "
+                            "is not a str (only str is allowed; got %r)"
+                            % (k, v))
                     content.append("%s=%s" % (encode(k),encode(v)))
             if content:
                 content = ";".join(content)
