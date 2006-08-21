@@ -312,7 +312,7 @@ class HTMLFormatter(TextFormatter):
                 % (odd and 'odd' or 'even', self.quote(name)))
             table.append(
                 '<td><tt>%s</tt></td></tr>'
-                % make_wrappable(self.quote(value)))
+                % make_wrappable(self.quote(truncate(value))))
         table.append('</table>')
         return '\n'.join(table)
 
@@ -504,24 +504,39 @@ def _str2html(src, strip=False, indent_subsequent=0,
         lambda m: '&nbsp;'*(len(m.group(0))-1) + ' ', src)
     return src
 
+def truncate(string, limit=1000):
+    """
+    Truncate the string to the limit number of
+    characters
+    """
+    if len(string) > limit:
+        return string[:limit-20]+'...'+string[-17:]
+    else:
+        return string
+
 def make_wrappable(html, wrap_limit=60,
                    split_on=';?&@!$#-/\\"\''):
     # Currently using <wbr>, maybe should use &#8203;
     #   http://www.cs.tut.fi/~jkorpela/html/nobr.html
+    if len(html) <= wrap_limit:
+        return html
     words = html.split()
     new_words = []
     for word in words:
-        if len(word) > wrap_limit:
+        wrapped_word = ''
+        while len(word) > wrap_limit:
             for char in split_on:
                 if char in word:
-                    words = [
-                        make_wrappable(w, wrap_limit=wrap_limit,
-                                            split_on=split_on)
-                        for w in word.split(char, 1)]
-                    new_words.append('<wbr>'.join(words))
+                    first, rest = word.split(char, 1)
+                    wrapped_word += first+char+'<wbr>'
+                    word = rest
                     break
-        else:
-            new_words.append(word)
+            else:
+                for i in range(0, len(word), wrap_limit):
+                    wrapped_word += word[i:i+wrap_limit]+'<wbr>'
+                word = ''
+        wrapped_word += word
+        new_words.append(wrapped_word)
     return ' '.join(new_words)
 
 def make_pre_wrappable(html, wrap_limit=60,

@@ -22,6 +22,12 @@ News
 * Bug with ``wsgilib.catch_errors`` and app_iters with no ``close()``
   method.
 
+* Long words in tracebacks weren't being wrapped correctly at all.
+  Also, large data would cause the wrapping routine to give a
+  recursion error.  Now large data is truncated (at 1000 characters),
+  and recursion won't be a problem.  Also, wrapping shouldn't lose
+  characters.
+
 0.9.7
 -----
 
