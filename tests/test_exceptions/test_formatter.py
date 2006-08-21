@@ -174,3 +174,13 @@ def test_hide_before():
             assert 'raise_error' in result
         else:
             assert 0
+
+def test_make_wrappable():
+    assert '<wbr>' in formatter.make_wrappable('x'*1000)
+    # I'm just going to test that this doesn't excede the stack limit:
+    formatter.make_wrappable(';'*2000)
+    assert (formatter.make_wrappable('this that the other')
+            == 'this that the other')
+    assert (formatter.make_wrappable('this that ' + ('x'*50) + ';' + ('y'*50) + ' and the other')
+            == 'this that '+('x'*50) + ';<wbr>' + ('y'*50) + ' and the other')
+
