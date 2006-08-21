@@ -137,7 +137,7 @@ def parse_formvars(environ, include_get_vars=True):
     XML body) then ``environ['wsgi.input']`` won't be read.
     """
     source = (environ.get('QUERY_STRING', ''),
-              environ['wsgi.input'], environ['REQUEST_METHOD'],
+              environ['wsgi.input'],
               include_get_vars)
     if 'paste.parsed_formvars' in environ:
         parsed, check_source = environ['paste.parsed_formvars']
