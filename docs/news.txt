@@ -28,6 +28,9 @@ News
   and recursion won't be a problem.  Also, wrapping shouldn't lose
   characters.
 
+* Better exception if you try to put a non-str into environ when using
+  ``paste.auth.cookie``
+
 0.9.7
 -----
 
