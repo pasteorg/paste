@@ -19,7 +19,7 @@ def simpleapp_withregistry(environ, start_response):
     status = '200 OK'
     response_headers = [('Content-type','text/plain')]
     start_response(status, response_headers)
-    return ['Hello world!Value is %s\n' % testobj]
+    return ['Hello world!Value is %s\n' % testobj.keys()]
 
 def simpleapp_withregistry_default(environ, start_response):
     status = '200 OK'
@@ -74,7 +74,8 @@ class RegistryMiddleMan(object):
             response = []
             for line in app_iter:
                 response.append(line)
-            app_iter.close()
+            if hasattr(app_iter, 'close'):
+                app_iter.close()
             app_response.extend(response)
         app_response.extend(['\nAppended by middleware!\nAppendValue at \
             depth %s is %s' % (self.depth, str(testobj))])

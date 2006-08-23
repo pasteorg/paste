@@ -75,8 +75,11 @@ class AbstractFormatter(object):
             if source:
                 lines.append(self.format_long_source(
                     source, long_source))
+        etype = exc_data.exception_type
+        if not isinstance(etype, basestring):
+            etype = etype.__name__
         exc_info = self.format_exception_info(
-            exc_data.exception_type,
+            etype,
             exc_data.exception_value)
         data_by_importance = {'important': [], 'normal': [],
                               'supplemental': [], 'extra': []}

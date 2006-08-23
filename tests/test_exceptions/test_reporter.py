@@ -28,7 +28,7 @@ def test_logger():
     content = open(fn).read()
     assert len(content.splitlines()) == 4
     assert 'ValueError' in content
-    assert 'int(): a' in content
+    assert 'int' in content
     assert 'test_reporter.py' in content
     assert 'test_logger' in content
     

@@ -87,7 +87,7 @@ def test_start_res():
 def test_after_start():
     res = do_request(after_start_response_app, 200)
     res = strip_html(str(res))
-    #print res
+    print res
     assert 'ValueError: error2' in res
     assert ':53' in res
 

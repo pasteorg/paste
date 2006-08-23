@@ -31,6 +31,12 @@ News
 * Better exception if you try to put a non-str into environ when using
   ``paste.auth.cookie``
 
+* ``paste.exceptions.collector`` produces an
+  ``exc_data.exception_type`` that is a class, not a string.  This
+  helps it get formatted better in Python 2.5.
+
+* All the tests pass on Python 2.5!
+
 0.9.7
 -----
 
