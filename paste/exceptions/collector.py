@@ -95,7 +95,7 @@ class ExceptionCollector:
     ``exception_formatted``:
         The formatted exception, generally a full traceback
     ``exception_type``:
-        The string type of the exception, like ``'ValueError'``
+        The type of the exception, like ``ValueError``
     ``exception_value``:
         The string value of the exception, like ``'x not in list'``
     ``identification_code``:
@@ -346,7 +346,7 @@ class ExceptionCollector:
         result = CollectedException(
             frames=frames,
             exception_formatted=self.collectExceptionOnly(etype, value),
-            exception_type=str(etype),
+            exception_type=etype,
             exception_value=str(value),
             identification_code=ident,
             date=time.localtime(),
