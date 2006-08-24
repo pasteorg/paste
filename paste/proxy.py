@@ -121,3 +121,72 @@ def make_proxy(global_conf, address, allowed_request_methods=""):
     from paste.deploy.converters import aslist
     allowed_request_methods = aslist(allowed_request_methods)
     return Proxy(address, allowed_request_methods=allowed_request_methods)
+
+
+class TransparentProxy(object):
+
+    """
+    A proxy that sends the request just as it was given, including
+    respecting HTTP_HOST, wsgi.url_scheme, etc.
+
+    This is a way of translating WSGI requests directly to real HTTP
+    requests.  All information goes in the environment; modify it to
+    modify the way the request is made.
+    """
+
+    def __init__(self):
+        pass
+
+    def __call__(self, environ, start_response):
+        scheme = environ['wsgi.url_scheme']
+        if scheme == 'http':
+            ConnClass = httplib.HTTPConnection
+        elif scheme == 'https':
+            ConnClass = httplib.HTTPSConnection
+        else:
+            raise ValueError(
+                "Unknown scheme %r" % scheme)
+        if 'HTTP_HOST' not in environ:
+            raise ValueError(
+                "WSGI environ must contain an HTTP_HOST key")
+        host = environ['HTTP_HOST']
+        conn = ConnClass(host)
+        headers = {}
+        for key, value in environ.items():
+            if key.startswith('HTTP_'):
+                key = key[5:].lower().replace('_', '-')
+                headers[key] = value
+        headers['host'] = host
+        if 'REMOTE_ADDR' in environ:
+            headers['x-forwarded-for'] = environ['REMOTE_ADDR']
+        if environ.get('CONTENT_TYPE'):
+            headers['content-type'] = environ['CONTENT_TYPE']
+        if environ.get('CONTENT_LENGTH'):
+            length = int(environ['CONTENT_LENGTH'])
+            body = environ['wsgi.input'].read(length)
+        else:
+            body = environ['wsgi.input'].read(length)
+            length = len(body)
+            
+        path = (environ.get('SCRIPT_NAME', '')
+                + environ.get('PATH_INFO', ''))
+        if 'QUERY_STRING' in environ:
+            path += '?' + environ['QUERY_STRING']
+        conn.request(environ['REQUEST_METHOD'],
+                     path, body, headers)
+        res = conn.getresponse()
+        headers_out = []
+        for header, value in res.getheaders():
+            if header.lower() not in filtered_headers:
+                headers_out.append((header, value))
+                
+        status = '%s %s' % (res.status, res.reason)
+        start_response(status, headers_out)
+        # @@: Default?
+        length = res.getheader('content-length')
+        if length is not None:
+            body = res.read(int(length))
+        else:
+            body = res.read()
+        conn.close()
+        return [body]

@@ -37,6 +37,12 @@ News
 
 * All the tests pass on Python 2.5!
 
+* Added ``paste.proxy.TransparentProxy``, which just sends the request
+  described in the WSGI environ on without any modification.  More
+  useful for WSGI clients than servers, it effectively allows any
+  WSGI-based request mechanism to act like an httplib-based request
+  mechanism.
+
 0.9.7
 -----
 
