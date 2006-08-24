@@ -181,7 +181,7 @@ def _month(val):
     for (key,mon) in _str2num.items():
         if key in val:
             return mon
-    return None
+    raise TypeError("unknown month '%s'" % val)
 
 _days_in_month = {1:31,2:28,3:31,4:30,5:31,6:30,
                  7:31,8:31,9:30,10:31,11:30,12:31 }
@@ -212,7 +212,7 @@ def parse_date(val):
     # allow for 'now', 'mon', 'tue', etc.
     if not now:
         chk = val[:3]
-        if 'now' == chk:
+        if chk in ('now','tod'):
             now = date.today()
         elif chk in _wkdy:
             now = date.today()
