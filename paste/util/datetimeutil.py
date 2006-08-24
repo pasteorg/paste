@@ -216,7 +216,7 @@ def parse_date(val):
             now = date.today()
         elif chk in _wkdy:
             now = date.today()
-            idx = list(_wkdy).index(chk)
+            idx = list(_wkdy).index(chk) + 1
             while now.isoweekday() != idx:
                 now += _one_day
 
