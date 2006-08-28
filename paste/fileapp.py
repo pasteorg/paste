@@ -161,6 +161,7 @@ class FileApp(DataApp):
         stat = os.stat(self.filename)
         if not force and stat.st_mtime == self.last_modified:
             return
+        self.last_modified = stat.st_mtime
         if stat.st_size < CACHE_SIZE:
             fh = open(self.filename,"rb")
             self.set_content(fh.read())
@@ -168,7 +169,9 @@ class FileApp(DataApp):
         else:
             self.content = None
             self.content_length = stat.st_size
-        self.last_modified = stat.st_mtime
+            # This is updated automatically if self.set_content() is
+            # called
+            LAST_MODIFIED.update(self.headers, time=self.last_modified)
 
     def __call__(self, environ, start_response):
         if 'max-age=0' in CACHE_CONTROL(environ).lower():
