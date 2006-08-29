@@ -518,7 +518,8 @@ def make_static(global_conf, document_root, cache_max_age=None):
     """
     if cache_max_age is not None:
         cache_max_age = int(cache_max_age)
-    return StaticURLParser(document_root, **kw)
+    return StaticURLParser(
+        document_root, cache_max_age=cache_max_age)
 
 class PkgResourcesParser(StaticURLParser):
 
