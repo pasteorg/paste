@@ -47,6 +47,10 @@ News
   ``paste.urlparser.StaticURLParser``, which allows you to encourage
   the caching of static files.  Patch from Brad Clements.
 
+* Added ``suppress_http_headers`` to ``paste.proxy.Proxy``, which will
+  filter out HTTP headers from the request before passing it on.
+  Patch from Brad Clements.
+
 0.9.7
 -----
 
