@@ -43,6 +43,10 @@ News
   WSGI-based request mechanism to act like an httplib-based request
   mechanism.
 
+* Added a ``cache_max_age`` argument to
+  ``paste.urlparser.StaticURLParser``, which allows you to encourage
+  the caching of static files.  Patch from Brad Clements.
+
 0.9.7
 -----
 
