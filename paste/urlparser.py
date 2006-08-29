@@ -421,17 +421,22 @@ class StaticURLParser(object):
     
     """
     Like ``URLParser`` but only serves static files.
+
+    ``max_cache_age``:
+      integer specifies Cache-Control max_age in seconds
     """
     # @@: Should URLParser subclass from this?
 
-    def __init__(self, directory, root_directory=None):
+    def __init__(self, directory, root_directory=None,
+                 cache_max_age=None):
         if os.path.sep != '/':
             directory = directory.replace(os.path.sep, '/')
         self.directory = directory
         self.root_directory = root_directory
         if root_directory is not None:
             self.root_directory = os.path.normpath(self.root_directory)
-
+        self.cache_max_age = cache_max_age
+        
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
         if not path_info:
@@ -452,7 +457,8 @@ class StaticURLParser(object):
             # @@: Cache?
             child_root = self.root_directory is not None and \
                 self.root_directory or self.directory
-            return self.__class__(full, root_directory=child_root)(environ,
+            return self.__class__(full, root_directory=child_root, 
+                                  cache_max_age=self.cache_max_age)(environ,
                                                                    start_response)
         if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
             return self.error_extra_path(environ, start_response)
@@ -465,7 +471,11 @@ class StaticURLParser(object):
                 start_response('304 Not Modified',headers)
                 return [''] # empty body
         
-        return fileapp.FileApp(full)(environ, start_response)
+        fa = fileapp.FileApp(full)
+        if self.cache_max_age:
+            fa.cache_control(max_age=self.cache_max_age)
+        return fa(environ, start_response)
+        
 
     def add_slash(self, environ, start_response):
         """
@@ -499,12 +509,16 @@ class StaticURLParser(object):
     def __repr__(self):
         return '<%s %r>' % (self.__class__.__name__, self.directory)
 
-def make_static(global_conf, document_root):
+def make_static(global_conf, document_root, cache_max_age=None):
     """
     Return a WSGI application that serves a directory (configured
     with document_root)
+    
+    max_cache_age - integer specifies CACHE_CONTROL max_age in seconds
     """
-    return StaticURLParser(document_root)
+    if cache_max_age is not None:
+        cache_max_age = int(cache_max_age)
+    return StaticURLParser(document_root, **kw)
 
 class PkgResourcesParser(StaticURLParser):
 
