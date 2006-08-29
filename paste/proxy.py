@@ -42,7 +42,8 @@ filtered_headers = (
 
 class Proxy(object):
 
-    def __init__(self, address, allowed_request_methods=()):
+    def __init__(self, address, allowed_request_methods=(),
+                 suppress_http_headers=()):
         self.address = address
         self.parsed = urlparse.urlsplit(address)
         self.scheme = self.parsed[0].lower()
@@ -51,6 +52,8 @@ class Proxy(object):
         self.allowed_request_methods = [
             x.lower() for x in allowed_request_methods if x]
         
+        self.suppress_http_headers = [
+            x.lower() for x in suppress_http_headers if x]
 
     def __call__(self, environ, start_response):
         if (self.allowed_request_methods and 
@@ -69,7 +72,7 @@ class Proxy(object):
         for key, value in environ.items():
             if key.startswith('HTTP_'):
                 key = key[5:].lower().replace('_', '-')
-                if key == 'host':
+                if key == 'host' or key in self.suppress_http_headers:
                     continue
                 headers[key] = value
         headers['host'] = self.host
@@ -112,15 +115,22 @@ class Proxy(object):
         conn.close()
         return [body]
 
-def make_proxy(global_conf, address, allowed_request_methods=""):
+def make_proxy(global_conf, address, allowed_request_methods="",
+               suppress_http_headers=""):
     """
     Make a WSGI application that proxies to another address --
     'address' should be the full URL ending with a trailing /
     'allowed_request_methods' is a space seperated list of request methods
+    'suppress_http_headers' is a space seperated list of http headers (lower case, without the leading http_)
+        that should not be passed on to target host
     """
     from paste.deploy.converters import aslist
     allowed_request_methods = aslist(allowed_request_methods)
-    return Proxy(address, allowed_request_methods=allowed_request_methods)
+    suppress_http_headers = aslist(suppress_http_headers)
+    return Proxy(
+        address,
+        allowed_request_methods=allowed_request_methods,
+        suppress_http_headers=suppress_http_headers)
 
 
 class TransparentProxy(object):
@@ -190,3 +200,4 @@ class TransparentProxy(object):
             body = res.read()
         conn.close()
         return [body]
+
