@@ -134,7 +134,7 @@ class WSGIResponse(object):
     def __str__(self):
         "Full HTTP message, including headers"
         return '\n'.join(['%s: %s' % (key, value)
-            for key, value in self.headers.items()]) \
+            for key, value in self.headers.headeritems()]) \
             + '\n\n' + ''.join(self.content)
     
     def has_header(self, header):
@@ -172,7 +172,7 @@ class WSGIResponse(object):
             encoding = settings['charset']
         status_text = STATUS_CODE_TEXT[self.status_code]
         status = '%s %s' % (self.status_code, status_text)
-        response_headers = self.headers.items()
+        response_headers = self.headers.headeritems()
         for c in self.cookies.values():
             response_headers.append(('Set-Cookie', c.output(header='')))
         output = self.get_content_as_string(encoding)
