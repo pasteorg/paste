@@ -6,6 +6,9 @@ News
 0.9.8
 -----
 
+* Fixed ``wsgiwrappers.WSGIResponse`` mishandling multiple headers of
+  the same name
+
 * Added a Paste Deploy entry point for ``paste.auth.cookie``
 
 * Moved Paste Deploy dependencies out of top-level modules and into
