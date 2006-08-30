@@ -12,7 +12,7 @@ import re
 from paste.util import PySourceColor
 
 def html_quote(s):
-    return cgi.escape(s, True)
+    return cgi.escape(str(s), True)
 
 class AbstractFormatter(object):
 
