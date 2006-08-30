@@ -6,16 +6,27 @@ Example httpd.conf section for a Paste app with an ini file::
 
     <Location />
         SetHandler python-program
-        PythonHandler mod_python.wsgi_paste
+        PythonHandler paste.modpython
         PythonOption paste.ini /some/location/your/pasteconfig.ini
     </Location>
+    
+Or if you want to load a WSGI application under /your/homedir in the module
+``startup`` and the WSGI app is ``app``::
+
+    <Location />
+        SetHandler python-program
+        PythonHandler paste.modpython
+        PythonPath "['/virtual/project/directory'] + sys.path"
+        PythonOption wsgi.application startup::app
+    </Location>
+
 
 If you'd like to use a virtual installation, make sure to add it in the path
 like so::
 
     <Location />
         SetHandler python-program
-        PythonHandler mod_python.wsgi_paste
+        PythonHandler paste.modpython
         PythonPath "['/virtual/project/directory', '/virtual/lib/python2.4/'] + sys.path"
         PythonOption paste.ini /virtual/project/directory/pasteconfig.ini
     </Location>
