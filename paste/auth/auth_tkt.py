@@ -215,13 +215,13 @@ class AuthTKTMiddleware(object):
 
     This also adds two functions to the request:
 
-    ``environ['set_user'](username, tokens='', user_data='')``
+    ``environ['paste.auth_tkt.set_user'](userid, tokens='', user_data='')``
 
         This sets a cookie that logs the user in.  ``tokens`` is a
         string (comma-separated groups) or a list of strings.
         ``user_data`` is a string for your own use.
 
-    ``environ['logout_user']()``
+    ``environ['paste.auth_tkt.logout_user']()``
 
         Logs out the user.
     """
