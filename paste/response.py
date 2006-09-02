@@ -189,7 +189,9 @@ def error_response(environ, error_code, message,
     """
     Returns the status, headers, and body of an error response.
 
-    Use like::
+    Use like:
+    
+    ..code-block:: Python
 
         status, headers, body = wsgilib.error_response(
             '301 Moved Permanently', 'Moved to <a href="%s">%s</a>'

@@ -4,7 +4,9 @@
 """
 Creates a session object in your WSGI environment.
 
-Use like::
+Use like:
+
+..code-block:: Python
 
     environ['paste.session.factory']()
 

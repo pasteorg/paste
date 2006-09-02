@@ -414,7 +414,9 @@ def capture_output(environ, start_response, application):
     status, headers, and body.
 
     Sends status and header, but *not* body.  Returns (status,
-    headers, body).  Typically this is used like::
+    headers, body).  Typically this is used like:
+    
+    ..code-block:: Python
 
         def dehtmlifying_middleware(application):
             def replacement_app(environ, start_response):
@@ -462,7 +464,9 @@ def intercept_output(environ, application, conditional=None,
     body.  None are sent on; you must send them on yourself (unlike
     ``capture_output``)
 
-    Typically this is used like::
+    Typically this is used like:
+    
+    ..code-block:: Python
 
         def dehtmlifying_middleware(application):
             def replacement_app(environ, start_response):
@@ -481,7 +485,9 @@ def intercept_output(environ, application, conditional=None,
     the request should not be intercepted.  In that case
     ``start_response`` will be called and ``(None, None, app_iter)``
     will be returned.  You must detect that in your code and return
-    the app_iter, like::
+    the app_iter, like:
+    
+    ..code-block:: Python
 
         def dehtmlifying_middleware(application):
             def replacement_app(environ, start_response):

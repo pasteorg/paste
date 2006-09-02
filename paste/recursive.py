@@ -101,7 +101,9 @@ class ForwardRequestException(Exception):
         as the first argument and returns an initialised WSGI middleware
         which can alter the forwarded response.
 
-    Basic usage (must have ``RecursiveMiddleware`` present) ::
+    Basic usage (must have ``RecursiveMiddleware`` present) :
+    
+    .. code-block:: Python
     
         from paste.recursive import ForwardRequestException
         def app(environ, start_response):
@@ -125,7 +127,9 @@ class ForwardRequestException(Exception):
     a ``404 Not found`` status message.
     
     You could also specify an ``environ`` dictionary instead of a url. Using 
-    the same example as before::
+    the same example as before:
+    
+    .. code-block:: Python
     
         def app(environ, start_response):
             ... same as previous example ...
@@ -137,7 +141,9 @@ class ForwardRequestException(Exception):
     Finally, if you want complete control over every aspect of the forward you
     can specify a middleware factory. For example to keep the old status code 
     but use the headers and resposne body from the forwarded response you might
-    do this::
+    do this:
+    
+    .. code-block:: Python
 
         from paste.recursive import ForwardRequestException
         from paste.recursive import RecursiveMiddleware
@@ -266,7 +272,9 @@ class Forwarder(Recursive):
 
     It must not be called after and headers have been returned.
     It returns an iterator that must be returned back up the call
-    stack, so it must be used like::
+    stack, so it must be used like:
+    
+    .. code-block:: Python
 
         return environ['paste.recursive.forward'](path)
 

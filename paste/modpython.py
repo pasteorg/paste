@@ -1,5 +1,4 @@
-"""
-WSGI Paste wrapper for mod_python. Requires Python 2.2 or greater.
+"""WSGI Paste wrapper for mod_python. Requires Python 2.2 or greater.
 
 
 Example httpd.conf section for a Paste app with an ini file::
@@ -53,7 +52,10 @@ http://projects.amor.org/misc/svn/modpython_gateway.py
 import traceback
 import os
 
-from mod_python import apache
+try:
+    from mod_python import apache
+except:
+    pass
 from paste.deploy import loadapp
 
 class InputWrapper(object):

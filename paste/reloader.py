@@ -3,7 +3,9 @@
 """
 A file monitor and server restarter.
 
-Use this like::
+Use this like:
+
+..code-block:: Python
 
     import reloader
     reloader.install()

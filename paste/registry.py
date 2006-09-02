@@ -22,7 +22,9 @@ actually "be" during the request is then registered with the
 RegistryManager middleware, which ensures that for the scope of the current
 WSGI application everything will work properly.
 
-Example::
+Example:
+
+.. code-block:: Python
     
     #yourpackage/__init__.py
     
@@ -60,7 +62,9 @@ when developing web applications.
 Should you be developing a system which may be accessing the proxy object
 thousands of times per request, the performance of the proxy will start to
 become more noticeabe. In that circumstance, the problem can be avoided by
-getting at the actual object via the proxy with the ``_curent_obj`` function::
+getting at the actual object via the proxy with the ``_curent_obj`` function:
+
+.. code-block:: Python
     
     #sessions.py
     Session = StackedObjectProxy()
@@ -190,7 +194,9 @@ class StackedObjectProxy(object):
     def _push_object(self, obj):
         """Make ``obj`` the active object for this thread-local.
         
-        This should be used like::
+        This should be used like:
+        
+        .. code-block:: Python
 
             obj = yourobject()
             module.glob = StackedObjectProxy()
