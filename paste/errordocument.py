@@ -108,7 +108,9 @@ class StatusBasedForward:
     Here is an example where a ``404 File Not Found`` status response would be
     redirected to the URL ``/error?code=404&message=File%20Not%20Found``. This 
     could be useful for passing the status code and message into another 
-    application to display an error document::
+    application to display an error document:
+    
+    .. code-block:: Python
     
         from paste.errordocument import StatusBasedForward
         from paste.recursive import RecursiveMiddleware
