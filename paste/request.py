@@ -150,7 +150,7 @@ def parse_formvars(environ, include_get_vars=True):
         not type.startswith('multipart/form-data')
     # Prevent FieldStorage from parsing QUERY_STRING during GET/HEAD
     # requests
-    old_query_string = environ['QUERY_STRING']
+    old_query_string = environ.get('QUERY_STRING','')
     environ['QUERY_STRING'] = ''
     if fake_out_cgi:
         input = StringIO('')
