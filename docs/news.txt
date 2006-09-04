@@ -6,6 +6,13 @@ News
 0.9.8
 -----
 
+* Fixed ``wsgiwrappers.WSGIResponse.delete_cookie``. It also now takes
+  optional path and domain arguments
+
+* ``wsgiwrappers.WSGIResponse`` now handles generator/iterator content
+  more cleanly, and properly encodes unicode content according to its
+  specified charset
+
 * Fixed ``wsgiwrappers.WSGIResponse`` mishandling multiple headers of
   the same name
 

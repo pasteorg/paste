@@ -147,6 +147,31 @@ class chained_app_iters:
                 "WSGI request.  finalization function %s not called"
                 % self.close_func)
 
+class encode_unicode_app_iter:
+    """
+    Encodes an app_iterable's unicode responses as strings
+    """
+
+    def __init__(self, app_iterable, encoding=sys.getdefaultencoding(),
+                 errors='strict'):
+        self.app_iterable = app_iterable
+        self.app_iter = iter(app_iterable)
+        self.encoding = encoding
+        self.errors = errors
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        content = self.app_iter.next()
+        if isinstance(content, unicode):
+            content = content.encode(self.encoding, self.errors)
+        return content
+
+    def close(self):
+        if hasattr(self.app_iterable, 'close'):
+            self.app_iterable.close()
+
 def catch_errors(application, environ, start_response, error_callback,
                  ok_callback=None):
     """
