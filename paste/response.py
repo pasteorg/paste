@@ -40,6 +40,12 @@ class HeaderDict(dict):
 
     has_key = __contains__
 
+    def get(self, key, failobj=None):
+        return dict.get(self, self.normalize(key), failobj)
+
+    def setdefault(self, key, failobj=None):
+        return dict.setdefault(self, self.normalize(key), failobj)
+        
     def pop(self, key):
         return dict.pop(self, self.normalize(key))
 

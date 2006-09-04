@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+0.9.9
+-----
+
+* Fixed ``paste.response.HeaderDict`` ``get`` and ``setdefault``
+  methods to be case insensitive
+
 0.9.8
 -----
 
