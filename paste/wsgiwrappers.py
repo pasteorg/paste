@@ -5,18 +5,20 @@
 The WSGIRequest and WSGIResponse objects are light wrappers to make it easier
 to deal with an incoming request and sending a response.
 """
-import paste.httpexceptions
+import re
 from paste.request import EnvironHeaders, parse_formvars, parse_dict_querystring, get_cookie_dict
 from paste.util.multidict import MultiDict
 from paste.response import HeaderDict
+from paste.wsgilib import encode_unicode_app_iter
 import paste.registry as registry
-import paste.httpexceptions
 from Cookie import SimpleCookie
 
-# This should be set with the registry to a dict having at least:
+# settings should be set with the registry to a dict having at least:
 #     content_type, charset
+# With the optional:
+#     encoding_errors (specifies a codec error handler, defaults to 'strict')
 settings = registry.StackedObjectProxy(default=dict(content_type='text/html', 
-    charset='UTF-8'))
+    charset='UTF-8', encoding_errors='strict'))
 
 class environ_getter(object):
     """For delegating an attribute to a key in self.environ."""
@@ -125,74 +127,134 @@ class WSGIRequest(object):
         return get_cookie_dict(self.environ)
     cookies = property(cookies, doc=cookies.__doc__)
 
+_CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)')
 class WSGIResponse(object):
-    "A basic HTTP response, with content and dictionary-accessed headers"
+    """
+    A basic HTTP response, with content and dictionary-accessed headers
+    """
     def __init__(self, content='', mimetype=None, code=200):
-        if not mimetype:
-            mimetype = "%s; charset=%s" % (settings['content_type'], settings['charset'])
-        self.content = [content]
+        self._iter = None
+        self._is_str_iter = True
+
+        self.content = content
         self.headers = HeaderDict()
-        self.headers['Content-Type'] = mimetype
         self.cookies = SimpleCookie()
         self.status_code = code
+        self.encoding = settings['charset']
+        if not mimetype:
+            mimetype = "%s; charset=%s" % (settings['content_type'], settings['charset'])
+        else:
+            charset_match = _CHARSET_RE.match(mimetype)
+            if charset_match:
+                self.encoding = charset_match.group(1)
+        self.headers['Content-Type'] = mimetype
+
+        if 'encoding_errors' in settings:
+            self.encoding_errors = settings['encoding_errors']
+        else:
+            self.encoding_errors = 'strict'
 
     def __str__(self):
-        "Full HTTP message, including headers"
+        """
+        Returns a rendition of the full HTTP message, including headers.
+
+        When the content is an iterator, the actual content is replaced with the
+        output of str(iterator) (to avoid exhausting the iterator).
+        """
+        if self._is_str_iter:
+            content = ''.join(self.get_content_as_string())
+        else:
+            content = str(self.content)
         return '\n'.join(['%s: %s' % (key, value)
             for key, value in self.headers.headeritems()]) \
-            + '\n\n' + ''.join(self.content)
+            + '\n\n' + content
     
     def has_header(self, header):
-        "Case-insensitive check for a header"
+        """
+        Case-insensitive check for a header
+        """
         header = header.lower()
         for key in self.headers.keys():
             if key.lower() == header:
                 return True
         return False
 
-    def set_cookie(self, key, value='', max_age=None, expires=None, path='/', domain=None, secure=None):
+    def set_cookie(self, key, value='', max_age=None, expires=None, path='/',
+                   domain=None, secure=None):
+        """
+        Define a cookie to be sent via the outgoing HTTP headers
+        """
         self.cookies[key] = value
         for var in ('max_age', 'path', 'domain', 'secure', 'expires'):
             val = locals()[var]
             if val is not None:
                 self.cookies[key][var.replace('_', '-')] = val
 
-    def delete_cookie(self, key):
-        try:
-            self.cookies[key]['max_age'] = 0
-        except KeyError:
-            pass
+    def delete_cookie(self, key, path='/', domain=None):
+        """
+        Notify the browser the specified cookie has expired and should be
+        deleted (via the outgoing HTTP headers)
+        """
+        self.cookies[key] = ''
+        if path is not None:
+            self.cookies[key]['path'] = path
+        if domain is not None:
+            self.cookies[key]['domain'] = path
+        self.cookies[key]['expires'] = 0
+        self.cookies[key]['max-age'] = 0
 
-    def get_content_as_string(self, encoding):
+    def _set_content(self, content):
+        if hasattr(content, '__iter__'):
+            self._iter = content
+            if isinstance(content, list):
+                self._is_str_iter = True
+            else:
+                self._is_str_iter = False
+        else:
+            self._iter = [content]
+            self._is_str_iter = True
+    content = property(lambda self: self._iter, _set_content,
+                       doc='Get/set the specified content, where content can '
+                       'be: a string, a list of strings, a generator function '
+                       'that yields strings, or an iterable object that '
+                       'produces strings.')
+
+    def get_content_as_string(self):
         """
-        Returns the content as a string, encoding it from a Unicode object if
-        necessary.
+        Returns the content as an iterable of strings, encoding each element of
+        the iterator from a Unicode object if necessary.
         """
-        if isinstance(self.content, unicode):
-            return [''.join(self.content).encode(encoding)]
-        return self.content
+        return encode_unicode_app_iter(self.content, self.encoding,
+                                       self.encoding_errors)
     
-    def wsgi_response(self, encoding=None):
-        if not encoding:
-            encoding = settings['charset']
+    def wsgi_response(self):
+        """
+        Return this WSGIResponse as a tuple of WSGI formatted data, including:
+        (status, headers, iterable)
+        """
         status_text = STATUS_CODE_TEXT[self.status_code]
         status = '%s %s' % (self.status_code, status_text)
         response_headers = self.headers.headeritems()
         for c in self.cookies.values():
             response_headers.append(('Set-Cookie', c.output(header='')))
-        output = self.get_content_as_string(encoding)
-        return status, response_headers, output
+        return status, response_headers, self.get_content_as_string()
     
     # The remaining methods partially implement the file-like object interface.
     # See http://docs.python.org/lib/bltin-file-objects.html
     def write(self, content):
+        if not self._is_str_iter:
+            raise IOError, "This %s instance's content is not writable: (content " \
+                'is an iterator)' % self.__class__.__name__
         self.content.append(content)
 
     def flush(self):
         pass
 
     def tell(self):
-        return len(self.content)
+        if not self._is_str_iter:
+            raise IOError, 'This %s instance cannot tell its position: (content ' \
+                'is an iterator)' % self.__class__.__name__
+        return sum([len(chunk) for chunk in self._iter])
 
 ## @@ I'd love to remove this, but paste.httpexceptions.get_exception
 ##    doesn't seem to work...
