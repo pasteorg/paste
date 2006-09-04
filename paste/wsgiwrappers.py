@@ -6,6 +6,7 @@ The WSGIRequest and WSGIResponse objects are light wrappers to make it easier
 to deal with an incoming request and sending a response.
 """
 import re
+import warnings
 from paste.request import EnvironHeaders, parse_formvars, parse_dict_querystring, get_cookie_dict
 from paste.util.multidict import MultiDict
 from paste.response import HeaderDict
@@ -180,11 +181,10 @@ class WSGIResponse(object):
         """
         Case-insensitive check for a header
         """
-        header = header.lower()
-        for key in self.headers.keys():
-            if key.lower() == header:
-                return True
-        return False
+        warnings.warn('WSGIResponse.has_header is deprecated, use '
+                      'WSGIResponse.headers.has_key instead', DeprecationWarning,
+                      2)
+        return self.headers.has_key(header)
 
     def set_cookie(self, key, value='', max_age=None, expires=None, path='/',
                    domain=None, secure=None):
