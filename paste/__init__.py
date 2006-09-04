@@ -2,7 +2,8 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 try:
     import pkg_resources
-    pkg_resources.declare_namespace('paste')
+    pkg_resources.declare_namespace(__name__)
 except ImportError:
     # don't prevent use of paste if pkg_resources isn't installed
-    pass
+    from pkgutil import extend_path
+    __path__ = extend_path(__path__, __name__) 
