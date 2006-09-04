@@ -140,13 +140,9 @@ class WSGIResponse(object):
         self.headers = HeaderDict()
         self.cookies = SimpleCookie()
         self.status_code = code
-        self.encoding = settings['charset']
         if not mimetype:
-            mimetype = "%s; charset=%s" % (settings['content_type'], settings['charset'])
-        else:
-            charset_match = _CHARSET_RE.match(mimetype)
-            if charset_match:
-                self.encoding = charset_match.group(1)
+             mimetype = "%s; charset=%s" % (settings['content_type'],
+                                            settings['charset'])
         self.headers['Content-Type'] = mimetype
 
         if 'encoding_errors' in settings:
@@ -168,6 +164,17 @@ class WSGIResponse(object):
         return '\n'.join(['%s: %s' % (key, value)
             for key, value in self.headers.headeritems()]) \
             + '\n\n' + content
+
+    def determine_encoding(self):
+        """
+        Determine the encoding as specified by the Content-Type's charset
+        parameter, if one is set
+        """
+        charset_match = _CHARSET_RE.match(self.headers.get('Content-Type', ''))
+        if charset_match:
+            return charset_match.group(1)
+        # No charset specified, default to iso-8859-1 as per RFC2616
+        return 'iso-8859-1'
     
     def has_header(self, header):
         """
@@ -224,7 +231,7 @@ class WSGIResponse(object):
         Returns the content as an iterable of strings, encoding each element of
         the iterator from a Unicode object if necessary.
         """
-        return encode_unicode_app_iter(self.content, self.encoding,
+        return encode_unicode_app_iter(self.content, self.determine_encoding(),
                                        self.encoding_errors)
     
     def wsgi_response(self):
