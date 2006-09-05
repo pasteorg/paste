@@ -311,7 +311,7 @@ def check_environ(environ):
             continue
         assert type(environ[key]) is StringType, (
             "Environmental variable %s is not a string: %r (value: %r)"
-            % (type(environ[key]), environ[key]))
+            % (key, type(environ[key]), environ[key]))
         
     assert type(environ['wsgi.version']) is TupleType, (
         "wsgi.version should be a tuple (%r)" % environ['wsgi.version'])

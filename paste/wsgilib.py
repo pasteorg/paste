@@ -454,6 +454,7 @@ def capture_output(environ, start_response, application):
                 body = re.sub(r'<.*?>', '', body)
                 return [body]
             return replacement_app
+
     """
     warnings.warn(
         'wsgilib.capture_output has been deprecated in favor '
