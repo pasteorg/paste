@@ -66,7 +66,7 @@ Paste for Web Developers
 Documentation
 =============
 
-* `Contributing developer guidelines <DeveloperGuidelines>`_
+* `Contributing developer guidelines <DeveloperGuidelines.html>`_
 * `Style guide <StyleGuide.html>`_
 * `Testing applications with Paste <testing-applications.html>`_
 * `URL parsing with WSGI <url-parsing-with-wsgi.html>`_

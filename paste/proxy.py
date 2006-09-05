@@ -118,11 +118,18 @@ class Proxy(object):
 def make_proxy(global_conf, address, allowed_request_methods="",
                suppress_http_headers=""):
     """
-    Make a WSGI application that proxies to another address --
-    'address' should be the full URL ending with a trailing /
-    'allowed_request_methods' is a space seperated list of request methods
-    'suppress_http_headers' is a space seperated list of http headers (lower case, without the leading http_)
-        that should not be passed on to target host
+    Make a WSGI application that proxies to another address:
+    
+    ``address``
+        the full URL ending with a trailing ``/``
+        
+    ``allowed_request_methods``:
+        a space seperated list of request methods (e.g., ``GET POST``)
+        
+    ``suppress_http_headers``
+        a space seperated list of http headers (lower case, without
+        the leading ``http_``) that should not be passed on to target
+        host
     """
     from paste.deploy.converters import aslist
     allowed_request_methods = aslist(allowed_request_methods)
