@@ -128,7 +128,7 @@ class WSGIRequest(object):
         return get_cookie_dict(self.environ)
     cookies = property(cookies, doc=cookies.__doc__)
 
-_CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)')
+_CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)', re.I)
 class WSGIResponse(object):
     """
     A basic HTTP response, with content and dictionary-accessed headers
