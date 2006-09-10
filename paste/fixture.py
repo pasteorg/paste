@@ -177,7 +177,7 @@ class TestApp(object):
         __tracebackhide__ = True
         if params:
             if not isinstance(params, (str, unicode)):
-                params = urllib.urlencode(params)
+                params = urllib.urlencode(params, doseq=True)
             if '?' in url:
                 url += '&'
             else:
