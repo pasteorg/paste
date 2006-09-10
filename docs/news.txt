@@ -9,6 +9,9 @@ News
 * Fixed ``paste.response.HeaderDict`` ``get`` and ``setdefault``
   methods to be case insensitive
 
+* Fix use of ``TestApp().post(params={'key': ['list of',
+  'values']})`` as reported by Syver Enstad.
+
 0.9.8
 -----
 
