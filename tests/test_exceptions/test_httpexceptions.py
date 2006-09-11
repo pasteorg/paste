@@ -11,6 +11,7 @@ from paste.wsgilib import raw_interactive
 from paste.response import header_value
 import py
 
+
 def test_HTTPMove():
     """ make sure that location is a mandatory attribute of Redirects """
     py.test.raises(AssertionError,HTTPFound)
@@ -31,6 +32,20 @@ def test_badapp():
     newapp = HTTPExceptionHandler(badapp)
     assert 'Bad Request' in ''.join(newapp({'HTTP_ACCEPT': 'text/html'},
                                            (lambda a, b, c=None: None)))
+
+def test_unicode():
+    """ verify unicode output """
+    tstr = u"\0xCAFE"
+    def badapp(environ, start_response):
+        start_response("200 OK",[])
+        raise HTTPBadRequest(tstr)
+    newapp = HTTPExceptionHandler(badapp)
+    assert tstr.encode("utf-8") in ''.join(newapp({'HTTP_ACCEPT':
+                                         'text/html'},
+                                         (lambda a, b, c=None: None)))
+    assert tstr.encode("utf-8") in ''.join(newapp({'HTTP_ACCEPT':
+                                         'text/plain'},
+                                         (lambda a, b, c=None: None)))
 
 def test_template():
     """ verify that html() and plain() output methods work """
