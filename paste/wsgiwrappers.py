@@ -165,6 +165,29 @@ class WSGIResponse(object):
         return '\n'.join(['%s: %s' % (key, value)
             for key, value in self.headers.headeritems()]) \
             + '\n\n' + content
+    
+    def __call__(self, environ, start_response):
+        """Conveinence call to return output and set status information
+        
+        Conforms to the WSGI interface for calling purposes only.
+        
+        Example usage:
+        
+        .. code-block:: Python
+            def wsgi_app(environ, start_response):
+                response = WSGIResponse()
+                response.write("Hello world")
+                response.headers['Content-Type'] = 'latin1'
+                return response(environ, start_response)
+        
+        """
+        status_text = STATUS_CODE_TEXT[self.status_code]
+        status = '%s %s' % (self.status_code, status_text)
+        response_headers = self.headers.headeritems()
+        for c in self.cookies.values():
+            response_headers.append(('Set-Cookie', c.output(header='')))
+        start_response(status, response_headers)
+        return self.get_content_as_string()
 
     def determine_encoding(self):
         """
