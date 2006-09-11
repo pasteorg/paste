@@ -166,7 +166,6 @@ class HTTPException(Exception):
 
     code = None
     title = None
-    detail_template = '%s'
     explanation = ''
     detail = ''
     comment = ''
@@ -193,13 +192,12 @@ class HTTPException(Exception):
         if comment is not None:
             self.comment = comment
         Exception.__init__(self,"%s %s\n%s\n%s\n" % (
-            self.code, self.title, self.explanation,
-            self.detail_template % self.detail))
+            self.code, self.title, self.explanation, self.detail))
 
     def make_body(self, environ, template, escfunc, comment_escfunc=None):
         comment_escfunc = comment_escfunc or escfunc
         args = {'explanation': escfunc(self.explanation),
-                'detail': escfunc(self.detail_template % self.detail),
+                'detail': escfunc(self.detail),
                 'comment': comment_escfunc(self.comment)}
         if HTTPException.template == self.template:
             return template % args
