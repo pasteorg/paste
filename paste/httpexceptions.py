@@ -240,9 +240,9 @@ class HTTPException(Exception):
         if isinstance(content, unicode):
             content = content.encode('utf8')
             cur_content_type = (
-                response.header_value(headers, 'content-type')
+                header_value(headers, 'content-type')
                 or 'text/html')
-            reponse.replace_header(
+            replace_header(
                 headers, 'content-type',
                 cur_content_type + '; charset=utf8')
         start_response('%s %s' % (self.code, self.title),
