@@ -14,6 +14,7 @@ from urllib import urlencode
 from urlparse import urlparse
 from paste.wsgilib import chained_app_iters
 from paste.recursive import ForwardRequestException, RecursiveMiddleware
+from paste.util import converters
 
 def forward(app, codes):
     """
@@ -136,7 +137,6 @@ class StatusBasedForward:
         # @@: global_conf shouldn't really come in here, only in a
         # separate make_status_based_forward function
         if global_conf:
-            from paste.deploy import converters
             self.debug = converters.asbool(global_conf.get('debug', False))
         else:
             self.debug = False

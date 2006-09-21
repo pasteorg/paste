@@ -20,6 +20,7 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 import errno, socket, sys, threading, urlparse, Queue
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
+from paste.util import converters
 
 __all__ = ['WSGIHandlerMixin','WSGIServer','WSGIHandler', 'serve']
 __version__ = "0.5"
@@ -546,7 +547,6 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         Number of worker threads to create when ``use_threadpool`` is true. This
         can be a string or an integer value.
     """
-    from paste.deploy import converters
     ssl_context = None
     if ssl_pem:
         assert SSL, "pyOpenSSL is not installed"

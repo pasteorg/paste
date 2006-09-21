@@ -33,6 +33,7 @@ import httplib
 import urlparse
 
 from paste import httpexceptions
+from paste.util.converters import aslist
 
 # Remove these headers from response (specify lower case header
 # names):
@@ -131,7 +132,6 @@ def make_proxy(global_conf, address, allowed_request_methods="",
         the leading ``http_``) that should not be passed on to target
         host
     """
-    from paste.deploy.converters import aslist
     allowed_request_methods = aslist(allowed_request_methods)
     suppress_http_headers = aslist(suppress_http_headers)
     return Proxy(
