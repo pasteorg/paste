@@ -90,6 +90,20 @@ class MultiDict(DictMixin):
                 result[key] = value
         return result
 
+    def dict_of_lists(self):
+        """
+        Returns a dictionary where each key is associated with a
+        list of values.
+        """
+        result = {}
+        multi = {}
+        for key, value in self._items:
+            if key in result:
+                result[key].append(value)
+            else:
+                result[key] = [value]
+        return result
+
     def __delitem__(self, key):
         items = self._items
         found = False
