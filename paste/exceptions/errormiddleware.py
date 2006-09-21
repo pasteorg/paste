@@ -95,7 +95,7 @@ class ErrorMiddleware(object):
             global_conf = {}
         if debug is NoDefault:
             debug = global_conf.get('debug')
-        from paste.deploy import converters
+        from paste.util import converters
         self.debug_mode = converters.asbool(debug)
         if error_email is None:
             error_email = (global_conf.get('error_email')
