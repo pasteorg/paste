@@ -12,6 +12,8 @@ except ImportError:
     select = None
 import warnings
 
+from paste.util import converters
+
 __all__ = ['CGIError', 'CGIApplication']
 
 class CGIError(Exception):
@@ -258,7 +260,6 @@ def make_cgi_application(global_conf, script, path=None, include_os_environ=None
     """
     if path is None:
         path = global_conf.get('path') or global_conf.get('PATH')
-    from paste.deploy import converters
     include_os_environ = converters.asbool(include_os_environ)
     return CGIApplication(
         script, path=path, include_os_environ=include_os_environ,

@@ -13,6 +13,8 @@ import cgitb
 from cStringIO import StringIO
 import sys
 
+from paste.util import converters
+
 class NoDefault:
     pass
 
@@ -30,7 +32,6 @@ class CgitbMiddleware(object):
         if display is NoDefault:
             display = global_conf.get('debug')
         if isinstance(display, basestring):
-            from paste.deploy import converters
             display = converters.asbool(display)
         self.display = display
         self.logdir = logdir

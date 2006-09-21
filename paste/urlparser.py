@@ -15,6 +15,7 @@ import fileapp
 from paste.util import import_string
 import httpexceptions
 from httpheaders import ETAG
+from paste.util import converters
 
 class NoDefault:
     pass
@@ -107,7 +108,6 @@ class URLParser(object):
         self.base_python_name = base_python_name
         # This logic here should be deprecated since it is in
         # make_url_parser
-        from paste.deploy import converters
         if index_names is NoDefault:
             index_names = global_conf.get(
                 'index_names', ('index', 'Index', 'main', 'Main'))
@@ -612,7 +612,6 @@ def make_url_parser(global_conf, directory, base_python_name,
     ``'.pyc'``) and ``ignore_extensions`` are viewable but only if an
     explicit extension is given.
     """
-    from paste.deploy import converters
     if index_names is None:
         index_names = global_conf.get(
             'index_names', ('index', 'Index', 'main', 'Main'))
