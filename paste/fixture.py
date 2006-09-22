@@ -312,7 +312,7 @@ class TestApp(object):
         req.environ['paste.testing_variables'] = {}
         app = lint.middleware(self.app)
         old_stdout = sys.stdout
-        out = StringIO()
+        out = CaptureStdout(old_stdout)
         try:
             sys.stdout = out
             start_time = time.time()
@@ -375,6 +375,26 @@ class TestApp(object):
     def _make_response(self, (status, headers, body, errors), total_time):
         return TestResponse(self, status, headers, body, errors,
                             total_time)
+
+class CaptureStdout(object):
+
+    def __init__(self, actual):
+        self.captured = StringIO()
+        self.actual = actual
+
+    def write(self, s):
+        self.captured.write(s)
+        self.actual.write(s)
+
+    def flush(self):
+        self.actual.flush()
+
+    def writelines(self, lines):
+        for item in lines:
+            self.write(item)
+
+    def getvalue(self):
+        return self.captured.getvalue()
 
 class TestResponse(object):
 
