@@ -12,6 +12,9 @@ News
 * Fix use of ``TestApp().post(params={'key': ['list of',
   'values']})`` as reported by Syver Enstad.
 
+* ``paste.fileapp.DataApp`` is now directly usable (was previously
+  only usable as an abstract base class).
+
 0.9.8
 -----
 

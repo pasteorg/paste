@@ -66,7 +66,7 @@ class DataApp(object):
         ACCEPT_RANGES.update(self.headers,bytes=True)
         if not CONTENT_TYPE(self.headers):
             CONTENT_TYPE.update(self.headers)
-        if content:
+        if content is not None:
             self.set_content(content)
 
     def cache_control(self, **kwargs):
@@ -138,7 +138,6 @@ class DataApp(object):
             start_response('206 Partial Content', headers)
         if self.content is not None:
             return [self.content[lower:upper+1]]
-        assert self.__class__ != DataApp, "DataApp must call set_content"
         return (lower, content_length)
 
 class FileApp(DataApp):
