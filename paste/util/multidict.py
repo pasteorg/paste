@@ -132,7 +132,7 @@ class MultiDict(DictMixin):
         for k, v in self._items:
             if key == k:
                 return v
-        self._items.append(default)
+        self._items.append((key, default))
         return default
 
     def pop(self, key, *args):
