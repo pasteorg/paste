@@ -352,6 +352,20 @@ class EnvironHeaders(DictMixin):
         item = item.replace('-', '_').upper()
         return 'HTTP_'+item in self.environ
 
+def _cgi_FieldStorage__repr__patch(self):
+    """ monkey patch for FieldStorage.__repr__
+
+    Unbelievely, the default __repr__ on FieldStorage reads
+    the entire file content instead of being sane about it.
+    This is a simple replacement that doesn't do that
+    """
+    if self.file:
+        return "FieldStorage(%r, %r)" % (
+                self.name, self.filename)
+    return "FieldStorage(%r, %r, %r)" % (
+             self.name, self.filename, self.value)
+
+cgi.FieldStorage.__repr__ = _cgi_FieldStorage__repr__patch
 
 if __name__ == '__main__':
     import doctest
