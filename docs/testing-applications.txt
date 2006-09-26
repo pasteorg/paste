@@ -59,7 +59,7 @@ methods to make testing convenient.  Here's an example test script::
         res = app.post('/view', params={'id': 10, 'name': 'New item
             name'})
         # The app does POST-and-redirect...
-        res.follow()
+        res = res.follow()
         assert res.request.url == '/view?id=10'
         res.mustcontain('New item name')
         res.mustcontain('Item updated')
@@ -99,9 +99,9 @@ The response object:
     Returns a list of all matching headers.
 
 ``follow(**kw)``:
-    Follows the redirect.  It is an error if this response wasn't a
-    redirect.  Any keyword arguments are passed to ``app.get`` (e.g.,
-    ``status``).
+    Follows the redirect, returning the new response.  It is an error
+    if this response wasn't a redirect.  Any keyword arguments are
+    passed to ``app.get`` (e.g., ``status``).
 
 ``x in res``:
     Returns True if the string is found in the response.  Whitespace
