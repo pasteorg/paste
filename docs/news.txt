@@ -3,6 +3,15 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* Fixed problem where ``paste.exceptions.errormiddleware`` didn't
+  expose the ``.close()`` method of the app_iter that it wraps (to
+  catch exceptions).  This is a problem if the server about the
+  errormiddleware aborts the request; it should then call
+  ``.close()``, but won't necessarily exhaust the iterator to do so.
+
 0.9.9
 -----
 

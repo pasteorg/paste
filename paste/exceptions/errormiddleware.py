@@ -138,7 +138,7 @@ class ErrorMiddleware(object):
         try:
             __traceback_supplement__ = Supplement, self, environ
             app_iter = self.application(environ, detect_start_response)
-            return self.catching_iter(app_iter, environ)
+            return self.make_catching_iter(app_iter, environ)
         except:
             exc_info = sys.exc_info()
             try:
@@ -158,29 +158,11 @@ class ErrorMiddleware(object):
                 # clean up locals...
                 exc_info = None
 
-    def catching_iter(self, app_iter, environ):
-        __traceback_supplement__ = Supplement, self, environ
-        if not app_iter:
-            raise StopIteration
-        error_on_close = False
-        try:
-            for v in app_iter:
-                yield v
-            if hasattr(app_iter, 'close'):
-                error_on_close = True
-                app_iter.close()
-        except:
-            response = self.exception_handler(sys.exc_info(), environ)
-            if not error_on_close and hasattr(app_iter, 'close'):
-                try:
-                    app_iter.close()
-                except:
-                    close_response = self.exception_handler(
-                        sys.exc_info(), environ)
-                    response += (
-                        '<hr noshade>Error in .close():<br>%s'
-                        % close_response)
-            yield response
+    def make_catching_iter(self, app_iter, environ):
+        if isinstance(app_iter, (list, tuple)):
+            # These don't raise
+            return app_iter
+        return CatchingIter(app_iter, environ, self)
 
     def exception_handler(self, exc_info, environ):
         simple_html_error = False
@@ -200,6 +182,67 @@ class ErrorMiddleware(object):
             error_subject_prefix=self.error_subject_prefix,
             error_message=self.error_message,
             simple_html_error=simple_html_error)
+
+class CatchingIter(object):
+
+    """
+    A wrapper around the application iterator that will catch
+    exceptions raised by the a generator, or by the close method, and
+    display or report as necessary.
+    """
+
+    def __init__(self, app_iter, environ, error_middleware):
+        self.app_iterable = app_iter
+        self.app_iterator = iter(app_iter)
+        self.environ = environ
+        self.error_middleware = error_middleware
+        self.closed = False
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        __traceback_supplement__ = (
+            Supplement, self.error_middleware, self.environ)
+        if self.closed:
+            raise StopIteration
+        try:
+            return self.app_iterator.next()
+        except StopIteration:
+            self.closed = True
+            close_response = self._close()
+            if close_response is not None:
+                return close_response
+            else:
+                raise StopIteration
+        except:
+            self.closed = True
+            close_response = self._close()
+            response = self.error_middleware.exception_handler(
+                sys.exc_info(), self.environ)
+            if close_response is not None:
+                response += (
+                    '<hr noshade>Error in .close():<br>%s'
+                    % close_response)
+            return response
+
+    def close(self):
+        # This should at least print something to stderr if the
+        # close method fails at this point
+        self._close()
+
+    def _close(self):
+        """Close and return any error message"""
+        if not hasattr(self.app_iterable, 'close'):
+            return None
+        try:
+            self.app_iterable.close()
+            return None
+        except:
+            close_response = self.error_middleware.exception_handler(
+                sys.exc_info(), self.environ)
+            return close_response
+
 
 class Supplement(object):
 
