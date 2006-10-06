@@ -229,7 +229,8 @@ class CatchingIter(object):
     def close(self):
         # This should at least print something to stderr if the
         # close method fails at this point
-        self._close()
+        if not self.closed:
+            self._close()
 
     def _close(self):
         """Close and return any error message"""
