@@ -174,6 +174,7 @@ class WSGIResponse(object):
         Example usage:
         
         .. code-block:: Python
+
             def wsgi_app(environ, start_response):
                 response = WSGIResponse()
                 response.write("Hello world")
