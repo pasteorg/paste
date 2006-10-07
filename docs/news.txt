@@ -12,6 +12,9 @@ svn trunk
   errormiddleware aborts the request; it should then call
   ``.close()``, but won't necessarily exhaust the iterator to do so.
 
+* Added entry point for ``paste.translogger``
+  (``egg:Paste#translogger``)
+
 0.9.9
 -----
 
