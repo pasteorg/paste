@@ -175,6 +175,7 @@ For the latest changes see the `news file
       pony = paste.pony:make_pony
       errordocument = paste.errordocument:make_errordocument
       auth_cookie = paste.auth.cookie:make_auth_cookie
+      translogger = paste.translogger:make_filter
 
       [paste.server_runner]
       http = paste.httpserver:server_runner

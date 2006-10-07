@@ -89,3 +89,23 @@ class TransLogger(object):
             }
         message = self.format % d
         self.logger.log(self.logging_level, message)
+
+def make_filter(
+    app, global_conf,
+    logger_name=None,
+    format=None,
+    logging_level=logging.INFO,
+    setup_console_handler=True,
+    set_logger_level=logging.DEBUG):
+    from paste.deploy.converters import asbool
+    if isinstance(logging_level, basestring):
+        logging_level = logging._levelNames[logging_level]
+    if isinstance(set_logger_level, basestring):
+        set_logger_level = logging._levelNames[set_logger_level]
+    return TransLogger(
+        app,
+        format=format or None,
+        logging_level=logging_level,
+        logger_name=logger_name,
+        setup_console_handler=asbool(setup_console_handler),
+        set_logger_level=set_logger_level)
