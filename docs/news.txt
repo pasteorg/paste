@@ -15,6 +15,12 @@ svn trunk
 * Added entry point for ``paste.translogger``
   (``egg:Paste#translogger``)
 
+* Fixed some cases where long data (e.g., a file upload) would show up
+  in the error report, creating a very very large report.  Also, put
+  in a monkeypatch for the ``cgi`` module so that
+  ``repr(uploaded_field)`` won't load the entire field into memory
+  (from its temporary file location).
+
 0.9.9
 -----
 

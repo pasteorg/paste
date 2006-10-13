@@ -222,14 +222,16 @@ class TextFormatter(AbstractFormatter):
                     v = repr(v)
                 except Exception, e:
                     v = 'Cannot display: %s' % e
+                v = truncate(v)
                 lines.append('  %s: %s' % (n, v))
             return '\n'.join(lines)
         elif (isinstance(value, (list, tuple))
               and self.long_item_list(value)):
-            return '%s: [,\n    %s]' % (
-                title, '\n    '.join(map(repr, value)))
+            parts = [truncate(repr(v)) for v in value]
+            return '%s: [\n    %s]' % (
+                title, ',\n    '.join(parts))
         else:
-            return '%s: %r' % (title, value)
+            return '%s: %s' % (title, truncate(repr(value)))
 
 class HTMLFormatter(TextFormatter):
 
