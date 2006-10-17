@@ -130,9 +130,7 @@ class WSGIRequest(object):
 
 _CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)', re.I)
 class WSGIResponse(object):
-    """
-    A basic HTTP response, with content and dictionary-accessed headers
-    """
+    """A basic HTTP response with content, headers, and out-bound cookies"""
     def __init__(self, content='', mimetype=None, code=200):
         self._iter = None
         self._is_str_iter = True
@@ -152,8 +150,7 @@ class WSGIResponse(object):
             self.encoding_errors = 'strict'
 
     def __str__(self):
-        """
-        Returns a rendition of the full HTTP message, including headers.
+        """Returns a rendition of the full HTTP message, including headers.
 
         When the content is an iterator, the actual content is replaced with the
         output of str(iterator) (to avoid exhausting the iterator).
@@ -194,18 +191,6 @@ class WSGIResponse(object):
         elif is_file:
             return iter(lambda: self.content.read(), '')
         return self.get_content_as_string()
-
-    def __setitem__(self, header, value):
-        self.headers[header] = value
-    
-    def __delitem__(self, header):
-        try:
-            del self.headers[header]
-        except KeyError:
-            pass
-    
-    def __getitem__(self, header):
-        return self.headers[header]
     
     def determine_encoding(self):
         """
