@@ -195,6 +195,18 @@ class WSGIResponse(object):
             return iter(lambda: self.content.read(), '')
         return self.get_content_as_string()
 
+    def __setitem__(self, header, value):
+        self.headers[header] = value
+    
+    def __delitem__(self, header):
+        try:
+            del self.headers[header]
+        except KeyError:
+            pass
+    
+    def __getitem__(self, header):
+        return self.headers[header]
+    
     def determine_encoding(self):
         """
         Determine the encoding as specified by the Content-Type's charset
