@@ -21,6 +21,10 @@ svn trunk
   ``repr(uploaded_field)`` won't load the entire field into memory
   (from its temporary file location).
 
+* Added a ``force_host`` option to ``paste.proxy.TransparentProxy``,
+  which will force all incoming requests to the same host, but leave
+  the ``Host`` header intact.
+
 0.9.9
 -----
 

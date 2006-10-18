@@ -149,16 +149,27 @@ class TransparentProxy(object):
     This is a way of translating WSGI requests directly to real HTTP
     requests.  All information goes in the environment; modify it to
     modify the way the request is made.
+
+    If you specify ``force_host`` (and optionally ``force_scheme``)
+    then HTTP_HOST won't be used to determine where to connect to;
+    instead a specific host will be connected to, but the ``Host``
+    header in the request will remain intact.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, force_host=None,
+                 force_scheme='http'):
+        self.force_host = force_host
+        self.force_scheme = force_scheme
 
     def __call__(self, environ, start_response):
         scheme = environ['wsgi.url_scheme']
-        if scheme == 'http':
+        if self.force_host is None:
+            conn_scheme = scheme
+        else:
+            conn_scheme = self.force_scheme
+        if conn_scheme == 'http':
             ConnClass = httplib.HTTPConnection
-        elif scheme == 'https':
+        elif conn_scheme == 'https':
             ConnClass = httplib.HTTPSConnection
         else:
             raise ValueError(
@@ -167,7 +178,11 @@ class TransparentProxy(object):
             raise ValueError(
                 "WSGI environ must contain an HTTP_HOST key")
         host = environ['HTTP_HOST']
-        conn = ConnClass(host)
+        if self.force_host is None:
+            conn_host = host
+        else:
+            conn_host = self.force_host
+        conn = ConnClass(conn_host)
         headers = {}
         for key, value in environ.items():
             if key.startswith('HTTP_'):
@@ -181,10 +196,13 @@ class TransparentProxy(object):
         if environ.get('CONTENT_LENGTH'):
             length = int(environ['CONTENT_LENGTH'])
             body = environ['wsgi.input'].read(length)
-        else:
-            body = environ['wsgi.input'].read(length)
+        elif 'CONTENT_LENGTH' not in environ:
+            body = environ['wsgi.input'].read()
             length = len(body)
-            
+        else:
+            body = ''
+            length = 0
+        
         path = (environ.get('SCRIPT_NAME', '')
                 + environ.get('PATH_INFO', ''))
         if 'QUERY_STRING' in environ:
@@ -208,3 +226,11 @@ class TransparentProxy(object):
         conn.close()
         return [body]
 
+def make_transparent_proxy(
+    global_conf, force_host=None, force_scheme='http'):
+    """
+    Create a proxy that connects to a specific host, but does
+    absolutely no other filtering, including the Host header.
+    """
+    return TransparentProxy(force_host=force_host,
+                            force_scheme=force_scheme)

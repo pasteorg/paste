@@ -146,8 +146,9 @@ For the latest changes see the `news file
       proxy = paste.proxy:make_proxy
       test = paste.debug.debugapp:make_test_app
       test_slow = paste.debug.debugapp:make_slow_app
+      transparent_proxy = paste.proxy:make_transparent_proxy
 
-      [paste.composit_factory]
+      [paste.composite_factory]
       urlmap = paste.urlmap:urlmap_factory
       cascade = paste.cascade:make_cascade
 
