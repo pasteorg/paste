@@ -96,7 +96,6 @@ class MultiDict(DictMixin):
         list of values.
         """
         result = {}
-        multi = {}
         for key, value in self._items:
             if key in result:
                 result[key].append(value)
