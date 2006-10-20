@@ -153,7 +153,7 @@ For the latest changes see the `news file
       cascade = paste.cascade:make_cascade
 
       [paste.filter_app_factory]
-      error_catcher = paste.exceptions.errormiddleware:ErrorMiddleware
+      error_catcher = paste.exceptions.errormiddleware:make_error_middleware
       cgitb = paste.cgitb_catcher:CgitbMiddleware
       flup_session = paste.flup_session:SessionMiddleware [Flup]
       gzip = paste.gzipper:middleware
