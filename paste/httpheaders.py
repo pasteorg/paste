@@ -395,8 +395,8 @@ class HTTPHeader(object):
             return self.compose(**kwargs)
         if list == type(args[0]):
             assert 1 == len(args)
-            name = []
-            result = self.name.lower()
+            result = []
+            name = self.name.lower()
             for value in [value for header, value in args[0]
                          if header.lower() == name]:
                 result.append(value)
