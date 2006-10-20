@@ -6,6 +6,9 @@ News
 svn trunk
 ---------
 
+* Fixed ``parsed_formvars`` potentially locking up on wsgi.input
+  after modification of ``QUERY_STRING``.
+
 * Fixed problem where ``paste.exceptions.errormiddleware`` didn't
   expose the ``.close()`` method of the app_iter that it wraps (to
   catch exceptions).  This is a problem if the server about the
