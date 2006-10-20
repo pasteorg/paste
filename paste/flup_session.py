@@ -44,7 +44,7 @@ class SessionMiddleware(object):
 
 
     def __init__(self, app,
-                 global_conf,
+                 global_conf=None,
                  session_type=NoDefault,
                  cookie_name=NoDefault,
                  **store_config
@@ -93,3 +93,16 @@ class SessionMiddleware(object):
 
         return wsgilib.add_close(app_iter, service.close)
             
+def make_session_middleware(app, global_conf,
+                            session_type=NoDefault,
+                            cookie_name=NoDefault,
+                            **store_config):
+    """
+    Wraps the application in a session-managing middleware.
+    The session service can then be found in
+    ``environ['paste.flup_session_service']``
+    """
+    return SessionMiddleware(
+        app, global_conf=global_conf,
+        session_type=session_type, cookie_name=cookie_name,
+        **store_config)
