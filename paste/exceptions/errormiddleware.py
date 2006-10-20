@@ -33,48 +33,48 @@ class ErrorMiddleware(object):
 
     Settings:
 
-    ``debug``:
-        If true, then tracebacks will be shown in the browser.
+      ``debug``:
+          If true, then tracebacks will be shown in the browser.
 
-    ``error_email``:
-        an email address (or list of addresses) to send exception 
-        reports to
+      ``error_email``:
+          an email address (or list of addresses) to send exception 
+          reports to
 
-    ``error_log``:
-        a filename to append tracebacks to
+      ``error_log``:
+          a filename to append tracebacks to
 
-    ``show_exceptions_in_wsgi_errors``:
-        If true, then errors will be printed to ``wsgi.errors`` 
-        (frequently a server error log, or stderr).
+      ``show_exceptions_in_wsgi_errors``:
+          If true, then errors will be printed to ``wsgi.errors`` 
+          (frequently a server error log, or stderr).
 
-    ``from_address``, ``smtp_server``, ``error_subject_prefix``:
-        variables to control the emailed exception reports
+      ``from_address``, ``smtp_server``, ``error_subject_prefix``:
+          variables to control the emailed exception reports
 
-    ``error_message``:
-        When debug mode is off, the error message to show to users.
+      ``error_message``:
+          When debug mode is off, the error message to show to users.
 
-    ``xmlhttp_key``:
-        When this key (default ``_``) is in the request GET variables
-        (not POST!), expect that this is an XMLHttpRequest, and the
-        response should be more minimal; it should not be a complete
-        HTML page.
+      ``xmlhttp_key``:
+          When this key (default ``_``) is in the request GET variables
+          (not POST!), expect that this is an XMLHttpRequest, and the
+          response should be more minimal; it should not be a complete
+          HTML page.
 
     Environment Configuration:
     
-    ``paste.throw_errors``:
-        If this setting in the request environment is true, then this
-        middleware is disabled. This can be useful in a testing situation
-        where you don't want errors to be caught and transformed.
+      ``paste.throw_errors``:
+          If this setting in the request environment is true, then this
+          middleware is disabled. This can be useful in a testing situation
+          where you don't want errors to be caught and transformed.
 
-    ``paste.expected_exceptions``:
-        When this middleware encounters an exception listed in this
-        environment variable and when the ``start_response`` has not 
-        yet occurred, the exception will be re-raised instead of being
-        caught.  This should generally be set by middleware that may 
-        (but probably shouldn't be) installed above this middleware, 
-        and wants to get certain exceptions.  Exceptions raised after
-        ``start_response`` have been called are always caught since
-        by definition they are no longer expected.
+      ``paste.expected_exceptions``:
+          When this middleware encounters an exception listed in this
+          environment variable and when the ``start_response`` has not 
+          yet occurred, the exception will be re-raised instead of being
+          caught.  This should generally be set by middleware that may 
+          (but probably shouldn't be) installed above this middleware, 
+          and wants to get certain exceptions.  Exceptions raised after
+          ``start_response`` have been called are always caught since
+          by definition they are no longer expected.
 
     """
 
@@ -422,3 +422,13 @@ def error_template(head_html, exception, extra):
     %s
     </body>
     </html>''' % (head_html, exception, extra)
+
+def make_error_middleware(app, global_conf, **kw):
+    return ErrorMiddleware(app, global_conf=global_conf, **kw)
+
+doc_lines = ErrorMiddleware.__doc__.splitlines(True)
+for i in range(len(doc_lines)):
+    if doc_lines[i].strip().startswith('Settings'):
+        make_error_middleware.__doc__ = ''.join(doc_lines[i:])
+        break
+del i, doc_lines
