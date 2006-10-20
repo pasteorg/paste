@@ -136,12 +136,12 @@ def parse_formvars(environ, include_get_vars=True):
     If the request was not a normal form request (e.g., a POST with an
     XML body) then ``environ['wsgi.input']`` won't be read.
     """
-    source = (environ.get('QUERY_STRING', ''),
-              environ['wsgi.input'],
-              include_get_vars)
+    source = environ['wsgi.input']
     if 'paste.parsed_formvars' in environ:
         parsed, check_source = environ['paste.parsed_formvars']
         if check_source == source:
+            if include_get_vars:
+                parsed.update(parse_querystring(environ))
             return parsed
     # @@: Shouldn't bother FieldStorage parsing during GET/HEAD and
     # fake_out_cgi requests
@@ -177,9 +177,9 @@ def parse_formvars(environ, include_get_vars=True):
                 if not value.filename:
                     value = value.value
                 formvars.add(name, value)
+    environ['paste.parsed_formvars'] = (formvars, source)
     if include_get_vars:
         formvars.update(parse_querystring(environ))
-    environ['paste.parsed_formvars'] = (formvars, source)
     return formvars
 
 def construct_url(environ, with_query_string=True, with_path_info=True,
