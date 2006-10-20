@@ -17,12 +17,12 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 # @@: add support for chunked encoding, this is not a 1.1 server
 #     till this is completed.
 
-import errno, socket, sys, threading, urlparse, Queue
+import socket, sys, threading, urlparse, Queue
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 from paste.util import converters
 
-__all__ = ['WSGIHandlerMixin','WSGIServer','WSGIHandler', 'serve']
+__all__ = ['WSGIHandlerMixin', 'WSGIServer', 'WSGIHandler', 'serve']
 __version__ = "0.5"
 
 class ContinueHook(object):
@@ -42,20 +42,20 @@ class ContinueHook(object):
     def __init__(self, rfile, write):
         self._ContinueFile_rfile = rfile
         self._ContinueFile_write = write
-        for attr in ('close','closed','fileno','flush',
-                     'mode','bufsize','softspace'):
+        for attr in ('close', 'closed', 'fileno', 'flush',
+                     'mode', 'bufsize', 'softspace'):
             if hasattr(rfile,attr):
                 setattr(self,attr,getattr(rfile,attr))
-        for attr in ('read','readline','readlines'):
+        for attr in ('read', 'readline', 'readlines'):
             if hasattr(rfile,attr):
-                setattr(self,attr,getattr(self,'_ContinueFile_' + attr))
+                setattr(self,attr,getattr(self, '_ContinueFile_' + attr))
 
     def _ContinueFile_send(self):
         self._ContinueFile_write("HTTP/1.1 100 Continue\r\n\r\n")
         rfile = self._ContinueFile_rfile
-        for attr in ('read','readline','readlines'):
-            if hasattr(rfile,attr):
-                setattr(self,attr,getattr(rfile,attr))
+        for attr in ('read', 'readline', 'readlines'):
+            if hasattr(rfile, attr):
+                setattr(self, attr, getattr(rfile, attr))
 
     def _ContinueFile_read(self, size=-1):
         self._ContinueFile_send()
@@ -109,14 +109,14 @@ class WSGIHandlerMixin:
         if not self.wsgi_headers_sent:
             self.wsgi_headers_sent = True
             (status, headers) = self.wsgi_curr_headers
-            code, message = status.split(" ",1)
-            self.send_response(int(code),message)
+            code, message = status.split(" ", 1)
+            self.send_response(int(code), message)
             #
             # HTTP/1.1 compliance; either send Content-Length or
             # signal that the connection is being closed.
             #
             send_close = True
-            for (k,v) in  headers:
+            for (k, v) in  headers:
                 k = k.lower()
                 if 'content-length' == k:
                     send_close = False
@@ -124,15 +124,15 @@ class WSGIHandlerMixin:
                     if 'close' == v.lower():
                         self.close_connection = 1
                         send_close = False
-                self.send_header(k,v)
+                self.send_header(k, v)
             if send_close:
                 self.close_connection = 1
-                self.send_header('Connection','close')
+                self.send_header('Connection', 'close')
 
             self.end_headers()
         self.wfile.write(chunk)
 
-    def wsgi_start_response(self,status,response_headers,exc_info=None):
+    def wsgi_start_response(self, status, response_headers, exc_info=None):
         if exc_info:
             try:
                 if self.wsgi_headers_sent:
@@ -159,7 +159,7 @@ class WSGIHandlerMixin:
         argument can be used to override any settings.
         """
 
-        (_,_,path,query,fragment) = urlparse.urlsplit(self.path)
+        (_, _, path, query, fragment) = urlparse.urlsplit(self.path)
         (server_name, server_port) = self.server.server_address
 
         rfile = self.rfile
@@ -190,7 +190,7 @@ class WSGIHandlerMixin:
                ,'REMOTE_HOST': self.address_string()
                }
         
-        for k,v in self.headers.items():
+        for k, v in self.headers.items():
             key = 'HTTP_' + k.replace("-","_").upper()
             if key in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
                 continue
@@ -202,7 +202,7 @@ class WSGIHandlerMixin:
             # http://www.modssl.org/docs/2.8/ssl_reference.html#ToC25
 
         if environ:
-            assert isinstance(environ,dict)
+            assert isinstance(environ, dict)
             self.wsgi_environ.update(environ)
             if 'on' == environ.get('HTTPS'):
                 self.wsgi_environ['wsgi.url_scheme'] = 'https'
@@ -306,10 +306,10 @@ else:
             # The default SSL request object does not seem to have a
             # ``makefile(mode, bufsize)`` method as expected by
             # Socketserver.StreamRequestHandler.
-            (conn,info) = self.socket.accept()
+            (conn, info) = self.socket.accept()
             if self.ssl_context:
                 conn = _ConnFixer(conn)
-            return (conn,info)
+            return (conn, info)
 
 class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
     """
@@ -569,7 +569,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         handler.server_version = server_version
         handler.sys_version = None
     if protocol_version:
-        assert protocol_version in ('HTTP/0.9','HTTP/1.0','HTTP/1.1')
+        assert protocol_version in ('HTTP/0.9', 'HTTP/1.0', 'HTTP/1.1')
         handler.protocol_version = protocol_version
 
 
