@@ -163,7 +163,7 @@ For the latest changes see the `news file
       profile = paste.debug.profile:make_profile_middleware [hotshot]
       recursive = paste.recursive:make_recursive_middleware
       # This isn't good enough to deserve the name egg:Paste#session:
-      paste_session = paste.session:SessionMiddleware
+      paste_session = paste.session:make_session_middleware
       wdg_validate = paste.debug.wdg_validate:WDGValidateMiddleware [subprocess]
       evalerror = paste.evalexception:EvalException
       auth_tkt = paste.auth.auth_tkt:make_auth_tkt_middleware
