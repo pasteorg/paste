@@ -28,5 +28,8 @@ class PonyMiddleware(object):
             return self.application(environ, start_response)
 
 def make_pony(app, global_conf):
+    """
+    Adds pony power to any application, at /pony
+    """
     return PonyMiddleware(app)
 

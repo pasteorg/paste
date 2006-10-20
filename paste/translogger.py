@@ -109,3 +109,5 @@ def make_filter(
         logger_name=logger_name,
         setup_console_handler=asbool(setup_console_handler),
         set_logger_level=set_logger_level)
+
+make_filter.__doc__ = TransLogger.__doc__

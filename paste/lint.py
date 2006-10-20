@@ -430,4 +430,6 @@ def make_middleware(application, global_conf):
     # and isolated here
     return middleware(application)
 
+make_middleware.__doc__ = __doc__
+
 __all__ = ['middleware', 'make_middleware']

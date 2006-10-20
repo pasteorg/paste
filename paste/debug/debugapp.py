@@ -67,9 +67,13 @@ class SlowConsumer:
 def make_test_app(global_conf):
     return SimpleApplication()
 
+make_test_app.__doc__ = SimpleApplication.__doc__
+
 def make_slow_app(global_conf, chunk_size=4096, delay=1, progress=True):
     from paste.deploy.converters import asbool
     return SlowConsumer(
         chunk_size=int(chunk_size),
         delay=int(delay),
         progress=asbool(progress))
+
+make_slow_app.__doc__ = SlowConsumer.__doc__
