@@ -44,11 +44,11 @@ class ContinueHook(object):
         self._ContinueFile_write = write
         for attr in ('close', 'closed', 'fileno', 'flush',
                      'mode', 'bufsize', 'softspace'):
-            if hasattr(rfile,attr):
-                setattr(self,attr,getattr(rfile,attr))
+            if hasattr(rfile, attr):
+                setattr(self, attr, getattr(rfile, attr))
         for attr in ('read', 'readline', 'readlines'):
-            if hasattr(rfile,attr):
-                setattr(self,attr,getattr(self, '_ContinueFile_' + attr))
+            if hasattr(rfile, attr):
+                setattr(self, attr, getattr(self, '_ContinueFile_' + attr))
 
     def _ContinueFile_send(self):
         self._ContinueFile_write("HTTP/1.1 100 Continue\r\n\r\n")
