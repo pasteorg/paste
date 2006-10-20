@@ -31,7 +31,7 @@ to use sha would be a good thing.
 """
 from paste.httpexceptions import HTTPUnauthorized
 from paste.httpheaders import *
-import md5, time, random, urllib2
+import md5, time, random
 
 def digest_password(realm, username, password):
     """ construct the appropriate hashcode needed for HTTP digest """

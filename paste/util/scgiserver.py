@@ -28,7 +28,6 @@ writing a nice extensible SCGI server for Python!
 
 import sys
 import time
-import os
 from scgi import scgi_server
 
 def debug(msg):

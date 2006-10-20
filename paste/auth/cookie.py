@@ -373,7 +373,7 @@ def make_auth_cookie(
     try:
         maxlen = int(maxlen)
     except ValueError:
-        raise ValieError('Bad value for maxlen (must be int): %r'
+        raise ValueError('Bad value for maxlen (must be int): %r'
                          % maxlen)
     return AuthCookieHandler(
         app, cookie_name=cookie_name, scanlist=scanlist,

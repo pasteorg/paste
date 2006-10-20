@@ -50,7 +50,6 @@ http://projects.amor.org/misc/svn/modpython_gateway.py
 """
 
 import traceback
-import os
 
 try:
     from mod_python import apache

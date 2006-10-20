@@ -57,8 +57,6 @@ __all__ = ['AuthOpenIDHandler']
 
 import cgi
 import urlparse
-import cgitb
-import sys
 import re
 
 import paste.request

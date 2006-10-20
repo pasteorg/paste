@@ -226,11 +226,11 @@ class FileSession(object):
             #Open every session and check that it isn't too old
             for root, dirs, files in os.walk(self.session_file_path):
                 for f in files:
-                    self._clean_up_file(f)
+                    self._clean_up_file(f, exp_time=exp_time, now=now)
         finally:
             cleaning_up = False
 
-    def _clean_up_file(self, f):
+    def _clean_up_file(self, f, exp_time, now):
         t = f.split("-")
         if len(t) != 2:
             return

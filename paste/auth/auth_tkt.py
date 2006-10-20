@@ -39,7 +39,6 @@ non-Python code run under Apache.
 
 import time as time_mod
 import md5
-import cgi
 import Cookie
 from paste import request
 
