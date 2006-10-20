@@ -156,7 +156,7 @@ For the latest changes see the `news file
       error_catcher = paste.exceptions.errormiddleware:make_error_middleware
       cgitb = paste.cgitb_catcher:make_cgitb_middleware
       flup_session = paste.flup_session:make_session_middleware [Flup]
-      gzip = paste.gzipper:middleware
+      gzip = paste.gzipper:make_gzip_middleware
       httpexceptions = paste.httpexceptions:make_middleware
       lint = paste.lint:make_middleware
       printdebug = paste.debug.prints:PrintDebugMiddleware 

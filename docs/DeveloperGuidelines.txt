@@ -68,7 +68,7 @@ is going to bite your head off for committing something.
     def backward_compat_function(*args, **kw):
         import warnings
         # Deprecated on 2005 Mar 5
-        warnings.warn('Moved to foo.function', DeprecationWarnings, 2)
+        warnings.warn('Moved to foo.function', DeprecationWarning, 2)
         return foo.function(*args, **kw)
 
 * If something is really experimental, put it in your home directory,

@@ -84,6 +84,19 @@ class GzipResponse(object):
                 app_iter.close()
 
 def filter_factory(application, **conf):
+    import warnings
+    warnings.warn(
+        'This function is deprecated; use make_gzip_middleware instead',
+        DeprecationWarning, 2)
     def filter(application):
         return middleware(application)
     return filter
+
+def make_gzip_middleware(app, global_conf, compress_level=6):
+    """
+    Wrap the middleware, so that it applies gzipping to a response
+    when it is supported by the browser and the content is of
+    type ``text/*`` or ``application/*``
+    """
+    compress_level = int(compress_level)
+    return middleware(app, compress_level=compress_level)
