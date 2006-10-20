@@ -57,6 +57,10 @@ class Dummy_smtplib(object):
     existing = None
 
     def __init__(self, server):
+        import warnings
+        warnings.warn(
+            'Dummy_smtplib is not maintained and is deprecated',
+            DeprecationWarning, 2)
         assert not self.existing, (
             "smtplib.SMTP() called again before Dummy_smtplib.existing.reset() "
             "called.")

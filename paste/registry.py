@@ -92,7 +92,6 @@ quick way to work around it is documented.
 """
 import warnings
 import paste.util.threadinglocal as threadinglocal
-from paste import wsgilib
 
 __all__ = ['StackedObjectProxy', 'RegistryManager']
 

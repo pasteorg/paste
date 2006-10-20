@@ -83,7 +83,7 @@ class CgitbMiddleware(object):
         hook(*exc_info)
         return dummy_file.getvalue()
         
-def make_cgitb_middleware(self, app, global_conf,
+def make_cgitb_middleware(app, global_conf,
                           display=NoDefault,
                           logdir=None,
                           context=5,

@@ -7,19 +7,14 @@ A module of many disparate routines.
 
 # functions which moved to paste.request and paste.response
 # Deprecated around 15 Dec 2005
-from request import get_cookies, parse_querystring, parse_formvars
-from request import construct_url, path_info_split, path_info_pop
-from response import HeaderDict, has_header, header_value, remove_header
-from response import error_body_response, error_response, error_response_app
+from paste.request import get_cookies, parse_querystring, parse_formvars
+from paste.request import construct_url, path_info_split, path_info_pop
+from paste.response import HeaderDict, has_header, header_value, remove_header
+from paste.response import error_body_response, error_response, error_response_app
 
 from traceback import print_exception
-from Cookie import SimpleCookie
 from cStringIO import StringIO
-import mimetypes
-import os
-import cgi
 import sys
-import re
 from urlparse import urlsplit
 import warnings
 
@@ -180,7 +175,6 @@ def catch_errors(application, environ, start_response, error_callback,
     exc_info as its sole argument.  If no errors occur and ok_callback is given,
     then it will be called with no arguments.
     """
-    error_occurred = False
     try:
         app_iter = application(environ, start_response)
     except:
@@ -227,7 +221,6 @@ def catch_errors_app(application, environ, start_response, error_callback_app,
     ``start_response`` (*with* the exc_info argument!) and return an
     iterator.
     """
-    error_occurred = False
     try:
         app_iter = application(environ, start_response)
     except catch:
@@ -309,7 +302,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
         'wsgi.run_once': False,
         }
     if path:
-        (_,_,path_info,query,fragment) = urlsplit(str(path))
+        (_, _, path_info, query, fragment) = urlsplit(str(path))
         basic_environ['PATH_INFO'] = path_info
         if query:
             basic_environ['QUERY_STRING'] = query
@@ -404,7 +397,7 @@ def interactive(*args, **kw):
     return full.getvalue()
 interactive.proxy = 'raw_interactive'
 
-def dump_environ(environ,start_response):
+def dump_environ(environ, start_response):
     """
     Application which simply dumps the current environment
     variables out as a plain text response.
@@ -414,23 +407,23 @@ def dump_environ(environ,start_response):
     keys.sort()
     for k in keys:
         v = str(environ[k]).replace("\n","\n    ")
-        output.append("%s: %s\n" % (k,v))
+        output.append("%s: %s\n" % (k, v))
     output.append("\n")
-    content_length = environ.get("CONTENT_LENGTH",'')
+    content_length = environ.get("CONTENT_LENGTH", '')
     if content_length:
         output.append(environ['wsgi.input'].read(int(content_length)))
         output.append("\n")
     output = "".join(output)
     headers = [('Content-Type', 'text/plain'),
                ('Content-Length', len(output))]
-    start_response("200 OK",headers)
+    start_response("200 OK", headers)
     return [output]
 
 def send_file(filename):
     warnings.warn(
         "wsgilib.send_file has been moved to paste.fileapp.FileApp",
         DeprecationWarning, 2)
-    import fileapp
+    from paste import fileapp
     return fileapp.FileApp(filename)
 
 def capture_output(environ, start_response, application):

@@ -153,7 +153,8 @@ class AuthOpenIDHandler(object):
                 # @@: Do I need to append something to go back to where we
                 # came from?
                 was_401.append(1)
-                def dummy_writer(v): pass
+                def dummy_writer(v):
+                    pass
                 return dummy_writer
             else:
                 return start_response(status, headers, exc_info)

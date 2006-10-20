@@ -10,9 +10,7 @@ URL where the content can be displayed to the user as an error document.
 """
 
 import warnings
-from urllib import urlencode
 from urlparse import urlparse
-from paste.wsgilib import chained_app_iters
 from paste.recursive import ForwardRequestException, RecursiveMiddleware
 from paste.util import converters
 
@@ -154,7 +152,7 @@ class StatusBasedForward:
             status_code = status.split(' ')
             try:
                 code = int(status_code[0])
-            except ValueError, TypeError:
+            except (ValueError, TypeError):
                 raise Exception(
                     'StatusBasedForward middleware '
                     'received an invalid status code %s'%repr(status_code[0])
@@ -313,21 +311,22 @@ class _StatusBasedRedirect:
             try:
                 code, message = code_message[0]
             except:
-                code, message = ['','']
+                code, message = ['', '']
             environ['wsgi.errors'].write(
                 'Error occurred in _StatusBasedRedirect '
                 'intercepting the response: '+str(error)
             )
-            return [self.fallback_template%{'message':message,'code':code}]
+            return [self.fallback_template
+                    % {'message': message, 'code': code}]
         else:
             if url:
-                url_= url[0]
+                url_ = url[0]
                 new_environ = {}
                 for k, v in environ.items():
                     if k != 'QUERY_STRING':
                         new_environ['QUERY_STRING'] = urlparse(url_)[4]
                     else:
-                        new_environ[k]=v
+                        new_environ[k] = v
                 class InvalidForward(Exception):
                     pass
                 def eat_start_response(status, headers, exc_info=None):
@@ -339,7 +338,7 @@ class _StatusBasedRedirect:
                         raise InvalidForward(
                             "The URL %s to internally forward "
                             "to in order to create an error document did not "
-                            "return a '200' status code."%url_
+                            "return a '200' status code." % url_
                         )
                 forward = environ['paste.recursive.forward']
                 old_start_response = forward.start_response

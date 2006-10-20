@@ -167,7 +167,6 @@ def show(path_info, example_name):
             print result
 
 def html_matches(pattern, text):
-    return True
     regex = re.escape(pattern)
     regex = regex.replace(r'\.\.\.', '.*')
     regex = re.sub(r'0x[0-9a-f]+', '.*', regex)
@@ -402,10 +401,11 @@ class LongFormDocTestParser(doctest.DocTestParser):
             # Create an Example, and add it to the list.
             if not self._IS_BLANK_OR_COMMENT(source):
                 # @@: Erg, this is the only line I need to change...
-                output.append( doctest.Example(source, want, exc_msg,
-                                    lineno=lineno,
-                                    indent=min_indent+len(m.group('indent') or m.group('runindent')),
-                                    options=options) )
+                output.append(doctest.Example(
+                    source, want, exc_msg,
+                    lineno=lineno,
+                    indent=min_indent+len(m.group('indent') or m.group('runindent')),
+                    options=options))
             # Update lineno (lines inside this example)
             lineno += string.count('\n', m.start(), m.end())
             # Update charno.

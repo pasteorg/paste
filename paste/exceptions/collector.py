@@ -28,7 +28,7 @@ try:
 except ImportError:
     from StringIO import StringIO
 import linecache
-import serial_number_generator
+from paste.exceptions import serial_number_generator
 
 DEBUG_EXCEPTION_FORMATTER = True
 DEBUG_IDENT_PREFIX = 'E-'

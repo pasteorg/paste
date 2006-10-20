@@ -18,11 +18,13 @@ environment to solve common requirements.
 
 """
 import cgi
-import textwrap
 from Cookie import SimpleCookie
 from StringIO import StringIO
 import urlparse
-from util.UserDict24 import DictMixin, IterableUserDict, UserDict
+try:
+    from UserDict import DictMixin
+except ImportError:
+    from paste.util.UserDict24 import DictMixin
 from paste.util.multidict import MultiDict
 
 __all__ = ['get_cookies', 'get_cookie_dict', 'parse_querystring',

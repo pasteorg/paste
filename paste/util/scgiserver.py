@@ -59,10 +59,10 @@ class SWAP(scgi_server.SCGIHandler):
         environ = self.read_env(input)
         environ['wsgi.input']        = input
         environ['wsgi.errors']       = sys.stderr
-        environ['wsgi.version']      = (1,0)
+        environ['wsgi.version']      = (1, 0)
         environ['wsgi.multithread']  = False
         environ['wsgi.multiprocess'] = True
-        environ['wsgi.run_once']    = False
+        environ['wsgi.run_once']     = False
 
         # dunno how SCGI does HTTPS signalling; can't test it myself... @CTB
         if environ.get('HTTPS','off') in ('on','1'):
@@ -86,7 +86,7 @@ class SWAP(scgi_server.SCGIHandler):
         def write(data):
             chunks.append(data)
         
-        def start_response(status,response_headers,exc_info=None):
+        def start_response(status, response_headers, exc_info=None):
             if exc_info:
                 try:
                     if headers_sent:
@@ -97,7 +97,7 @@ class SWAP(scgi_server.SCGIHandler):
             elif headers_set:
                 raise AssertionError("Headers already set!")
 
-            headers_set[:] = [status,response_headers]
+            headers_set[:] = [status, response_headers]
             return write
 
         ###

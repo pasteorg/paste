@@ -41,22 +41,23 @@ corresponding to a database session id) is stored in the cookie.
 
 """
 
-import sha, hmac, base64, random, time, string, warnings
+import sha, hmac, base64, random, time, warnings
 from paste.request import get_cookies
 
 def make_time(value):
-    return time.strftime("%Y%m%d%H%M",time.gmtime(value))
-_signature_size = len(hmac.new('x','x',sha).digest())
+    return time.strftime("%Y%m%d%H%M", time.gmtime(value))
+_signature_size = len(hmac.new('x', 'x', sha).digest())
 _header_size = _signature_size + len(make_time(time.time()))
 
 # @@: Should this be using urllib.quote?
 # build encode/decode functions to safely pack away values
-_encode = [('\\','\\x5c'),('"','\\x22'),('=','\\x3d'),(';','\\x3b')]
-_decode = [(v,k) for (k,v) in _encode]
+_encode = [('\\', '\\x5c'), ('"', '\\x22'),
+           ('=', '\\x3d'), (';', '\\x3b')]
+_decode = [(v, k) for (k, v) in _encode]
 _decode.reverse()
 def encode(s, sublist = _encode):
-    return reduce((lambda a,(b,c): string.replace(a,b,c)), sublist, str(s))
-decode = lambda s: encode(s,_decode)
+    return reduce((lambda a, (b, c): a.replace(b, c)), sublist, str(s))
+decode = lambda s: encode(s, _decode)
 
 class CookieTooLarge(RuntimeError):
     def __init__(self, content, cookie):
@@ -64,10 +65,10 @@ class CookieTooLarge(RuntimeError):
         self.content = content
         self.cookie = cookie
 
-_all_chars = ''.join([chr(x) for x in range(0,255)])
+_all_chars = ''.join([chr(x) for x in range(0, 255)])
 def new_secret():
     """ returns a 64 byte secret """
-    return ''.join(random.sample(_all_chars,64))
+    return ''.join(random.sample(_all_chars, 64))
 
 class AuthCookieSigner:
     """
@@ -131,24 +132,24 @@ class AuthCookieSigner:
         cookie is handled server-side in the auth() function.
         """
         cookie = base64.b64encode(
-            hmac.new(self.secret,content,sha).digest() +
-            make_time(time.time()+60*self.timeout) +
-            content).replace("/","_").replace("=","~")
+            hmac.new(self.secret, content, sha).digest() +
+            make_time(time.time() + 60*self.timeout) +
+            content).replace("/", "_").replace("=", "~")
         if len(cookie) > self.maxlen:
-            raise CookieTooLarge(content,cookie)
+            raise CookieTooLarge(content, cookie)
         return cookie
 
-    def auth(self,cookie):
+    def auth(self, cookie):
         """
         Authenticate the cooke using the signature, verify that it
         has not expired; and return the cookie's content
         """
         decode = base64.b64decode(
-            cookie.replace("_","/").replace("~","="))
+            cookie.replace("_", "/").replace("~", "="))
         signature = decode[:_signature_size]
         expires = decode[_signature_size:_header_size]
         content = decode[_header_size:]
-        if signature == hmac.new(self.secret,content,sha).digest():
+        if signature == hmac.new(self.secret, content, sha).digest():
             if int(expires) > int(make_time(time.time())):
                 return content
             else:
@@ -177,7 +178,7 @@ class AuthCookieEnviron(list):
     def append(self, value):
         if value in self:
             return
-        list.append(self,str(value))
+        list.append(self, str(value))
 
 class AuthCookieHandler:
     """
@@ -238,7 +239,7 @@ class AuthCookieHandler:
     def __init__(self, application, cookie_name=None, scanlist=None,
                  signer=None, secret=None, timeout=None, maxlen=None):
         if not signer:
-            signer = self.signer_class(secret,timeout,maxlen)
+            signer = self.signer_class(secret, timeout, maxlen)
         self.signer = signer
         self.scanlist = scanlist or ('REMOTE_USER','REMOTE_SESSION')
         self.application = application
@@ -247,13 +248,13 @@ class AuthCookieHandler:
     def __call__(self, environ, start_response):
         if self.environ_name in environ:
             raise AssertionError("AuthCookie already installed!")
-        scanlist = self.environ_class(self,self.scanlist)
+        scanlist = self.environ_class(self, self.scanlist)
         jar = get_cookies(environ)
         if jar.has_key(self.cookie_name):
             content = self.signer.auth(jar[self.cookie_name].value)
             if content:
                 for pair in content.split(";"):
-                    (k,v) = pair.split("=")
+                    (k, v) = pair.split("=")
                     k = decode(k)
                     if k not in scanlist:
                         scanlist.append(k)
@@ -275,24 +276,24 @@ class AuthCookieHandler:
             pack up their values, signs the content and issues a cookie.
             """
             scanlist = environ.get(self.environ_name)
-            assert scanlist and isinstance(scanlist,self.environ_class)
+            assert scanlist and isinstance(scanlist, self.environ_class)
             content = []
             for k in scanlist:
-                v = environ.get(k,None)
+                v = environ.get(k)
                 if v is not None:
                     if type(v) is not str:
                         raise ValueError(
                             "The value of the environmental variable %r "
                             "is not a str (only str is allowed; got %r)"
                             % (k, v))
-                    content.append("%s=%s" % (encode(k),encode(v)))
+                    content.append("%s=%s" % (encode(k), encode(v)))
             if content:
                 content = ";".join(content)
                 content = self.signer.sign(content)
                 cookie = '%s=%s; Path=/;' % (self.cookie_name, content)
                 if 'https' == environ['wsgi.url_scheme']:
                     cookie += ' secure;'
-                response_headers.append(('Set-Cookie',cookie))
+                response_headers.append(('Set-Cookie', cookie))
             return start_response(status, response_headers, exc_info)
         return self.application(environ, response_hook)
 

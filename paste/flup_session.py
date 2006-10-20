@@ -16,8 +16,8 @@ cookies, and there's no way to delete a session except to clear its
 data.
 """
 
-import httpexceptions
-import wsgilib
+from paste import httpexceptions
+from paste import wsgilib
 import flup.middleware.session
 flup_session = flup.middleware.session
 

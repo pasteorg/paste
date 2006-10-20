@@ -60,8 +60,8 @@ class SlowConsumer:
                 '<input type="submit" >\n'
                 '</form></body></html>\n')
         print "bingles"
-        start_response("200 OK",[('Content-Type', 'text/html'),
-                                 ('Content-Length', len(body))])
+        start_response("200 OK", [('Content-Type', 'text/html'),
+                                  ('Content-Length', len(body))])
         return [body]
 
 def make_test_app(global_conf):

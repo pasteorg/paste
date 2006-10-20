@@ -7,7 +7,7 @@ Map URL prefixes to WSGI applications.  See ``URLMap``
 from UserDict import DictMixin
 import re
 import os
-import httpexceptions
+from paste import httpexceptions
 
 __all__ = ['URLMap', 'PathProxyURLMap']
 

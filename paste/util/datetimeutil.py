@@ -53,7 +53,7 @@ correctly.
      ``timedelta`` values will have a normalized representation.
 
 """
-from datetime import timedelta, time, date, datetime
+from datetime import timedelta, time, date
 from time import localtime
 import string
 
@@ -84,14 +84,16 @@ def parse_timedelta(val):
     fMin  = ("m" in val or ":" in val)
     fFraction = "." in val
     for noise in "minu:teshour()":
-        val = string.replace(val,noise,' ')
+        val = string.replace(val, noise, ' ')
     val = string.strip(val)
     val = string.split(val)
     hr = 0.0
     mi = 0
     val.reverse()
-    if fHour: hr = int(val.pop())
-    if fMin:  mi = int(val.pop())
+    if fHour:
+        hr = int(val.pop())
+    if fMin:
+        mi = int(val.pop())
     if len(val) > 0 and not hr:
         hr = int(val.pop())
     return timedelta(hours=hr, minutes=mi)
@@ -110,7 +112,7 @@ def normalize_timedelta(val):
         return ''
     hr = val.seconds/3600
     mn = (val.seconds % 3600)/60
-    return "%d.%02d" % (hr,mn*100/60)
+    return "%d.%02d" % (hr, mn * 100/60)
 
 #
 # time
@@ -120,10 +122,10 @@ def parse_time(val):
         return None
     hr = mi = 0
     val = string.lower(val)
-    amflag = (-1 != string.find(val,'a'))  # set if AM is found
-    pmflag = (-1 != string.find(val,'p'))  # set if PM is found
+    amflag = (-1 != string.find(val, 'a'))  # set if AM is found
+    pmflag = (-1 != string.find(val, 'p'))  # set if PM is found
     for noise in ":amp.":
-        val = string.replace(val,noise,' ')
+        val = string.replace(val, noise, ' ')
     val = string.split(val)
     if len(val) > 1:
         hr = int(val[0])
@@ -147,9 +149,11 @@ def parse_time(val):
             mi = int(val[-2:])
         else:
             hr = int(val[:1])
-    if amflag  and hr >= 12: hr = hr - 12
-    if pmflag  and hr < 12 : hr = hr + 12
-    return time(hr,mi)
+    if amflag and hr >= 12:
+        hr = hr - 12
+    if pmflag and hr < 12:
+        hr = hr + 12
+    return time(hr, mi)
 
 def normalize_time(value, ampm):
     if not value:
@@ -166,7 +170,7 @@ def normalize_time(value, ampm):
         am = "PM"
         if hr > 12:
             hr = hr - 12
-    return "%02d:%02d %s" % (hr,value.minute,am)
+    return "%02d:%02d %s" % (hr, value.minute, am)
 
 #
 # Date Processing
@@ -178,16 +182,18 @@ _str2num = {'jan':1, 'feb':2, 'mar':3, 'apr':4,  'may':5, 'jun':6,
             'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12 }
 
 def _month(val):
-    for (key,mon) in _str2num.items():
+    for (key, mon) in _str2num.items():
         if key in val:
             return mon
     raise TypeError("unknown month '%s'" % val)
 
-_days_in_month = {1:31,2:28,3:31,4:30,5:31,6:30,
-                 7:31,8:31,9:30,10:31,11:30,12:31 }
-_num2str = { 1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun',
-            7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec' }
-_wkdy = ("mon","tue","wed","thu","fri","sat","sun" )
+_days_in_month = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30,
+                  7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31,
+                  }
+_num2str = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
+            7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec',
+            }
+_wkdy = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 
 def parse_date(val):
     if not(val):
@@ -198,13 +204,13 @@ def parse_date(val):
     # optimized check for YYYY-MM-DD
     strict = val.split("-")
     if len(strict) == 3:
-        (y,m,d) = strict
+        (y, m, d) = strict
         if "+" in d:
             d = d.split("+")[0]
         if " " in d:
             d = d.split(" ")[0]
         try:
-            now = date(int(y),int(m),int(d))
+            now = date(int(y), int(m), int(d))
             val = "xxx" + val[10:]
         except ValueError:
             pass
@@ -236,10 +242,10 @@ def parse_date(val):
 
     # ok, standard parsing
     yr = mo = dy = None
-    for noise in ('/','-',',','*'):
-        val = string.replace(val,noise,' ')
+    for noise in ('/', '-', ',', '*'):
+        val = string.replace(val, noise, ' ')
     for noise in _wkdy:
-        val = string.replace(val,noise,' ')
+        val = string.replace(val, noise, ' ')
     out = []
     last = False
     ldig = False
@@ -337,10 +343,13 @@ def parse_date(val):
             else:
                 raise TypeError("four digit year required")
     tm = localtime()
-    if mo is None: mo = tm[1]
-    if dy is None: dy = tm[2]
-    if yr is None: yr = tm[0]
-    return date(yr,mo,dy)
+    if mo is None:
+        mo = tm[1]
+    if dy is None:
+        dy = tm[2]
+    if yr is None:
+        yr = tm[0]
+    return date(yr, mo, dy)
 
 def normalize_date(val, iso8601=True):
     if not val:
@@ -349,4 +358,4 @@ def normalize_date(val, iso8601=True):
         val = parse_date(val)
     if iso8601:
         return "%4d-%02d-%02d" % (val.year, val.month, val.day)
-    return "%02d %s %4d" % (val.day,_num2str[val.month],val.year)
+    return "%02d %s %4d" % (val.day, _num2str[val.month], val.year)

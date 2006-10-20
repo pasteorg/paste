@@ -10,7 +10,6 @@ try:
     import select
 except ImportError:
     select = None
-import warnings
 
 from paste.util import converters
 
@@ -48,7 +47,7 @@ class CGIApplication(object):
         if '?' in script:
             assert query_string is None, (
                 "You cannot have '?' in your script name (%r) and also "
-                "give a query_string (%r)" % (self.script, query_string))
+                "give a query_string (%r)" % (script, query_string))
             script, query_string = script.split('?', 1)
         if os.path.abspath(script) != script:
             # relative path

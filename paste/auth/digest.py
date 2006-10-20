@@ -35,7 +35,7 @@ import md5, time, random
 
 def digest_password(realm, username, password):
     """ construct the appropriate hashcode needed for HTTP digest """
-    return md5.md5("%s:%s:%s" % (username,realm,password)).hexdigest()
+    return md5.md5("%s:%s:%s" % (username, realm, password)).hexdigest()
 
 class AuthDigestAuthenticator:
     """ implementation of RFC 2617 - HTTP Digest Authentication """
@@ -46,14 +46,16 @@ class AuthDigestAuthenticator:
 
     def build_authentication(self, stale = ''):
         """ builds the authentication error """
-        nonce  = md5.md5("%s:%s" % (time.time(),random.random())).hexdigest()
-        opaque = md5.md5("%s:%s" % (time.time(),random.random())).hexdigest()
+        nonce  = md5.md5(
+            "%s:%s" % (time.time(), random.random())).hexdigest()
+        opaque = md5.md5(
+            "%s:%s" % (time.time(), random.random())).hexdigest()
         self.nonce[nonce] = None
-        parts = { 'realm': self.realm, 'qop': 'auth',
-                  'nonce': nonce, 'opaque': opaque }
+        parts = {'realm': self.realm, 'qop': 'auth',
+                 'nonce': nonce, 'opaque': opaque }
         if stale:
             parts['stale'] = 'true'
-        head = ", ".join(['%s="%s"' % (k,v) for (k,v) in parts.items()])
+        head = ", ".join(['%s="%s"' % (k, v) for (k, v) in parts.items()])
         head = [("WWW-Authenticate", 'Digest %s' % head)]
         return HTTPUnauthorized(headers=head)
 
@@ -62,11 +64,11 @@ class AuthDigestAuthenticator:
         """ computes the authentication, raises error if unsuccessful """
         if not ha1:
             return self.build_authentication()
-        ha2 = md5.md5('%s:%s' % (method,path)).hexdigest()
+        ha2 = md5.md5('%s:%s' % (method, path)).hexdigest()
         if qop:
-            chk = "%s:%s:%s:%s:%s:%s" % (ha1,nonce,nc,cnonce,qop,ha2)
+            chk = "%s:%s:%s:%s:%s:%s" % (ha1, nonce, nc, cnonce, qop, ha2)
         else:
-            chk = "%s:%s:%s" % (ha1,nonce,ha2)
+            chk = "%s:%s:%s" % (ha1, nonce, ha2)
         if response != md5.md5(chk).hexdigest():
             if nonce in self.nonce:
                 del self.nonce[nonce]
@@ -88,24 +90,24 @@ class AuthDigestAuthenticator:
         authorization = AUTHORIZATION(environ)
         if not authorization:
             return self.build_authentication()
-        (authmeth, auth) = authorization.split(" ",1)
+        (authmeth, auth) = authorization.split(" ", 1)
         if 'digest' != authmeth.lower():
             return self.build_authentication()
         amap = {}
         for itm in auth.split(", "):
-            (k,v) = [s.strip() for s in itm.split("=",1)]
-            amap[k] = v.replace('"','')
+            (k,v) = [s.strip() for s in itm.split("=", 1)]
+            amap[k] = v.replace('"', '')
         try:
             username = amap['username']
             authpath = amap['uri']
             nonce    = amap['nonce']
             realm    = amap['realm']
             response = amap['response']
-            assert authpath.split("?",1)[0] in fullpath
+            assert authpath.split("?", 1)[0] in fullpath
             assert realm == self.realm
-            qop      = amap.get('qop','')
-            cnonce   = amap.get('cnonce','')
-            nc       = amap.get('nc','00000000')
+            qop      = amap.get('qop', '')
+            cnonce   = amap.get('cnonce', '')
+            nc       = amap.get('nc', '00000000')
             if qop:
                 assert 'auth' == qop
                 assert nonce and nc

@@ -62,7 +62,7 @@ TODO
 
 import threading
 import sys
-import filemixin
+from paste.util import filemixin
 
 class PrintCatcher(filemixin.FileMixin):
 
