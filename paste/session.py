@@ -28,6 +28,9 @@ import time
 import random
 import os
 import md5
+import datetime
+import threading
+
 try:
     import cPickle
 except ImportError:
@@ -68,10 +71,15 @@ class SessionMiddleware(object):
                 session_factory.close()
         return wsgilib.add_start_close(app_iter, start, close)
 
+
 class SessionFactory(object):
 
+
     def __init__(self, environ, cookie_name='_SID_',
-                 session_class=None, **session_class_kw):
+                 session_class=None,
+                 expiration=60*12, # in minutes
+                 **session_class_kw):
+        
         self.created = False
         self.used = False
         self.environ = environ
@@ -79,6 +87,9 @@ class SessionFactory(object):
         self.session = None
         self.session_class = session_class or FileSession
         self.session_class_kw = session_class_kw
+
+        self.expiration = expiration
+        self.session_class_kw['expiration'] = self.expiration
 
     def __call__(self):
         self.used = True
@@ -99,6 +110,7 @@ class SessionFactory(object):
             self.sid = self.make_sid()
             session = self.session_class(self.sid, create=True,
                                          **self.session_class_kw)
+        session.clean_up()
         self.session = session
         return session.data()
 
@@ -140,6 +152,10 @@ class SessionFactory(object):
         c = SimpleCookie()
         c[self.cookie_name] = self.sid
         c[self.cookie_name]['path'] = '/'
+
+        gmt_expiration_time = time.gmtime(time.time() + (self.expiration * 60))
+        c[self.cookie_name]['expires'] = time.strftime("%a, %d-%b-%Y %H:%M:%S GMT", gmt_expiration_time)
+
         name, value = str(c).split(': ', 1)
         return (name, value)
 
@@ -147,10 +163,17 @@ class SessionFactory(object):
         if self.session is not None:
             self.session.close()
 
+
+last_cleanup = None
+cleaning_up = False
+cleanup_cycle = datetime.timedelta(seconds=15*60) #15 min
+
 class FileSession(object):
-    
+
     def __init__(self, sid, create=False, session_file_path='/tmp',
-                 chmod=None):
+                 chmod=None,
+                 expiration=2880, # in minutes: 48 hours
+                 ):
         if chmod and isinstance(chmod, basestring):
             chmod = int(chmod, 8)
         self.chmod = chmod
@@ -163,6 +186,9 @@ class FileSession(object):
             if not os.path.exists(self.filename()):
                 raise KeyError
         self._data = None
+
+        self.expiration = expiration
+
 
     def filename(self):
         return os.path.join(self.session_file_path, self.sid)
@@ -191,3 +217,53 @@ class FileSession(object):
                 f.close()
                 if not exists and self.chmod:
                     os.chmod(filename, self.chmod)
+
+    def _clean_up(self):
+        global cleaning_up
+        try:
+            exp_time = datetime.timedelta(seconds=self.expiration*60)
+            now = datetime.datetime.now()
+
+            #Open every session and check that it isn't too old
+            for root, dirs, files in os.walk(self.session_file_path):
+                for f in files:
+                    self._clean_up_file(f)
+        finally:
+            cleaning_up = False
+
+    def _clean_up_file(self, f):
+        t = f.split("-")
+        if len(t) != 2:
+            return
+        t = t[0]
+        sess_time = datetime.datetime(
+                int(t[0:4]),
+                int(t[4:6]),
+                int(t[6:8]),
+                int(t[8:10]),
+                int(t[10:12]),
+                int(t[12:14]))
+
+        if sess_time + exp_time < now:
+            os.remove(os.path.join(self.session_file_path, f))
+
+    def clean_up(self):
+        global last_cleanup, cleanup_cycle, cleaning_up
+        now = datetime.datetime.now()
+
+        if cleaning_up:
+            return
+
+        if not last_cleanup or last_cleanup + cleanup_cycle < now:
+            if not cleaning_up:
+                cleaning_up = True
+                try:
+                    last_cleanup = now
+                    t = threading.Thread(target=self._clean_up)
+                    t.start()
+                except:
+                    # Normally _clean_up should set cleaning_up
+                    # to false, but if something goes wrong starting
+                    # it...
+                    cleaning_up = False
+                    raise
