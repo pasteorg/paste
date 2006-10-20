@@ -165,7 +165,7 @@ For the latest changes see the `news file
       # This isn't good enough to deserve the name egg:Paste#session:
       paste_session = paste.session:make_session_middleware
       wdg_validate = paste.debug.wdg_validate:make_wdg_validate_middleware [subprocess]
-      evalerror = paste.evalexception:EvalException
+      evalerror = paste.evalexception.middleware:make_eval_exception
       auth_tkt = paste.auth.auth_tkt:make_auth_tkt_middleware
       auth_basic = paste.auth.basic:make_basic
       auth_digest = paste.auth.digest:make_digest
