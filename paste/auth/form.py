@@ -25,7 +25,7 @@ serving on...
 """
 from paste.request import construct_url, parse_formvars
 
-TEMPLATE ="""\
+TEMPLATE = """\
 <html>
   <head><title>Please Login!</title></head>
   <body>
@@ -113,8 +113,8 @@ class AuthFormHandler:
                     return self.application(environ, start_response)
 
         content = self.template % construct_url(environ)
-        start_response("200 OK",(('Content-Type', 'text/html'),
-                                 ('Content-Length', len(content))))
+        start_response("200 OK", (('Content-Type', 'text/html'),
+                                  ('Content-Length', len(content))))
         return [content]
 
 middleware = AuthFormHandler

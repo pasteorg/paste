@@ -154,10 +154,10 @@ def replace_header(headers, name, value):
         if headers[i][0].lower() == name:
             assert not result, "two values for the header '%s' found" % name
             result = headers[i][1]
-            headers[i] = (name,value)
+            headers[i] = (name, value)
         i += 1
     if not result:
-        headers.append((name,value))
+        headers.append((name, value))
     return result
 
 

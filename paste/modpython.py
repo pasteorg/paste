@@ -143,7 +143,7 @@ class Handler:
         
         env['wsgi.input'] = InputWrapper(req)
         env['wsgi.errors'] = ErrorWrapper(req)
-        env['wsgi.version'] = (1,0)
+        env['wsgi.version'] = (1, 0)
         env['wsgi.run_once'] = False
         if env.get("HTTPS") in ('yes', 'on', '1'):
             env['wsgi.url_scheme'] = 'https'

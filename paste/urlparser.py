@@ -10,10 +10,10 @@ import imp
 import urllib
 import pkg_resources
 import mimetypes
-import request
-import fileapp
+from paste import request
+from paste import fileapp
 from paste.util import import_string
-import httpexceptions
+from paste import httpexceptions
 from httpheaders import ETAG
 from paste.util import converters
 
@@ -468,7 +468,7 @@ class StaticURLParser(object):
             if str(mytime) == if_none_match:
                 headers = []
                 ETAG.update(headers, mytime)
-                start_response('304 Not Modified',headers)
+                start_response('304 Not Modified', headers)
                 return [''] # empty body
         
         fa = fileapp.FileApp(full)

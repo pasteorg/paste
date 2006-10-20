@@ -54,7 +54,7 @@ class MultiHandler:
     def add_method(self, name, factory, *args, **kwargs):
         self.binding[name] = factory(self.application, *args, **kwargs)
     def add_predicate(self, name, checker):
-        self.predicate.append((checker,self.binding[name]))
+        self.predicate.append((checker, self.binding[name]))
     def set_default(self, name):
         """ set default authentication method """
         self.default = self.binding[name]
@@ -64,7 +64,7 @@ class MultiHandler:
         self.add_predicate(name,
             lambda environ: lookfor in environ.get('QUERY_STRING',''))
     def __call__(self, environ, start_response):
-        for (checker,binding) in self.predicate:
+        for (checker, binding) in self.predicate:
             if checker(environ):
                 return binding(environ, start_response)
         return self.default(environ, start_response)

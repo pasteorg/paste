@@ -10,13 +10,13 @@ if-modified-since request header.
 """
 
 import os, time, mimetypes
-from httpexceptions import *
-from httpheaders import *
+from paste.httpexceptions import *
+from paste.httpheaders import *
 
 CACHE_SIZE = 4096
 BLOCK_SIZE = 4096 * 16
 
-__all__ = ['DataApp','FileApp']
+__all__ = ['DataApp', 'FileApp']
 
 class DataApp(object):
     """
@@ -54,16 +54,16 @@ class DataApp(object):
 
     """
     def __init__(self, content, headers=None, **kwargs):
-        assert isinstance(headers,(type(None),list))
+        assert isinstance(headers, (type(None), list))
         self.expires = None
         self.content = None
         self.content_length = None
         self.last_modified = 0
         self.headers = headers or []
-        for (k,v) in kwargs.items():
+        for (k, v) in kwargs.items():
             header = get_header(k)
-            header.update(self.headers,v)
-        ACCEPT_RANGES.update(self.headers,bytes=True)
+            header.update(self.headers, v)
+        ACCEPT_RANGES.update(self.headers, bytes=True)
         if not CONTENT_TYPE(self.headers):
             CONTENT_TYPE.update(self.headers)
         if content is not None:
@@ -98,7 +98,7 @@ class DataApp(object):
                 # horribly inefficient, n^2 performance, yuck!
                 for head in list_headers(entity=True):
                     head.delete(headers)
-                start_response('304 Not Modified',headers)
+                start_response('304 Not Modified', headers)
                 return [''] # empty body
         except HTTPBadRequest, exce:
             return exce.wsgi_application(environ, start_response)
@@ -116,10 +116,10 @@ class DataApp(object):
         except HTTPBadRequest, exce:
             return exce.wsgi_application(environ, start_response)
 
-        (lower,upper) = (0, self.content_length - 1)
+        (lower, upper) = (0, self.content_length - 1)
         range = RANGE.parse(environ)
         if range and 'bytes' == range[0] and 1 == len(range[1]):
-            (lower,upper) = range[1][0]
+            (lower, upper) = range[1][0]
             upper = upper or (self.content_length - 1)
             if upper >= self.content_length or lower > upper:
                 return HTTPRequestRangeNotSatisfiable((
@@ -186,7 +186,7 @@ class FileApp(DataApp):
                 return exc.wsgi_application(
                     environ, start_response)
         retval = DataApp.__call__(self, environ, start_response)
-        if isinstance(retval,list):
+        if isinstance(retval, list):
             # cached content, exception, or not-modified
             return retval
         (lower, content_length) = retval

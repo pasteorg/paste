@@ -24,7 +24,6 @@ Raise ``ForwardRequestException(new_path_info)`` to do a forward
 """
 
 from cStringIO import StringIO
-from urlparse import urlparse
 import warnings
 
 __all__ = ['RecursiveMiddleware']
@@ -43,7 +42,8 @@ class CheckForRecursionMiddleware:
                 "Forwarding loop detected; %r visited twice (internal "
                 "redirect path: %s)"
                 % (path_info, self.env['paste.recursive.old_path_info']))
-        self.env.setdefault('paste.recursive.old_path_info', []).append(self.env.get('PATH_INFO', ''))
+        old_path_info = self.env.setdefault('paste.recursive.old_path_info', [])
+        old_path_info.append(self.env.get('PATH_INFO', ''))
         return self.app(environ, start_response)
 
 class RecursiveMiddleware(object):
@@ -75,12 +75,13 @@ class RecursiveMiddleware(object):
             environ,
             start_response)
         my_script_name = environ.get('SCRIPT_NAME', '')
-        current_path_info = environ.get('PATH_INFO', '')
         environ['paste.recursive.script_name'] = my_script_name
         try:
             return self.application(environ, start_response)
         except ForwardRequestException, e:
-            return CheckForRecursionMiddleware(e.factory(self), environ)(environ, start_response)
+            middleware = CheckForRecursionMiddleware(
+                e.factory(self), environ)
+            return middleware(environ, start_response)
 
 class ForwardRequestException(Exception):
     """
@@ -169,15 +170,20 @@ class ForwardRequestException(Exception):
         url=None, 
         environ={}, 
         factory=None, 
-        path_info=None,
-    ):
+        path_info=None):
         # Check no incompatible options have been chosen
         if factory and url:
-            raise TypeError('You cannot specify factory and a url in ForwardRequestException')
+            raise TypeError(
+                'You cannot specify factory and a url in '
+                'ForwardRequestException')
         elif factory and environ:
-            raise TypeError('You cannot specify factory and environ in ForwardRequestException')
+            raise TypeError(
+                'You cannot specify factory and environ in '
+                'ForwardRequestException')
         if url and environ:
-            raise TypeError('You cannot specify environ and url in ForwardRequestException')
+            raise TypeError(
+                'You cannot specify environ and url in '
+                'ForwardRequestException')
 
         # set the path_info or warn about its use.
         if path_info:
@@ -257,6 +263,9 @@ class Recursive(object):
         environ['PATH_INFO'] = path_info
         environ['REQUEST_METHOD'] = 'GET'
         return self.activate(environ)
+
+    def activate(self, environ):
+        raise NotImplementedError
 
     def __repr__(self):
         return '<%s.%s from %s>' % (

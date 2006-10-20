@@ -5,8 +5,8 @@
 Cascades through several applications, so long as applications
 return ``404 Not Found``.
 """
-import httpexceptions
-from util import converters
+from paste import httpexceptions
+from paste.util import converters
 
 __all__ = ['Cascade']
 

@@ -35,8 +35,8 @@ try:
     import cPickle
 except ImportError:
     import pickle as cPickle
-import wsgilib
-import request
+from paste import wsgilib
+from paste import request
 
 class SessionMiddleware(object):
 

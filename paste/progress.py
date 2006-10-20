@@ -32,7 +32,7 @@ serving on...
    This is experimental, and will change in the future.
 """
 import time
-from wsgilib import catch_errors
+from paste.wsgilib import catch_errors
 
 DEFAULT_THRESHOLD = 1024 * 1024  # one megabyte
 DEFAULT_TIMEOUT   = 60*5         # five minutes
@@ -58,7 +58,6 @@ class _ProgressFile(object):
         riter = iter(self._ProgressFile_rfile)
         def iterwrap():
             for chunk in riter:
-                size = len(chunk)
                 environ[ENVIRON_RECEIVED] += len(chunk)
                 yield chunk
         return iter(iterwrap)
@@ -183,8 +182,8 @@ class UploadProgressReporter:
         self.monitor   = monitor
 
     def match(self, search_environ, upload_environ):
-        if search_environ.get('REMOTE_USER',None) == \
-           upload_environ.get('REMOTE_USER',0):
+        if search_environ.get('REMOTE_USER', None) == \
+           upload_environ.get('REMOTE_USER', 0):
             return True
         return False
 
@@ -207,16 +206,16 @@ class UploadProgressReporter:
         for map in [self.report(env) for env in self.monitor.uploads()
                                              if self.match(environ, env)]:
             parts = []
-            for k,v in map.items():
-                v = str(v).replace("\\","\\\\").replace('"','\\"')
-                parts.append('%s: "%s"' % (k,v))
+            for k, v in map.items():
+                v = str(v).replace("\\", "\\\\").replace('"', '\\"')
+                parts.append('%s: "%s"' % (k, v))
             body.append("{ %s }" % ", ".join(parts))
         body = "[ %s ]" % ", ".join(body)
-        start_response("200 OK", [ ('Content-Type', 'text/plain'),
-                                   ('Content-Length', len(body))])
+        start_response("200 OK", [('Content-Type', 'text/plain'),
+                                  ('Content-Length', len(body))])
         return [body]
 
-__all__ = ['UploadProgressMonitor','UploadProgressReporter']
+__all__ = ['UploadProgressMonitor', 'UploadProgressReporter']
 
 if "__main__" == __name__:
     import doctest

@@ -41,11 +41,11 @@ class AuthBasicAuthenticator:
         authorization = AUTHORIZATION(environ)
         if not authorization:
             return self.build_authentication()
-        (authmeth, auth) = authorization.split(' ',1)
+        (authmeth, auth) = authorization.split(' ', 1)
         if 'basic' != authmeth.lower():
             return self.build_authentication()
         auth = auth.strip().decode('base64')
-        username, password = auth.split(':',1)
+        username, password = auth.split(':', 1)
         if self.authfunc(environ, username, password):
             return username
         return self.build_authentication()

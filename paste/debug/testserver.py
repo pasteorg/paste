@@ -61,7 +61,7 @@ class WSGIRegressionServer(WSGIServer):
         [self.pending.append(True) for x in range(count)]
 
 def serve(application, host=None, port=None, handler=None):
-    server = WSGIRegressionServer(application,host,port,handler)
+    server = WSGIRegressionServer(application, host, port, handler)
     print "serving on %s:%s" % server.server_address
     server.serve_forever()
     return server

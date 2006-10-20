@@ -25,9 +25,9 @@ class TransactionManagerMiddleware(object):
         environ['paste.transaction_manager'] = manager = Manager()
         # This makes sure nothing else traps unexpected exceptions:
         environ['paste.throw_errors'] = True
-        return wsgilib.catch_errors(application, environ, start_response,
-                                    error_callback=manager.error,
-                                    ok_callback=manager.finish)
+        return catch_errors(self.application, environ, start_response,
+                            error_callback=manager.error,
+                            ok_callback=manager.finish)
 
 class Manager(object):
 
@@ -69,7 +69,7 @@ class ConnectionFactory(object):
             self.quote = self.module.PgQuoteString
 
     def __call__(self, environ=None):
-        conn = self.module.connect(*self.args,**self.kwargs)
+        conn = self.module.connect(*self.args, **self.kwargs)
         conn.__dict__['module'] = self.module
         conn.__dict__['quote'] = self.quote
         return conn
@@ -103,14 +103,14 @@ def BasicTransactionHandler(application, factory):
                             finalizer, finalizer)
     return basic_transaction
 
-__all__ = ['ConnectionFactory','BasicTransactionHandler']
+__all__ = ['ConnectionFactory', 'BasicTransactionHandler']
 
 if '__main__' == __name__ and False:
     from pyPgSQL import PgSQL
-    factory = ConnectionFactory(PgSQL,database="testing")
+    factory = ConnectionFactory(PgSQL, database="testing")
     conn = factory()
     curr = conn.cursor()
     curr.execute("SELECT now(), %s" % conn.quote("B'n\\'gles"))
-    (time,bing) = curr.fetchone()
+    (time, bing) = curr.fetchone()
     print bing, time
 

@@ -66,7 +66,7 @@ def AuthCASHandler(application, authority):
         qs = environ.get('QUERY_STRING','').split("&")
         if qs and qs[-1].startswith("ticket="):
             # assume a response from the authority
-            ticket = qs.pop().split("=",1)[1]
+            ticket = qs.pop().split("=", 1)[1]
             environ['QUERY_STRING'] = "&".join(qs)
             service = construct_url(environ)
             args = urllib.urlencode(
