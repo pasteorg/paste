@@ -22,11 +22,6 @@ class ProfileMiddleware(object):
 
     """
     Middleware that profiles all requests.
-    
-    You can enable this middleware by adding this to your
-    configuration::
-
-        middleware.append('paste.profilemiddleware.ProfileMiddleware')
 
     All HTML pages will have profiling information appended to them.
     The data is isolated to that single request, and does not include
@@ -40,7 +35,7 @@ class ProfileMiddleware(object):
     style = ('background-color: #ff9; color: #000; '
              'border: 2px solid #000; padding: 5px;')
 
-    def __init__(self, app, global_conf,
+    def __init__(self, app, global_conf=None,
                  log_filename='profile.log.tmp',
                  limit=40):
         self.app = app
@@ -210,3 +205,18 @@ class DecoratedProfile(object):
         return '%s(%s)' % (func.__name__, ', '.join(args))
             
             
+def make_profile_middleware(
+    app, global_conf,
+    log_filename='profile.log.tmp',
+    limit=40):
+    """
+    Wrap the application in a component that will profile each
+    request.  The profiling data is then appended to the output
+    of each page.
+
+    Note that this serializes all requests (i.e., removing
+    concurrency).  Therefore never use this in production.
+    """
+    limit = int(limit)
+    return ProfileMiddleware(
+        app, log_filename=log_filename, limit=limit)

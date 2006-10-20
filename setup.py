@@ -160,7 +160,7 @@ For the latest changes see the `news file
       httpexceptions = paste.httpexceptions:make_middleware
       lint = paste.lint:make_middleware
       printdebug = paste.debug.prints:PrintDebugMiddleware 
-      profile = paste.debug.profile:ProfileMiddleware [hotshot]
+      profile = paste.debug.profile:make_profile_middleware [hotshot]
       recursive = paste.recursive:RecursiveMiddleware
       # This isn't good enough to deserve the name egg:Paste#session:
       paste_session = paste.session:SessionMiddleware
