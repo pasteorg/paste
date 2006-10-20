@@ -6,17 +6,18 @@ Middleware to make internal requests and forward requests internally.
 When applied, several keys are added to the environment that will allow
 you to trigger recursive redirects and forwards.
 
-``paste.recursive.include``:
-    When you call ``environ['paste.recursive.include'](new_path_info)``
-    a response will be returned.  The response has a ``body`` attribute,
-    a ``status`` attribute, and a ``headers`` attribute.
+  paste.recursive.include:
+      When you call
+      ``environ['paste.recursive.include'](new_path_info)`` a response
+      will be returned.  The response has a ``body`` attribute, a
+      ``status`` attribute, and a ``headers`` attribute.
 
-``paste.recursive.script_name``:
-    The ``SCRIPT_NAME`` at the point that recursive lives.  Only paths
-    underneath this path can be redirected to.
+  paste.recursive.script_name:
+      The ``SCRIPT_NAME`` at the point that recursive lives.  Only
+      paths underneath this path can be redirected to.
 
-``paste.recursive.old_path_info``:
-    A list of previous ``PATH_INFO`` values from previous redirects.
+  paste.recursive.old_path_info:
+      A list of previous ``PATH_INFO`` values from previous redirects.
 
 Raise ``ForwardRequestException(new_path_info)`` to do a forward
 (aborting the current request).
@@ -59,7 +60,6 @@ class RecursiveMiddleware(object):
 
     def __init__(self, application, global_conf=None):
         self.application = application
-
 
     def __call__(self, environ, start_response):
         environ['paste.recursive.forward'] = Forwarder(
@@ -382,3 +382,8 @@ class IncludedAppIterResponse(object):
             
     def write(self, s):
         self.accumulated.append
+
+def make_recursive_middleware(app, global_conf):
+    return RecursiveMiddleware(app)
+
+make_recursive_middleware.__doc__ = __doc__

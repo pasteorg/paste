@@ -161,7 +161,7 @@ For the latest changes see the `news file
       lint = paste.lint:make_middleware
       printdebug = paste.debug.prints:PrintDebugMiddleware 
       profile = paste.debug.profile:make_profile_middleware [hotshot]
-      recursive = paste.recursive:RecursiveMiddleware
+      recursive = paste.recursive:make_recursive_middleware
       # This isn't good enough to deserve the name egg:Paste#session:
       paste_session = paste.session:SessionMiddleware
       wdg_validate = paste.debug.wdg_validate:WDGValidateMiddleware [subprocess]
