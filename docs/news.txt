@@ -28,6 +28,9 @@ svn trunk
 * Added automatic cleanup of old sessions for ``paste.session``, from
   Amir Salihefendic.
 
+* Quote the function name in tracebacks in the exception formatter;
+  Genshi has function names that use ``<>``.
+
 0.9.9
 -----
 

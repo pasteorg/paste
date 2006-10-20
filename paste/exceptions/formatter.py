@@ -246,11 +246,12 @@ class HTMLFormatter(TextFormatter):
     def format_combine_lines(self, lines):
         return '<br>\n'.join(lines)
     def format_source_line(self, filename, frame):
+        name = self.quote(frame.name or '?')
         return 'Module <span class="module" title="%s">%s</span>:<b>%s</b> in <code>%s</code>' % (
             filename, frame.modname or '?', frame.lineno or '?',
-            frame.name or '?')
+            name)
         return 'File %r, line %s in <tt>%s</tt>' % (
-            filename, frame.lineno, frame.name)
+            filename, frame.lineno, name)
     def format_long_source(self, source, long_source):
         q_long_source = str2html(long_source, False, 4, True)
         q_source = str2html(source, True, 0, False)
