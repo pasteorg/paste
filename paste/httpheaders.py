@@ -329,7 +329,7 @@ class HTTPHeader(object):
 
         self = object.__new__(cls)
         self.name = name
-        assert isinstance(self.name,str)
+        assert isinstance(self.name, str)
         self.category = category or self.category
         self.version  = version or self.version
         self.reference = reference or self.reference
@@ -340,7 +340,7 @@ class HTTPHeader(object):
                                 'HTTP_'+ self.name.upper().replace("-","_"))
         self._headers_name = getattr(self, '_headers_name',
                                  self.name.lower())
-        assert self.version in ('1.1','1.0','0.9')
+        assert self.version in ('1.1', '1.0', '0.9')
         return self
 
     def __str__(self):
@@ -354,7 +354,7 @@ class HTTPHeader(object):
         by request/response headers, and then entity headers.  The
         list.sort() methods use the less-than operator for this purpose.
         """
-        if isinstance(other,HTTPHeader):
+        if isinstance(other, HTTPHeader):
             if self.sort_order != other.sort_order:
                 return self.sort_order < other.sort_order
             return self.name < other.name
@@ -395,8 +395,8 @@ class HTTPHeader(object):
             return self.compose(**kwargs)
         if list == type(args[0]):
             assert 1 == len(args)
-            result = []
-            name = self.name.lower()
+            name = []
+            result = self.name.lower()
             for value in [value for header, value in args[0]
                          if header.lower() == name]:
                 result.append(value)
@@ -408,7 +408,7 @@ class HTTPHeader(object):
                 return ()
             return (value,)
         for item in args:
-           assert not type(item) in (dict, list)
+            assert not type(item) in (dict, list)
         return args
 
     def __call__(self, *args, **kwargs):
@@ -423,7 +423,7 @@ class HTTPHeader(object):
         values as described by section 4.2 of RFC 2616.
         """
         values = self.values(*args, **kwargs)
-        assert isinstance(values, (tuple,list))
+        assert isinstance(values, (tuple, list))
         if not values:
             return ''
         assert len(values) == 1, "more than one value: %s" % repr(values)
@@ -458,7 +458,7 @@ class HTTPHeader(object):
         """
         value = self.__call__(*args, **kwargs)
         if not value:
-            self.remove(connection)
+            self.remove(collection)
             return
         if type(collection) == dict:
             collection[self._environ_name] = value
@@ -528,8 +528,7 @@ class _MultiEntryHeader(HTTPHeader):
     def update(self, collection, *args, **kwargs):
         assert list == type(collection), "``environ`` may not be updated"
         self.delete(collection)
-        collection.extend(self.tuples(*args,**kwargs))
-        return value
+        collection.extend(self.tuples(*args, **kwargs))
 
     def tuples(self, *args, **kwargs):
         values = self.values(*args, **kwargs)
@@ -555,8 +554,8 @@ def list_headers(general=None, request=None, response=None, entity=None):
     if not (general or request or response or entity):
         general = request = response = entity = True
     search = []
-    for (bool,strval) in ((general,'general'), (request,'request'),
-                         (response,'response'), (entity,'entity')):
+    for (bool, strval) in ((general, 'general'), (request, 'request'),
+                           (response, 'response'), (entity, 'entity')):
         if bool:
             search.append(strval)
     return [head for head in _headers.values() if head.category in search]
@@ -572,22 +571,22 @@ def normalize_headers(response_headers, strict=True):
     """
     category = {}
     for idx in range(len(response_headers)):
-        (key,val) = response_headers[idx]
+        (key, val) = response_headers[idx]
         head = get_header(key, strict)
         if not head:
-            newhead = '-'.join([x.capitalize() for x in \
+            newhead = '-'.join([x.capitalize() for x in 
                                 key.replace("_","-").split("-")])
-            response_headers[idx] = (newhead,val)
+            response_headers[idx] = (newhead, val)
             category[newhead] = 4
             continue
-        response_headers[idx] = (str(head),val)
+        response_headers[idx] = (str(head), val)
         category[str(head)] = head.sort_order
-    def compare(a,b):
+    def compare(a, b):
         ac = category[a[0]]
         bc = category[b[0]]
         if ac == bc:
-            return cmp(a[0],b[0])
-        return cmp(ac,bc)
+            return cmp(a[0], b[0])
+        return cmp(ac, bc)
     response_headers.sort(compare)
 
 class _DateHeader(_SingleValueHeader):
@@ -710,8 +709,8 @@ class _CacheControl(_MultiValueHeader):
     def _compose(self, public=None, private=None, no_cache=None,
                  no_store=False, max_age=None, s_maxage=None,
                  no_transform=False, **extensions):
-        assert isinstance(max_age,(type(None),int))
-        assert isinstance(s_maxage,(type(None),int))
+        assert isinstance(max_age, (type(None), int))
+        assert isinstance(s_maxage, (type(None), int))
         expires = 0
         result = []
         if private is True:
@@ -733,10 +732,10 @@ class _CacheControl(_MultiValueHeader):
             result.append('max-age=%d' % max_age)
         if s_maxage is not None:
             result.append('s-maxage=%d' % s_maxage)
-        for (k,v) in extensions.items():
+        for (k, v) in extensions.items():
             if k not in self.extensions:
                 raise AssertionError("unexpected extension used: '%s'" % k)
-            result.append('%s="%s"' % (k.replace("_","-"),v))
+            result.append('%s="%s"' % (k.replace("_", "-"), v))
         return (result, expires)
 
     def compose(self, **kwargs):
@@ -751,7 +750,7 @@ class _CacheControl(_MultiValueHeader):
         self.update(collection, *result)
         return expires
 
-_CacheControl('Cache-Control','general', 'RFC 2616, 14.9')
+_CacheControl('Cache-Control', 'general', 'RFC 2616, 14.9')
 
 class _ContentType(_SingleValueHeader):
     """
@@ -770,18 +769,19 @@ class _ContentType(_SingleValueHeader):
 
     def compose(self, major=None, minor=None, charset=None):
         if not major:
-            if minor in ('plain','html','xml'):
+            if minor in ('plain', 'html', 'xml'):
                 major = 'text'
             else:
                 assert not minor and not charset
                 return (self.UNKNOWN,)
         if not minor:
             minor = "*"
-        result = "%s/%s" % (major,minor)
+        result = "%s/%s" % (major, minor)
         if charset:
             result += "; charset=%s" % charset
         return (result,)
-_ContentType('Content-Type','entity', 'RFC 2616, 14.17')
+
+_ContentType('Content-Type', 'entity', 'RFC 2616, 14.17')
 
 class _ContentLength(_SingleValueHeader):
     """
@@ -792,7 +792,7 @@ class _ContentLength(_SingleValueHeader):
     version = "1.0"
     _environ_name = 'CONTENT_LENGTH'
 
-_ContentLength('Content-Length','entity', 'RFC 2616, 14.13')
+_ContentLength('Content-Length', 'entity', 'RFC 2616, 14.13')
 
 class _ContentDisposition(_SingleValueHeader):
     """
@@ -860,7 +860,7 @@ class _ContentDisposition(_SingleValueHeader):
         self.update(collection, *result)
         return mimetype
 
-_ContentDisposition('Content-Disposition','entity', 'RFC 2183')
+_ContentDisposition('Content-Disposition', 'entity', 'RFC 2183')
 
 class _IfModifiedSince(_DateHeader):
     """
@@ -927,7 +927,7 @@ class _Range(_MultiValueHeader):
                 else:
                     end = int(end)
                 last_end = end
-                ranges.append((begin,end))
+                ranges.append((begin, end))
         except ValueError:
             # In this case where the Range header is malformed,
             # section 14.16 says to treat the request as if the
@@ -966,24 +966,24 @@ class _Authorization(_SingleValueHeader):
         assert username and password
         if basic or not challenge:
             assert not digest
-            userpass = "%s:%s" % (username.strip(),password.strip())
+            userpass = "%s:%s" % (username.strip(), password.strip())
             return "Basic %s" % userpass.encode('base64').strip()
         assert challenge and not basic
         path = path or "/"
-        (_,realm) = challenge.split('realm="')
-        (realm,_) = realm.split('"',1)
+        (_, realm) = challenge.split('realm="')
+        (realm, _) = realm.split('"', 1)
         auth = urllib2.AbstractDigestAuthHandler()
-        auth.add_password(realm,path,username,password)
-        (token,challenge) = challenge.split(' ',1)
+        auth.add_password(realm, path, username, password)
+        (token, challenge) = challenge.split(' ', 1)
         chal = urllib2.parse_keqv_list(urllib2.parse_http_list(challenge))
         class FakeRequest:
-           def get_full_url(self):
-               return path
-           def has_data(self):
-               return False
-           def get_method(self):
-               return method or "GET"
-           get_selector = get_full_url
+            def get_full_url(self):
+                return path
+            def has_data(self):
+                return False
+            def get_method(self):
+                return method or "GET"
+            get_selector = get_full_url
         retval = "Digest %s" % auth.get_authorization(FakeRequest(), chal)
         return (retval,)
 _Authorization('Authorization', 'request', 'RFC 2617')
@@ -1044,11 +1044,11 @@ for (name,              category, version, style,      comment) in \
 ,("Via"                ,'general' ,'1.1','multi-value','RFC 2616, 14.45')
 ,("Warning"            ,'general' ,'1.1','multi-entry','RFC 2616, 14.46')
 ,("WWW-Authenticate"   ,'response','1.0','multi-entry','RFC 2616, 14.47')):
-    klass = { 'multi-value': _MultiValueHeader,
-              'multi-entry': _MultiEntryHeader,
-              'date-header': _DateHeader,
-              'singular'   : _SingleValueHeader}[style]
-    klass(name,category,comment,version).__doc__ = comment
+    klass = {'multi-value': _MultiValueHeader,
+             'multi-entry': _MultiEntryHeader,
+             'date-header': _DateHeader,
+             'singular'   : _SingleValueHeader}[style]
+    klass(name, category, comment, version).__doc__ = comment
     del klass
 
 for head in _headers.values():
