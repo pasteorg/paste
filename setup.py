@@ -142,7 +142,6 @@ For the latest changes see the `news file
       static = paste.urlparser:make_static
       pkg_resources = paste.urlparser:make_pkg_resources
       urlparser = paste.urlparser:make_url_parser
-      selenium_index = paste.debug.recorder.selenium_suite:make_selenium_index_app
       proxy = paste.proxy:make_proxy
       test = paste.debug.debugapp:make_test_app
       test_slow = paste.debug.debugapp:make_slow_app
@@ -172,7 +171,6 @@ For the latest changes see the `news file
       auth_form = paste.auth.form:make_form
       grantip = paste.auth.grantip:make_grantip
       openid = paste.auth.open_id:make_open_id_middleware [openid]
-      recorder = paste.debug.recorder.record:make_recorder
       pony = paste.pony:make_pony
       errordocument = paste.errordocument:make_errordocument
       auth_cookie = paste.auth.cookie:make_auth_cookie

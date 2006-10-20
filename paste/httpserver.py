@@ -597,11 +597,9 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
 # Note: this gets a separate function because it has to expect string
 # arguments (though that's not much of an issue yet, ever?)
 def server_runner(wsgi_app, global_conf, *args, **kwargs):
-    """
-    A simple HTTP server.  Also supports SSL if you give it an
-    ``ssl_pem`` argument, see documentation for ``serve()``.
-    """
     serve(wsgi_app, *args, **kwargs)
+
+server_runner.__doc__ = serve.__doc__
 
 if __name__ == '__main__':
     # serve exactly 3 requests and then stop, use an external
