@@ -117,7 +117,7 @@ class Snapshot(IterableUserDict):
         if self.ignore_hidden and os.path.basename(fn).startswith('.'):
             return True
         for pat in self.ignore_wildcards:
-            if fnmatch(fn, path):
+            if fnmatch(fn, pat):
                 return True
         return False
 
