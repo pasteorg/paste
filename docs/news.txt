@@ -25,6 +25,9 @@ svn trunk
   which will force all incoming requests to the same host, but leave
   the ``Host`` header intact.
 
+* Added automatic cleanup of old sessions for ``paste.session``, from
+  Amir Salihefendic.
+
 0.9.9
 -----
 
