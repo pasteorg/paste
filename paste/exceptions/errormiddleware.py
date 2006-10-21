@@ -378,7 +378,7 @@ def handle_exception(exc_info, error_stream, html=True,
             An error occurred.  See the error logs for more information.
             (Turn debug on to display exception reports here)
             '''
-            return_error = error_template('', error_message, '')
+            return_error = error_template('', msg, '')
     else:
         return_error = None
     if not reported and error_stream:
