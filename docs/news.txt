@@ -3,8 +3,8 @@ News
 
 .. contents::
 
-svn trunk
----------
+1.0
+---
 
 * Fixed ``parsed_formvars`` potentially locking up on wsgi.input
   after modification of ``QUERY_STRING``.
