@@ -86,6 +86,7 @@ Documentation
 * `Style guide <StyleGuide.html>`_
 * `Testing applications with Paste <testing-applications.html>`_
 * `URL parsing with WSGI <url-parsing-with-wsgi.html>`_
+* `A Do-It-Yourself Framework <do-it-yourself-framework.html>`_
 
 Components
 ==========
