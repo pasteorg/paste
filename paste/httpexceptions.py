@@ -413,7 +413,6 @@ class HTTPBadRequest(HTTPClientError):
     pass
 
 class HTTPUnauthorized(HTTPClientError):
-    required_headers = ('WWW-Authenticate',)
     code = 401
     title = 'Unauthorized'
     explanation = (

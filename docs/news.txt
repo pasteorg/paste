@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* Changed ``paste.httpexceptions.HTTPUnauthorized`` so that the
+  ``WWW-Authenticate`` header is not required.  401 responses don't
+  *have* to have that header.
+
 1.0
 ---
 
