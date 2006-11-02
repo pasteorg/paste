@@ -687,7 +687,7 @@ class TestResponse(object):
         # We
         scheme = host = fragment = ''
         href = urlparse.urlunsplit((scheme, host, path, query, fragment))
-        href = urlparse.urljoin(self.request.url, href)
+        href = urlparse.urljoin(self.request.full_url, href)
         method = method.lower()
         assert method in ('get', 'post'), (
             'Only "get" or "post" are allowed for method (you gave %r)'
