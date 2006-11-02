@@ -113,8 +113,8 @@ class AuthFormHandler:
                     return self.application(environ, start_response)
 
         content = self.template % construct_url(environ)
-        start_response("200 OK", (('Content-Type', 'text/html'),
-                                  ('Content-Length', len(content))))
+        start_response("200 OK", [('Content-Type', 'text/html'),
+                                  ('Content-Length', str(len(content)))])
         return [content]
 
 middleware = AuthFormHandler
