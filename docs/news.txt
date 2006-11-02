@@ -10,6 +10,11 @@ svn trunk
   ``WWW-Authenticate`` header is not required.  401 responses don't
   *have* to have that header.
 
+* In ``paste.fixture.TestApp``: ``<form>`` tags that have to
+  ``action`` will preserve the existing query string.  (Generally
+  relative links that are completely empty should but were not
+  preserving the query string)
+
 1.0
 ---
 
