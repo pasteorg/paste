@@ -45,7 +45,7 @@ class SWAP(scgi_server.SCGIHandler):
     
     def __init__(self, *args, **kwargs):
         assert self.app_obj, "must set app_obj"
-        assert self.prefix, "must set prefix"
+        assert self.prefix is not None, "must set prefix"
         args = (self,) + args
         scgi_server.SCGIHandler.__init__(*args, **kwargs)
 
