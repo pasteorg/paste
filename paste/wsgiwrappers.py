@@ -221,7 +221,7 @@ class WSGIResponse(object):
         for var_name, var_value in [
             ('max_age', max_age), ('path', path), ('domain', domain),
             ('secure', secure), ('expires', expires)]:
-            if var_value is not None:
+            if var_value is not None and var_value is not False:
                 self.cookies[key][var_name.replace('_', '-')] = var_value
 
     def delete_cookie(self, key, path='/', domain=None):
