@@ -15,6 +15,9 @@ svn trunk
   relative links that are completely empty should but were not
   preserving the query string)
 
+* Made ``paste.*`` compatible with `py2exe <http://www.py2exe.org/>`_
+  by adding a ``modulefinder`` call in ``__init__.py``
+
 1.0
 ---
 
