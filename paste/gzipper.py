@@ -11,7 +11,7 @@ Gzip-encodes the response.
 """
 
 import gzip
-from paste.response import header_value
+from paste.response import header_value, remove_header
 from paste.httpheaders import CONTENT_LENGTH
 
 try:
@@ -48,7 +48,7 @@ class GzipResponse(object):
         self.compress_level = compress_level
         self.buffer = StringIO()
         self.compressible = False
-        self.headers = None
+        self.content_length = None
 
     def gzip_start_response(self, status, headers, exc_info=None):
         self.headers = headers
@@ -62,15 +62,16 @@ class GzipResponse(object):
             self.compressible = False
         if self.compressible:
             headers.append(('content-encoding', 'gzip'))
-        return self.start_response(status, headers, exc_info)
+        remove_header(headers, 'content-length')
+        self.headers = headers
+        self.status = status
+        return self.buffer.write
 
     def write(self):
         out = self.buffer
         out.seek(0)
         s = out.getvalue()
         out.close()
-        if self.compressible and self.headers is not None:
-            CONTENT_LENGTH.update(self.headers, str(len(s)))
         return [s]
 
     def finish_response(self, app_iter):
@@ -87,6 +88,9 @@ class GzipResponse(object):
         finally:
             if hasattr(app_iter, 'close'):
                 app_iter.close()
+        content_length = self.buffer.tell()
+        CONTENT_LENGTH.update(self.headers, content_length)
+        self.start_response(self.status, self.headers)
 
 def filter_factory(application, **conf):
     import warnings
