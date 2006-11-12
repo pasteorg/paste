@@ -12,6 +12,7 @@ Gzip-encodes the response.
 
 import gzip
 from paste.response import header_value
+from paste.httpheaders import CONTENT_LENGTH
 
 try:
     from cStringIO import StringIO
@@ -47,8 +48,10 @@ class GzipResponse(object):
         self.compress_level = compress_level
         self.buffer = StringIO()
         self.compressible = False
+        self.headers = None
 
     def gzip_start_response(self, status, headers, exc_info=None):
+        self.headers = headers
         ct = header_value(headers,'content-type')
         ce = header_value(headers,'content-encoding')
         self.compressible = False
@@ -66,6 +69,8 @@ class GzipResponse(object):
         out.seek(0)
         s = out.getvalue()
         out.close()
+        if self.compressible and self.headers is not None:
+            CONTENT_LENGTH.update(self.headers, str(len(s)))
         return [s]
 
     def finish_response(self, app_iter):
