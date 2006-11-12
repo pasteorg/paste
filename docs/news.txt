@@ -18,6 +18,9 @@ svn trunk
 * Made ``paste.*`` compatible with `py2exe <http://www.py2exe.org/>`_
   by adding a ``modulefinder`` call in ``__init__.py``
 
+* The ``paste.gzipper`` gzipping middleware wasn't changing the
+  Content-Length header properly; thanks to Brad Clements for the fix.
+
 1.0
 ---
 
