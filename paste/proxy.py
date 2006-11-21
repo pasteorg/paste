@@ -101,7 +101,9 @@ class Proxy(object):
                      body, headers)
         res = conn.getresponse()
         headers_out = []
-        for header, value in res.getheaders():
+        for full_header in res.msg.headers:
+            header, value = full_header.split(':', 1)
+            value = value.strip()
             if header.lower() not in filtered_headers:
                 headers_out.append((header, value))
                 
@@ -161,6 +163,12 @@ class TransparentProxy(object):
         self.force_host = force_host
         self.force_scheme = force_scheme
 
+    def __repr__(self):
+        return '<%s %s force_host=%r force_scheme=%r>' % (
+            self.__class__.__name__,
+            hex(id(self)),
+            self.force_host, self.force_scheme)
+
     def __call__(self, environ, start_response):
         scheme = environ['wsgi.url_scheme']
         if self.force_host is None:
@@ -211,7 +219,9 @@ class TransparentProxy(object):
                      path, body, headers)
         res = conn.getresponse()
         headers_out = []
-        for header, value in res.getheaders():
+        for full_header in res.msg.headers:
+            header, value = full_header.split(':', 1)
+            value = value.strip()
             if header.lower() not in filtered_headers:
                 headers_out.append((header, value))
                 

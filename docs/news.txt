@@ -21,6 +21,11 @@ svn trunk
 * The ``paste.gzipper`` gzipping middleware wasn't changing the
   Content-Length header properly; thanks to Brad Clements for the fix.
 
+* Fixed ``paste.proxy`` to not use anything based on the dict form of
+  ``httplib..HTTPMessage``.  This form folds headers together in a way
+  that breaks ``Set-Cookie`` headers (two ``Set-Cookie`` headers would
+  be merged into one).
+
 1.0
 ---
 
