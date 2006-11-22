@@ -488,7 +488,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
 
     ``ssl_pem``
 
-        This an optional SSL certificate file (via OpenSSL) You can
+        This an optional SSL certificate file (via OpenSSL). You can
         generate a self-signed test PEM certificate file as follows:
 
             $ openssl genrsa 1024 > host.key
