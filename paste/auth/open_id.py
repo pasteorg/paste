@@ -201,7 +201,7 @@ class AuthOpenIDHandler(object):
                 fmt = 'Could not find OpenID information in <q>%s</q>'
 
             message = fmt % (cgi.escape(openid_url),)
-            self.render(request, message, css_class='error', form_contents=openid_url)
+            return self.render(request, message, css_class='error', form_contents=openid_url)
         elif status == consumer.SUCCESS:
             # The URL was a valid identity URL. Now we construct a URL
             # that will get us to process the server response. We will
