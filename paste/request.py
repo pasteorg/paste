@@ -148,8 +148,10 @@ def parse_formvars(environ, include_get_vars=True):
     # @@: Shouldn't bother FieldStorage parsing during GET/HEAD and
     # fake_out_cgi requests
     type = environ.get('CONTENT_TYPE', '').lower()
-    fake_out_cgi = type not in ('', 'application/x-www-form-urlencoded') and \
-        not type.startswith('multipart/form-data')
+    if ';' in type:
+        type = type.split(';', 1)
+    fake_out_cgi = (type not in ('', 'application/x-www-form-urlencoded')
+                    and not type.startswith('multipart/form-data'))
     # Prevent FieldStorage from parsing QUERY_STRING during GET/HEAD
     # requests
     old_query_string = environ.get('QUERY_STRING','')
