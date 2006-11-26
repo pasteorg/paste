@@ -152,6 +152,9 @@ def parse_formvars(environ, include_get_vars=True):
         type = type.split(';', 1)[0]
     fake_out_cgi = (type not in ('', 'application/x-www-form-urlencoded')
                     and not type.startswith('multipart/form-data'))
+    # FieldStorage assumes a default CONTENT_LENGTH of -1, but a
+    # default of 0 is better:
+    environ.setdefault('CONTENT_LENGTH', '0')
     # Prevent FieldStorage from parsing QUERY_STRING during GET/HEAD
     # requests
     old_query_string = environ.get('QUERY_STRING','')
