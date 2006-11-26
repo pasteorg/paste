@@ -29,6 +29,10 @@ svn trunk
   that breaks ``Set-Cookie`` headers (two ``Set-Cookie`` headers would
   be merged into one).
 
+* ``paste.request.parse_formvars`` didn't accept parameters in
+  ``CONTENT_TYPE``.  ``prototype.js`` sets a ``charset`` parameter,
+  which caused a problem.
+
 1.0
 ---
 
