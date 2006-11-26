@@ -154,7 +154,8 @@ def parse_formvars(environ, include_get_vars=True):
                     and not type.startswith('multipart/form-data'))
     # FieldStorage assumes a default CONTENT_LENGTH of -1, but a
     # default of 0 is better:
-    environ.setdefault('CONTENT_LENGTH', '0')
+    if not environ.get('CONTENT_LENGTH'):
+        environ['CONTENT_LENGTH'] = '0'
     # Prevent FieldStorage from parsing QUERY_STRING during GET/HEAD
     # requests
     old_query_string = environ.get('QUERY_STRING','')
