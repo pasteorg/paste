@@ -33,6 +33,10 @@ svn trunk
   ``CONTENT_TYPE``.  ``prototype.js`` sets a ``charset`` parameter,
   which caused a problem.
 
+* Added a ``__traceback_decorator__`` magic local variable, to allow
+  arbitrary manipulation of the output of
+  ``paste.exceptions.collector`` before formatting.
+
 1.0
 ---
 
