@@ -181,7 +181,7 @@ class WSGIHandlerMixin:
                ,'PATH_INFO': path
                ,'QUERY_STRING': query
                ,'CONTENT_TYPE': self.headers.get('Content-Type', '')
-               ,'CONTENT_LENGTH': self.headers.get('Content-Length', '')
+               ,'CONTENT_LENGTH': self.headers.get('Content-Length', '0')
                ,'SERVER_NAME': server_name
                ,'SERVER_PORT': str(server_port)
                ,'SERVER_PROTOCOL': self.request_version
