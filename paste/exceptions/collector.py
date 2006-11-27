@@ -84,6 +84,13 @@ class ExceptionCollector:
         or a list/tuple of reporter objects.  All reporters found this
         way will be given the exception, innermost first.
 
+    ``__traceback_decorator__``:
+        This object (defined in a local or global scope) will get the
+        result of this function (the CollectedException defined
+        below).  It may modify this object in place, or return an
+        entirely new object.  This gives the object the ability to
+        manipulate the traceback arbitrarily.
+
     The actually interpretation of these values is largely up to the
     reporters and formatters.
     
@@ -304,9 +311,10 @@ class ExceptionCollector:
             pass
 
         marker = []
-        for name in ('__traceback_hide__', '__traceback_log__'):
+        for name in ('__traceback_hide__', '__traceback_log__',
+                     '__traceback_decorator__'):
             try:
-                tbh = locals.get(name, marker)
+                tbh = locals.get(name, globals.get(name, marker))
                 if tbh is not marker:
                     data[name[2:-2]] = tbh
             except:
@@ -322,6 +330,7 @@ class ExceptionCollector:
         __exception_formatter__ = 1
         frames = []
         ident_data = []
+        traceback_decorators = []
         if limit is None:
             limit = self.getLimit()
         n = 0
@@ -334,6 +343,8 @@ class ExceptionCollector:
             data = self.collectLine(tb, extra_data)
             frame = ExceptionFrame(**data)
             frames.append(frame)
+            if frame.traceback_decorator is not None:
+                traceback_decorators.append(frame.traceback_decorator)
             ident_data.append(frame.modname or '?')
             ident_data.append(frame.name or '?')
             tb = tb.tb_next
@@ -353,6 +364,13 @@ class ExceptionCollector:
             extra_data=extra_data)
         if etype is ImportError:
             extra_data[('important', 'sys.path')] = [sys.path]
+        for decorator in traceback_decorators:
+            try:
+                new_result = decorator(result)
+                if new_result is not None:
+                    result = new_result
+            except:
+                pass
         return result
 
 limit = 200
@@ -449,6 +467,8 @@ class ExceptionFrame(Bunch):
     traceback_info = None
     # The value of __traceback_hide__
     traceback_hide = False
+    # The value of __traceback_decorator__
+    traceback_decorator = None
     # The id() of the traceback scope, can be used to reference the
     # scope for use elsewhere
     tbid = None
