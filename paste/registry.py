@@ -139,7 +139,7 @@ class StackedObjectProxy(object):
     
     def __repr__(self):
         try:
-            return self._current_obj().__repr__()
+            return repr(self._current_obj())
         except TypeError:
             return '<%s.%s object at 0x%08x>' % (__name__,
                                                    self.__class__.__name__,
