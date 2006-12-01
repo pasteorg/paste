@@ -13,6 +13,7 @@ import warnings
 from urlparse import urlparse
 from paste.recursive import ForwardRequestException, RecursiveMiddleware
 from paste.util import converters
+from paste.response import replace_header
 
 def forward(app, codes):
     """
@@ -58,14 +59,21 @@ def forward(app, codes):
         )
     )
 
-class StatusKeeper:
-    def __init__(self, app, status, url):
+class StatusKeeper(object):
+    def __init__(self, app, status, url, headers):
         self.app = app
         self.status = status
         self.url = url
+        self.headers = headers
+
     def __call__(self, environ, start_response):
         def keep_status_start_response(status, headers, exc_info=None):
-            return start_response(self.status, headers, exc_info)
+            for header, value in headers:
+                if header.lower() == 'set-cookie':
+                    self.headers.append((header, value))
+                else:
+                    replace_header(self.headers, header, value)
+            return start_response(self.status, self.headers, exc_info)
         parts = self.url.split('?')
         environ['PATH_INFO'] = parts[0]
         if len(parts) > 1:
@@ -144,11 +152,9 @@ class StatusBasedForward:
         self.params = params
 
     def __call__(self, environ, start_response):
-
         url = []
         
         def change_response(status, headers, exc_info=None):
-            
             status_code = status.split(' ')
             try:
                 code = int(status_code[0])
@@ -172,7 +178,7 @@ class StatusBasedForward:
                     'to be a string or None, not %s'%repr(new_url)
                 )
             if new_url:
-                url.append([new_url, status])
+                url.append([new_url, status, headers])
             else:
                 return start_response(status, headers, exc_info)
 
@@ -182,7 +188,8 @@ class StatusBasedForward:
                 app_iter.close()
 
             def factory(app):
-                return StatusKeeper(app, status=url[0][1], url=url[0][0])
+                return StatusKeeper(app, status=url[0][1], url=url[0][0],
+                                    headers=url[0][2])
             raise ForwardRequestException(factory=factory)
         else:
             return app_iter
