@@ -73,8 +73,8 @@ def auth_docs_app(environ, start_response):
         return simple_app(environ, start_response)
 
 def test_auth_docs_app():
-    app = forward(auth_docs_app, codes={401: '/auth_doc'})
-    app = TestApp(auth_docs_app)
+    wsgi_app = forward(auth_docs_app, codes={401: '/auth_doc'})
+    app = TestApp(wsgi_app)
     res = app.get('/auth_doc')
     assert res.header('content-type') == 'text/html'
     res = app.get('/auth', status=401)
