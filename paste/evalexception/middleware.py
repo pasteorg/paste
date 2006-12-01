@@ -37,6 +37,7 @@ from paste.exceptions import errormiddleware, formatter, collector
 from paste import wsgilib
 from paste import urlparser
 from paste import httpexceptions
+from paste import registry
 from paste import request
 from paste import response
 import evalcontext
@@ -151,6 +152,15 @@ def get_debug_info(func):
     return debug_info_replacement
             
 debug_counter = itertools.count(int(time.time()))
+def get_debug_count(environ):
+    """
+    Return the unique debug count for the current request
+    """
+    if 'paste.evalexception.debug_count' in environ:
+        return environ['paste.evalexception.debug_count']
+    else:
+        environ['paste.evalexception.debug_count'] = next = debug_counter.next()
+        return next
 
 class EvalException(object):
 
@@ -169,6 +179,7 @@ class EvalException(object):
         assert not environ['wsgi.multiprocess'], (
             "The EvalException middleware is not usable in a "
             "multi-process environment")
+        environ['paste.evalexception'] = self
         if environ.get('PATH_INFO', '').startswith('/_debug/'):
             return self.debug(environ, start_response)
         else:
@@ -263,7 +274,9 @@ class EvalException(object):
         vars = frame.tb_frame.f_locals
         glob_vars = frame.tb_frame.f_globals
         context = evalcontext.EvalContext(vars, glob_vars)
+        registry.restorer.evalcontext_begin(debug_info.counter)
         output = context.exec_expr(input)
+        registry.restorer.evalcontext_end()
         input_html = formatter.str2html(input)
         return ('<code style="color: #060">&gt;&gt;&gt;</code> '
                 '<code>%s</code><br>\n%s'
@@ -300,8 +313,12 @@ class EvalException(object):
             for expected in environ.get('paste.expected_exceptions', []):
                 if isinstance(exc_info[1], expected):
                     raise
-                
-            count = debug_counter.next()
+
+            # Tell the Registry to save its StackedObjectProxies current state
+            # for later restoration
+            registry.restorer.save_registry_state(environ)
+
+            count = get_debug_count(environ)
             view_uri = self.make_view_url(environ, base_path, count)
             if not started:
                 headers = [('content-type', 'text/html')]
