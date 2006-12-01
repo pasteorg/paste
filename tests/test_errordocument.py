@@ -9,7 +9,7 @@ def simple_app(environ, start_response):
 def not_found_app(environ, start_response):
     start_response("404 Not found", [('Content-type', 'text/plain')])
     return ['requested page returned']
-    
+
 def test_ok():
     app = TestApp(simple_app)
     res = app.get('')
@@ -59,3 +59,25 @@ def test_forward():
     # Note changed response
     assert 'Page not found' in res
     
+def auth_required_app(environ, start_response):
+    start_response('401 Unauthorized', [('content-type', 'text/plain'), ('www-authenticate', 'Basic realm="Foo"')])
+    return ['Sign in!']
+    
+def auth_docs_app(environ, start_response):
+    if environ['PATH_INFO'] == '/auth':
+        return auth_required_app(environ, start_response)
+    elif environ['PATH_INFO'] == '/auth_doc':
+        start_response("200 OK", [('Content-type', 'text/html')])
+        return ['<html>Login!</html>']
+    else:
+        return simple_app(environ, start_response)
+
+def test_auth_docs_app():
+    app = forward(auth_docs_app, codes={401: '/auth_doc'})
+    app = TestApp(auth_docs_app)
+    res = app.get('/auth_doc')
+    assert res.header('content-type') == 'text/html'
+    res = app.get('/auth', status=401)
+    assert res.header('content-type') == 'text/html'
+    assert res.header('www-authenticate') == 'Basic realm="Foo"'
+    assert res.body == '<html>Login!</html>'
