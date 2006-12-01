@@ -2,7 +2,7 @@ from paste.fixture import *
 from paste.debug.profile import *
 
 def simple_app(environ, start_response):
-    start_response('200 OK', [('content-type', 'text/plain')])
+    start_response('200 OK', [('content-type', 'text/html')])
     return ['all ok']
 
 def long_func():
@@ -12,7 +12,11 @@ def long_func():
 
 def test_profile():
     app = TestApp(ProfileMiddleware(simple_app, {}))
-    app.get('/')
+    res = app.get('/')
+    # The original app:
+    res.mustcontain('all ok')
+    # The profile information:
+    res.mustcontain('<pre')
     
 def test_decorator():
     value = profile_decorator()(long_func)()
