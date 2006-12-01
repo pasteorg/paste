@@ -374,42 +374,52 @@ class StackedObjectRestorer(object):
         self.evalcontext_id = threadinglocal.local()
 
     def save_registry_state(self, environ):
-        """Save the current state (top of the stack) of the registry to the
-        saved_registry_states dict, keyed by the request's unique identifier"""
+        """Save the state of this request's registry (if it hasn't already been
+        saved) to the saved_registry_states dict, keyed by the request's unique
+        identifier"""
         registry = environ.get('paste.registry')
-        if not registry:
-            return
-        if not len(registry.reglist):
-            # No state to save
+        if not registry or not len(registry.reglist) or \
+                get_request_id(environ) in self.saved_registry_states:
+            # No Registry, no state to save, or this request's state has
+            # already been saved
             return
 
-        # The current level of the stack to be saved
-        saved_reglist = registry.reglist[-1]
-        for stacked, obj in saved_reglist.itervalues():
-            # Tweak the StackedObjectProxies we want to save state for --
-            # change the _current_obj stategy to search for the original
-            # proxied object when ran from EvalException
-            if '_current_obj' not in stacked.__dict__:
+        self.saved_registry_states[get_request_id(environ)] = \
+            registry.reglist[:]
+
+        # Tweak the StackedObjectProxies we want to save state for -- change
+        # the _current_obj stategy to search for the original proxied object
+        # when ran from EvalException
+        for reglist in registry.reglist:
+            for stacked, obj in reglist.itervalues():
                 self.enable_restoration(stacked)
-
-        # prepend instead of append: we're gathering the Registry stack in the
-        # opposite direction
-        self.saved_registry_states.setdefault(get_request_id(environ),
-                                              []).insert(0, saved_reglist)
 
     def get_saved_proxied_obj(self, stacked, request_id):
         """Retrieve the saved object proxied by the specified
         StackedObjectProxy for the request identified by request_id"""
         # All state for the request identifed by request_id
         reglists = self.saved_registry_states[request_id]
+
         # The top of the stack was current when the exception occurred
-        top_reglist = reglists[-1]
-        return top_reglist[id(stacked)][1]
+        stack_level = -1
+        reglist = reglists[stack_level]
+        stacked_id = id(stacked)
+        # The StackedObjectProxy may not have been registered by the
+        # RegistryManager that was active when the exception was raised. If it
+        # wasn't, continue searching down the stack until it's found
+        while stacked_id not in reglist and -stack_level <= len(reglists):
+            stack_level -= 1
+            reglist = reglists[stack_level]
+        return reglist[id(stacked)][1]
 
     def enable_restoration(self, stacked):
         """Replace the specified StackedObjectProxy's _current_obj method with
         _current_obj_evalexception: forces recovery of the saved proxied object
         during EvalException's EvalContext call"""
+        if '_current_obj' in stacked.__dict__:
+            # Restoration already enabled
+            return
+
         orig_current_obj = stacked._current_obj
         def _current_obj_evalexception(self):
             request_id = restorer.in_evalcontext()
