@@ -40,6 +40,9 @@ svn trunk
   arbitrary manipulation of the output of
   ``paste.exceptions.collector`` before formatting.
 
+* ``paste.debug.profile`` is more threadsafe with respect to capturing
+  ``sys.stdout``
+
 1.0
 ---
 
