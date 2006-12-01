@@ -70,7 +70,7 @@ def test_ForwardRequest_factory():
                 return self.app(environ, start_response)
             environ['PATH_INFO'] = self.url
             def factory(app):
-                return StatusKeeper(app, status='404 Not Found', url='/error')
+                return StatusKeeper(app, status='404 Not Found', url='/error', headers=[])
             raise ForwardRequestException(factory=factory)
 
     app = TestForwardRequestMiddleware(error_docs_app)
