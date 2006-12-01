@@ -4,7 +4,9 @@
 import py.test
 
 from paste.fixture import *
-from paste.registry import *
+from paste.registry import StackedObjectProxy, RegistryManager, restorer, \
+    get_request_id
+from paste.evalexception.middleware import EvalException
 
 testobj = StackedObjectProxy()
 secondobj = StackedObjectProxy(default=dict(hi='people'))
@@ -29,13 +31,16 @@ def simpleapp_withregistry_default(environ, start_response):
 
 
 class RegistryUsingApp(object):
-    def __init__(self, var, value):
+    def __init__(self, var, value, raise_exc=False):
         self.var = var
         self.value = value
+        self.raise_exc = raise_exc
     
     def __call__(self, environ, start_response):
         if environ.has_key('paste.registry'):
             environ['paste.registry'].register(self.var, self.value)
+        if self.raise_exc:
+            raise self.raise_exc
         status = '200 OK'
         response_headers = [('Content-type','text/plain')]
         start_response(status, response_headers)
@@ -160,3 +165,78 @@ def test_iterating_response():
     assert "{'hi': 'people'}" in res
     assert "InsertValue at depth 0 is {'bye': 'friends'}" in res
     assert "AppendValue at depth 0 is {'bye': 'friends'}" in res
+
+def _test_restorer(stack, data):
+    extra_environ={'paste.throw_errors': False}
+    request_id = get_request_id(extra_environ)
+    app = TestApp(stack)
+    res = app.get('/', extra_environ=extra_environ, expect_errors=True)
+
+    # Ensure all the StackedObjectProxies are empty after the RegistryUsingApp
+    # raises an Exception
+    for stacked, proxied_obj in data:
+        only_key = proxied_obj.keys()[0]
+        try:
+            assert only_key not in stacked
+        except TypeError:
+            # Definitely empty
+            pass
+
+    # Ensure the StackedObjectProxy data 'works' in the simulated EvalException
+    # context
+    restorer.evalcontext_begin(request_id)
+    try:
+        for stacked, proxied_obj in data:
+            only_key, only_val = proxied_obj.items()[0]
+            assert only_key in stacked and stacked[only_key] == only_val
+    finally:
+        restorer.evalcontext_end()
+
+def _restorer_data():
+    d =  [(StackedObjectProxy(name='first'), dict(top='of the registry stack')),
+          (StackedObjectProxy(name='second'), dict(middle='of the stack')),
+          (StackedObjectProxy(name='third'), dict(bottom='of the stack'))]
+    return d
+
+def test_restorer_basic():
+    data = _restorer_data()[0]
+    wsgiapp = RegistryUsingApp(data[0], data[1], raise_exc=Exception())
+    wsgiapp = RegistryManager(wsgiapp)
+    wsgiapp = EvalException(wsgiapp)
+    _test_restorer(wsgiapp, [data])
+
+def test_restorer_basic_manager_outside():
+    data = _restorer_data()[0]
+    wsgiapp = RegistryUsingApp(data[0], data[1], raise_exc=Exception())
+    wsgiapp = EvalException(wsgiapp)
+    wsgiapp = RegistryManager(wsgiapp)
+    _test_restorer(wsgiapp, [data])
+
+def test_restorer_middleman_nested_evalexception():
+    data = _restorer_data()[:2]
+    wsgiapp = RegistryUsingApp(data[0][0], data[0][1], raise_exc=Exception())
+    wsgiapp = EvalException(wsgiapp)
+    wsgiapp = RegistryMiddleMan(wsgiapp, data[1][0], data[1][1], 0)
+    wsgiapp = RegistryManager(wsgiapp)
+    _test_restorer(wsgiapp, data)
+
+def test_restorer_nested_middleman():
+    data = _restorer_data()[:2]
+    wsgiapp = RegistryUsingApp(data[0][0], data[0][1], raise_exc=Exception())
+    wsgiapp = RegistryManager(wsgiapp)
+    wsgiapp = RegistryMiddleMan(wsgiapp, data[1][0], data[1][1], 0)
+    wsgiapp = EvalException(wsgiapp)
+    wsgiapp = RegistryManager(wsgiapp)
+    _test_restorer(wsgiapp, data)
+
+def test_restorer_middlemen_nested_evalexception():
+    data = _restorer_data()
+    wsgiapp = RegistryUsingApp(data[0][0], data[0][1], raise_exc=Exception())
+    wsgiapp = RegistryManager(wsgiapp)
+    wsgiapp = EvalException(wsgiapp)
+    wsgiapp = RegistryMiddleMan(wsgiapp, data[1][0], data[1][1], 0)
+    wsgiapp = RegistryManager(wsgiapp)
+    wsgiapp = RegistryMiddleMan(wsgiapp, data[2][0], data[2][1], 1)
+    wsgiapp = RegistryManager(wsgiapp)
+    _test_restorer(wsgiapp, data)
+    
