@@ -66,7 +66,7 @@ Paste for Web Developers
 * Keep your development and deployment straightened out, and your
   automated testing streamlined
 
-* Attention payed to the full development cycle -- starting projects,
+* Attention paid to the full development cycle -- starting projects,
   converting old projects, updating and deploying projects -- using a
   set of `complementary packages and tools <related-projects.html>`_
 
