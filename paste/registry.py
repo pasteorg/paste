@@ -401,13 +401,13 @@ class StackedObjectRestorer(object):
         reglists = self.saved_registry_states[request_id]
 
         # The top of the stack was current when the exception occurred
-        stack_level = -1
+        stack_level = len(reglists) - 1
         reglist = reglists[stack_level]
         stacked_id = id(stacked)
         # The StackedObjectProxy may not have been registered by the
         # RegistryManager that was active when the exception was raised. If it
         # wasn't, continue searching down the stack until it's found
-        while stacked_id not in reglist and -stack_level <= len(reglists):
+        while stacked_id not in reglist and stack_level > 0:
             stack_level -= 1
             reglist = reglists[stack_level]
         return reglist[id(stacked)][1]
