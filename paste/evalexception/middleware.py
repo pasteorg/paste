@@ -257,7 +257,9 @@ class EvalException(object):
         frame = debug_info.frame(int(tbid))
         vars = frame.tb_frame.f_locals
         if vars:
+            registry.restorer.evalcontext_begin(debug_info.counter)
             local_vars = make_table(vars)
+            registry.restorer.evalcontext_end()
         else:
             local_vars = 'No local vars'
         return input_form(tbid, debug_info) + local_vars
