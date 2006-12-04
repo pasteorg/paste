@@ -286,7 +286,6 @@ class Registry(object):
         myreglist = self.reglist[-1]
         if id(stacked) in myreglist:
             stacked._pop_object(myreglist[id(stacked)][1])
-        stacked._push_object(obj)
         self.register(stacked, obj)
     
     def cleanup(self):
