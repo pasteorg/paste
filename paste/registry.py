@@ -275,6 +275,19 @@ class Registry(object):
         stacked._push_object(obj)
         myreglist = self.reglist[-1]
         myreglist[id(stacked)] = (stacked, obj)
+
+    def replace(self, stacked, obj):
+        """Replace the object referenced by a StackedObjectProxy with a
+        different object
+
+        In the event that no object has been registered, the new object will
+        be registered.
+        """
+        myreglist = self.reglist[-1]
+        if id(stacked) in myreglist:
+            stacked._pop_object(myreglist[id(stacked)][1])
+        stacked._push_object(obj)
+        self.register(stacked, obj)
     
     def cleanup(self):
         """Remove all objects from all StackedObjectProxy instances that
