@@ -193,9 +193,9 @@ def _test_restorer(stack, data):
         restorer.evalcontext_end()
 
 def _restorer_data():
-    d =  [(StackedObjectProxy(name='first'), dict(top='of the registry stack')),
-          (StackedObjectProxy(name='second'), dict(middle='of the stack')),
-          (StackedObjectProxy(name='third'), dict(bottom='of the stack'))]
+    d = [(StackedObjectProxy(name='first'), dict(top='of the registry stack')),
+         (StackedObjectProxy(name='second'), dict(middle='of the stack')),
+         (StackedObjectProxy(name='third'), dict(bottom='of the stack'))]
     return d
 
 def test_restorer_basic():
