@@ -11,8 +11,7 @@ To receive announcements:
 
 `paste-news@pythonpaste.org <http://pythonpaste.org/mailman/listinfo/paste-news>`_:
     `Subscribe <http://pythonpaste.org/mailman/listinfo/paste-news>`__,
-    `Archives <http://pythonpaste.org/archives/list/paste-news.en.html>`__,
-    `Atom feed <http://pythonpaste.org/news/atom.xml>`_
+    `Archives <http://pythonpaste.org/archives/list/paste-news.en.html>`__
 
 To receive notification of new checkins:
 

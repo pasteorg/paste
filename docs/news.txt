@@ -43,6 +43,8 @@ svn trunk
 * ``paste.debug.profile`` is more threadsafe with respect to capturing
   ``sys.stdout``
 
+* Added unicorn power to ``paste.pony`` (from Chad Whitacre)
+
 1.0
 ---
 
