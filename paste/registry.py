@@ -95,7 +95,8 @@ import sys
 import warnings
 import paste.util.threadinglocal as threadinglocal
 
-__all__ = ['StackedObjectProxy', 'RegistryManager']
+__all__ = ['StackedObjectProxy', 'RegistryManager', 'StackedObjectRestorer',
+           'restorer']
 
 class StackedObjectProxy(object):
     """Track an object instance internally using a stack
@@ -105,8 +106,8 @@ class StackedObjectProxy(object):
     where access to the object may be desired in multiple places without
     having to pass the actual object around.
     
-    New objects are added to the top of the stack with push_object while
-    objects can be removed with pop_object. 
+    New objects are added to the top of the stack with _push_object while
+    objects can be removed with _pop_object. 
     
     """
     def __init__(self, default=None, name="Default"):
@@ -236,6 +237,31 @@ class StackedObjectProxy(object):
                     'The object popped (%s) is not the same as the object '
                     'expected (%s)' % (popped, obj))
 
+    # The following methods will be swapped for their original versions by
+    # StackedObjectRestorer when EvalException restoration is enabled. The
+    # original functions (e.g. _current_obj) will be available at
+    # _current_obj_orig
+
+    def _current_obj_evalexception(self):
+        request_id = restorer.in_evalcontext()
+        if request_id:
+            return restorer.get_saved_proxied_obj(self, request_id)
+        return self._current_obj_orig()
+    _current_obj_evalexception.__doc__ = \
+        ('%s\n(EvalException restoration enabled)' % _current_obj.__doc__)
+
+    def _push_object_evalexception(self, obj):
+        if not restorer.in_evalcontext():
+            self._push_object_orig(obj)
+    _push_object_evalexception.__doc__ = \
+        ('%s\n(EvalException restoration enabled)' % _push_object.__doc__)
+
+    def _pop_object_evalexception(self, obj=None):
+        if not restorer.in_evalcontext():
+            self._pop_object_orig(obj)
+    _pop_object_evalexception.__doc__ = \
+        ('%s\n(EvalException restoration enabled)' % _pop_object.__doc__)
+
 class Registry(object):
     """Track objects and stacked object proxies for removal
     
@@ -356,22 +382,29 @@ class StackedObjectRestorer(object):
     EvalException and RegistryManager. Like EvalException, this information is
     stored for the life of the process.
 
-    When an unexpected exception occurs and EvalException is enabled,
-    save_registry_state is intended to be called to store the Registry state
-    and enable automatic restoration on all currently registered
+    When an unexpected exception occurs and EvalException is present in the
+    WSGI stack, save_registry_state is intended to be called to store the
+    Registry state and enable automatic restoration on all currently registered
     StackedObjectProxies.
 
     With restoration enabled, those StackedObjectProxies' _current_obj
-    (overwritten by _current_obj_evalexception) method's strategy is changed to
-    determine whether or not an EvalException EvalContext is currently
-    executing in the current thread. If so, it returns the appropriate proxied
-    object from the restorer. If EvalException isn't running the
-    StackedObjectProxy acts as it normally would (with the added performance
-    hit).
+    (overwritten by _current_obj_evalexception) method's strategy is modified:
+    it will return its appropriate proxied object from the restorer when
+    EvalException is executing.
+
+    The StackedObjectProxies' _push/pop_object methods strategy's are also
+    changed: they no-op when EvalException is executing (because the
+    pushing/popping work is all handled by the Registry/restorer).
+
+    The request's Registry objects' reglists are restored from the restorer
+    when EvalException begins executing (restoration begins), enabling the
+    Registry methods to work, while their changes are tracked by the restorer.
 
     The overhead of enabling restoration is negligible (another threadlocal
-    access) but worth mentioning when combined with StackedObjectProxy's normal
-    overhead. Once enabled it does not turn off, however:
+    access for the changed StackedObjectProxy methods) for normal use outside
+    of EvalException, but worth mentioning when combined with
+    StackedObjectProxies normal overhead. Once enabled it does not turn off,
+    however:
 
     o Enabling restoration only occurs after an unexpected exception is
     detected. The server is likely to be restarted shortly after the exception
@@ -381,27 +414,26 @@ class StackedObjectRestorer(object):
     on a production server) and RegistryManager exists in the middleware
     stack"""
     def __init__(self):
-        # Registry reglists by request_id
+        # Registries and their saved reglists by request_id
         self.saved_registry_states = {}
         self.evalcontext_id = threadinglocal.local()
 
     def save_registry_state(self, environ):
-        """Save the state of this request's registry (if it hasn't already been
+        """Save the state of this request's Registry (if it hasn't already been
         saved) to the saved_registry_states dict, keyed by the request's unique
         identifier"""
         registry = environ.get('paste.registry')
         if not registry or not len(registry.reglist) or \
-                get_request_id(environ) in self.saved_registry_states:
+                self.get_request_id(environ) in self.saved_registry_states:
             # No Registry, no state to save, or this request's state has
             # already been saved
             return
 
-        self.saved_registry_states[get_request_id(environ)] = \
-            registry.reglist[:]
+        self.saved_registry_states[self.get_request_id(environ)] = \
+            (registry, registry.reglist[:])
 
         # Tweak the StackedObjectProxies we want to save state for -- change
-        # the _current_obj stategy to search for the original proxied object
-        # when ran from EvalException
+        # their methods to act differently when EvalException is executing
         for reglist in registry.reglist:
             for stacked, obj in reglist.itervalues():
                 self.enable_restoration(stacked)
@@ -410,46 +442,58 @@ class StackedObjectRestorer(object):
         """Retrieve the saved object proxied by the specified
         StackedObjectProxy for the request identified by request_id"""
         # All state for the request identifed by request_id
-        reglists = self.saved_registry_states[request_id]
+        reglist = self.saved_registry_states[request_id][1]
 
         # The top of the stack was current when the exception occurred
-        stack_level = len(reglists) - 1
-        reglist = reglists[stack_level]
+        stack_level = len(reglist) - 1
         stacked_id = id(stacked)
-        # The StackedObjectProxy may not have been registered by the
-        # RegistryManager that was active when the exception was raised. If it
-        # wasn't, continue searching down the stack until it's found
-        while stacked_id not in reglist and stack_level > 0:
+        while True:
+            if stack_level < 0:
+                # Nothing registered: Call _current_obj_orig to raise a
+                # TypeError
+                return stacked._current_obj_orig()
+            context = reglist[stack_level]
+            if stacked_id in context:
+                break
+            # This StackedObjectProxy may not have been registered by the
+            # RegistryManager that was active when the exception was raised --
+            # continue searching down the stack until it's found
             stack_level -= 1
-            reglist = reglists[stack_level]
-        return reglist[id(stacked)][1]
+        return context[stacked_id][1]
 
     def enable_restoration(self, stacked):
-        """Replace the specified StackedObjectProxy's _current_obj method with
-        _current_obj_evalexception: forces recovery of the saved proxied object
-        during EvalException's EvalContext call"""
-        if '_current_obj' in stacked.__dict__:
+        """Replace the specified StackedObjectProxy's methods with their
+        respective evalexception versions.
+
+        _current_obj_evalexception forces recovery of the saved proxied object
+        during EvalException's EvalContext calls.
+
+        _push/pop_object_evalexception avoid pushing/popping data
+        (pushing/popping is only done at the Registry level) during
+        EvalException's EvalContext calls"""
+        if '_current_obj_orig' in stacked.__dict__:
             # Restoration already enabled
             return
 
-        orig_current_obj = stacked._current_obj
-        def _current_obj_evalexception(self):
-            request_id = restorer.in_evalcontext()
-            if request_id:
-                return restorer.get_saved_proxied_obj(self, request_id)
-            return orig_current_obj()
+        for func_name in ('_current_obj', '_push_object', '_pop_object'):
+            orig_func = getattr(stacked, func_name)
+            evalexception_func = getattr(stacked, func_name + '_evalexception')
+            stacked.__dict__[func_name + '_orig'] = orig_func
+            stacked.__dict__[func_name] = evalexception_func
 
-        orig_doc = str(orig_current_obj.__doc__).strip()
-        doc = ('%s\n(Automatic restoration of proxied objects for '
-               'EvalException is enabled)' % orig_doc)
-        _current_obj_evalexception.__doc__ = doc
-        bound_wrapper = new.instancemethod(_current_obj_evalexception, stacked,
-                                           stacked.__class__)
-        stacked.__dict__['_current_obj'] = bound_wrapper
+    def get_request_id(self, environ):
+        """Return a uniqe identifier for the current request"""
+        from paste.evalexception.middleware import get_debug_count
+        return get_debug_count(environ)
 
     def evalcontext_begin(self, request_id):
         """Register an EvalException EvalContext as being ran in the current
         thread for the specified request_id"""
+        if request_id in self.saved_registry_states:
+            # Restore the old Registry object's state
+            registry, reglist = self.saved_registry_states[request_id]
+            registry.reglist = reglist
+
         self.evalcontext_id.request_id = request_id
 
     def evalcontext_end(self):
@@ -466,8 +510,3 @@ class StackedObjectRestorer(object):
         return getattr(self.evalcontext_id, 'request_id', False)
 
 restorer = StackedObjectRestorer()
-
-def get_request_id(environ):
-    """Return a uniqe identifier for the current request"""
-    from paste.evalexception.middleware import get_debug_count
-    return get_debug_count(environ)
