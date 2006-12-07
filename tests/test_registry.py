@@ -4,8 +4,8 @@
 import py.test
 
 from paste.fixture import *
-from paste.registry import StackedObjectProxy, RegistryManager, restorer, \
-    get_request_id
+from paste.registry import *
+from paste.registry import Registry
 from paste.evalexception.middleware import EvalException
 
 testobj = StackedObjectProxy()
@@ -167,41 +167,78 @@ def test_iterating_response():
     assert "AppendValue at depth 0 is {'bye': 'friends'}" in res
 
 def _test_restorer(stack, data):
-    extra_environ={'paste.throw_errors': False}
-    request_id = get_request_id(extra_environ)
+    # We need to test the request's specific Registry. Initialize it here so we
+    # can use it later (RegistryManager will re-use one preexisting in the
+    # environ)
+    registry = Registry()
+    extra_environ={'paste.throw_errors': False,
+                   'paste.registry': registry}
+    request_id = restorer.get_request_id(extra_environ)
     app = TestApp(stack)
     res = app.get('/', extra_environ=extra_environ, expect_errors=True)
 
     # Ensure all the StackedObjectProxies are empty after the RegistryUsingApp
     # raises an Exception
-    for stacked, proxied_obj in data:
+    for stacked, proxied_obj, test_cleanup in data:
         only_key = proxied_obj.keys()[0]
         try:
             assert only_key not in stacked
+            assert False
         except TypeError:
             # Definitely empty
             pass
 
-    # Ensure the StackedObjectProxy data 'works' in the simulated EvalException
-    # context
+    # Ensure the StackedObjectProxies & Registry 'work' in the simulated
+    # EvalException context
+    replace = {'replace': 'dict'}
+    new = {'new': 'object'}
     restorer.evalcontext_begin(request_id)
     try:
-        for stacked, proxied_obj in data:
+        for stacked, proxied_obj, test_cleanup in data:
+            # Ensure our original data magically re-appears in this context
             only_key, only_val = proxied_obj.items()[0]
             assert only_key in stacked and stacked[only_key] == only_val
+
+            # Ensure the Registry still works
+            registry.prepare()
+            registry.register(stacked, new)
+            assert 'new' in stacked and stacked['new'] == 'object'
+            registry.cleanup()
+
+            # Back to the original (pre-prepare())
+            assert only_key in stacked and stacked[only_key] == only_val
+
+            registry.replace(stacked, replace)
+            assert 'replace' in stacked and stacked['replace'] == 'dict'
+
+            if test_cleanup:
+                registry.cleanup()
+                try:
+                    stacked._current_obj()
+                    assert False
+                except TypeError:
+                    # Definitely empty
+                    pass
     finally:
         restorer.evalcontext_end()
 
 def _restorer_data():
-    d = [(StackedObjectProxy(name='first'), dict(top='of the registry stack')),
-         (StackedObjectProxy(name='second'), dict(middle='of the stack')),
-         (StackedObjectProxy(name='third'), dict(bottom='of the stack'))]
+    S = StackedObjectProxy
+    d = [[S(name='first'), dict(top='of the registry stack'), False],
+         [S(name='second'), dict(middle='of the stack'), False],
+         [S(name='third'), dict(bottom='of the STACK.'), False]]
     return d
+
+def _set_cleanup_test(data):
+    """Instruct _test_restorer to check registry cleanup at this level of the stack
+    """
+    data[2] = True
 
 def test_restorer_basic():
     data = _restorer_data()[0]
     wsgiapp = RegistryUsingApp(data[0], data[1], raise_exc=Exception())
     wsgiapp = RegistryManager(wsgiapp)
+    _set_cleanup_test(data)
     wsgiapp = EvalException(wsgiapp)
     _test_restorer(wsgiapp, [data])
 
@@ -210,6 +247,7 @@ def test_restorer_basic_manager_outside():
     wsgiapp = RegistryUsingApp(data[0], data[1], raise_exc=Exception())
     wsgiapp = EvalException(wsgiapp)
     wsgiapp = RegistryManager(wsgiapp)
+    _set_cleanup_test(data)
     _test_restorer(wsgiapp, [data])
 
 def test_restorer_middleman_nested_evalexception():
@@ -218,25 +256,39 @@ def test_restorer_middleman_nested_evalexception():
     wsgiapp = EvalException(wsgiapp)
     wsgiapp = RegistryMiddleMan(wsgiapp, data[1][0], data[1][1], 0)
     wsgiapp = RegistryManager(wsgiapp)
+    _set_cleanup_test(data[1])
     _test_restorer(wsgiapp, data)
 
 def test_restorer_nested_middleman():
     data = _restorer_data()[:2]
     wsgiapp = RegistryUsingApp(data[0][0], data[0][1], raise_exc=Exception())
     wsgiapp = RegistryManager(wsgiapp)
+    _set_cleanup_test(data[0])
     wsgiapp = RegistryMiddleMan(wsgiapp, data[1][0], data[1][1], 0)
     wsgiapp = EvalException(wsgiapp)
     wsgiapp = RegistryManager(wsgiapp)
+    _set_cleanup_test(data[1])
     _test_restorer(wsgiapp, data)
 
 def test_restorer_middlemen_nested_evalexception():
     data = _restorer_data()
     wsgiapp = RegistryUsingApp(data[0][0], data[0][1], raise_exc=Exception())
     wsgiapp = RegistryManager(wsgiapp)
+    _set_cleanup_test(data[0])
     wsgiapp = EvalException(wsgiapp)
     wsgiapp = RegistryMiddleMan(wsgiapp, data[1][0], data[1][1], 0)
     wsgiapp = RegistryManager(wsgiapp)
+    _set_cleanup_test(data[1])
     wsgiapp = RegistryMiddleMan(wsgiapp, data[2][0], data[2][1], 1)
     wsgiapp = RegistryManager(wsgiapp)
+    _set_cleanup_test(data[2])
     _test_restorer(wsgiapp, data)
-    
+
+def test_restorer_disabled():
+    # Ensure evalcontext_begin/end work safely when there's no Registry
+    wsgiapp = TestApp(simpleapp)
+    wsgiapp.get('/')
+    try:
+        restorer.evalcontext_begin(1)
+    finally:
+        restorer.evalcontext_end()
