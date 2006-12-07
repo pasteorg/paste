@@ -6,8 +6,8 @@ News
 svn trunk
 ---------
 
-* ``paste.registry.StackedObjectProxy`` instances now work within
-  the ``EvalException`` interactive debugger.
+* ``paste.registry`` now works within the ``EvalException``
+  interactive debugger.
 
 * Fixed ``paste.auth.open_id`` failures not returning a correct
   response.
