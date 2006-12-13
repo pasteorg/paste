@@ -437,6 +437,7 @@ class ThreadPoolMixIn:
         """
         self.running = False
         self.socket.close()
+        self.thread_pool.shutdown()
 
 class WSGIServerBase(SecureHTTPServer):
     def __init__(self, wsgi_application, server_address,
