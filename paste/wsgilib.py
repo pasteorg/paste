@@ -415,7 +415,7 @@ def dump_environ(environ, start_response):
         output.append("\n")
     output = "".join(output)
     headers = [('Content-Type', 'text/plain'),
-               ('Content-Length', len(output))]
+               ('Content-Length', str(len(output)))]
     start_response("200 OK", headers)
     return [output]
 
