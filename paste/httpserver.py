@@ -311,6 +311,30 @@ else:
                 conn = _ConnFixer(conn)
             return (conn, info)
 
+    def _auto_ssl_context():
+        import OpenSSL, time, random
+        pkey = OpenSSL.crypto.PKey()
+        pkey.generate_key(OpenSSL.crypto.TYPE_RSA, 768)
+
+        cert = OpenSSL.crypto.X509()
+
+        cert.set_serial_number(long('%i%04i' % (time.time() * 1000,
+                                                random.randint(0, 9999))))
+        cert.gmtime_adj_notBefore(0)
+        cert.gmtime_adj_notAfter(60 * 60 * 24 * 365)
+        cert.get_subject().CN = '*'
+        cert.get_subject().O = 'Dummy Certificate'
+        cert.get_issuer().CN = 'Untrusted Authority'
+        cert.get_issuer().O = 'Self-Signed'
+        cert.set_pubkey(pkey)
+        cert.sign(pkey, 'md5')
+
+        ctx = SSL.Context(SSL.SSLv23_METHOD)
+        ctx.use_privatekey(pkey)
+        ctx.use_certificate(cert)
+
+        return ctx
+
 class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
     """
     A WSGI handler that overrides POST, GET and HEAD to delegate
@@ -465,9 +489,9 @@ class WSGIThreadPoolServer(ThreadPoolMixIn, WSGIServerBase):
         ThreadPoolMixIn.__init__(self, nworkers)
 
 def serve(application, host=None, port=None, handler=None, ssl_pem=None,
-          server_version=None, protocol_version=None, start_loop=True,
-          daemon_threads=None, socket_timeout=None, use_threadpool=True,
-          threadpool_workers=10):
+          ssl_context=None, server_version=None, protocol_version=None,
+          start_loop=True, daemon_threads=None, socket_timeout=None,
+          use_threadpool=True, threadpool_workers=10):
     """
     Serves your ``application`` over HTTP(S) via WSGI interface
 
@@ -490,7 +514,9 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
     ``ssl_pem``
 
         This an optional SSL certificate file (via OpenSSL). You can
-        generate a self-signed test PEM certificate file as follows:
+        supply ``*`` and a development-only certificate will be
+        created for you, or you can generate a self-signed test PEM
+        certificate file as follows:
 
             $ openssl genrsa 1024 > host.key
             $ chmod 400 host.key
@@ -498,6 +524,13 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
                           -key host.key > host.cert
             $ cat host.cert host.key > host.pem
             $ chmod 400 host.pem
+
+    ``ssl_context``
+
+        This an optional SSL context object for the server.  A SSL
+        context will be automatically constructed for you if you supply
+        ``ssl_pem``.  Supply this to use a context of your own
+        construction.
 
     ``server_version``
 
@@ -548,13 +581,16 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         Number of worker threads to create when ``use_threadpool`` is true. This
         can be a string or an integer value.
     """
-    ssl_context = None
-    if ssl_pem:
+    if ssl_pem or ssl_context:
         assert SSL, "pyOpenSSL is not installed"
         port = int(port or 4443)
-        ssl_context = SSL.Context(SSL.SSLv23_METHOD)
-        ssl_context.use_privatekey_file(ssl_pem)
-        ssl_context.use_certificate_file(ssl_pem)
+        if not ssl_context:
+            if ssl_pem == '*':
+                ssl_context = _auto_ssl_context()
+            else:
+                ssl_context = SSL.Context(SSL.SSLv23_METHOD)
+                ssl_context.use_privatekey_file(ssl_pem)
+                ssl_context.use_certificate_file(ssl_pem)
 
     host = host or '127.0.0.1'
     if not port:

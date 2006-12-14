@@ -45,6 +45,10 @@ svn trunk
 
 * Added unicorn power to ``paste.pony`` (from Chad Whitacre)
 
+* For ``paste.httpserver`` SSL support: add support loading an
+  explicit certificate context, and using ``ssl_pem='*'`` create an
+  unsigned SSL certificate (from Jason Kirtland).
+
 1.0
 ---
 
