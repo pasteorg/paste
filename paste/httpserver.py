@@ -17,7 +17,8 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 # @@: add support for chunked encoding, this is not a 1.1 server
 #     till this is completed.
 
-import socket, sys, threading, urlparse, Queue
+import socket, sys, threading, urlparse, Queue, urllib
+import posixpath
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 from paste.util import converters
@@ -160,6 +161,8 @@ class WSGIHandlerMixin:
         """
 
         (_, _, path, query, fragment) = urlparse.urlsplit(self.path)
+        path = urllib.unquote(path)
+        path = posixpath.normpath(path)
         (server_name, server_port) = self.server.server_address
 
         rfile = self.rfile
