@@ -21,6 +21,7 @@ import cgi
 from Cookie import SimpleCookie
 from StringIO import StringIO
 import urlparse
+import urllib
 try:
     from UserDict import DictMixin
 except ImportError:
@@ -213,14 +214,14 @@ def construct_url(environ, with_query_string=True, with_path_info=True,
             url += ':' + environ['SERVER_PORT']
 
     if script_name is None:
-        url += environ.get('SCRIPT_NAME','')
+        url += urllib.quote(environ.get('SCRIPT_NAME',''))
     else:
-        url += script_name
+        url += urllib.quote(script_name)
     if with_path_info:
         if path_info is None:
-            url += environ.get('PATH_INFO','')
+            url += urllib.quote(environ.get('PATH_INFO',''))
         else:
-            url += path_info
+            url += urllib.quote(path_info)
     if with_query_string:
         if querystring is None:
             if environ.get('QUERY_STRING'):
