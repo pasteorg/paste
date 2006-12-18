@@ -66,20 +66,29 @@ class ProfileMiddleware(object):
             if not content_type.startswith('text/html'):
                 # We can't add info to non-HTML output
                 return [body]
-            output = StringIO()
             stats = hotshot.stats.load(self.log_filename)
-            # Makes output go to this stream:
-            stats.stream = output
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
-            stats.print_stats(self.limit)
-            stats.print_callers(self.limit)
-            output = output.getvalue()
-            body += '<pre style="%s">%s</pre>' % (
-                self.style, cgi.escape(output))
+            output = capture_output(stats.print_stats, self.limit)
+            output_callers = capture_output(
+                stats.print_callers, self.limit)
+            body += '<pre style="%s">%s\n%s</pre>' % (
+                self.style, cgi.escape(output), cgi.escape(output_callers))
             return [body]
         finally:
             self.lock.release()
+
+def capture_output(func, *args, **kw):
+    # Not threadsafe! (that's okay when ProfileMiddleware uses it,
+    # though, since it synchronizes itself.)
+    out = StringIO()
+    old_stdout = sys.stdout
+    sys.stdout = out
+    try:
+        func(*args, **kw)
+    finally:
+        sys.stdout = old_stdout
+    return out.getvalue()
 
 def profile_decorator(**options):
 
@@ -159,15 +168,14 @@ class DecoratedProfile(object):
         finally:
             prof.close()
         stats = hotshot.stats.load(prof_filename)
-        output = StringIO()
-        stats.stream = output
         os.unlink(prof_filename)
         if ops.get('strip_dirs', True):
             stats.strip_dirs()
         stats.sort_stats(*ops.get('sort_stats', ('time', 'calls')))
         display_limit = ops.get('display_limit', 20)
-        stats.print_stats(display_limit)
-        stats.print_callers(display_limit)
+        output = capture_output(stats.print_stats, display_limit)
+        output_callers = capture_output(
+            stats.print_callers, display_limit)
         output_file = ops.get('log_file')
         if output_file in (None, 'stderr'):
             f = sys.stderr
@@ -181,7 +189,8 @@ class DecoratedProfile(object):
                 % self.format_function(func, *args, **kw))
         f.write('Wall time: %0.2f seconds\n'
                 % (end_time - start_time))
-        f.write(output.getvalue())
+        f.write(output)
+        f.write(output_callers)
         if output_file not in (None, '-', 'stdout', 'stderr'):
             f.close()
         if exc_info:
