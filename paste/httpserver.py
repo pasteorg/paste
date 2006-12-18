@@ -625,7 +625,10 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         server.wsgi_socket_timeout = int(socket_timeout)
 
     if converters.asbool(start_loop):
-        print "serving on %s:%s" % server.server_address
+        host, port = server.server_address
+        if host == '0.0.0.0':
+            host = '127.0.0.1'
+        print "serving on http://%s:%s" % (host, port)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
