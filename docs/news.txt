@@ -59,6 +59,10 @@ svn trunk
   explicit certificate context, and using ``ssl_pem='*'`` create an
   unsigned SSL certificate (from Jason Kirtland).
 
+* Fix some cases where ``paste.httpserver`` can have an orphaned
+  thread pool (causing the process to not shut down properly).  Patch
+  from jek.
+
 1.0
 ---
 
