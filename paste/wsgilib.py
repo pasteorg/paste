@@ -13,6 +13,7 @@ from paste.response import HeaderDict, has_header, header_value, remove_header
 from paste.response import error_body_response, error_response, error_response_app
 
 from traceback import print_exception
+import urllib
 from cStringIO import StringIO
 import sys
 from urlparse import urlsplit
@@ -303,6 +304,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
         }
     if path:
         (_, _, path_info, query, fragment) = urlsplit(str(path))
+        path_info = urllib.unquote(path_info)
         basic_environ['PATH_INFO'] = path_info
         if query:
             basic_environ['QUERY_STRING'] = query

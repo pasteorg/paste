@@ -6,6 +6,16 @@ News
 svn trunk
 ---------
 
+* Security fix for ``paste.urlparser.StaticURLParser``.  The problem
+  allowed escaping the root (and reading files) when used with
+  ``paste.httpserver`` (this does not effect other servers, and does
+  not apply when proxying requests from Apache to
+  ``paste.httpserver``).
+
+* ``paste.httpserver`` and ``paste.fixture.TestApp`` url-unquote
+  ``SCRIPT_NAME`` and ``PATH_INFO``, as specified in the CGI spec.
+  Thanks to Jon Nelson for pointing out both these issues.
+
 * ``paste.registry`` now works within the ``EvalException``
   interactive debugger.
 

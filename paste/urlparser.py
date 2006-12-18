@@ -7,7 +7,6 @@ WSGI applications that parse the URL and dispatch to on-disk resources
 import os
 import sys
 import imp
-import urllib
 import pkg_resources
 import mimetypes
 from paste import request
@@ -203,8 +202,7 @@ class URLParser(object):
                 # None of the index files found
                 filename = None
         else:
-            # Handle quoted chars (e.g. %20)
-            filename = self.find_file(environ, urllib.unquote(name))
+            filename = self.find_file(environ, name)
         if filename is None:
             return None, filename
         else:
@@ -435,6 +433,8 @@ class StaticURLParser(object):
         self.root_directory = root_directory
         if root_directory is not None:
             self.root_directory = os.path.normpath(self.root_directory)
+        else:
+            self.root_directory = directory
         self.cache_max_age = cache_max_age
         
     def __call__(self, environ, start_response):
@@ -445,8 +445,7 @@ class StaticURLParser(object):
             # @@: This should obviously be configurable
             filename = 'index.html'
         else:
-            # Handle quoted chars (e.g. %20)
-            filename = urllib.unquote(request.path_info_pop(environ))
+            filename = request.path_info_pop(environ)
         full = os.path.normpath(os.path.join(self.directory, filename))
         if self.root_directory is not None and not full.startswith(self.root_directory):
             # Out of bounds
@@ -550,8 +549,7 @@ class PkgResourcesParser(StaticURLParser):
             # @@: This should obviously be configurable
             filename = 'index.html'
         else:
-            # Handle quoted chars (e.g. %20)
-            filename = urllib.unquote(request.path_info_pop(environ))
+            filename = request.path_info_pop(environ)
         resource = os.path.normpath(self.resource_name + '/' + filename)
         if self.root_resource is not None and not resource.startswith(self.root_resource):
             # Out of bounds
