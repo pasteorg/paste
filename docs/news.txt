@@ -50,9 +50,6 @@ svn trunk
   arbitrary manipulation of the output of
   ``paste.exceptions.collector`` before formatting.
 
-* ``paste.debug.profile`` is more threadsafe with respect to capturing
-  ``sys.stdout``
-
 * Added unicorn power to ``paste.pony`` (from Chad Whitacre)
 
 * For ``paste.httpserver`` SSL support: add support loading an
