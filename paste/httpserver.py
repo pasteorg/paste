@@ -17,6 +17,7 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 # @@: add support for chunked encoding, this is not a 1.1 server
 #     till this is completed.
 
+import atexit
 import socket, sys, threading, urlparse, Queue, urllib
 import posixpath
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -376,7 +377,7 @@ class ThreadPool(object):
             self.workers.append(worker)
 
         if not daemon:
-            atexit.register(lambda: self.shutdown())
+            atexit.register(self.shutdown)
 
     def worker_thread_callback(self):
         """
