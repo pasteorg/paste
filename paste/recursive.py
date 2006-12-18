@@ -262,6 +262,9 @@ class Recursive(object):
         path_info = '/' + path
         environ['PATH_INFO'] = path_info
         environ['REQUEST_METHOD'] = 'GET'
+        environ['CONTENT_LENGTH'] = '0'
+        environ['CONTENT_TYPE'] = ''
+        environ['wsgi.input'] = StringIO('')
         return self.activate(environ)
 
     def activate(self, environ):
