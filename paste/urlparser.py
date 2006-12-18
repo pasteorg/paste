@@ -436,7 +436,10 @@ class StaticURLParser(object):
         else:
             self.root_directory = directory
         self.cache_max_age = cache_max_age
-        
+        if os.path.sep != '/':
+            directory = directory.replace('/', os.path.sep)
+            self.root_directory = self.root_directory.replace('/', os.path.sep)
+
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
         if not path_info:
@@ -447,6 +450,8 @@ class StaticURLParser(object):
         else:
             filename = request.path_info_pop(environ)
         full = os.path.normpath(os.path.join(self.directory, filename))
+        if os.path.sep != '/':
+            full = full.replace('/', os.path.sep)
         if self.root_directory is not None and not full.startswith(self.root_directory):
             # Out of bounds
             return self.not_found(environ, start_response)
