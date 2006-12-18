@@ -360,7 +360,7 @@ class ThreadPool(object):
     """
     SHUTDOWN = object()
 
-    def __init__(self, nworkers, name="ThreadPool"):
+    def __init__(self, nworkers, name="ThreadPool", daemon=False):
         """
         Create thread pool with `nworkers` worker threads.
         """
@@ -371,8 +371,12 @@ class ThreadPool(object):
         for i in range(self.nworkers):
             worker = threading.Thread(target=self.worker_thread_callback,
                                       name=("%s worker %d" % (self.name, i)))
+            worker.setDaemon(daemon)
             worker.start()
             self.workers.append(worker)
+
+        if not daemon:
+            atexit.register(lambda: self.shutdown())
 
     def worker_thread_callback(self):
         """
@@ -401,13 +405,13 @@ class ThreadPoolMixIn:
     """
     Mix-in class to process requests from a thread pool
     """
-    def __init__(self, nworkers):
+    def __init__(self, nworkers, daemon=False):
         # Create and start the workers
         self.running = True
         assert nworkers > 0, "ThreadPoolMixin servers must have at least one worker"
         self.thread_pool = ThreadPool(nworkers,
             "ThreadPoolMixin HTTP server on %s:%d"
-                % (self.server_name, self.server_port))
+                % (self.server_name, self.server_port), daemon)
 
     def process_request(self, request, client_address):
         """
@@ -486,10 +490,11 @@ class WSGIServer(ThreadingMixIn, WSGIServerBase):
 
 class WSGIThreadPoolServer(ThreadPoolMixIn, WSGIServerBase):
     def __init__(self, wsgi_application, server_address,
-                 RequestHandlerClass=None, ssl_context=None, nworkers=10):
+                 RequestHandlerClass=None, ssl_context=None,
+                 nworkers=10, daemon_threads=False):
         WSGIServerBase.__init__(self, wsgi_application, server_address,
                                 RequestHandlerClass, ssl_context)
-        ThreadPoolMixIn.__init__(self, nworkers)
+        ThreadPoolMixIn.__init__(self, nworkers, daemon_threads)
 
 def serve(application, host=None, port=None, handler=None, ssl_pem=None,
           ssl_context=None, server_version=None, protocol_version=None,
@@ -615,7 +620,8 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
 
     if converters.asbool(use_threadpool):
         server = WSGIThreadPoolServer(application, server_address, handler,
-                                      ssl_context, int(threadpool_workers))
+                                      ssl_context, int(threadpool_workers),
+                                      daemon_threads)
     else:
         server = WSGIServer(application, server_address, handler, ssl_context)
         if daemon_threads:
