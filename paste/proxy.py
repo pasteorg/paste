@@ -31,6 +31,7 @@ TODO:
 
 import httplib
 import urlparse
+import urllib
 
 from paste import httpexceptions
 from paste.util.converters import aslist
@@ -87,14 +88,15 @@ class Proxy(object):
         else:
             body = ''
             
+        path_info = urllib.quote(environ['PATH_INFO'])
         if self.path:            
-            request_path = environ['PATH_INFO']
+            request_path = path_info
             if request_path[0] == '/':
                 request_path = request_path[1:]
                 
             path = urlparse.urljoin(self.path, request_path)
         else:
-            path = environ['PATH_INFO']
+            path = path_info
             
         conn.request(environ['REQUEST_METHOD'],
                      path,
@@ -213,6 +215,7 @@ class TransparentProxy(object):
         
         path = (environ.get('SCRIPT_NAME', '')
                 + environ.get('PATH_INFO', ''))
+        path = urllib.quote(path)
         if 'QUERY_STRING' in environ:
             path += '?' + environ['QUERY_STRING']
         conn.request(environ['REQUEST_METHOD'],
