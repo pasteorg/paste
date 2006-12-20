@@ -626,9 +626,8 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
                                       daemon_threads)
     else:
         server = WSGIServer(application, server_address, handler, ssl_context)
-
-    if daemon_threads:
-        server.daemon_threads = daemon_threads
+        if daemon_threads:
+            server.daemon_threads = daemon_threads
 
     if socket_timeout:
         server.wsgi_socket_timeout = int(socket_timeout)
