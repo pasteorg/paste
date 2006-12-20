@@ -634,8 +634,9 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
     if converters.asbool(start_loop):
         host, port = server.server_address
         if host == '0.0.0.0':
-            host = '127.0.0.1'
-        print "serving on http://%s:%s" % (host, port)
+            print 'serving on 0.0.0.0:%s view at http://127.0.0.1:%s' % (port, port)
+        else:
+            print "serving on http://%s:%s" % (host, port)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
