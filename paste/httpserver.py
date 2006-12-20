@@ -322,7 +322,7 @@ else:
 
         cert = OpenSSL.crypto.X509()
 
-        cert.set_serial_number(int(time.time()))
+        cert.set_serial_number(random.randint(0, sys.maxint))
         cert.gmtime_adj_notBefore(0)
         cert.gmtime_adj_notAfter(60 * 60 * 24 * 365)
         cert.get_subject().CN = '*'
