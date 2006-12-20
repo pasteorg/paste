@@ -322,8 +322,7 @@ else:
 
         cert = OpenSSL.crypto.X509()
 
-        cert.set_serial_number(long('%i%04i' % (time.time() * 1000,
-                                                random.randint(0, 9999))))
+        cert.set_serial_number(int(time.time()))
         cert.gmtime_adj_notBefore(0)
         cert.gmtime_adj_notAfter(60 * 60 * 24 * 365)
         cert.get_subject().CN = '*'
@@ -590,8 +589,10 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         Number of worker threads to create when ``use_threadpool`` is true. This
         can be a string or an integer value.
     """
+    is_ssl = False
     if ssl_pem or ssl_context:
         assert SSL, "pyOpenSSL is not installed"
+        is_ssl = True
         port = int(port or 4443)
         if not ssl_context:
             if ssl_pem == '*':
@@ -625,18 +626,21 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
                                       daemon_threads)
     else:
         server = WSGIServer(application, server_address, handler, ssl_context)
-        if daemon_threads:
-            server.daemon_threads = daemon_threads
+
+    if daemon_threads:
+        server.daemon_threads = daemon_threads
 
     if socket_timeout:
         server.wsgi_socket_timeout = int(socket_timeout)
 
     if converters.asbool(start_loop):
+        protocol = is_ssl and 'https' or 'http'
         host, port = server.server_address
         if host == '0.0.0.0':
-            print 'serving on 0.0.0.0:%s view at http://127.0.0.1:%s' % (port, port)
+            print 'serving on 0.0.0.0:%s view at %s://127.0.0.1:%s' % \
+                (port, protocol, port)
         else:
-            print "serving on http://%s:%s" % (host, port)
+            print "serving on %s://%s:%s" % (protocol, host, port)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
