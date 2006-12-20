@@ -242,15 +242,15 @@ class Recursive(object):
         self.previous_environ = environ
         self.start_response = start_response
 
-    def __call__(self, path, new_environ=None):
+    def __call__(self, path, extra_environ=None):
         """
         `extra_environ` is an optional dictionary that is also added
         to the forwarded request.  E.g., ``{'HTTP_HOST': 'new.host'}``
         could be used to forward to a different virtual host.
         """
         environ = self.original_environ.copy()
-        if new_environ:
-            environ.update(new_environ)
+        if extra_environ:
+            environ.update(extra_environ)
         environ['paste.recursive.previous_environ'] = self.previous_environ
         base_path = self.original_environ.get('SCRIPT_NAME')
         if path.startswith('/'):
