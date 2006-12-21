@@ -117,10 +117,10 @@ class StackedObjectProxy(object):
         has been pushed on.
         
         """
-        self.__dict__['_name'] = name
-        self.__dict__['local'] = threadinglocal.local()
+        self.__dict__['____name__'] = name
+        self.__dict__['____local__'] = threadinglocal.local()
         if default:
-            self.__dict__['_default_object'] = default
+            self.__dict__['____default_object__'] = default
     
     def __getattr__(self, attr):
         return getattr(self._current_obj(), attr)
@@ -173,17 +173,17 @@ class StackedObjectProxy(object):
         provided will be used. Otherwise, a TypeError will be raised.
         
         """
-        objects = getattr(self.__dict__['local'], 'objects', None)
+        objects = getattr(self.____local__, 'objects', None)
         if objects:
             return objects[-1]
         else:
-            object = self.__dict__.get('_default_object')
+            object = self.__dict__.get('____default_object__')
             if object:
                 return object
             else:
                 raise TypeError(
                     'No object (name: %s) has been registered for this '
-                    'thread' % self.__dict__['_name'])
+                    'thread' % self.____name__)
 
     def push_object(self, obj):
         """
@@ -209,9 +209,9 @@ class StackedObjectProxy(object):
                 module.glob._pop_object(conf)
         
         """
-        if not hasattr(self.local, 'objects'):
-            self.local.objects = []
-        self.local.objects.append(obj)
+        if not hasattr(self.____local__, 'objects'):
+            self.____local__.objects = []
+        self.____local__.objects.append(obj)
     
     def pop_object(self, obj=None):
         """
@@ -228,9 +228,9 @@ class StackedObjectProxy(object):
         error is emitted if they don't match.
         
         """
-        if not hasattr(self.local, 'objects'):
+        if not hasattr(self.____local__, 'objects'):
             raise AssertionError('No object has been registered for this thread')
-        popped = self.local.objects.pop()
+        popped = self.____local__.objects.pop()
         if obj:
             if popped is not obj:
                 raise AssertionError(
@@ -377,8 +377,8 @@ class StackedObjectRestorer(object):
     """Track StackedObjectProxies and their proxied objects for automatic
     restoration within EvalException's interactive debugger.
 
-    This singleton tracks all StackedObjectProxy state in existence when
-    unexpected exceptions are raised by WSGI applications housed by
+    An instance of this class tracks all StackedObjectProxy state in existence
+    when unexpected exceptions are raised by WSGI applications housed by
     EvalException and RegistryManager. Like EvalException, this information is
     stored for the life of the process.
 
