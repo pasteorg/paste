@@ -6,6 +6,11 @@ News
 svn trunk
 ---------
 
+* Added ``paste.config``, a rewrite of ``paste.deploy.config`` using
+  ``paste.registry``. This version of ``ConfigMiddleware`` will
+  enable use of ``paste.config.CONFIG`` within the ``EvalException``
+  interactive debugger.
+
 * Fixed problem where ``paste.recursive`` would leave ``wsgi.input``
   and ``CONTENT_LENGTH`` set for recursive requests.
 
