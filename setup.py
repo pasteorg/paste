@@ -180,6 +180,7 @@ For the latest changes see the `news file
       errordocument = paste.errordocument:make_errordocument
       auth_cookie = paste.auth.cookie:make_auth_cookie
       translogger = paste.translogger:make_filter
+      config = paste.config:make_config_filter
 
       [paste.server_runner]
       http = paste.httpserver:server_runner
