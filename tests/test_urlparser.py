@@ -102,7 +102,7 @@ def test_static_parser():
     res = testapp.get('/', status=404)
     res = testapp.get('/index.txt')
     assert res.body.strip() == 'index1'
-    res = testapp.get('/index.txt/foo', status=400)
+    res = testapp.get('/index.txt/foo', status=404)
     res = testapp.get('/test 3.html')
     assert res.body.strip() == 'test 3'
     res = testapp.get('/test%203.html')
@@ -116,7 +116,8 @@ def test_static_parser():
     res = testapp.get('/dir with spaces/../../secured.txt', status=404)
     res = testapp.get('/%2e%2e/secured.txt', status=404)
     res = testapp.get('/dir%20with%20spaces/%2e%2e/%2e%2e/secured.txt', status=404)
-    
+    res = testapp.get('/dir%20with%20spaces/', status=404)
+
 def test_egg_parser():
     app = PkgResourcesParser('Paste', 'paste')
     testapp = TestApp(app)
@@ -127,7 +128,7 @@ def test_egg_parser():
     assert 'ClassInitMeta' in res
     res = testapp.get('/util/classinit', status=404)
     res = testapp.get('/util', status=301)
-    res = testapp.get('/util/classinit.py/foo', status=400)
+    res = testapp.get('/util/classinit.py/foo', status=404)
     
     # Find a readable file in the Paste pkg's root directory (or upwards the
     # directory tree). Ensure it's not accessible via the URLParser

@@ -506,7 +506,7 @@ class StaticURLParser(object):
         return exc.wsgi_application(environ, start_response)
 
     def error_extra_path(self, environ, start_response):
-        exc = httpexceptions.HTTPBadRequest(
+        exc = httpexceptions.HTTPNotFound(
             'The trailing path %r is not allowed' % environ['PATH_INFO'])
         return exc.wsgi_application(environ, start_response)
     

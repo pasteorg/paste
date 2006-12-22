@@ -17,6 +17,10 @@ svn trunk
 * Fixed problem where ``paste.recursive`` would leave ``wsgi.input``
   and ``CONTENT_LENGTH`` set for recursive requests.
 
+* Changed the static file servers to give 404 Not Found responses when
+  you have extra parts after a static file, instead of 400 Bad
+  Request (like when you request ``/file.html/extra/path``)
+
 1.1
 ---
 
