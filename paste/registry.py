@@ -243,7 +243,7 @@ class StackedObjectProxy(object):
     # _current_obj_orig
 
     def _current_obj_evalexception(self):
-        request_id = restorer.in_evalcontext()
+        request_id = restorer.in_restoration()
         if request_id:
             return restorer.get_saved_proxied_obj(self, request_id)
         return self._current_obj_orig()
@@ -251,13 +251,13 @@ class StackedObjectProxy(object):
         ('%s\n(EvalException restoration enabled)' % _current_obj.__doc__)
 
     def _push_object_evalexception(self, obj):
-        if not restorer.in_evalcontext():
+        if not restorer.in_restoration():
             self._push_object_orig(obj)
     _push_object_evalexception.__doc__ = \
         ('%s\n(EvalException restoration enabled)' % _push_object.__doc__)
 
     def _pop_object_evalexception(self, obj=None):
-        if not restorer.in_evalcontext():
+        if not restorer.in_restoration():
             self._pop_object_orig(obj)
     _pop_object_evalexception.__doc__ = \
         ('%s\n(EvalException restoration enabled)' % _pop_object.__doc__)
@@ -486,9 +486,9 @@ class StackedObjectRestorer(object):
         from paste.evalexception.middleware import get_debug_count
         return get_debug_count(environ)
 
-    def evalcontext_begin(self, request_id):
-        """Register an EvalException EvalContext as being ran in the current
-        thread for the specified request_id"""
+    def restoration_begin(self, request_id):
+        """Enable a restoration context in the current thread for the specified
+        request_id"""
         if request_id in self.saved_registry_states:
             # Restore the old Registry object's state
             registry, reglist = self.saved_registry_states[request_id]
@@ -496,17 +496,16 @@ class StackedObjectRestorer(object):
 
         self.evalcontext_id.request_id = request_id
 
-    def evalcontext_end(self):
-        """Register an EvalException EvalContext as finished executing, if one
-        exists"""
+    def restoration_end(self):
+        """Register a restoration context as finished, if one exists"""
         try:
             del self.evalcontext_id.request_id
         except AttributeError:
             pass
 
-    def in_evalcontext(self):
-        """Determine if an EvalException EvalContext is currently running.
-        Returns the request_id it's running for if so, otherwise False"""
+    def in_restoration(self):
+        """Determine if a restoration context is active for the current thread.
+        Returns the request_id it's active for if so, otherwise False"""
         return getattr(self.evalcontext_id, 'request_id', False)
 
 restorer = StackedObjectRestorer()

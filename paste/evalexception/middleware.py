@@ -257,9 +257,9 @@ class EvalException(object):
         frame = debug_info.frame(int(tbid))
         vars = frame.tb_frame.f_locals
         if vars:
-            registry.restorer.evalcontext_begin(debug_info.counter)
+            registry.restorer.restoration_begin(debug_info.counter)
             local_vars = make_table(vars)
-            registry.restorer.evalcontext_end()
+            registry.restorer.restoration_end()
         else:
             local_vars = 'No local vars'
         return input_form(tbid, debug_info) + local_vars
@@ -276,9 +276,9 @@ class EvalException(object):
         vars = frame.tb_frame.f_locals
         glob_vars = frame.tb_frame.f_globals
         context = evalcontext.EvalContext(vars, glob_vars)
-        registry.restorer.evalcontext_begin(debug_info.counter)
+        registry.restorer.restoration_begin(debug_info.counter)
         output = context.exec_expr(input)
-        registry.restorer.evalcontext_end()
+        registry.restorer.restoration_end()
         input_html = formatter.str2html(input)
         return ('<code style="color: #060">&gt;&gt;&gt;</code> '
                 '<code>%s</code><br>\n%s'

@@ -192,7 +192,7 @@ def _test_restorer(stack, data):
     # EvalException context
     replace = {'replace': 'dict'}
     new = {'new': 'object'}
-    restorer.evalcontext_begin(request_id)
+    restorer.restoration_begin(request_id)
     try:
         for stacked, proxied_obj, test_cleanup in data:
             # Ensure our original data magically re-appears in this context
@@ -220,7 +220,7 @@ def _test_restorer(stack, data):
                     # Definitely empty
                     pass
     finally:
-        restorer.evalcontext_end()
+        restorer.restoration_end()
 
 def _restorer_data():
     S = StackedObjectProxy
@@ -285,10 +285,10 @@ def test_restorer_middlemen_nested_evalexception():
     _test_restorer(wsgiapp, data)
 
 def test_restorer_disabled():
-    # Ensure evalcontext_begin/end work safely when there's no Registry
+    # Ensure restoration_begin/end work safely when there's no Registry
     wsgiapp = TestApp(simpleapp)
     wsgiapp.get('/')
     try:
-        restorer.evalcontext_begin(1)
+        restorer.restoration_begin(1)
     finally:
-        restorer.evalcontext_end()
+        restorer.restoration_end()
