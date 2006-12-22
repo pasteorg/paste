@@ -422,46 +422,50 @@ class StaticURLParser(object):
 
     ``max_cache_age``:
       integer specifies Cache-Control max_age in seconds
-      
-    ``index_files``:
-      a list of filenames to be treated as directory index pages
-      If not specified the default of ``['index.html']`` is
-      used. To disable index pages use ``[]``.
     """
     # @@: Should URLParser subclass from this?
 
     def __init__(self, directory, root_directory=None,
-                 cache_max_age=None, index_files=None):
-        self.index_files = index_files             
-        if self.index_files is None:
-            self.index_files = ['index.html']
-        self.directory = os.path.normpath(directory).replace(os.path.sep, '/')
+                 cache_max_age=None):
+        if os.path.sep != '/':
+            directory = directory.replace(os.path.sep, '/')
+        self.directory = directory
         self.root_directory = root_directory
         if root_directory is not None:
-            self.root_directory = os.path.normpath(self.root_directory).replace(os.path.sep, '/')
+            self.root_directory = os.path.normpath(self.root_directory)
         else:
-            self.root_directory = self.directory
+            self.root_directory = directory
         self.cache_max_age = cache_max_age
+        if os.path.sep != '/':
+            directory = directory.replace('/', os.path.sep)
+            self.root_directory = self.root_directory.replace('/', os.path.sep)
 
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
         if not path_info:
             return self.add_slash(environ, start_response)
-        if '/../' in path_info:
-            start_response('400 Bad Request', headers)
-            return [''] # empty body
-        full = self.directory + path_info
+        if path_info == '/':
+            # @@: This should obviously be configurable
+            filename = 'index.html'
+        else:
+            filename = request.path_info_pop(environ)
+        full = os.path.normpath(os.path.join(self.directory, filename))
+        if os.path.sep != '/':
+            full = full.replace('/', os.path.sep)
+        if self.root_directory is not None and not full.startswith(self.root_directory):
+            # Out of bounds
+            return self.not_found(environ, start_response)
         if not os.path.exists(full):
             return self.not_found(environ, start_response)
         if os.path.isdir(full):
-            for file in self.index_files:
-                full = os.path.normpath(os.path.join(full, file)).replace(os.path.sep, '/')
-                if not os.path.exists(full):
-                    return self.no_index(environ, start_response)
-                elif os.path.isdir(full):
-                    return self.not_found(environ, start_response)
-                else:
-                    break
+            # @@: Cache?
+            child_root = self.root_directory is not None and \
+                self.root_directory or self.directory
+            return self.__class__(full, root_directory=child_root, 
+                                  cache_max_age=self.cache_max_age)(environ,
+                                                                   start_response)
+        if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
+            return self.error_extra_path(environ, start_response)
         if_none_match = environ.get('HTTP_IF_NONE_MATCH')
         if if_none_match:
             mytime = os.stat(full).st_mtime
@@ -470,20 +474,13 @@ class StaticURLParser(object):
                 ETAG.update(headers, mytime)
                 start_response('304 Not Modified', headers)
                 return [''] # empty body
+        
         fa = fileapp.FileApp(full)
         if self.cache_max_age:
             fa.cache_control(max_age=self.cache_max_age)
         return fa(environ, start_response)
-
-    def no_index(self, environ, start_response, debug_message=None):
-        exc = httpexceptions.HTTPNotFound(
-            'The resource at %s could not be found and there was no index page'
-            % request.construct_url(environ),
-            comment='SCRIPT_NAME=%r; PATH_INFO=%r; looking in %r; debug: %s'
-            % (environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
-               self.directory, debug_message or '(none)'))
-        return exc.wsgi_application(environ, start_response)
         
+
     def add_slash(self, environ, start_response):
         """
         This happens when you try to get to a directory
