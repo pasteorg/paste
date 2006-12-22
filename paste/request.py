@@ -116,7 +116,7 @@ def parse_dict_querystring(environ):
     """
     source = environ.get('QUERY_STRING', '')
     if not source:
-        return {}
+        return MultiDict()
     if 'paste.parsed_dict_querystring' in environ:
         parsed, check_source = environ['paste.parsed_dict_querystring']
         if check_source == source:

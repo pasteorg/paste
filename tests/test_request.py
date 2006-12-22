@@ -18,7 +18,7 @@ def test_gets():
     app = TestApp(simpleapp)
     res = app.get('/')
     assert 'Hello' in res
-    assert "get is {}" in res
+    assert "get is MultiDict([])" in res
     
     res = app.get('/?name=george')
     res.mustcontain("get is MultiDict([('name', 'george')])")

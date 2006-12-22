@@ -6,6 +6,9 @@ News
 svn trunk
 ---------
 
+* Fixed ``parse_dict_querystring`` returning empty dicts instead of
+  ``MultiDict``s.
+
 * Added ``paste.config``, a rewrite of ``paste.deploy.config`` using
   ``paste.registry``. This version of ``ConfigMiddleware`` will
   enable use of ``paste.config.CONFIG`` within the ``EvalException``
