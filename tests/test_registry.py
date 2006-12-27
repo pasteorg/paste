@@ -292,3 +292,5 @@ def test_restorer_disabled():
         restorer.restoration_begin(1)
     finally:
         restorer.restoration_end()
+        # A second call should do nothing
+        restorer.restoration_end()
