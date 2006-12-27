@@ -46,7 +46,7 @@ You will then be able to import yourpackage anywhere in your WSGI app or in
 the calling stack below it and be assured that it is using the object you
 registered with Registry.
 
-RegisterManager can be in the WSGI stack multiple times, each time it
+RegistryManager can be in the WSGI stack multiple times, each time it
 appears it registers a new request context.
 
 
@@ -61,8 +61,8 @@ when developing web applications.
 
 Should you be developing a system which may be accessing the proxy object
 thousands of times per request, the performance of the proxy will start to
-become more noticeabe. In that circumstance, the problem can be avoided by
-getting at the actual object via the proxy with the ``_curent_obj`` function:
+become more noticeable. In that circumstance, the problem can be avoided by
+getting at the actual object via the proxy with the ``_current_obj`` function:
 
 .. code-block:: Python
     
@@ -267,7 +267,7 @@ class StackedObjectProxy(object):
 class Registry(object):
     """Track objects and stacked object proxies for removal
     
-    The Registry object is instantiated a single time for the rquest no
+    The Registry object is instantiated a single time for the request no
     matter how many times the RegistryManager is used in a WSGI stack. Each
     RegistryManager must call ``prepare`` before continuing the call to
     start a new context for object registering.
@@ -445,7 +445,7 @@ class StackedObjectRestorer(object):
     def get_saved_proxied_obj(self, stacked, request_id):
         """Retrieve the saved object proxied by the specified
         StackedObjectProxy for the request identified by request_id"""
-        # All state for the request identifed by request_id
+        # All state for the request identified by request_id
         reglist = self.saved_registry_states[request_id][1]
 
         # The top of the stack was current when the exception occurred
@@ -486,7 +486,7 @@ class StackedObjectRestorer(object):
             stacked.__dict__[func_name] = restoration_func
 
     def get_request_id(self, environ):
-        """Return a uniqe identifier for the current request"""
+        """Return a unique identifier for the current request"""
         from paste.evalexception.middleware import get_debug_count
         return get_debug_count(environ)
 
