@@ -536,9 +536,9 @@ class PkgResourcesParser(StaticURLParser):
         if manager is None:
             manager = pkg_resources.ResourceManager()
         self.manager = manager
-        self.root_resource = root_resource
-        if root_resource is not None:
-            self.root_resource = os.path.normpath(self.root_resource)
+        if root_resources is None:
+            root_resources = resource_name
+        self.root_resource = os.path.normpath(root_resource)
 
     def __repr__(self):
         return '<%s for %s:%r>' % (
