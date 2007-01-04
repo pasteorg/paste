@@ -3,6 +3,14 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* ``paste.request.construct_url`` was adding ``SERVER_PORT`` to
+  ``HTTP_HOST``; but ``HTTP_HOST`` (from the Host header) generally
+  contains a port when necessary, and ``SERVER_PORT`` should only be
+  used with ``SERVER_NAME``.
+
 1.1.1
 -----
 
@@ -10,7 +18,7 @@ News
   in Paste 1.1 where most static files would return 404 Not Found).
 
 * Fixed ``parse_dict_querystring`` returning empty dicts instead of
-  ``MultiDict``s.
+  ``MultiDict``\ s.
 
 * Added ``paste.config``, a rewrite of ``paste.deploy.config`` using
   ``paste.registry``. This version of ``ConfigMiddleware`` will
