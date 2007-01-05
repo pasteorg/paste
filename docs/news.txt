@@ -11,6 +11,9 @@ svn trunk
   contains a port when necessary, and ``SERVER_PORT`` should only be
   used with ``SERVER_NAME``.
 
+* Regression in 1.1 fixed, where Paste's HTTP server would drop
+  trailing slashes from paths.
+
 1.1.1
 -----
 
