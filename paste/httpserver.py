@@ -163,7 +163,11 @@ class WSGIHandlerMixin:
 
         (_, _, path, query, fragment) = urlparse.urlsplit(self.path)
         path = urllib.unquote(path)
+        endslash = path.endswith('/')
         path = posixpath.normpath(path)
+        if endslash:
+            # Put the slash back...
+            path += '/'
         (server_name, server_port) = self.server.server_address
 
         rfile = self.rfile
