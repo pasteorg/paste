@@ -12,7 +12,7 @@ import time
 __all__ = ['SimpleApplication', 'SlowConsumer']
 
 
-class SimpleApplication:
+class SimpleApplication(object):
     """
     Produces a simple web page
     """
@@ -22,7 +22,7 @@ class SimpleApplication:
                                   ('Content-Length', str(len(body)))])
         return [body]
 
-class SlowConsumer:
+class SlowConsumer(object):
     """
     Consumes an upload slowly...
 

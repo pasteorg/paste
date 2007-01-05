@@ -27,7 +27,7 @@ __all__ = ['get_cookies', 'add_close', 'raw_interactive',
            'chained_app_iters']
 
 
-class add_close:
+class add_close(object):
     """
     An an iterable that iterates over app_iter, then calls
     close_func.
@@ -59,7 +59,7 @@ class add_close:
                 "WSGI request.  finalization function %s not called"
                 % self.close_func)
 
-class add_start_close:
+class add_start_close(object):
     """
     An an iterable that iterates over app_iter, calls start_func
     before the first item is returned, then calls close_func at the
@@ -98,7 +98,7 @@ class add_start_close:
                 "WSGI request.  finalization function %s not called"
                 % self.close_func)
 
-class chained_app_iters:
+class chained_app_iters(object):
 
     """
     Chains several app_iters together, also delegating .close() to each
@@ -143,7 +143,7 @@ class chained_app_iters:
                 "WSGI request.  finalization function %s not called"
                 % self.close_func)
 
-class encode_unicode_app_iter:
+class encode_unicode_app_iter(object):
     """
     Encodes an app_iterable's unicode responses as strings
     """

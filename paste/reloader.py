@@ -51,7 +51,7 @@ def install(poll_interval=1):
     t.setDaemon(True)
     t.start()
 
-class Monitor:
+class Monitor(object):
 
     instances = []
     global_extra_files = []

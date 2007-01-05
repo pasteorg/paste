@@ -16,7 +16,7 @@ from paste import httpexceptions
 from httpheaders import ETAG
 from paste.util import converters
 
-class NoDefault:
+class NoDefault(object):
     pass
 
 __all__ = ['URLParser', 'StaticURLParser', 'PkgResourcesParser']

@@ -24,7 +24,7 @@ serving on...
 from paste.httpexceptions import HTTPUnauthorized
 from paste.httpheaders import *
 
-class AuthBasicAuthenticator:
+class AuthBasicAuthenticator(object):
     """
     implements ``Basic`` authentication details
     """
@@ -52,7 +52,7 @@ class AuthBasicAuthenticator:
 
     __call__ = authenticate
 
-class AuthBasicHandler:
+class AuthBasicHandler(object):
     """
     HTTP/1.0 ``Basic`` authentication middleware
 

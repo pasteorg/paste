@@ -37,7 +37,7 @@ def digest_password(realm, username, password):
     """ construct the appropriate hashcode needed for HTTP digest """
     return md5.md5("%s:%s:%s" % (username, realm, password)).hexdigest()
 
-class AuthDigestAuthenticator:
+class AuthDigestAuthenticator(object):
     """ implementation of RFC 2617 - HTTP Digest Authentication """
     def __init__(self, realm, authfunc):
         self.nonce    = {} # list to prevent replay attacks
@@ -119,7 +119,7 @@ class AuthDigestAuthenticator:
 
     __call__ = authenticate
 
-class AuthDigestHandler:
+class AuthDigestHandler(object):
     """
     middleware for HTTP Digest authentication (RFC 2617)
 

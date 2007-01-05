@@ -29,7 +29,7 @@ import warnings
 __all__ = ['RecursiveMiddleware']
 __pudge_all__ =  ['RecursiveMiddleware', 'ForwardRequestException']
 
-class CheckForRecursionMiddleware:
+class CheckForRecursionMiddleware(object):
     def __init__(self, app, env):
         self.app = app
         self.env = env
@@ -201,7 +201,7 @@ class ForwardRequestException(Exception):
             self.path_info = url
             
         # Base middleware
-        class ForwardRequestExceptionMiddleware:
+        class ForwardRequestExceptionMiddleware(object):
             def __init__(self, app):
                 self.app = app
                             

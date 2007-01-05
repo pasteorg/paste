@@ -17,7 +17,7 @@ from paste import request
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
 
-class _NoDefault:
+class _NoDefault(object):
     def __repr__(self):
         return '<NoDefault>'
 NoDefault = _NoDefault()

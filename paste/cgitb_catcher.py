@@ -15,7 +15,7 @@ import sys
 
 from paste.util import converters
 
-class NoDefault:
+class NoDefault(object):
     pass
 
 class CgitbMiddleware(object):

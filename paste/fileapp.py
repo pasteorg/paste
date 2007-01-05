@@ -193,7 +193,7 @@ class FileApp(DataApp):
         file.seek(lower)
         return _FileIter(file, size=content_length)
 
-class _FileIter:
+class _FileIter(object):
 
     def __init__(self, file, block_size=None, size=None):
         self.file = file

@@ -976,7 +976,7 @@ class _Authorization(_SingleValueHeader):
         auth.add_password(realm, path, username, password)
         (token, challenge) = challenge.split(' ', 1)
         chal = urllib2.parse_keqv_list(urllib2.parse_http_list(challenge))
-        class FakeRequest:
+        class FakeRequest(object):
             def get_full_url(self):
                 return path
             def has_data(self):
