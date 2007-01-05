@@ -71,7 +71,7 @@ class ContinueHook(object):
         self._ContinueFile_send()
         return self._ContinueFile_rfile.readlines(sizehint)
 
-class WSGIHandlerMixin(object):
+class WSGIHandlerMixin:
     """
     WSGI mix-in for HTTPRequestHandler
 
