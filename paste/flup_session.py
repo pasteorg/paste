@@ -25,7 +25,7 @@ flup_session = flup.middleware.session
 # store type and parameters
 store_cache = {}
 
-class NoDefault:
+class NoDefault(object):
     pass
 
 class SessionMiddleware(object):

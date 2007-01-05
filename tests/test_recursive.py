@@ -14,7 +14,7 @@ def error_docs_app(environ, start_response):
     else:
         return simple_app(environ, start_response)
 
-class Middleware:
+class Middleware(object):
     def __init__(self, app, url='/error'):
         self.app = app
         self.url = url

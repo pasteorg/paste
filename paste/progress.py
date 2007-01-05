@@ -77,7 +77,7 @@ class _ProgressFile(object):
         self._ProgressFile_environ[ENVIRON_RECEIVED] += len(chunk)
         return chunk
 
-class UploadProgressMonitor:
+class UploadProgressMonitor(object):
     """
     monitors and reports on the status of uploads in progress
 
@@ -154,7 +154,7 @@ class UploadProgressMonitor:
     def uploads(self):
         return self.monitor
 
-class UploadProgressReporter:
+class UploadProgressReporter(object):
     """
     reports on the progress of uploads for a given user
 

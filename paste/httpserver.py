@@ -71,7 +71,7 @@ class ContinueHook(object):
         self._ContinueFile_send()
         return self._ContinueFile_rfile.readlines(sizehint)
 
-class WSGIHandlerMixin:
+class WSGIHandlerMixin(object):
     """
     WSGI mix-in for HTTPRequestHandler
 
@@ -401,7 +401,7 @@ class ThreadPool(object):
         for worker in self.workers:
             worker.join()
 
-class ThreadPoolMixIn:
+class ThreadPoolMixIn(object):
     """
     Mix-in class to process requests from a thread pool
     """

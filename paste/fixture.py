@@ -44,7 +44,7 @@ def tempnam_no_warning(*args):
     """
     return os.tempnam(*args)
 
-class NoDefault:
+class NoDefault(object):
     pass
 
 def sorted(l):

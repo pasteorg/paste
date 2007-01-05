@@ -7,7 +7,7 @@ import smtplib
 import time
 from paste.exceptions import formatter
 
-class Reporter:
+class Reporter(object):
 
     def __init__(self, **conf):
         for name, value in conf.items():

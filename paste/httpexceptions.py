@@ -588,7 +588,7 @@ def get_exception(code):
 ## Middleware implementation:
 ############################################################
 
-class HTTPExceptionHandler:
+class HTTPExceptionHandler(object):
     """
     catches exceptions and turns them into proper HTTP responses
 

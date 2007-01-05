@@ -35,7 +35,7 @@ DEBUG_IDENT_PREFIX = 'E-'
 
 __all__ = ['collect_exception', 'ExceptionCollector']
 
-class ExceptionCollector:
+class ExceptionCollector(object):
 
     """
     Produces a data structure that can be used by formatters to
@@ -375,7 +375,7 @@ class ExceptionCollector:
 
 limit = 200
 
-class Bunch:
+class Bunch(object):
 
     """
     A generic container

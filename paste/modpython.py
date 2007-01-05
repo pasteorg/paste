@@ -102,7 +102,7 @@ bad_value = ("You must provide a PythonOption '%s', either 'on' or 'off', "
              "when running a version of mod_python < 3.1")
 
 
-class Handler:
+class Handler(object):
     
     def __init__(self, req):
         self.started = False

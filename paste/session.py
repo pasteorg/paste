@@ -267,7 +267,7 @@ class FileSession(object):
                     cleaning_up = False
                     raise
 
-class _NoDefault:
+class _NoDefault(object):
     def __repr__(self):
         return '<dynamic default>'
 NoDefault = _NoDefault()

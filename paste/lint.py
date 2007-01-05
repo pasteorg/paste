@@ -177,7 +177,7 @@ def middleware(application, global_conf=None):
 
     return lint_app
 
-class InputWrapper:
+class InputWrapper(object):
 
     def __init__(self, wsgi_input):
         self.input = wsgi_input
@@ -211,7 +211,7 @@ class InputWrapper:
     def close(self):
         assert 0, "input.close() must not be called"
 
-class ErrorWrapper:
+class ErrorWrapper(object):
 
     def __init__(self, wsgi_errors):
         self.errors = wsgi_errors
@@ -230,7 +230,7 @@ class ErrorWrapper:
     def close(self):
         assert 0, "errors.close() must not be called"
 
-class WriteWrapper:
+class WriteWrapper(object):
 
     def __init__(self, wsgi_writer):
         self.writer = wsgi_writer
@@ -239,7 +239,7 @@ class WriteWrapper:
         assert type(s) is type("")
         self.writer(s)
 
-class PartialIteratorWrapper:
+class PartialIteratorWrapper(object):
 
     def __init__(self, wsgi_iterator):
         self.iterator = wsgi_iterator
@@ -248,7 +248,7 @@ class PartialIteratorWrapper:
         # We want to make sure __iter__ is called
         return IteratorWrapper(self.iterator)
 
-class IteratorWrapper:
+class IteratorWrapper(object):
 
     def __init__(self, wsgi_iterator, check_start_response):
         self.original_iterator = wsgi_iterator
