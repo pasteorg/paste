@@ -165,7 +165,7 @@ class WSGIHandlerMixin:
         path = urllib.unquote(path)
         endslash = path.endswith('/')
         path = posixpath.normpath(path)
-        if endslash:
+        if endslash and path != '/':
             # Put the slash back...
             path += '/'
         (server_name, server_port) = self.server.server_address
