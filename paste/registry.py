@@ -513,3 +513,10 @@ class StackedObjectRestorer(object):
         return getattr(self.restoration_context_id, 'request_id', False)
 
 restorer = StackedObjectRestorer()
+
+
+# Paste Deploy entry point
+def make_registry_manager(app, global_conf):
+    return RegistryManager(app)
+
+make_registry_manager.__doc__ = RegistryManager.__doc__

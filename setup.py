@@ -181,6 +181,7 @@ For the latest changes see the `news file
       auth_cookie = paste.auth.cookie:make_auth_cookie
       translogger = paste.translogger:make_filter
       config = paste.config:make_config_filter
+      registry = paste.registry:make_registry_manager
 
       [paste.server_runner]
       http = paste.httpserver:server_runner
