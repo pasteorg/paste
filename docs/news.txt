@@ -14,6 +14,9 @@ svn trunk
 * Regression in 1.1 fixed, where Paste's HTTP server would drop
   trailing slashes from paths.
 
+* Added entry point for ``paste.registry.RegistryManager``
+  (``egg:Paste#registry``).
+
 1.1.1
 -----
 
