@@ -73,9 +73,12 @@ class DataApp(object):
         self.expires = CACHE_CONTROL.apply(self.headers, **kwargs) or None
         return self
 
-    def set_content(self, content):
+    def set_content(self, content, last_modified=None):
         assert content is not None
-        self.last_modified = time.time()
+        if last_modified is None:
+            self.last_modified = time.time()
+        else:
+            self.last_modified = last_modified
         self.content = content
         self.content_length = len(content)
         LAST_MODIFIED.update(self.headers, time=self.last_modified)
@@ -163,7 +166,7 @@ class FileApp(DataApp):
         self.last_modified = stat.st_mtime
         if stat.st_size < CACHE_SIZE:
             fh = open(self.filename,"rb")
-            self.set_content(fh.read())
+            self.set_content(fh.read(), stat.st_mtime)
             fh.close()
         else:
             self.content = None
