@@ -114,8 +114,6 @@ class AuthDigestAuthenticator(object):
         except:
             return self.build_authentication()
         ha1 = self.authfunc(environ, realm, username)
-        if ha1 is None:
-            return self.build_authentication()
         return self.compute(ha1, username, response, method, authpath,
                             nonce, nc, cnonce, qop)
 
