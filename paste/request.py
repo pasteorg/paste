@@ -332,33 +332,46 @@ class EnvironHeaders(DictMixin):
 
     def __init__(self, environ):
         self.environ = environ
+
+    def _trans_name(self, name):
+        key = 'HTTP_'+name.replace('-', '_').upper()
+        if key == 'HTTP_CONTENT_LENGTH':
+            key = 'CONTENT_LENGTH'
+        elif key == 'HTTP_CONTENT_TYPE':
+            key = 'CONTENT_TYPE'
+        return key
+
+    def _trans_key(self, key):
+        if key == 'CONTENT_TYPE':
+            return 'Content-Type'
+        elif key == 'CONTENT_LENGTH':
+            return 'Content-Length'
+        elif key.startswith('HTTP_'):
+            return key[5:].replace('_', '-').title()
+        else:
+            return None
         
     def __getitem__(self, item):
-        item = item.replace('-', '_').upper()
-        return self.environ['HTTP_'+item]
+        return self.environ[self._trans_name(item)]
 
     def __setitem__(self, item, value):
         # @@: Should this dictionary be writable at all?
-        item = item.replace('-', '_').upper()
-        self.environ['HTTP_'+item] = value
+        self.environ[self._trans_name(item)] = value
 
     def __delitem__(self, item):
-        item = item.replace('-', '_').upper()
-        del self.environ['HTTP_'+item]
+        del self.environ[self._trans_name(item)]
 
     def __iter__(self):
         for key in self.environ:
-            if not key.startswith('HTTP_'):
-                continue
-            key = key[5:].replace('_', '-').title()
-            yield key
+            name = self._trans_key(key)
+            if name is not None:
+                yield name
 
     def keys(self):
         return list(self)
 
     def __contains__(self, item):
-        item = item.replace('-', '_').upper()
-        return 'HTTP_'+item in self.environ
+        return self._trans_name(item) in self.environ
 
 def _cgi_FieldStorage__repr__patch(self):
     """ monkey patch for FieldStorage.__repr__
