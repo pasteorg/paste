@@ -17,6 +17,9 @@ svn trunk
 * Added entry point for ``paste.registry.RegistryManager``
   (``egg:Paste#registry``).
 
+* ``paste.request.HeaderDict`` fixed to know that ``Content-Length``
+  maps to ``CONTENT_LENGTH``.
+
 1.1.1
 -----
 
