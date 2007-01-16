@@ -98,6 +98,8 @@ import paste.util.threadinglocal as threadinglocal
 __all__ = ['StackedObjectProxy', 'RegistryManager', 'StackedObjectRestorer',
            'restorer']
 
+class NoDefault(object): pass
+
 class StackedObjectProxy(object):
     """Track an object instance internally using a stack
     
@@ -110,7 +112,7 @@ class StackedObjectProxy(object):
     objects can be removed with _pop_object. 
     
     """
-    def __init__(self, default=None, name="Default"):
+    def __init__(self, default=NoDefault, name="Default"):
         """Create a new StackedObjectProxy
         
         If a default is given, its used in every thread if no other object
@@ -119,7 +121,7 @@ class StackedObjectProxy(object):
         """
         self.__dict__['____name__'] = name
         self.__dict__['____local__'] = threadinglocal.local()
-        if default:
+        if default is not NoDefault:
             self.__dict__['____default_object__'] = default
     
     def __getattr__(self, attr):
@@ -156,7 +158,10 @@ class StackedObjectProxy(object):
     
     def __contains__(self, key):
         return key in self._current_obj()
-    
+
+    def __nonzero__(self):
+        return bool(self._current_obj())
+
     def current_obj(self):
         """
         Deprecated (Aug 15 2006); moved to _current_obj.
@@ -176,9 +181,9 @@ class StackedObjectProxy(object):
         if objects:
             return objects[-1]
         else:
-            object = self.__dict__.get('____default_object__')
-            if object:
-                return object
+            obj = self.__dict__.get('____default_object__', NoDefault)
+            if obj is not NoDefault:
+                return obj
             else:
                 raise TypeError(
                     'No object (name: %s) has been registered for this '
