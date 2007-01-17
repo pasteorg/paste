@@ -2,14 +2,14 @@ function showFrame(anchor) {
     var tbid = anchor.getAttribute('tbid');
     var expanded = anchor.expanded;
     if (expanded) {
-        MochiKit.Style.hideElement(anchor.expandedElement);
+        MochiKit.DOM.hideElement(anchor.expandedElement);
         anchor.expanded = false;
         _swapImage(anchor);
         return false;
     }
     anchor.expanded = true;
     if (anchor.expandedElement) {
-        MochiKit.showElement(anchor.expandedElement);
+        MochiKit.DOM.showElement(anchor.expandedElement);
         _swapImage(anchor);
         $('debug_input_'+tbid).focus();
         return false;
@@ -57,7 +57,7 @@ function submitInput(button, tbid) {
         debugcount: debug_count,
         input: input.value
     };
-    MochiKit.Style.showElement(output);
+    MochiKit.DOM.showElement(output);
     var d = MochiKit.Async.doSimpleXMLHttpRequest(url, vars);
     d.addCallbacks(function (data) {
         var result = data.responseText;
@@ -77,13 +77,13 @@ function showError(msg) {
     } else {
         el.innerHTML = msg;
     }
-    MochiKit.Style.showElement('error-area');
+    MochiKit.DOM.showElement('error-area');
 }
 
 function clearError() {
     var el = $('error-container');
     el.innerHTML = '';
-    MochiKit.Style.hideElement('error-area');
+    MochiKit.DOM.hideElement('error-area');
 }
 
 function expandInput(button) {
@@ -155,7 +155,7 @@ function expandLong(anchor) {
     if (! span) {
         return false;
     }
-    MochiKit.Style.showElement(span);
-    MochiKit.Style.hideElement(anchor);
+    MochiKit.DOM.showElement(span);
+    MochiKit.DOM.hideElement(anchor);
     return false;
 }
