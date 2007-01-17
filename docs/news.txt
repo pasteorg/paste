@@ -20,6 +20,10 @@ svn trunk
 * ``paste.request.HeaderDict`` fixed to know that ``Content-Length``
   maps to ``CONTENT_LENGTH``.
 
+* Can use ``paste.urlparser.StaticURLParser`` with sub-instances other
+  than ``paste.fileapp.FileApp`` (if you subclass and override
+  ``make_app``)
+
 1.1.1
 -----
 
