@@ -475,10 +475,13 @@ class StaticURLParser(object):
                 start_response('304 Not Modified', headers)
                 return [''] # empty body
         
-        fa = fileapp.FileApp(full)
+        fa = self.make_app(full)
         if self.cache_max_age:
             fa.cache_control(max_age=self.cache_max_age)
         return fa(environ, start_response)
+
+    def make_app(self, filename):
+        return fileapp.FileApp(full)
         
 
     def add_slash(self, environ, start_response):
