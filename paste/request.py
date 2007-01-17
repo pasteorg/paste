@@ -151,8 +151,8 @@ def parse_formvars(environ, include_get_vars=True):
     type = environ.get('CONTENT_TYPE', '').lower()
     if ';' in type:
         type = type.split(';', 1)[0]
-    fake_out_cgi = (type not in ('', 'application/x-www-form-urlencoded')
-                    and not type.startswith('multipart/form-data'))
+    fake_out_cgi = type not in ('', 'application/x-www-form-urlencoded',
+                                'multipart/form-data')
     # FieldStorage assumes a default CONTENT_LENGTH of -1, but a
     # default of 0 is better:
     if not environ.get('CONTENT_LENGTH'):
