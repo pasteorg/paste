@@ -181,6 +181,11 @@ class FileApp(DataApp):
         else:
             self.update()
         if not self.content:
+            if not os.path.exists(self.filename):
+                exc = HTTPNotFound(
+                    'The resource does not exist',
+                    comment="No file at %r" % self.filename)
+                return exc(environ, start_response)
             try:
                 file = open(self.filename, 'rb')
             except (IOError, OSError), e:
