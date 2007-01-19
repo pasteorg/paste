@@ -481,8 +481,7 @@ class StaticURLParser(object):
         return fa(environ, start_response)
 
     def make_app(self, filename):
-        return fileapp.FileApp(full)
-        
+        return fileapp.FileApp(filename)
 
     def add_slash(self, environ, start_response):
         """
