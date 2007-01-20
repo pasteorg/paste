@@ -90,7 +90,6 @@ is provided solely in the extremely rare case that it is an issue so that a
 quick way to work around it is documented.
 
 """
-import new
 import sys
 import warnings
 import paste.util.threadinglocal as threadinglocal
