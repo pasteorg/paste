@@ -134,7 +134,7 @@ def parse_formvars(environ, include_get_vars=True):
     will also be folded into the MultiDict.
 
     All values should be strings, except for file uploads which are
-    left as FieldStorage instances.
+    left as ``FieldStorage`` instances.
 
     If the request was not a normal form request (e.g., a POST with an
     XML body) then ``environ['wsgi.input']`` won't be read.
