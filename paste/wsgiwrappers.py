@@ -7,19 +7,26 @@ to deal with an incoming request and sending a response.
 """
 import re
 import warnings
-from paste.request import EnvironHeaders, parse_formvars, parse_dict_querystring, get_cookie_dict
-from paste.util.multidict import MultiDict
+from Cookie import SimpleCookie
+from paste.request import EnvironHeaders, get_cookie_dict, \
+    parse_dict_querystring, parse_formvars
+from paste.util.multidict import MultiDict, UnicodeMultiDict
+from paste.registry import StackedObjectProxy
 from paste.response import HeaderDict
 from paste.wsgilib import encode_unicode_app_iter
-import paste.registry as registry
-from Cookie import SimpleCookie
 
-# settings should be set with the registry to a dict having at least:
-#     content_type, charset
-# With the optional:
-#     encoding_errors (specifies a codec error handler, defaults to 'strict')
-settings = registry.StackedObjectProxy(default=dict(content_type='text/html', 
-    charset='UTF-8', encoding_errors='strict'))
+_CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)', re.I)
+
+class DeprecatedSettings(StackedObjectProxy):
+    def _push_object(self, obj):
+        warnings.warn('paste.wsgiwrappers.settings is deprecated: Please use '
+                      'paste.wsgiwrappers.WSGIRequest.defaults instead',
+                      DeprecationWarning, 3)
+        WSGIResponse.defaults._push_object(obj)
+        StackedObjectProxy._push_object(self, obj)
+
+# settings is deprecated: use WSGIResponse.defaults instead
+settings = DeprecatedSettings(default=dict())
 
 class environ_getter(object):
     """For delegating an attribute to a key in self.environ."""
@@ -46,18 +53,44 @@ class WSGIRequest(object):
     """WSGI Request API Object
 
     This object represents a WSGI request with a more friendly interface.
-    This does not expose every detail of the WSGI environment, and does not
-    in any way express anything beyond what is available in the environment
-    dictionary.  *All* state is kept in the environment dictionary; this
-    is essential for interoperability.
+    This does not expose every detail of the WSGI environment, and attempts
+    to express nothing beyond what is available in the environment
+    dictionary.
+
+    The only state maintained in this object is the desired ``charset``
+    and its associated ``errors`` handler. The incoming parameters will
+    be automatically coerced to unicode objects of the ``charset``
+    encoding when ``charset`` is set.
+
+    When unicode is expected, ``charset`` will overridden by the the
+    value of the ``Content-Type`` header's charset parameter if one was
+    specified by the client.
+
+    The class variable ``defaults`` specifies default values for
+    ``charset`` and ``errors``. These can be overridden for the current
+    request via the registry.
+
+    *All* other state is kept in the environment dictionary; this is
+    essential for interoperability.
 
     You are free to subclass this object.
 
     """
+    defaults = StackedObjectProxy(default=dict(charset=None, errors='strict'))
     def __init__(self, environ):
         self.environ = environ
         # This isn't "state" really, since the object is derivative:
         self.headers = EnvironHeaders(environ)
+
+        defaults = self.defaults._current_obj()
+        self.charset = defaults.get('charset')
+        if self.charset:
+            # There's a charset: params will be coerced to unicode. In that
+            # case, attempt to use the charset specified by the browser
+            charset = self.determine_browser_charset()
+            if charset:
+                self.charset = charset
+        self.errors = defaults.get('errors', 'strict')
     
     body = environ_getter('wsgi.input')
     scheme = environ_getter('wsgi.url_scheme')
@@ -76,33 +109,54 @@ class WSGIRequest(object):
         return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
     host = property(host, doc=host.__doc__)
 
+    def _GET(self):
+        return parse_dict_querystring(self.environ)
+
     def GET(self):
         """
         Dictionary-like object representing the QUERY_STRING
         parameters. Always present, if possibly empty.
 
-        If the same key is present in the query string multiple
-        times, it will be present as a list.
+        If the same key is present in the query string multiple times, a
+        list of its values can be retrieved from the ``MultiDict`` via
+        the ``getall`` method.
+
+        Returns a ``MultiDict`` container or a ``UnicodeMultiDict`` when
+        ``charset`` is set.
         """
-        return parse_dict_querystring(self.environ)
+        params = self._GET()
+        if self.charset:
+            params = UnicodeMultiDict(params, self.charset, self.errors)
+        return params
     GET = property(GET, doc=GET.__doc__)
+
+    def _POST(self):
+        return parse_formvars(self.environ, include_get_vars=False)
 
     def POST(self):
         """Dictionary-like object representing the POST body.
 
-        Most values are strings, but file uploads can be FieldStorage
-        objects. If this is not a POST request, or the body is not
-        encoded fields (e.g., an XMLRPC request) then this will be empty.
+        Most values are encoded strings, or unicode strings when
+        ``charset`` is set. There may also be FieldStorage objects
+        representing file uploads. If this is not a POST request, or the
+        body is not encoded fields (e.g., an XMLRPC request) then this
+        will be empty.
 
         This will consume wsgi.input when first accessed if applicable,
-        but the output will be put in environ['paste.post_vars']
-        
+        but the raw version will be put in
+        environ['paste.parsed_formvars'].
+
+        Returns a ``MultiDict`` container or a ``UnicodeMultiDict`` when
+        ``charset`` is set.
         """
-        return parse_formvars(self.environ, include_get_vars=False)
+        params = self._POST()
+        if self.charset:
+            params = UnicodeMultiDict(params, self.charset, self.errors)
+        return params
     POST = property(POST, doc=POST.__doc__)
 
     def params(self):
-        """MultiDict of keys from POST, GET, URL dicts
+        """Dictionary-like object of keys from POST, GET, URL dicts
 
         Return a key value from the parameters, they are checked in the
         following order: POST, GET, URL
@@ -112,11 +166,16 @@ class WSGIRequest(object):
         ``getlist(key)``
             Returns a list of all the values by that key, collected from
             POST, GET, URL dicts
+
+        Returns a ``MultiDict`` container or a ``UnicodeMultiDict`` when
+        ``charset`` is set.
         """
-        pms = MultiDict()
-        pms.update(self.POST)
-        pms.update(self.GET)
-        return pms
+        params = MultiDict()
+        params.update(self._POST())
+        params.update(self._GET())
+        if self.charset:
+            params = UnicodeMultiDict(params, self.charset, self.errors)
+        return params
     params = property(params, doc=params.__doc__)
 
     def cookies(self):
@@ -128,9 +187,27 @@ class WSGIRequest(object):
         return get_cookie_dict(self.environ)
     cookies = property(cookies, doc=cookies.__doc__)
 
-_CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)', re.I)
+    def determine_browser_charset(self):
+        """
+        Determine the encoding as specified by the browser via the
+        Content-Type's charset parameter, if one is set
+        """
+        charset_match = _CHARSET_RE.match(self.headers.get('Content-Type', ''))
+        if charset_match:
+            return charset_match.group(1)
+
 class WSGIResponse(object):
-    """A basic HTTP response with content, headers, and out-bound cookies"""
+    """A basic HTTP response with content, headers, and out-bound cookies
+
+    The class variable ``defaults`` specifies default values for
+    ``content_type``, ``charset`` and ``errors``. These can be overridden
+    for the current request via the registry.
+
+    """
+    defaults = StackedObjectProxy(
+        default=dict(content_type='text/html',
+                     charset='UTF-8', errors='strict')
+        )
     def __init__(self, content='', mimetype=None, code=200):
         self._iter = None
         self._is_str_iter = True
@@ -139,15 +216,15 @@ class WSGIResponse(object):
         self.headers = HeaderDict()
         self.cookies = SimpleCookie()
         self.status_code = code
-        if not mimetype:
-            mimetype = "%s; charset=%s" % (settings['content_type'],
-                                           settings['charset'])
-        self.headers['Content-Type'] = mimetype
 
-        if 'encoding_errors' in settings:
-            self.encoding_errors = settings['encoding_errors']
-        else:
-            self.encoding_errors = 'strict'
+        defaults = self.defaults._current_obj()
+        if not mimetype:
+            mimetype = defaults.get('content_type', 'text/html')
+            charset = defaults.get('charset')
+            if charset:
+                mimetype = '%s; charset=%s' % (mimetype, charset)
+        self.headers['Content-Type'] = mimetype
+        self.errors = defaults.get('errors', 'strict')
 
     def __str__(self):
         """Returns a rendition of the full HTTP message, including headers.
@@ -156,7 +233,7 @@ class WSGIResponse(object):
         output of str(iterator) (to avoid exhausting the iterator).
         """
         if self._is_str_iter:
-            content = ''.join(self.get_content_as_string())
+            content = ''.join(self.get_content())
         else:
             content = str(self.content)
         return '\n'.join(['%s: %s' % (key, value)
@@ -190,9 +267,9 @@ class WSGIResponse(object):
             return environ['wsgi.file_wrapper'](self.content)
         elif is_file:
             return iter(lambda: self.content.read(), '')
-        return self.get_content_as_string()
+        return self.get_content()
     
-    def determine_encoding(self):
+    def determine_charset(self):
         """
         Determine the encoding as specified by the Content-Type's charset
         parameter, if one is set
@@ -200,8 +277,6 @@ class WSGIResponse(object):
         charset_match = _CHARSET_RE.match(self.headers.get('Content-Type', ''))
         if charset_match:
             return charset_match.group(1)
-        # No charset specified, default to iso-8859-1 as per RFC2616
-        return 'iso-8859-1'
     
     def has_header(self, header):
         """
@@ -253,13 +328,16 @@ class WSGIResponse(object):
                        'that yields strings, or an iterable object that '
                        'produces strings.')
 
-    def get_content_as_string(self):
+    def get_content(self):
         """
         Returns the content as an iterable of strings, encoding each element of
         the iterator from a Unicode object if necessary.
         """
-        return encode_unicode_app_iter(self.content, self.determine_encoding(),
-                                       self.encoding_errors)
+        charset = self.determine_charset()
+        if charset:
+            return encode_unicode_app_iter(self.content, charset, self.errors)
+        else:
+            return self.content
     
     def wsgi_response(self):
         """
@@ -271,7 +349,7 @@ class WSGIResponse(object):
         response_headers = self.headers.headeritems()
         for c in self.cookies.values():
             response_headers.append(('Set-Cookie', c.output(header='')))
-        return status, response_headers, self.get_content_as_string()
+        return status, response_headers, self.get_content()
     
     # The remaining methods partially implement the file-like object interface.
     # See http://docs.python.org/lib/bltin-file-objects.html
