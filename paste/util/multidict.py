@@ -203,23 +203,34 @@ class MultiDict(DictMixin):
 
 class UnicodeMultiDict(DictMixin):
     """
-    A MultiDict wrapper that decodes returned key/values to unicode on the
-    fly. Decoding is not applied to assigned key/values.
+    A MultiDict wrapper that decodes returned values to unicode on the
+    fly. Decoding is not applied to assigned values.
 
     The key/value contents are assumed to be ``str``/``strs`` or
     ``str``/``FieldStorages`` (as is returned by the paste.request.parse_
     functions).
 
-    ``FieldStorage`` instances are cloned, and the clone's ``name`` and
-    ``filename`` variables are decoded.
+    Can optionally also decode keys when the ``decode_keys`` argument is
+    True.
+
+    ``FieldStorage`` instances are cloned, and the clone's ``filename``
+    variable is decoded. Its ``name`` variable is decoded when ``decode_keys``
+    is enabled.
 
     """
-    def __init__(self, multi=None, encoding=None, errors='strict'):
+    def __init__(self, multi=None, encoding=None, errors='strict',
+                 decode_keys=False):
         self.multi = multi
         if encoding is None:
             encoding = sys.getdefaultencoding()
         self.encoding = encoding
         self.errors = errors
+        self.decode_keys = decode_keys
+
+    def _decode_key(self, key):
+        if self.decode_keys:
+            key = key.decode(self.encoding, self.errors)
+        return key
 
     def _decode_value(self, value):
         """
@@ -231,7 +242,8 @@ class UnicodeMultiDict(DictMixin):
         if isinstance(value, cgi.FieldStorage):
             # decode FieldStorage's field name and filename
             value = copy.copy(value)
-            value.name = value.name.decode(self.encoding, self.errors)
+            if self.decode_keys:
+                value.name = value.name.decode(self.encoding, self.errors)
             value.filename = value.filename.decode(self.encoding, self.errors)
         else:
             try:
@@ -279,8 +291,7 @@ class UnicodeMultiDict(DictMixin):
                 value = [self._decode_value(value) for value in value]
             else:
                 value = self._decode_value(value)
-            unicode_mixed[key.decode(self.encoding, self.errors)] = \
-                value
+            unicode_mixed[self._decode_key(key)] = value
         return unicode_mixed
 
     def dict_of_lists(self):
@@ -291,8 +302,7 @@ class UnicodeMultiDict(DictMixin):
         unicode_dict = {}
         for key, value in self.multi.dict_of_lists().iteritems():
             value = [self._decode_value(value) for value in value]
-            unicode_dict[key.decode(self.encoding, self.errors)] = \
-                value
+            unicode_dict[self._decode_key(key)] = value
         return unicode_dict
 
     def __delitem__(self, key):
@@ -317,8 +327,7 @@ class UnicodeMultiDict(DictMixin):
 
     def popitem(self):
         k, v = self.multi.popitem()
-        return (k.decode(self.encoding, self.errors),
-                self._decode_value(v))
+        return (self._decode_key(k), self._decode_value(v))
 
     def __repr__(self):
         items = ', '.join(['(%r, %r)' % v for v in self.items()])
@@ -332,23 +341,21 @@ class UnicodeMultiDict(DictMixin):
     ##
 
     def keys(self):
-        return [k.decode(self.encoding, self.errors) for \
-                    k in self.multi.iterkeys()]
+        return [self._decode_key(k) for k in self.multi.iterkeys()]
 
     def iterkeys(self):
         for k in self.multi.iterkeys():
-            yield k.decode(self.encoding, self.errors)
+            yield self._decode_key(k)
 
     __iter__ = iterkeys
 
     def items(self):
-        return [(k.decode(self.encoding, self.errors), self._decode_value(v)) \
-                    for k, v in self.multi.iteritems()]
+        return [(self._decode_key(k), self._decode_value(v)) for \
+                    k, v in self.multi.iteritems()]
 
     def iteritems(self):
         for k, v in self.multi.iteritems():
-            yield (k.decode(self.encoding, self.errors),
-                   self._decode_value(v))
+            yield (self._decode_key(k), self._decode_value(v))
 
     def values(self):
         return [self._decode_value(v) for v in self.multi.itervalues()]

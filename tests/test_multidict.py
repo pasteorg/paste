@@ -48,19 +48,33 @@ def test_dict():
     assert dcopy != d
 
 def test_unicode_dict():
-    def assert_unicode(obj):
-        assert isinstance(obj, unicode)
+    _test_unicode_dict()
+    _test_unicode_dict(decode_param_names=True)
 
-    def assert_unicode_items(obj):
-        key, value = obj
-        assert isinstance(key, unicode)
-        assert isinstance(value, unicode)
-
+def _test_unicode_dict(decode_param_names=False):
     d = UnicodeMultiDict(MultiDict({'a': 'a test'}))
     d.encoding = 'utf-8'
     d.errors = 'ignore'
+
+    if decode_param_names:
+        key_str = unicode
+        d.decode_keys = True
+    else:
+        key_str = str
+
+    def assert_unicode(obj):
+        assert isinstance(obj, unicode)
+
+    def assert_key_str(obj):
+        assert isinstance(obj, key_str)
+
+    def assert_unicode_items(obj):
+        key, value = obj
+        assert isinstance(key, key_str)
+        assert isinstance(value, unicode)
+
     assert d.items() == [('a', u'a test')]
-    map(assert_unicode, d.keys())
+    map(assert_key_str, d.keys())
     map(assert_unicode, d.values())
 
     d['b'] = '2 test'
@@ -89,7 +103,7 @@ def test_unicode_dict():
     assert isinstance(d.getone('a'), unicode)
     assert d.popitem() == ('c', u'3 test')
     d['c'] = '3 test'
-    map(assert_unicode, d.popitem())
+    assert_unicode_items(d.popitem())
     assert d.items() == [('a', u'a test')]
     map(assert_unicode_items, d.items())
 
@@ -97,7 +111,7 @@ def test_unicode_dict():
     assert d.setdefault('z', item) is item
     items = d.items()
     assert items == [('a', u'a test'), ('z', item)]
-    assert isinstance(items[1][0], unicode)
+    assert isinstance(items[1][0], key_str)
     assert isinstance(items[1][1], list)
 
     assert isinstance(d.setdefault('y', 'y test'), unicode)
@@ -127,7 +141,7 @@ def test_unicode_dict():
     assert isinstance(ufs, cgi.FieldStorage)
     assert ufs is not fs
     assert ufs.name == fs.name
-    assert isinstance(ufs.name, unicode)
+    assert isinstance(ufs.name, key_str)
     assert ufs.filename == fs.filename
     assert isinstance(ufs.filename, unicode)
     assert isinstance(ufs.value, str)

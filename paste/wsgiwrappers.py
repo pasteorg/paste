@@ -57,10 +57,14 @@ class WSGIRequest(object):
     to express nothing beyond what is available in the environment
     dictionary.
 
-    The only state maintained in this object is the desired ``charset``
-    and its associated ``errors`` handler. The incoming parameters will
-    be automatically coerced to unicode objects of the ``charset``
-    encoding when ``charset`` is set.
+    The only state maintained in this object is the desired ``charset``,
+    its associated ``errors`` handler, and the ``decode_param_names``
+    option.
+
+    The incoming parameter values will be automatically coerced to unicode
+    objects of the ``charset`` encoding when ``charset`` is set. The
+    incoming parameter names are not decoded to unicode unless the
+    ``decode_param_names`` option is enabled.
 
     When unicode is expected, ``charset`` will overridden by the the
     value of the ``Content-Type`` header's charset parameter if one was
@@ -76,7 +80,8 @@ class WSGIRequest(object):
     You are free to subclass this object.
 
     """
-    defaults = StackedObjectProxy(default=dict(charset=None, errors='strict'))
+    defaults = StackedObjectProxy(default=dict(charset=None, errors='strict',
+                                               decode_param_names=False))
     def __init__(self, environ):
         self.environ = environ
         # This isn't "state" really, since the object is derivative:
@@ -91,6 +96,7 @@ class WSGIRequest(object):
             if browser_charset:
                 self.charset = browser_charset
         self.errors = defaults.get('errors', 'strict')
+        self.decode_param_names = defaults.get('decode_param_names', False)
     
     body = environ_getter('wsgi.input')
     scheme = environ_getter('wsgi.url_scheme')
@@ -127,7 +133,8 @@ class WSGIRequest(object):
         params = self._GET()
         if self.charset:
             params = UnicodeMultiDict(params, encoding=self.charset,
-                                      errors=self.errors)
+                                      errors=self.errors,
+                                      decode_keys=self.decode_param_names)
         return params
     GET = property(GET, doc=GET.__doc__)
 
@@ -153,7 +160,8 @@ class WSGIRequest(object):
         params = self._POST()
         if self.charset:
             params = UnicodeMultiDict(params, encoding=self.charset,
-                                      errors=self.errors)
+                                      errors=self.errors,
+                                      decode_keys=self.decode_param_names)
         return params
     POST = property(POST, doc=POST.__doc__)
 
@@ -177,7 +185,8 @@ class WSGIRequest(object):
         params.update(self._GET())
         if self.charset:
             params = UnicodeMultiDict(params, encoding=self.charset,
-                                      errors=self.errors)
+                                      errors=self.errors,
+                                      decode_keys=self.decode_param_names)
         return params
     params = property(params, doc=params.__doc__)
 
