@@ -87,9 +87,9 @@ class WSGIRequest(object):
         if self.charset:
             # There's a charset: params will be coerced to unicode. In that
             # case, attempt to use the charset specified by the browser
-            charset = self.determine_browser_charset()
-            if charset:
-                self.charset = charset
+            browser_charset = self.determine_browser_charset()
+            if browser_charset:
+                self.charset = browser_charset
         self.errors = defaults.get('errors', 'strict')
     
     body = environ_getter('wsgi.input')
@@ -126,7 +126,8 @@ class WSGIRequest(object):
         """
         params = self._GET()
         if self.charset:
-            params = UnicodeMultiDict(params, self.charset, self.errors)
+            params = UnicodeMultiDict(params, encoding=self.charset,
+                                      errors=self.errors)
         return params
     GET = property(GET, doc=GET.__doc__)
 
@@ -151,7 +152,8 @@ class WSGIRequest(object):
         """
         params = self._POST()
         if self.charset:
-            params = UnicodeMultiDict(params, self.charset, self.errors)
+            params = UnicodeMultiDict(params, encoding=self.charset,
+                                      errors=self.errors)
         return params
     POST = property(POST, doc=POST.__doc__)
 
@@ -174,7 +176,8 @@ class WSGIRequest(object):
         params.update(self._POST())
         params.update(self._GET())
         if self.charset:
-            params = UnicodeMultiDict(params, self.charset, self.errors)
+            params = UnicodeMultiDict(params, encoding=self.charset,
+                                      errors=self.errors)
         return params
     params = property(params, doc=params.__doc__)
 
