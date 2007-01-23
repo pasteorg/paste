@@ -6,6 +6,12 @@ News
 svn trunk
 ---------
 
+* ``paste.wsgiwrappers.WSGIRequest`` can now optionally decode form
+  parameters to unicode when it has a ``charset`` value set.
+
+* Deprecated the ``paste.wsgiwrappers.settings`` StackedObjectProxy
+  dictionary for ``paste.wsgiwrappers.WSGIResponse.defaults``.
+
 * ``paste.request.construct_url`` was adding ``SERVER_PORT`` to
   ``HTTP_HOST``; but ``HTTP_HOST`` (from the Host header) generally
   contains a port when necessary, and ``SERVER_PORT`` should only be
