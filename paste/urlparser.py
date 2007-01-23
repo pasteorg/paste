@@ -7,8 +7,11 @@ WSGI applications that parse the URL and dispatch to on-disk resources
 import os
 import sys
 import imp
-import pkg_resources
 import mimetypes
+try:
+    import pkg_resources
+except ImportError:
+    pkg_resources = None
 from paste import request
 from paste import fileapp
 from paste.util import import_string
@@ -530,6 +533,8 @@ def make_static(global_conf, document_root, cache_max_age=None):
 class PkgResourcesParser(StaticURLParser):
 
     def __init__(self, egg_or_spec, resource_name, manager=None, root_resource=None):
+        if pkg_resources is None:
+            raise NotImplementedError("This class requires pkg_resources.")
         if isinstance(egg_or_spec, (str, unicode)):
             self.egg = pkg_resources.get_distribution(egg_or_spec)
         else:
@@ -602,6 +607,8 @@ def make_pkg_resources(global_conf, egg, resource_name=''):
     an egg spec, and a base ``resource_name`` (default empty string)
     which is the path in the egg that this starts at.
     """
+    if pkg_resources is None:
+        raise NotImplementedError("This function requires pkg_resources.")
     return PkgResourcesParser(egg, resource_name)
 
 def make_url_parser(global_conf, directory, base_python_name,
