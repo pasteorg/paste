@@ -97,7 +97,8 @@ class TestApp(object):
     disabled = True
 
     def __init__(self, app, namespace=None, relative_to=None,
-                 extra_environ=None):
+                 extra_environ=None, pre_request_hook=None,
+                 post_request_hook=None):
         """
         Wraps a WSGI application in a more convenient interface for
         testing.
@@ -117,6 +118,13 @@ class TestApp(object):
         ``extra_environ`` is a dictionary of values that should go
         into the environment for each request.  These can provide a
         communication channel with the application.
+
+        ``pre_request_hook`` is a function to be called prior to
+        making requests (such as ``post`` or ``get``). This function
+        must take one argument (the instance of the TestApp).
+
+        ``post_request_hook`` is a function, similar to
+        ``pre_request_hook``, to be called after requests are made.
         """
         if isinstance(app, (str, unicode)):
             from paste.deploy import loadapp
@@ -129,6 +137,8 @@ class TestApp(object):
         if extra_environ is None:
             extra_environ = {}
         self.extra_environ = extra_environ
+        self.pre_request_hook = pre_request_hook
+        self.post_request_hook = post_request_hook
         self.reset()
 
     def reset(self):
@@ -306,6 +316,8 @@ class TestApp(object):
         ``status``.  Generally ``.get()`` and ``.post()`` are used
         instead.
         """
+        if self.pre_request_hook:
+            self.pre_request_hook(self)
         __tracebackhide__ = True
         if self.cookies:
             c = SimpleCookie()
@@ -349,6 +361,8 @@ class TestApp(object):
             for key, morsel in c.items():
                 self.cookies[key] = morsel.value
                 res.cookies_set[key] = morsel.value
+        if self.post_request_hook:
+            self.post_request_hook(self)
         if self.namespace is None:
             # It's annoying to return the response in doctests, as it'll
             # be printed, so we only return it is we couldn't assign
