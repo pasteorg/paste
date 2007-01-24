@@ -373,6 +373,13 @@ class TestApp(object):
         __tracebackhide__ = True
         if status == '*':
             return
+        if isinstance(status, (list, tuple)):
+            if res.status not in status:
+                raise AppError(
+                    "Bad response: %s (not one of %s for %s)\n%s"
+                    % (res.full_status, ', '.join(map(str, status)),
+                       res.request.url, res.body))
+            return
         if status is None:
             if res.status == 200 or (
                 res.status >= 300 and res.status < 400):
