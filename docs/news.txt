@@ -30,6 +30,9 @@ svn trunk
   than ``paste.fileapp.FileApp`` (if you subclass and override
   ``make_app``)
 
+* ``paste.fixture.TestApp.get(status=X)`` takes a list of allowed
+  status codes for ``X``.
+
 1.1.1
 -----
 
