@@ -33,6 +33,11 @@ svn trunk
 * ``paste.fixture.TestApp.get(status=X)`` takes a list of allowed
   status codes for ``X``.
 
+* ``paste.httpserver`` now puts a key in the environment when using a
+  thread pool that allows you to track the thread pool and see any
+  wedged threads.  ``egg:Paste#watch_threads`` is an application that
+  can display this information.
+
 1.1.1
 -----
 
