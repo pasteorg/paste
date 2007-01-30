@@ -38,6 +38,10 @@ svn trunk
   wedged threads.  ``egg:Paste#watch_threads`` is an application that
   can display this information.
 
+* ``paste.httpserver`` now accepts all request methods, not just
+  ``GET``, ``PUT``, etc.  (Methods like ``MKCOL`` were previously
+  rejected.)
+
 1.1.1
 -----
 

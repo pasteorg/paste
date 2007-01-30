@@ -357,8 +357,22 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
     requests to the server's ``wsgi_application``.
     """
     server_version = 'PasteWSGIServer/' + __version__
-    do_POST = do_GET = do_HEAD = do_DELETE = do_PUT = do_TRACE = \
-        WSGIHandlerMixin.wsgi_execute
+
+    def handle_one_request(self):
+        """Handle a single HTTP request.
+
+        You normally don't need to override this method; see the class
+        __doc__ string for information on how to handle specific HTTP
+        commands such as GET and POST.
+
+        """
+        self.raw_requestline = self.rfile.readline()
+        if not self.raw_requestline:
+            self.close_connection = 1
+            return
+        if not self.parse_request(): # An error code has been sent, just exit
+            return
+        self.wsgi_execute()
 
     def handle(self):
         # don't bother logging disconnects while handling a request
