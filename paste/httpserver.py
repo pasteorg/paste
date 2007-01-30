@@ -177,6 +177,14 @@ class WSGIHandlerMixin:
         if 'HTTP/1.1' == self.protocol_version and \
                 '100-continue' == self.headers.get('Expect','').lower():
             rfile = ContinueHook(rfile, self.wfile.write)
+        else:
+            # We can put in the protection to keep from over-reading the
+            # file
+            try:
+                content_length = int(self.headers.get('Content-Length', '0'))
+            except ValueError:
+                content_length = 0
+            rfile = LimitedLengthFile(rfile, content_length)
 
         self.wsgi_environ = {
                 'wsgi.version': (1,0)
@@ -380,6 +388,61 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
             BaseHTTPRequestHandler.handle(self)
         except SocketErrors, exce:
             self.wsgi_connection_drop(exce)
+
+class LimitedLengthFile(object):
+    def __init__(self, file, length):
+        self.file = file
+        self.length = length
+        self._consumed = 0
+
+    def __repr__(self):
+        base_repr = repr(self.file)
+        return base_repr[:-1] + ' length=%s>' % self.length
+
+    def read(self, length=None):
+        left = self.length - self._consumed
+        if length is None:
+            length = left
+        else:
+            length = max(length, left)
+        if not left:
+            return ''
+        data = self.file.read(length)
+        self._consumed += len(data)
+        return data
+
+    def readline(self):
+        # @@: I can't see any way to keep this from reading past the end
+        # except to implement readline and a buffer privately
+        data = self.file.readline()
+        self._consumed += len(data)
+        return data
+
+    def readlines(self, hint=None):
+        data = self.file.readlines(hint)
+        for chunk in data:
+            self._consumed += len(chunk)
+        return data
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if self.length - self._consumed <= 0:
+            raise StopIteration
+        return self.readline()
+
+    ## Optional methods ##
+
+    def seek(self, place):
+        self.file.seek(place)
+        self._consumed = place
+
+    def tell(self):
+        if hasattr(self.file, 'tell'):
+            return self.file.tell()
+        else:
+            return self._consumed
 
 class ThreadPool(object):
     """
