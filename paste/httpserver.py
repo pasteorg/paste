@@ -20,6 +20,8 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 import atexit
 import socket, sys, threading, urlparse, Queue, urllib
 import posixpath
+import time
+import thread
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 from paste.util import converters
@@ -197,6 +199,13 @@ class WSGIHandlerMixin:
                ,'REMOTE_ADDR': self.client_address[0]
                ,'REMOTE_HOST': self.address_string()
                }
+
+        if hasattr(self.server, 'thread_pool'):
+            # Now that we know what the request was for, we should
+            # tell the thread pool what its worker is working on
+            self.server.thread_pool.worker_tracker[thread.get_ident()][1] = self.wsgi_environ
+            self.wsgi_environ['paste.httpserver.worker_tracker'] = self.server.thread_pool.worker_tracker
+            self.wsgi_environ['paste.httpserver.nworkers'] = self.server.thread_pool.nworkers
         
         for k, v in self.headers.items():
             key = 'HTTP_' + k.replace("-","_").upper()
@@ -374,13 +383,15 @@ class ThreadPool(object):
         self.workers = []
         for i in range(self.nworkers):
             worker = threading.Thread(target=self.worker_thread_callback,
-                                      name=("%s worker %d" % (self.name, i)))
+                                      name=("worker %d" % i))
             worker.setDaemon(daemon)
             worker.start()
             self.workers.append(worker)
 
         if not daemon:
             atexit.register(self.shutdown)
+
+        self.worker_tracker = {}
 
     def worker_thread_callback(self):
         """
@@ -392,7 +403,11 @@ class ThreadPool(object):
             if runnable is ThreadPool.SHUTDOWN:
                 return
             else:
-                runnable()
+                self.worker_tracker[thread.get_ident()] = [time.time(), None]
+                try:
+                    runnable()
+                finally:
+                    del self.worker_tracker[thread.get_ident()]
 
     def shutdown(self):
         """
@@ -428,7 +443,7 @@ class ThreadPoolMixIn(object):
         request.setblocking(1)
         # Queue processing of the request
         self.thread_pool.queue.put(
-            lambda: self.process_request_in_thread(request, client_address))
+             lambda: self.process_request_in_thread(request, client_address))
 
     def process_request_in_thread(self, request, client_address):
         """
