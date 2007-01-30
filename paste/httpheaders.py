@@ -135,6 +135,7 @@ dashes to give CamelCase style names.
 
 """
 import urllib2
+import re
 from mimetypes import guess_type
 from rfc822 import formatdate, parsedate_tz, mktime_tz
 from time import time as now
@@ -936,6 +937,39 @@ class _Range(_MultiValueHeader):
         return (units, ranges)
 _Range('Range', 'request', 'RFC 2616, 14.35')
 
+class _AcceptLanguage(_MultiValueHeader):
+    """
+    Accept-Language, RFC 2616 section 14.4
+    """
+    languageRegEx = re.compile(r"^[a-z]{2}(-[a-z]{2})?$", re.I)
+    def parse(self, *args, **kwargs):
+        """
+        Return a list of language tags sorted by their "q" values.  For example,
+        "en-us,en;q=0.5" should return ``["en-us", "en"]``.  If there is no
+        ``Accept-Language`` header present, default to ``[]``.
+        """
+        header = self.__call__(*args, **kwargs)
+        if header is None:
+            return []
+        langs = header.split(",")
+        qs = []
+        for lang in langs:
+            pieces = lang.split(";")
+            lang, params = pieces[0].strip().lower(), pieces[1:]
+            if not self.languageRegEx.match(lang):
+                continue
+            q = 1
+            for param in params:
+                lvalue, rvalue = param.split("=")
+                lvalue = lvalue.strip().lower()
+                rvalue = rvalue.strip()
+                if lvalue == "q":
+                    q = float(rvalue)
+            qs.append((lang, q))
+        qs.sort(lambda a, b: -cmp(a[1], b[1]))
+        return [lang for (lang, q) in qs]
+_AcceptLanguage('Accept-Language', 'request', 'RFC 2616, 14.4')
+
 class _AcceptRanges(_MultiValueHeader):
     """
     Accept-Ranges, RFC 2616 section 14.5
@@ -997,7 +1031,7 @@ for (name,              category, version, style,      comment) in \
 (("Accept"             ,'request' ,'1.1','multi-value','RFC 2616, 14.1' )
 ,("Accept-Charset"     ,'request' ,'1.1','multi-value','RFC 2616, 14.2' )
 ,("Accept-Encoding"    ,'request' ,'1.1','multi-value','RFC 2616, 14.3' )
-,("Accept-Language"    ,'request' ,'1.1','multi-value','RFC 2616, 14.4' )
+#,("Accept-Language"    ,'request' ,'1.1','multi-value','RFC 2616, 14.4' )
 #,("Accept-Ranges"      ,'response','1.1','multi-value','RFC 2616, 14.5' )
 ,("Age"                ,'response','1.1','singular'   ,'RFC 2616, 14.6' )
 ,("Allow"              ,'entity'  ,'1.0','multi-value','RFC 2616, 14.7' )
