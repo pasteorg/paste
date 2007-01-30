@@ -6,19 +6,10 @@ News
 svn trunk
 ---------
 
-* ``paste.wsgiwrappers.WSGIRequest`` can now optionally decode form
-  parameters to unicode when it has a ``charset`` value set.
-
-* Deprecated the ``paste.wsgiwrappers.settings`` StackedObjectProxy
-  dictionary for ``paste.wsgiwrappers.WSGIResponse.defaults``.
-
 * ``paste.request.construct_url`` was adding ``SERVER_PORT`` to
   ``HTTP_HOST``; but ``HTTP_HOST`` (from the Host header) generally
   contains a port when necessary, and ``SERVER_PORT`` should only be
   used with ``SERVER_NAME``.
-
-* Regression in 1.1 fixed, where Paste's HTTP server would drop
-  trailing slashes from paths.
 
 * Added entry point for ``paste.registry.RegistryManager``
   (``egg:Paste#registry``).
@@ -32,6 +23,21 @@ svn trunk
 
 * ``paste.fixture.TestApp.get(status=X)`` takes a list of allowed
   status codes for ``X``.
+
+In paste.wsgiwrappers
+~~~~~~~~~~~~~~~~~~~~~
+
+* ``paste.wsgiwrappers.WSGIRequest`` can now optionally decode form
+  parameters to unicode when it has a ``charset`` value set.
+
+* Deprecated the ``paste.wsgiwrappers.settings`` StackedObjectProxy
+  dictionary for ``paste.wsgiwrappers.WSGIResponse.defaults``.
+
+In paste.httpserver
+~~~~~~~~~~~~~~~~~~~
+
+* Regression in 1.1 fixed, where Paste's HTTP server would drop
+  trailing slashes from paths.
 
 * ``paste.httpserver`` now puts a key in the environment when using a
   thread pool that allows you to track the thread pool and see any
