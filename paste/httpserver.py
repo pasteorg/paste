@@ -22,6 +22,7 @@ import socket, sys, threading, urlparse, Queue, urllib
 import posixpath
 import time
 import thread
+from itertools import count
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 from paste.util import converters
@@ -204,8 +205,7 @@ class WSGIHandlerMixin:
             # Now that we know what the request was for, we should
             # tell the thread pool what its worker is working on
             self.server.thread_pool.worker_tracker[thread.get_ident()][1] = self.wsgi_environ
-            self.wsgi_environ['paste.httpserver.worker_tracker'] = self.server.thread_pool.worker_tracker
-            self.wsgi_environ['paste.httpserver.nworkers'] = self.server.thread_pool.nworkers
+            self.wsgi_environ['paste.httpserver.thread_pool'] = self.server.thread_pool
         
         for k, v in self.headers.items():
             key = 'HTTP_' + k.replace("-","_").upper()
@@ -381,17 +381,45 @@ class ThreadPool(object):
         self.name = name
         self.queue = Queue.Queue()
         self.workers = []
+        self.daemon = daemon
+        self._worker_count = count()
         for i in range(self.nworkers):
-            worker = threading.Thread(target=self.worker_thread_callback,
-                                      name=("worker %d" % i))
-            worker.setDaemon(daemon)
-            worker.start()
-            self.workers.append(worker)
+            self.add_worker_thread()
 
         if not daemon:
             atexit.register(self.shutdown)
 
         self.worker_tracker = {}
+
+    def kill_worker(self, thread_id):
+        """
+        Removes the worker with the given thread_id from the pool, and
+        replaces it with a new worker thread.
+
+        This should only be done for mis-behaving workers.
+        """
+        from paste.util import killthread
+        for thread_obj_id, thread_obj in threading._active.items():
+            if thread_id == thread_obj_id:
+                break
+        else:
+            thread_obj = None
+        killthread.async_raise(thread_id, SystemExit)
+        try:
+            del self.worker_tracker[thread_id]
+        except KeyError:
+            pass
+        if thread_obj in self.workers:
+            self.workers.remove(thread_obj)
+        self.add_worker_thread()
+
+    def add_worker_thread(self):
+        index = self._worker_count.next()
+        worker = threading.Thread(target=self.worker_thread_callback,
+                                  name=("worker %d" % index))
+        worker.setDaemon(self.daemon)
+        worker.start()
+        self.workers.append(worker)
 
     def worker_thread_callback(self):
         """
@@ -407,7 +435,10 @@ class ThreadPool(object):
                 try:
                     runnable()
                 finally:
-                    del self.worker_tracker[thread.get_ident()]
+                    try:
+                        del self.worker_tracker[thread.get_ident()]
+                    except KeyError:
+                        pass
 
     def shutdown(self):
         """

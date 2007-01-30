@@ -1,11 +1,12 @@
 """
-Watches the key ``paste.httpserver.worker_tracker`` to see how many
+Watches the key ``paste.httpserver.thread_pool`` to see how many
 threads there are and report on any wedged threads.
 """
 import string
 import cgi
 import time
-from paste.request import construct_url
+from paste import httpexceptions
+from paste.request import construct_url, parse_formvars
 
 page_template = string.Template('''
 <html>
@@ -30,6 +31,7 @@ page_template = string.Template('''
  </head>
  <body>
   <h1>$title</h1>
+  $kill_message
   <div>Pool size: $nworkers
        ($nworkers_used used including current request)</div>
   $body
@@ -41,7 +43,7 @@ thread_template = string.Template('''
 <table class="thread">
  <tr>
   <td><b>Thread</b></td>
-  <td><b>$thread_id</b></td>
+  <td><b>$thread_id $kill</b></td>
  </tr>
  <tr>
   <td>Time processing request</td>
@@ -82,39 +84,112 @@ environ_template = string.Template('''
  </tr>
 ''')
 
-def watch_threads(environ, start_response):
-    start_response('200 OK', [('Content-type', 'text/html')])
-    if 'paste.httpserver.worker_tracker' not in environ:
-        return ['You must use the threaded Paste HTTP server to use this application']
-    worker_tracker = environ['paste.httpserver.worker_tracker']
-    nworkers = environ['paste.httpserver.nworkers']
-    now = time.time()
-    
-    workers = worker_tracker.items()
-    workers.sort(key=lambda v: v[1][0])
-    body = []
-    for thread_id, (time_started, worker_environ) in workers:
-        if worker_environ:
-            uri = construct_url(worker_environ)
-        else:
-            uri = 'unknown'
-        thread = thread_template.substitute(
-            thread_id=thread_id,
-            time_html=format_time(now-time_started),
-            uri=uri,
-            uri_short=shorten(uri),
-            environ_rows=format_environ(worker_environ),
-            )
-        body.append(thread)
-    
-    page = page_template.substitute(
-        title="Thread Pool Worker Tracker",
-        body=''.join(body),
-        nworkers=nworkers,
-        nworkers_used=len(workers))
-    return [page]
+kill_template = string.Template('''
+ <form action="$script_name/kill" method="POST"
+  style="display: inline">
+  <input type="hidden" name="thread_id" value="$thread_id">
+  <input type="submit" value="kill">
+ </form>
+''')
 
-hide_keys = ['paste.httpserver.worker_tracker']
+kill_message_template = string.Template('''
+<div style="background-color: #060; color: #fff;
+            border: 2px solid #000;">
+  Thread $thread_id killed
+</div>
+''')
+
+class WatchThreads(object):
+
+    """
+    Application that watches the threads in ``paste.httpserver``,
+    showing the length each thread has been working on a request.
+
+    If allow_kill is true, then you can kill errant threads through
+    this application.
+
+    This application can expose private information (specifically in
+    the environment, like cookies), so it should be protected.
+    """
+
+    def __init__(self, allow_kill=False):
+        self.allow_kill = allow_kill
+
+    def __call__(self, environ, start_response):
+        if 'paste.httpserver.thread_pool' not in environ:
+            start_response('403 Forbidden', [('Content-type', 'text/plain')])
+            return ['You must use the threaded Paste HTTP server to use this application']
+        if environ.get('PATH_INFO') == '/kill':
+            return self.kill(environ, start_response)
+        else:
+            return self.show(environ, start_response)
+
+    def show(self, environ, start_response):
+        start_response('200 OK', [('Content-type', 'text/html')])
+        form = parse_formvars(environ)
+        if form.get('kill'):
+            kill_message = kill_message_template.substitute(
+                thread_id=form['kill'])
+        else:
+            kill_message = ''
+        thread_pool = environ['paste.httpserver.thread_pool']
+        nworkers = thread_pool.nworkers
+        now = time.time()
+
+        workers = thread_pool.worker_tracker.items()
+        workers.sort(key=lambda v: v[1][0])
+        body = []
+        for thread_id, (time_started, worker_environ) in workers:
+            if worker_environ:
+                uri = construct_url(worker_environ)
+            else:
+                uri = 'unknown'
+            if self.allow_kill:
+                kill = kill_template.substitute(
+                    script_name = environ['SCRIPT_NAME'],
+                    thread_id=thread_id)
+            else:
+                kill = ''
+            thread = thread_template.substitute(
+                thread_id=thread_id,
+                time_html=format_time(now-time_started),
+                uri=uri,
+                uri_short=shorten(uri),
+                environ_rows=format_environ(worker_environ),
+                kill=kill,
+                )
+            body.append(thread)
+
+        page = page_template.substitute(
+            title="Thread Pool Worker Tracker",
+            body=''.join(body),
+            nworkers=nworkers,
+            nworkers_used=len(workers),
+            kill_message=kill_message)
+        return [page]
+
+    def kill(self, environ, start_response):
+        if not self.allow_kill:
+            exc = httpexceptions.HTTPForbidden(
+                'Killing threads has not been enabled.  Shame on you '
+                'for trying!')
+            return exc(environ, start_response)
+        vars = parse_formvars(environ)
+        thread_id = int(vars['thread_id'])
+        thread_pool = environ['paste.httpserver.thread_pool']
+        if thread_id not in thread_pool.worker_tracker:
+            exc = httpexceptions.PreconditionFailed(
+                'You tried to kill thread %s, but it is not working on '
+                'any requests' % thread_id)
+            return exc(environ, start_response)
+        thread_pool.kill_worker(thread_id)
+        script_name = environ['SCRIPT_NAME'] or '/'
+        exc = httpexceptions.HTTPFound(
+            headers=[('Location', script_name+'?kill=%s' % thread_id)])
+        return exc(environ, start_response)
+        
+
+hide_keys = ['paste.httpserver.thread_pool']
 
 def format_environ(environ):
     if environ is None:
@@ -153,16 +228,22 @@ def shorten(s):
     else:
         return s
 
-def make_watch_threads(global_conf):
-    return watch_threads
+def make_watch_threads(global_conf, allow_kill=False):
+    from paste.deploy.converters import asbool
+    return WatchThreads(allow_kill=asbool(allow_kill))
+make_watch_threads.__doc__ = WatchThreads.__doc__
 
 def make_bad_app(global_conf, pause=0):
     def bad_app(environ, start_response):
+        import thread
         if pause:
             time.sleep(pause)
         else:
+            count = 0
             while 1:
-                time.sleep(10000)
+                #print "I'm alive %s (%s)" % (count, thread.get_ident())
+                time.sleep(10)
+                count += 1
         start_response('200 OK', [('content-type', 'text/plain')])
         return 'OK, paused %s seconds' % pause
     return bad_app
