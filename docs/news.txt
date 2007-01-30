@@ -42,6 +42,12 @@ svn trunk
   ``GET``, ``PUT``, etc.  (Methods like ``MKCOL`` were previously
   rejected.)
 
+* ``paste.httpserver`` has a ``wsgi.input`` that now does not block if
+  you try to read past the end (it is limited to returning the number
+  of bytes given in ``Content-Length``).  Double-reading from
+  ``wsgi.input`` won't give you the same data, but it won't cause
+  blocking.
+
 1.1.1
 -----
 
