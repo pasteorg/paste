@@ -68,7 +68,7 @@ def _test_unicode_dict(decode_param_names=False):
     def assert_key_str(obj):
         assert isinstance(obj, key_str)
 
-    def assert_unicode_items(obj):
+    def assert_unicode_item(obj):
         key, value = obj
         assert isinstance(key, key_str)
         assert isinstance(value, unicode)
@@ -80,11 +80,11 @@ def _test_unicode_dict(decode_param_names=False):
     d['b'] = '2 test'
     d['c'] = '3 test'
     assert d.items() == [('a', u'a test'), ('b', u'2 test'), ('c', u'3 test')]
-    map(assert_unicode_items, d.items())
+    map(assert_unicode_item, d.items())
 
     d['b'] = '4 test'
     assert d.items() == [('a', u'a test'), ('c', u'3 test'), ('b', u'4 test')]
-    map(assert_unicode_items, d.items())
+    map(assert_unicode_item, d.items())
 
     d.add('b', '5 test')
     raises(KeyError, 'd.getone("b")')
@@ -92,20 +92,20 @@ def _test_unicode_dict(decode_param_names=False):
     map(assert_unicode, d.getall('b'))
     assert d.items() == [('a', u'a test'), ('c', u'3 test'), ('b', u'4 test'),
                          ('b', u'5 test')]
-    map(assert_unicode_items, d.items())
+    map(assert_unicode_item, d.items())
 
     del d['b']
     assert d.items() == [('a', u'a test'), ('c', u'3 test')]
-    map(assert_unicode_items, d.items())
+    map(assert_unicode_item, d.items())
     assert d.pop('xxx', u'5 test') == u'5 test'
     assert isinstance(d.pop('xxx', u'5 test'), unicode)
     assert d.getone('a') == u'a test'
     assert isinstance(d.getone('a'), unicode)
     assert d.popitem() == ('c', u'3 test')
     d['c'] = '3 test'
-    assert_unicode_items(d.popitem())
+    assert_unicode_item(d.popitem())
     assert d.items() == [('a', u'a test')]
-    map(assert_unicode_items, d.items())
+    map(assert_unicode_item, d.items())
 
     item = []
     assert d.setdefault('z', item) is item
@@ -121,8 +121,8 @@ def _test_unicode_dict(decode_param_names=False):
     assert d.dict_of_lists() == {u'a': [u'a test'], u'y': [u'y test'],
                                  u'z': [item]}
     del d['z']
-    map(assert_unicode_items, d.mixed().iteritems())
-    map(assert_unicode_items, [(k, v[0]) for \
+    map(assert_unicode_item, d.mixed().iteritems())
+    map(assert_unicode_item, [(k, v[0]) for \
                                    k, v in d.dict_of_lists().iteritems()])
 
     assert u'a' in d
