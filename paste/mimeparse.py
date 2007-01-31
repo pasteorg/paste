@@ -12,9 +12,10 @@ Contents:
     - quality():           Determines the quality ('q') of a mime-type when compared against a list of media-ranges.
     - quality_parsed():    Just like quality() except the second parameter must be pre-parsed.
     - best_match():        Choose the mime-type with the highest quality ('q') from a list of candidates. 
+    - desired_matches():   Provide a list in order of server-desired priorities from a list of candidates.
 """
 
-__version__ = "0.1"
+__version__ = "0.1.1"
 __author__ = 'Joe Gregorio'
 __email__ = "joe@bitworking.org"
 __credits__ = ""
@@ -108,6 +109,29 @@ def best_match(supported, header):
             for mime_type in supported]
     weighted_matches.sort()
     return weighted_matches[-1][0] and weighted_matches[-1][1] or ''
+
+def desired_matches(desired, header):
+    """Takes a list of desired mime-types in the order the server prefers to
+    send them regardless of the browsers preference.
+    
+    Browsers (such as Firefox) technically want XML over HTML depending on how
+    one reads the specification. This function is provided for a server to 
+    declare a set of desired mime-types it supports, and returns a subset of 
+    the desired list in the same order should each one be Accepted by the
+    browser.
+    
+    >>> sorted_match(['text/html', 'application/xml'], \
+    ...     'text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png')
+    ['text/html', 'application/xml']
+    >>> sorted_match(['text/html', 'application/xml'], 'application/xml,application/json')
+    ['application/xml']
+    """
+    matches = []
+    parsed_ranges = [parse_media_range(r) for r in header.split(",")]
+    for mimetype in desired:
+        if quality_parsed(mimetype, parsed_ranges):
+            matches.append(mimetype)
+    return matches
 
 if __name__ == "__main__":
     import unittest
