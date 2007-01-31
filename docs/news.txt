@@ -6,6 +6,19 @@ News
 svn trunk
 ---------
 
+* paste.httpheaders now parses the HTTP Accept-Language header and returns
+  a list of languages the browser supports in the order it prefers them.
+
+* paste.mimeparse module added that handles parsing HTTP Accept headers
+  for quality and mime-types.
+
+* paste.wsgiwrappers.WSGIRequest.defaults now accepts 2 new keys:
+  - mimetypes = A list of mimetypes in the order the server wants to send
+                them.
+  - language  = The i18n language that should be used as the fallback should
+                a translation not occur in a language file. See docs for
+                details.
+
 * ``paste.request.construct_url`` was adding ``SERVER_PORT`` to
   ``HTTP_HOST``; but ``HTTP_HOST`` (from the Host header) generally
   contains a port when necessary, and ``SERVER_PORT`` should only be
