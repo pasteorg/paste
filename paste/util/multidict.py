@@ -229,7 +229,10 @@ class UnicodeMultiDict(DictMixin):
 
     def _decode_key(self, key):
         if self.decode_keys:
-            key = key.decode(self.encoding, self.errors)
+            try:
+                key = key.decode(self.encoding, self.errors)
+            except AttributeError:
+                pass
         return key
 
     def _decode_value(self, value):

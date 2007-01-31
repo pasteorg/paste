@@ -47,6 +47,10 @@ def test_dict():
     d['x'] = 'x test'
     assert dcopy != d
 
+    d[(1, None)] = (None, 1)
+    assert d.items() == [('a', 1), ('z', []), ('y', 6), ('x', 'x test'),
+                         ((1, None), (None, 1))]
+
 def test_unicode_dict():
     _test_unicode_dict()
     _test_unicode_dict(decode_param_names=True)
@@ -131,6 +135,13 @@ def _test_unicode_dict(decode_param_names=False):
     assert dcopy == d
     d['x'] = 'x test'
     assert dcopy != d
+
+    d[(1, None)] = (None, 1)
+    assert d.items() == [('a', u'a test'), ('y', u'y test'), ('x', u'x test'),
+                         ((1, None), (None, 1))]
+    item = d.items()[-1]
+    assert isinstance(item[0], tuple)
+    assert isinstance(item[1], tuple)
 
     fs = cgi.FieldStorage()
     fs.name = 'thefile'
