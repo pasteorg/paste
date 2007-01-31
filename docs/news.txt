@@ -24,6 +24,8 @@ svn trunk
 * ``paste.fixture.TestApp.get(status=X)`` takes a list of allowed
   status codes for ``X``.
 
+* Added a small templating system for internal use.
+
 In paste.wsgiwrappers
 ~~~~~~~~~~~~~~~~~~~~~
 
