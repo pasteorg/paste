@@ -11,9 +11,11 @@ def simpleapp(environ, start_response):
     response_headers = [('Content-type','text/plain')]
     start_response(status, response_headers)
     request = WSGIRequest(environ)
+    WSGIRequest.defaults['mimetypes'] = ['text/html', 'application/xml']
     return ['Hello world!\n', 'The get is %s' % str(request.GET),
         ' and Val is %s' % request.GET.get('name'),
-        'The languages are: %s' % request.languages]
+        'The languages are: %s' % request.languages,
+        'The mimetype is: %s' % request.mimetypes]
 
 def test_gets():
     app = TestApp(simpleapp)
@@ -35,4 +37,14 @@ def test_language_parsing():
 
     res = app.get('/', headers={'Accept-Language':'en-gb;q=0.8, da, en;q=0.7'})
     assert "languages are: ['da', 'en-gb', 'en', 'en-us']" in res
+
+def test_mime_parsing():
+    app = TestApp(simpleapp)
+    res = app.get('/', headers={'Accept':'text/html'})
+    assert "mimetype is: ['text/html']" in res
     
+    res = app.get('/', headers={'Accept':'application/xml'})
+    assert "mimetype is: ['application/xml']" in res
+    
+    res = app.get('/', headers={'Accept':'application/xml,*/*'})
+    assert "mimetype is: ['text/html', 'application/xml']" in res
