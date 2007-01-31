@@ -2,13 +2,14 @@
 Watches the key ``paste.httpserver.thread_pool`` to see how many
 threads there are and report on any wedged threads.
 """
-import string
 import cgi
 import time
+from thread import get_ident
 from paste import httpexceptions
 from paste.request import construct_url, parse_formvars
+from paste.util.template import HTMLTemplate, bunch
 
-page_template = string.Template('''
+page_template = HTMLTemplate('''
 <html>
  <head>
   <style type="text/css">
@@ -18,6 +19,9 @@ page_template = string.Template('''
    table.environ tr td {
      border-bottom: #bbb 1px solid;
    }
+   table.environ tr td.bottom {
+     border-bottom: none;
+   }
    table.thread {
      border: 1px solid #000;
      margin-bottom: 1em;
@@ -26,34 +30,61 @@ page_template = string.Template('''
      border-bottom: #999 1px solid;
      padding-right: 1em;
    }
+   table.thread tr td.bottom {
+     border-bottom: none;
+   }
+   table.thread tr.this_thread td {
+     background-color: #006;
+     color: #fff;
+   }
   </style>
-  <title>$title</title>
+  <title>{{title}}</title>
  </head>
  <body>
-  <h1>$title</h1>
-  $kill_message
-  <div>Pool size: $nworkers
-       ($nworkers_used used including current request)</div>
-  $body
- </body>
-</html>
-''')
+  <h1>{{title}}</h1>
+  {{if kill_thread_id}}
+  <div style="background-color: #060; color: #fff;
+              border: 2px solid #000;">
+  Thread {{kill_thread_id}} killed
+  </div>
+  {{endif}}
+  <div>Pool size: {{nworkers}}
+       ({{nworkers_used}} used including current request)</div>
 
-thread_template = string.Template('''
+{{for thread in threads}}
+
 <table class="thread">
- <tr>
-  <td><b>Thread</b></td>
-  <td><b>$thread_id $kill</b></td>
+ <tr {{if thread.thread_id == this_thread_id}}class="this_thread"{{endif}}>
+  <td>
+   <b>Thread</b>
+   {{if thread.thread_id == this_thread_id}}
+   (<i>this</i> request)
+   {{endif}}</td>
+  <td>
+   <b>{{thread.thread_id}}
+    {{if allow_kill}}
+    <form action="{{script_name}}/kill" method="POST"
+          style="display: inline">
+      <input type="hidden" name="thread_id" value="{{thread.thread_id}}">
+      <input type="submit" value="kill">
+    </form>
+    {{endif}}
+   </b>
+  </td>
  </tr>
  <tr>
   <td>Time processing request</td>
-  <td>$time_html</td>
+  <td>{{thread.time_html|html}}</td>
  </tr>
  <tr>
   <td>URI</td>
-  <td><a href="$uri">$uri_short</a></td>
+  <td>{{if thread.uri == 'unknown'}}
+      unknown
+      {{else}}<a href="{{thread.uri}}">{{thread.uri_short}}</a>
+      {{endif}}
+  </td>
  <tr>
-  <td colspan="2">
+  <td colspan="2" class="bottom">
    <a href="#"
       onclick="
         var el = document.getElementById('environ');
@@ -69,35 +100,24 @@ thread_template = string.Template('''
    
    <div id="environ" style="display: none">
     <table class="environ">
-     $environ_rows
+     {{for loop, item in looper(sorted(thread.environ.items()))}}
+     {{py:key, value=item}}
+     <tr>
+      <td {{if loop.last}}class="bottom"{{endif}}>{{key}}</td>
+      <td {{if loop.last}}class="bottom"{{endif}}>{{value}}</td>
+     </tr>
+     {{endfor}}
     </table>
    </div>
   </td>
  </tr>
 </table>
-''')
 
-environ_template = string.Template('''
- <tr>
-  <td>$key</td>
-  <td>$value</td>
- </tr>
-''')
+{{endfor}}
 
-kill_template = string.Template('''
- <form action="$script_name/kill" method="POST"
-  style="display: inline">
-  <input type="hidden" name="thread_id" value="$thread_id">
-  <input type="submit" value="kill">
- </form>
-''')
-
-kill_message_template = string.Template('''
-<div style="background-color: #060; color: #fff;
-            border: 2px solid #000;">
-  Thread $thread_id killed
-</div>
-''')
+ </body>
+</html>
+''', name='watchthreads.page_template')
 
 class WatchThreads(object):
 
@@ -128,44 +148,39 @@ class WatchThreads(object):
         start_response('200 OK', [('Content-type', 'text/html')])
         form = parse_formvars(environ)
         if form.get('kill'):
-            kill_message = kill_message_template.substitute(
-                thread_id=form['kill'])
+            kill_thread_id = form['kill']
         else:
-            kill_message = ''
+            kill_thread_id = None
         thread_pool = environ['paste.httpserver.thread_pool']
         nworkers = thread_pool.nworkers
         now = time.time()
 
+
         workers = thread_pool.worker_tracker.items()
         workers.sort(key=lambda v: v[1][0])
-        body = []
+        threads = []
         for thread_id, (time_started, worker_environ) in workers:
+            thread = bunch()
+            threads.append(thread)
             if worker_environ:
-                uri = construct_url(worker_environ)
+                thread.uri = construct_url(worker_environ)
             else:
-                uri = 'unknown'
-            if self.allow_kill:
-                kill = kill_template.substitute(
-                    script_name = environ['SCRIPT_NAME'],
-                    thread_id=thread_id)
-            else:
-                kill = ''
-            thread = thread_template.substitute(
-                thread_id=thread_id,
-                time_html=format_time(now-time_started),
-                uri=uri,
-                uri_short=shorten(uri),
-                environ_rows=format_environ(worker_environ),
-                kill=kill,
-                )
-            body.append(thread)
-
+                thread.uri = 'unknown'
+            thread.thread_id = thread_id
+            thread.time_html = format_time(now-time_started)
+            thread.uri_short = shorten(thread.uri)
+            thread.environ = worker_environ
+            
         page = page_template.substitute(
             title="Thread Pool Worker Tracker",
-            body=''.join(body),
             nworkers=nworkers,
             nworkers_used=len(workers),
-            kill_message=kill_message)
+            script_name=environ['SCRIPT_NAME'],
+            kill_thread_id=kill_thread_id,
+            allow_kill=self.allow_kill,
+            threads=threads,
+            this_thread_id=get_ident())
+
         return [page]
 
     def kill(self, environ, start_response):
