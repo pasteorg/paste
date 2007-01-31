@@ -30,8 +30,11 @@ If there are syntax errors ``TemplateError`` will be raised.
 
 import re
 import sys
+import cgi
+import urllib
 
-__all__ = ['TemplateError', 'Template', 'sub']
+__all__ = ['TemplateError', 'Template', 'sub', 'HTMLTemplate',
+           'sub_html', 'html']
 
 token_re = re.compile(r'\{\{|\}\}')
 in_re = re.compile(r'\s+in\s+')
@@ -235,8 +238,79 @@ class Template(object):
 def sub(content, **kw):
     name = kw.get('__name')
     tmpl = Template(content, name=name)
-    result = tmpl.substitute(kw)
+    return tmpl.substitute(kw)
     return result
+
+############################################################
+## HTML Templating
+############################################################
+
+class html(object):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return self.value
+    def __repr__(self):
+        return '<%s %r>' % (
+            self.__class__.__name__, self.value)
+
+def html_quote(value):
+    if value is None:
+        return ''
+    if not isinstance(value, basestring):
+        if hasattr(value, '__unicode__'):
+            value = unicode(value)
+        else:
+            value = str(value)
+    value = cgi.escape(value, 1)
+    if isinstance(value, unicode):
+        value = value.encode('ascii', 'xmlcharrefreplace')
+    return value
+
+def url(v):
+    if not isinstance(v, basestring):
+        if hasattr(v, '__unicode__'):
+            v = unicode(v)
+        else:
+            v = str(v)
+    if isinstance(v, unicode):
+        v = v.encode('utf8')
+    return urllib.quote(v)
+
+def attr(**kw):
+    kw = kw.items()
+    kw.sort()
+    parts = []
+    for name, value in kw:
+        if value is None:
+            continue
+        if name.endswith('_'):
+            name = name[:-1]
+        parts.append('%s="%s"' % (html_quote(name), html_quote(value)))
+    return html(' '.join(parts))
+
+class HTMLTemplate(Template):
+
+    default_namespace = Template.default_namespace.copy()
+    default_namespace.update(dict(
+        html=html,
+        attr=attr,
+        url=url,
+        ))
+
+    def _repr(self, value, pos):
+        plain = Template._repr(self, value, pos)
+        if isinstance(value, html):
+            return plain
+        else:
+            return html_quote(plain)
+
+def sub_html(content, **kw):
+    name = kw.get('__name')
+    tmpl = HTMLTemplate(content, name=name)
+    return tmpl.substitute(kw)
+    return result
+
 
 ############################################################
 ## Lexing and Parsing
