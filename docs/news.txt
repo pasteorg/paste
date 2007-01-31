@@ -35,9 +35,10 @@ svn trunk
 In paste.wsgiwrappers
 ~~~~~~~~~~~~~~~~~~~~~
 
-* paste.wsgiwrappers.WSGIRequest.defaults now accepts 2 new keys:
-  - mimetypes = A list of mimetypes in the order the server wants to send
-                them.
+* ``paste.wsgiwrappers.WSGIRequest`` has match_accept() function to screen
+  incoming HTPT Accept values against a list of mime-types.
+
+* ``paste.wsgiwrappers.WSGIRequest.defaults`` now accepts 2 new keys:
   - language  = The i18n language that should be used as the fallback should
                 a translation not occur in a language file. See docs for
                 details.
