@@ -32,9 +32,10 @@ import re
 import sys
 import cgi
 import urllib
+from paste.util.looper import looper
 
 __all__ = ['TemplateError', 'Template', 'sub', 'HTMLTemplate',
-           'sub_html', 'html']
+           'sub_html', 'html', 'bunch']
 
 token_re = re.compile(r'\{\{|\}\}')
 in_re = re.compile(r'\s+in\s+')
@@ -66,6 +67,7 @@ class Template(object):
     default_namespace = {
         'start_braces': '{{',
         'end_braces': '}}',
+        'looper': looper,
         }
 
     default_encoding = 'utf8'
@@ -110,11 +112,13 @@ class Template(object):
         return result
 
     def _interpret(self, ns):
+        __traceback_hide__ = True
         parts = []
         self._interpret_codes(self._parsed, ns, out=parts)
         return ''.join(parts)
 
     def _interpret_codes(self, codes, ns, out):
+        __traceback_hide__ = True
         for item in codes:
             if isinstance(item, basestring):
                 out.append(item)
@@ -122,6 +126,7 @@ class Template(object):
                 self._interpret_code(item, ns, out)
 
     def _interpret_code(self, code, ns, out):
+        __traceback_hide__ = True
         name, pos = code[0], code[1]
         if name == 'py':
             self._exec(code[2], ns, pos)
@@ -147,6 +152,7 @@ class Template(object):
             assert 0, "Unknown code: %r" % name
 
     def _interpret_for(self, vars, expr, content, ns, out):
+        __traceback_hide__ = True
         for item in expr:
             if len(vars) == 1:
                 ns[vars[0]] = item
@@ -165,6 +171,7 @@ class Template(object):
                 break
 
     def _interpret_if(self, parts, ns, out):
+        __traceback_hide__ = True
         # @@: if/else/else gets through
         for part in parts:
             assert not isinstance(part, basestring)
@@ -178,6 +185,7 @@ class Template(object):
                 break
 
     def _eval(self, code, ns, pos):
+        __traceback_hide__ = True
         try:
             value = eval(code, ns)
             return value
@@ -188,6 +196,7 @@ class Template(object):
             raise exc_info[0], e, exc_info[2]
 
     def _exec(self, code, ns, pos):
+        __traceback_hide__ = True
         try:
             exec code in ns
         except:
@@ -197,6 +206,7 @@ class Template(object):
             raise exc_info[0], e, exc_info[2]
 
     def _repr(self, value, pos):
+        __traceback_hide__ = True
         try:
             if value is None:
                 return ''
@@ -240,6 +250,35 @@ def sub(content, **kw):
     tmpl = Template(content, name=name)
     return tmpl.substitute(kw)
     return result
+
+class bunch(dict):
+
+    def __init__(self, **kw):
+        for name, value in kw.items():
+            setattr(self, name, value)
+
+    def __setattr__(self, name, value):
+        self[name] = value
+
+    def __getattr__(self, name):
+        return self[name]
+
+    def __getitem__(self, key):
+        if 'default' in self:
+            try:
+                return dict.__getitem__(self, key)
+            except KeyError:
+                return dict.__getitem__(self, 'default')
+        else:
+            return dict.__getitem__(self, key)
+
+    def __repr__(self):
+        items = [
+            (k, v) for k, v in self.items()]
+        items.sort()
+        return '<%s %s>' % (
+            self.__class__.__name__,
+            ' '.join(['%s=%r' % (k, v) for k, v in items]))
 
 ############################################################
 ## HTML Templating
