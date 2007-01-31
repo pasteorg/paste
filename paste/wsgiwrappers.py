@@ -15,6 +15,7 @@ from paste.registry import StackedObjectProxy
 from paste.response import HeaderDict
 from paste.wsgilib import encode_unicode_app_iter
 from paste.httpheaders import ACCEPT_LANGUAGE
+from paste.mimeparse import desired_matches
 
 _CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)', re.I)
 
@@ -72,8 +73,12 @@ class WSGIRequest(object):
     specified by the client.
 
     The class variable ``defaults`` specifies default values for
-    ``charset``, ``errors``, and ``langauge``. These can be overridden for the
-    current request via the registry.
+    ``charset``, ``errors``, ``mimetypes``, and ``langauge``. These can be 
+    overridden for the current request via the registry.
+    
+    The ``mimetypes`` option should be a list of mime-types in their desired
+    order. This determines the valid mime-types in order based on what the
+    browser declared it can accept via the HTTP Accept header.
     
     The ``language`` default value is considered the fallback during i18n
     translations to ensure in odd cases that mixed languages don't occur should
@@ -97,6 +102,7 @@ class WSGIRequest(object):
     """
     defaults = StackedObjectProxy(default=dict(charset=None, errors='strict',
                                                decode_param_names=False,
+                                               mimetypes=['text/html'],
                                                language='en-us'))
     def __init__(self, environ):
         self.environ = environ
@@ -114,6 +120,7 @@ class WSGIRequest(object):
         self.errors = defaults.get('errors', 'strict')
         self.decode_param_names = defaults.get('decode_param_names', False)
         self._languages = None
+        self._mimetypes = None
     
     body = environ_getter('wsgi.input')
     scheme = environ_getter('wsgi.url_scheme')
@@ -132,6 +139,17 @@ class WSGIRequest(object):
         return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
     host = property(host, doc=host.__doc__)
     
+    def mimetypes(self):
+        """Return a list of developer-specified mime-types that the browser's
+        HTTP Accept header allows in the order provided by 
+        defaults['mimetypes']"""
+        if self._mimetypes is not None:
+            return self._mimetypes
+        mytypes = self.defaults.get('mimetypes', ['text/html'])
+        self._mimetypes = desired_matches(mytypes, self.environ.get('HTTP_ACCEPT', '*/*'))
+        return self._mimetypes
+    mimetypes = property(mimetypes, doc=mimetypes.__doc__)
+
     def languages(self):
         """Return a list of preferred languages, most preferred first.
         
