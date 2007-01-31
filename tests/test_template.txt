@@ -1,0 +1,66 @@
+The templating language is fairly simple, just {{stuff}}.  For
+example::
+
+    >>> from paste.util.template import Template, sub
+    >>> sub('Hi {{name}}', name='Ian')
+    'Hi Ian'
+    >>> Template('Hi {{repr(name)}}').substitute(name='Ian')
+    "Hi 'Ian'"
+    >>> Template('Hi {{name+1}}').substitute(name='Ian')
+    Traceback (most recent call last):
+        ...
+    TypeError: cannot concatenate 'str' and 'int' objects at line 1 column 6
+
+It also has Django-style piping::
+
+    >>> sub('Hi {{name|repr}}', name='Ian')
+    "Hi 'Ian'"
+
+Note that None shows up as an empty string::
+
+    >>> sub('Hi {{name}}', name=None)
+    'Hi '
+
+And if/elif/else::
+
+    >>> t = Template('{{if x}}{{y}}{{else}}{{z}}{{endif}}')
+    >>> t.substitute(x=1, y=2, z=3)
+    '2'
+    >>> t.substitute(x=0, y=2, z=3)
+    '3'
+    >>> t = Template('{{if x > 0}}positive{{elif x < 0}}negative{{else}}zero{{endif}}')
+    >>> t.substitute(x=1), t.substitute(x=-10), t.substitute(x=0)
+    ('positive', 'negative', 'zero')
+
+Plus a for loop::
+
+    >>> t = Template('{{for i in x}}i={{i}}\n{{endfor}}')
+    >>> t.substitute(x=range(3))
+    'i=0\ni=1\ni=2\n'
+    >>> t = Template('{{for a, b in sorted(z.items()):}}{{a}}={{b}},{{endfor}}')
+    >>> t.substitute(z={1: 2, 3: 4})
+    '1=2,3=4,'
+    >>> t = Template('{{for i in x}}{{if not i}}{{break}}'
+    ...              '{{endif}}{{i}} {{endfor}}')
+    >>> t.substitute(x=[1, 2, 0, 3, 4])
+    '1 2 '
+    >>> t = Template('{{for i in x}}{{if not i}}{{continue}}'
+    ...              '{{endif}}{{i}} {{endfor}}')
+    >>> t.substitute(x=[1, 2, 0, 3, 0, 4])
+    '1 2 3 4 '
+
+Also Python blocks::
+
+    >>> sub('{{py:\nx=1\n}}{{x}}')
+    '1'
+
+And some syntax errors::
+
+    >>> t = Template('{{if x}}', name='foo.html')
+    Traceback (most recent call last):
+        ...
+    TemplateError: No {{endif}} at line 1 column 3 in foo.html
+    >>> t = Template('{{for x}}', name='foo2.html')
+    Traceback (most recent call last):
+        ...
+    TemplateError: Bad for (no "in") in 'x' at line 1 column 3 in foo2.html

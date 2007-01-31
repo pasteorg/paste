@@ -7,7 +7,7 @@ import pkg_resources
 pkg_resources.require('Paste')
 
 import py
-
+"""
 Option = py.test.Config.Option
 option = py.test.Config.addoptions(
     "Paste options",
@@ -25,3 +25,4 @@ class SetupDirectory(py.test.collect.Directory):
             warnings.filterwarnings('error')
         
 Directory = SetupDirectory
+"""
