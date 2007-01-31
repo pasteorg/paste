@@ -12,7 +12,8 @@ def simpleapp(environ, start_response):
     start_response(status, response_headers)
     request = WSGIRequest(environ)
     return ['Hello world!\n', 'The get is %s' % str(request.GET),
-        ' and Val is %s' % request.GET.get('name')]
+        ' and Val is %s' % request.GET.get('name'),
+        'The languages are: %s' % request.languages]
 
 def test_gets():
     app = TestApp(simpleapp)
@@ -23,3 +24,9 @@ def test_gets():
     res = app.get('/?name=george')
     res.mustcontain("get is MultiDict([('name', 'george')])")
     res.mustcontain("Val is george")
+
+def test_language_parsing():
+    app = TestApp(simpleapp)
+    res = app.get('/')
+    assert "The languages are: ['en-us']" in res
+    

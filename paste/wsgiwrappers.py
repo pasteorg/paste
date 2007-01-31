@@ -14,6 +14,7 @@ from paste.util.multidict import MultiDict, UnicodeMultiDict
 from paste.registry import StackedObjectProxy
 from paste.response import HeaderDict
 from paste.wsgilib import encode_unicode_app_iter
+from paste.httpheaders import ACCEPT_LANGUAGE
 
 _CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)', re.I)
 
@@ -71,8 +72,22 @@ class WSGIRequest(object):
     specified by the client.
 
     The class variable ``defaults`` specifies default values for
-    ``charset`` and ``errors``. These can be overridden for the current
-    request via the registry.
+    ``charset``, ``errors``, and ``langauge``. These can be overridden for the
+    current request via the registry.
+    
+    The ``language`` default value is considered the fallback during i18n
+    translations to ensure in odd cases that mixed languages don't occur should
+    the ``language`` file contain the string but not another language in the
+    accepted languages list. The ``language`` value only applies when getting
+    a list of accepted languages from the HTTP Accept header.
+    
+    This behavior is duplicated from Aquarium, and may seem strange but is
+    very useful. Normally, everything in the code is in "en-us".  However, 
+    the "en-us" translation catalog is usually empty.  If the user requests
+    ``["en-us", "zh-cn"]`` and a translation isn't found for a string in
+    "en-us", you don't want gettext to fallback to "zh-cn".  You want it to 
+    just use the string itself.  Hence, if a string isn't found in the
+    ``language`` catalog, the string in the source code will be used.
 
     *All* other state is kept in the environment dictionary; this is
     essential for interoperability.
@@ -81,7 +96,8 @@ class WSGIRequest(object):
 
     """
     defaults = StackedObjectProxy(default=dict(charset=None, errors='strict',
-                                               decode_param_names=False))
+                                               decode_param_names=False,
+                                               language='en-us'))
     def __init__(self, environ):
         self.environ = environ
         # This isn't "state" really, since the object is derivative:
@@ -97,6 +113,7 @@ class WSGIRequest(object):
                 self.charset = browser_charset
         self.errors = defaults.get('errors', 'strict')
         self.decode_param_names = defaults.get('decode_param_names', False)
+        self._languages = None
     
     body = environ_getter('wsgi.input')
     scheme = environ_getter('wsgi.url_scheme')
@@ -114,7 +131,27 @@ class WSGIRequest(object):
         """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
         return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
     host = property(host, doc=host.__doc__)
-
+    
+    def languages(self):
+        """Return a list of preferred languages, most preferred first.
+        
+        The list may be empty.
+        """
+        if self._languages is not None:
+            return self._languages
+        acceptLanguage = self.environ.get('HTTP_ACCEPT_LANGUAGE')
+        langs = ACCEPT_LANGUAGE.parse(acceptLanguage)
+        fallback = self.defaults.get('language', 'en-us')
+        if not fallback:
+            return langs
+        if fallback not in langs:
+            langs.append(fallback)
+        index = langs.index(fallback)
+        langs[index+1:] = []
+        self._languages = langs
+        return self._languages
+    languages = property(languages, doc=languages.__doc__)
+    
     def _GET(self):
         return parse_dict_querystring(self.environ)
 
