@@ -64,3 +64,24 @@ And some syntax errors::
     Traceback (most recent call last):
         ...
     TemplateError: Bad for (no "in") in 'x' at line 1 column 3 in foo2.html
+
+There's also an HTMLTemplate that uses HTMLisms::
+
+    >>> from paste.util.template import HTMLTemplate, sub_html, html
+    >>> sub_html('hi {{name}}', name='<foo>')
+    'hi &lt;foo&gt;'
+
+But if you don't want quoting to happen you can do::
+
+    >>> sub_html('hi {{name}}', name=html('<foo>'))
+    'hi <foo>'
+    >>> sub_html('hi {{name|html}}', name='<foo>')
+    'hi <foo>'
+
+Also a couple handy functions;:
+
+    >>> t = HTMLTemplate('<a href="article?id={{id|url}}" {{attr(class_=class_)}}>')
+    >>> t.substitute(id=1, class_='foo')
+    '<a href="article?id=1" class="foo">'
+    >>> t.substitute(id='with space', class_=None)
+    '<a href="article?id=with%20space" >'
