@@ -47,7 +47,7 @@ class URLParser(object):
     These overrides are:
 
     ``urlparser_hook(environ)``
-        This can modified the environment.  Its return value is ignored,
+        This can modify the environment.  Its return value is ignored,
         and it cannot be used to change the response in any way.  You
         *can* use this, for example, to manipulate SCRIPT_NAME/PATH_INFO
         (try to keep them consistent with the original URL -- but
