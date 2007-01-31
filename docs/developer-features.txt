@@ -41,9 +41,6 @@ Tools
 * Catch HTTP-related exceptions (e.g., ``HTTPNotFound``) and turn them
   into proper responses in ``paste.httpexceptions``
 
-* Check for signed cookies for authentication, setting ``REMOTE_USER``
-  in ``paste.login``
-
 * Create sessions in ``paste.session`` and ``paste.flup_session``
 
 * Gzip responses in ``paste.gzip``
