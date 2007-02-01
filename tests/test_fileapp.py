@@ -195,3 +195,15 @@ def test_file_cache():
                   status=304)
     res = app.get('/', headers={'If-Modified-Since': 'invalid date'},
                   status=400)
+
+def test_methods():
+    from paste import fileapp
+    filename = os.path.join(os.path.dirname(__file__),
+                            'urlparser_data', 'secured.txt')
+    app = TestApp(fileapp.FileApp(filename))
+    get_res = app.get('')
+    res = app.get('', extra_environ={'REQUEST_METHOD': 'HEAD'})
+    assert res.headers == get_res.headers
+    assert not res.body
+    app.post('', status=405) # Method Not Allowed
+    

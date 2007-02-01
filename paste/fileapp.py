@@ -89,6 +89,15 @@ class DataApp(object):
         return self
 
     def __call__(self, environ, start_response):
+        method = environ['REQUEST_METHOD'].upper()
+        if method not in ('GET', 'HEAD'):
+            exc = HTTPMethodNotAllowed(
+                'You cannot %s a file' % method,
+                headers=[('Allow', 'GET, HEAD')])
+            return exc(environ, start_response)
+        return self.get(environ, start_response)
+
+    def get(self, environ, start_response):
         headers = self.headers[:]
         current_etag = str(self.last_modified)
         ETAG.update(headers, current_etag)
@@ -175,7 +184,8 @@ class FileApp(DataApp):
             # called
             LAST_MODIFIED.update(self.headers, time=self.last_modified)
 
-    def __call__(self, environ, start_response):
+    def get(self, environ, start_response):
+        is_head = environ['REQUEST_METHOD'].upper() == 'HEAD'
         if 'max-age=0' in CACHE_CONTROL(environ).lower():
             self.update(force=True) # RFC 2616 13.2.6
         else:
@@ -193,11 +203,15 @@ class FileApp(DataApp):
                     'You are not permitted to view this file (%s)' % e)
                 return exc.wsgi_application(
                     environ, start_response)
-        retval = DataApp.__call__(self, environ, start_response)
+        retval = DataApp.get(self, environ, start_response)
         if isinstance(retval, list):
             # cached content, exception, or not-modified
+            if is_head:
+                return ['']
             return retval
         (lower, content_length) = retval
+        if is_head:
+            return ['']
         file.seek(lower)
         return _FileIter(file, size=content_length)
 
