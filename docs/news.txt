@@ -6,6 +6,11 @@ News
 svn trunk
 ---------
 
+* **Backward incompatible change**: ``paste.fileapp.FileApp`` properly
+  supports request methods, including HEAD.  If you were subclassing
+  ``FileApp`` or ``DataApp`` and overriding ``__call__()`` you may have
+  to subclass ``get()`` instead.
+
 * paste.httpheaders now parses the HTTP Accept-Language header and returns
   a list of languages the browser supports in the order it prefers them.
 
