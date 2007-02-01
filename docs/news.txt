@@ -3,8 +3,14 @@ News
 
 .. contents::
 
-svn trunk
----------
+1.2.1
+-----
+
+* ``paste.httpserver`` didn't implement the ``readline`` that the
+  ``cgi`` module wants (regression in 1.2).
+
+1.2
+---
 
 * **Backward incompatible change**: ``paste.fileapp.FileApp`` properly
   supports request methods, including HEAD.  If you were subclassing
