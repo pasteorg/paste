@@ -12,6 +12,16 @@ Testing
 
 * Check components for WSGI-compliance in ``paste.lint``
 
+* Check filesystem changes, with ``paste.debug.fsdiff``
+
+Server
+------
+
+* A threaded HTTP server in ``paste.httpserver``
+
+* A tool for seeing and killing errant threads in the HTTP server, in
+  ``paste.debug.watchthreads``
+
 Dispatching
 -----------
 
@@ -23,6 +33,9 @@ Dispatching
 
 * Allow applications to make subrequests and forward requests
   internally, in ``paste.recursive``
+
+* Redirect error pages (e.g., 404 Not Found) to custom error pages, in
+  ``paste.errordocument``.
 
 Web Application
 ---------------
@@ -37,10 +50,14 @@ Web Application
 * Traverse files and load WSGI applications from ``.py`` files (or
   static files), in ``paste.urlparser``
 
-* Serve static directories of files, also in ``paste.urlparser`` and
-  ``paste.fileapp``
+* Serve static directories of files, also in ``paste.urlparser``; also
+  serve using the Setuptools ``pkg_resources`` resource API.
 
-* Handling of request-local module globals sanely in ``paste.registry``
+* Proxy to other servers, treating external HTTP servers as WSGI
+  applications, in ``paste.proxy``.
+
+* Serve files (with support for ``If-Modified-Since``, etc) in
+  ``paste.fileapp``
 
 Tools
 -----
@@ -54,10 +71,35 @@ Tools
 
 * Create sessions in ``paste.session`` and ``paste.flup_session``
 
-* Gzip responses in ``paste.gzip``
+* Gzip responses in ``paste.gzipper``
 
 * A wide variety of routines for manipulating WSGI requests and
-  producing responses, in ``paste.wsgilib``
+  producing responses, in ``paste.request``, ``paste.response`` and
+  ``paste.wsgilib``.
+
+* Create Apache-style logs in ``paste.translogger``
+
+* Handy request and response wrappers in ``paste.wsgiwrappers``
+
+* Handling of request-local module globals sanely in ``paste.registry``
+
+Authentication
+--------------
+
+* Authentication using cookies in ``paste.auth.cookie`` and
+  ``paste.auth.auth_tkt``; login form in ``paste.auth.form``
+
+* Authentication using `OpenID <http://openid.net/>`_ in
+  ``paste.auth.open_id``, using `CAS
+  <http://www.ja-sig.org/products/cas/>`_ in ``paste.auth.cas``
+
+* HTTP authentication in ``paste.auth.basic`` and
+  ``paste.auth.digest``
+
+* Dispatch to different authentication methods based on User-Agent, in
+  ``paste.auth.multi``
+
+* Grant roles based on IP addresses, in ``paste.auth.grantip``
 
 Debugging Filters
 -----------------
@@ -65,19 +107,23 @@ Debugging Filters
 * Catch (optionally email) errors with extended tracebacks (using
   Zope/ZPT conventions) in ``paste.exceptions``
 
+* During debugging, show tracebacks with information about each stack
+  frame, including an interactive prompt that runs in the individual
+  stack frames, in ``paste.evalexception``.
+
 * Catch errors presenting a `cgitb
   <http://python.org/doc/current/lib/module-cgitb.html>`_-based
   output, in ``paste.cgitb_catcher``.
 
 * Profile each request and append profiling information to the HTML,
-  in ``paste.profilemiddleware``
+  in ``paste.debug.profile``
 
 * Capture ``print`` output and present it in the browser for
-  debugging, in ``paste.printdebug``
+  debugging, in ``paste.debug.prints``
 
 * Validate all HTML output from applications using the `WDG Validator
   <http://www.htmlhelp.com/tools/validator/>`_, appending any errors
-  or warnings to the page, in ``paste.wdg_validator``
+  or warnings to the page, in ``paste.debug.wdg_validator``
 
 Other Tools
 -----------
@@ -88,3 +134,15 @@ Other Tools
 
 * A class for generating and traversing URLs, and creating associated
   HTML code, in ``paste.url``
+
+* A small templating language (for internal use) in
+  ``paste.util.template``
+
+* A class to help with loops in templates, in ``paste.util.looper``
+
+* Import modules and objects given a string, in
+  ``paste.util.import_string``
+
+* Ordered dictionary that can have multiple values with the same key,
+  in ``paste.util.multidict``
+
