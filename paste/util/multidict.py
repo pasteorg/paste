@@ -207,7 +207,7 @@ class UnicodeMultiDict(DictMixin):
     fly. Decoding is not applied to assigned values.
 
     The key/value contents are assumed to be ``str``/``strs`` or
-    ``str``/``FieldStorages`` (as is returned by the paste.request.parse_
+    ``str``/``FieldStorages`` (as is returned by the ``paste.request.parse_``
     functions).
 
     Can optionally also decode keys when the ``decode_keys`` argument is

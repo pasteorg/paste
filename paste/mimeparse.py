@@ -39,10 +39,11 @@ def parse_media_range(range):
     """Carves up a media range and returns a tuple of the
        (type, subtype, params) where 'params' is a dictionary
        of all the parameters for the media range.
-       For example, the media range 'application/*;q=0.5' would
-       get parsed into:
+       
+       For example, the media range ``application/*;q=0.5`` would
+       get parsed into::
 
-       ('application', '*', {'q', '0.5'})
+         ('application', '*', {'q', '0.5'})
 
        In addition this function also guarantees that there 
        is a value for 'q' in the params dictionary, filling it
