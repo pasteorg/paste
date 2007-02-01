@@ -27,19 +27,30 @@ Dispatching
 Web Application
 ---------------
 
-* Run CGI programs as WSGI applications in ``paste.cgiapp`` (and
-  Python-specific CGI programs with ``paste.pycgiwrapper``)
+* Easily deal with incoming requests and sending a response in
+  ``paste.wsgiwrappers``
+
+* Work directly with the WSGI environment in ``paste.request``
+
+* Run CGI programs as WSGI applications in ``paste.cgiapp``
 
 * Traverse files and load WSGI applications from ``.py`` files (or
   static files), in ``paste.urlparser``
 
-* Serve static directories of files, also in ``paste.urlparser``
+* Serve static directories of files, also in ``paste.urlparser`` and
+  ``paste.fileapp``
+
+* Handling of request-local module globals sanely in ``paste.registry``
 
 Tools
 -----
 
 * Catch HTTP-related exceptions (e.g., ``HTTPNotFound``) and turn them
   into proper responses in ``paste.httpexceptions``
+
+* Manage HTTP header fields with ``paste.httpheaders``
+
+* Handle authentication/identification of requests in ``paste.auth``
 
 * Create sessions in ``paste.session`` and ``paste.flup_session``
 
