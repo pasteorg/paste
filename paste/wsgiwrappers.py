@@ -297,7 +297,7 @@ class WSGIResponse(object):
             + '\n\n' + content
     
     def __call__(self, environ, start_response):
-        """Conveinence call to return output and set status information
+        """Convenience call to return output and set status information
         
         Conforms to the WSGI interface for calling purposes only.
         
