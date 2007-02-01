@@ -1,3 +1,23 @@
+"""
+Helper for looping over sequences, particular in templates.
+
+Often in a loop in a template it's handy to know what's next up,
+previously up, if this is the first or last item in the sequence, etc.
+These can be awkward to manage in a normal Python loop, but using the
+looper you can get a better sense of the context.  Use like::
+
+    >>> for loop, item in looper(['a', 'b', 'c']):
+    ...     print loop.number, item
+    ...     if not loop.last:
+    ...         print '---'
+    1 a
+    ---
+    2 b
+    ---
+    3 c
+
+"""
+
 __all__ = ['looper']
 
 class looper(object):
@@ -48,12 +68,12 @@ class loop_pos(object):
         return self.pos
     index = property(index)
 
-    def count(self):
+    def number(self):
         return self.pos + 1
-    count = property(count)
+    number = property(number)
 
     def item(self):
-        return self.seq[pos]
+        return self.seq[self.pos]
     item = property(item)
 
     def next(self):
@@ -85,7 +105,11 @@ class loop_pos(object):
         return self.pos == len(self.seq)-1
     last = property(last)
 
-    def new_group(self, getter=None):
+    def length(self):
+        return len(self.seq)
+    length = property(length)
+
+    def first_group(self, getter=None):
         """
         Returns true if this item is the start of a new group,
         where groups mean that some attribute has changed.  The getter
@@ -94,14 +118,32 @@ class loop_pos(object):
         """
         if self.first:
             return True
+        return self._compare_group(self.item, self.previous, getter)
+
+    def last_group(self, getter=None):
+        """
+        Returns true if this item is the end of a new group,
+        where groups mean that some attribute has changed.  The getter
+        can be None (the item itself changes), an attribute name like
+        ``'.attr'``, a function, or a dict key or list index.
+        """
+        if self.last:
+            return True
+        return self._compare_group(self.item, self.next, getter)
+
+    def _compare_group(self, item, other, getter):
         if getter is None:
-            return self.item != self.previous
+            return item != other
         elif (isinstance(getter, basestring)
               and getter.startswith('.')):
             getter = getter[1:]
-            return getattr(self.item, getter) != getattr(self.previous, getter)
+            if getter.endswith('()'):
+                getter = getter[:-2]
+                return getattr(item, getter)() != getattr(other, getter)()
+            else:
+                return getattr(item, getter) != getattr(other, getter)
         elif callable(getter):
-            return getter(self.item) != getter(self.previous)
+            return getter(item) != getter(other)
         else:
-            return self.item[getter] != self.previous[getter]
+            return item[getter] != other[getter]
     
