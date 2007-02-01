@@ -30,7 +30,10 @@ svn trunk
 * ``paste.fixture.TestApp.get(status=X)`` takes a list of allowed
   status codes for ``X``.
 
-* Added a small templating system for internal use.
+* Added a small templating system for internal use (``paste.util.template``)
+
+* Removed a bunch of long-deprecated modules (generally modules that
+  have been moved to other names).
 
 In paste.wsgiwrappers
 ~~~~~~~~~~~~~~~~~~~~~
