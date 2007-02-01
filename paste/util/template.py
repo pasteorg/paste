@@ -94,7 +94,7 @@ class Template(object):
     def __repr__(self):
         return '<%s %s name=%r>' % (
             self.__class__.__name__,
-            hex(id(self))[2:], name)
+            hex(id(self))[2:], self.name)
 
     def substitute(self, *args, **kw):
         if args:

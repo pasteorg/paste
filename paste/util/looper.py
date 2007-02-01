@@ -22,10 +22,13 @@ __all__ = ['looper']
 
 class looper(object):
     """
+    Helper for looping (particularly in templates)
+    
     Use this like::
-
+    
         for loop, item in looper(seq):
-            if loop.first:...
+            if loop.first:
+                ...
     """
 
     def __init__(self, seq):
