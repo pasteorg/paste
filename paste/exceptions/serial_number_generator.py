@@ -80,7 +80,7 @@ __test__ = {
     >>> make_identifier(0)
     ''
     >>> make_identifier(1000)
-    '922'
+    'c53'
     >>> make_identifier(-100)
     Traceback (most recent call last):
         ...
@@ -90,25 +90,25 @@ __test__ = {
         ...
     ValueError: You can only make identifiers out of integers (not 'test')
     >>> make_identifier(1000000000000)
-    '5bqderb62'
+    'c53x9rqh3'
     """,
     'hash_identifier': """
     >>> hash_identifier(0, 5)
-    'fg35w'
+    'cy2dr'
     >>> hash_identifier(0, 10)
-    'fg35w4t7yv'
+    'cy2dr6rg46'
     >>> hash_identifier('this is a test of a long string', 5)
-    'qpvbe'
+    'awatu'
     >>> hash_identifier(0, 26)
-    'fg35w4t7yvwr8rxpr3g06xj7cf'
+    'cy2dr6rg46cx8t4w2f3nfexzk4'
     >>> hash_identifier(0, 30)
     Traceback (most recent call last):
         ...
     ValueError: md5 cannot create hashes longer than 26 characters in length (you gave 30)
     >>> hash_identifier(0, 10, group=4)
-    'fg-35w4-t7yv'
+    'cy-2dr6-rg46'
     >>> hash_identifier(0, 10, group=4, upper=True, prefix='M-')
-    'M-FG-35W4-T7YV'
+    'M-CY-2DR6-RG46'
     """}
 
 if __name__ == '__main__':

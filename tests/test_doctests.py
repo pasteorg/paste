@@ -8,6 +8,21 @@ filenames = [
 
 modules = [
     'paste.util.template',
+    'paste.util.looper',
+    # This one opens up httpserver, which is bad:
+    #'paste.auth.cookie',
+    #'paste.auth.multi',
+    #'paste.auth.digest',
+    #'paste.auth.basic',
+    #'paste.auth.form',
+    #'paste.progress',
+    'paste.exceptions.serial_number_generator',
+    'paste.evalexception.evalcontext',
+    'paste.util.dateinterval',
+    'paste.util.quoting',
+    'paste.wsgilib',
+    'paste.url',
+    'paste.request',
     ]
 
 options = doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE
