@@ -269,11 +269,11 @@ class AuthOpenIDHandler(object):
                     message = fmt % (cgi.escape(openid_url),)
                 else:
                     # @@: This stuff doesn't make sense to me; why not a remote redirect?
-                    #request['environ']['paste.auth.open_id'] = openid_url
-                    #request['environ']['PATH_INFO'] = self.login_redirect
-                    #return self.app(request['environ'], request['start'])
-                    exc = httpexceptions.HTTPTemporaryRedirect(self.login_redirect)
-                    return exc.wsgi_application(request['environ'], request['start'])
+                    request['environ']['paste.auth.open_id'] = openid_url
+                    request['environ']['PATH_INFO'] = self.login_redirect
+                    return self.app(request['environ'], request['start'])
+                    #exc = httpexceptions.HTTPTemporaryRedirect(self.login_redirect)
+                    #return exc.wsgi_application(request['environ'], request['start'])
             else:
                 # cancelled
                 message = 'Verification cancelled'
