@@ -103,14 +103,14 @@ def parse_dict_querystring(environ):
 
     Example::
 
-        #environ['QUERY_STRING'] -  day=Monday&user=fred&user=jane
+        >>> environ = {'QUERY_STRING': 'day=Monday&user=fred&user=jane'}
         >>> parsed = parse_dict_querystring(environ)
 
         >>> parsed['day']
         'Monday'
         >>> parsed['user']
         'fred'
-        >>> parsed.getlist['user']
+        >>> parsed.getall('user')
         ['fred', 'jane']
 
     """

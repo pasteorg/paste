@@ -85,3 +85,25 @@ Also a couple handy functions;:
     '<a href="article?id=1" class="foo">'
     >>> t.substitute(id='with space', class_=None)
     '<a href="article?id=with%20space" >'
+
+There's a handyish looper thing you can also use in your templates (or
+in Python, but it's more useful in templates generally)::
+
+    >>> from paste.util.looper import looper
+    >>> seq = ['apple', 'asparagus', 'Banana', 'orange']
+    >>> for loop, item in looper(seq):
+    ...     if item == 'apple':
+    ...         assert loop.first
+    ...     elif item == 'orange':
+    ...         assert loop.last
+    ...     if loop.first_group(lambda i: i[0].upper()):
+    ...         print '%s:' % item[0].upper()
+    ...     print loop.number, item
+    A:
+    1 apple
+    2 asparagus
+    B:
+    3 Banana
+    O:
+    4 orange
+    
