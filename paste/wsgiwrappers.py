@@ -15,7 +15,7 @@ from paste.registry import StackedObjectProxy
 from paste.response import HeaderDict
 from paste.wsgilib import encode_unicode_app_iter
 from paste.httpheaders import ACCEPT_LANGUAGE
-from paste.mimeparse import desired_matches
+from paste.util.mimeparse import desired_matches
 
 _CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)', re.I)
 
