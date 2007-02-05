@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* In ``paste.httpserver`` remove the reverse DNS lookup to set
+  ``REMOTE_HOST``
+
 1.2.1
 -----
 

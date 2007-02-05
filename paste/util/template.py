@@ -261,7 +261,10 @@ class bunch(dict):
         self[name] = value
 
     def __getattr__(self, name):
-        return self[name]
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
 
     def __getitem__(self, key):
         if 'default' in self:
