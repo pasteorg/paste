@@ -206,9 +206,12 @@ class WSGIHandlerMixin:
                ,'SERVER_PROTOCOL': self.request_version
                # CGI not required by PEP-333
                ,'REMOTE_ADDR': self.client_address[0]
-               ,'REMOTE_HOST': self.address_string()
                }
 
+        address_string = self.address_string()
+        if address_string:
+            self.wsgi_environ['REMOTE_HOST'] = address_string
+            
         if hasattr(self.server, 'thread_pool'):
             # Now that we know what the request was for, we should
             # tell the thread pool what its worker is working on
@@ -388,6 +391,13 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
             BaseHTTPRequestHandler.handle(self)
         except SocketErrors, exce:
             self.wsgi_connection_drop(exce)
+
+    def address_string(self):
+        """Return the client address formatted for logging.
+        
+        This is overridden so that no hostname lookup is done.
+        """
+        return ''
 
 class LimitedLengthFile(object):
     def __init__(self, file, length):
