@@ -19,14 +19,12 @@ import sys
 from urlparse import urlsplit
 import warnings
 
-__all__ = ['get_cookies', 'add_close', 'add_start_close',
-           'raw_interactive', 'interactive', 'construct_url',
-           'error_body_response', 'error_response', 'send_file',
-           'has_header', 'header_value', 'path_info_split',
-           'path_info_pop', 'capture_output', 'catch_errors',
-           'catch_errors_app', 'dump_environ', 'intercept_output',
-           'chained_app_iters', 'encode_unicode_app_iter']
-
+__all__ = ['add_close', 'add_start_close', 'capture_output', 'catch_errors',
+           'catch_errors_app', 'chained_app_iters', 'construct_url',
+           'dump_environ', 'encode_unicode_app_iter', 'error_body_response',
+           'error_response', 'get_cookies', 'has_header', 'header_value',
+           'interactive', 'intercept_output', 'path_info_pop',
+           'path_info_split', 'raw_interactive', 'send_file']
 
 class add_close(object):
     """
