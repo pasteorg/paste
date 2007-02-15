@@ -17,6 +17,8 @@ from paste.wsgilib import encode_unicode_app_iter
 from paste.httpheaders import ACCEPT_LANGUAGE
 from paste.util.mimeparse import desired_matches
 
+__all__ = ['WSGIRequest', 'WSGIResponse']
+
 _CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)', re.I)
 
 class DeprecatedSettings(StackedObjectProxy):
