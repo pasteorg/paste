@@ -52,6 +52,8 @@ class TransLogger(object):
         start = time.localtime()
         req_uri = urllib.quote(environ.get('SCRIPT_NAME', '')
                                + environ.get('PATH_INFO', ''))
+        if environ.get('QUERY_STRING'):
+            req_uri += '?'+environ['QUERY_STRING']
         def replacement_start_response(status, headers, exc_info=None):
             # @@: Ideally we would count the bytes going by if no
             # content-length header was provided; but that does add
@@ -65,8 +67,6 @@ class TransLogger(object):
         return self.application(environ, replacement_start_response)
 
     def write_log(self, environ, req_uri, start, status, bytes):
-        if environ.get('QUERY_STRING'):
-            req_uri += '?'+environ['QUERY_STRING']
         if bytes is None:
             bytes = '-'
         if time.daylight:
