@@ -587,3 +587,78 @@ def parse_for(tokens, name, context):
             return ('for', pos, vars, expr, content), tokens[1:]
         next, tokens = parse_expr(tokens, name, context)
         content.append(next)
+
+_fill_command_usage = """\
+%prog [OPTIONS] TEMPLATE arg=value
+
+Use py:arg=value to set a Python value; otherwise all values are
+strings.
+"""
+
+def fill_command(args=None):
+    import sys, optparse, pkg_resources, os
+    if args is None:
+        args = sys.argv[1:]
+    dist = pkg_resources.get_distribution('Paste')
+    parser = optparse.OptionParser(
+        version=str(dist),
+        usage=_fill_command_usage)
+    parser.add_option(
+        '-o', '--output',
+        dest='output',
+        metavar="FILENAME",
+        help="File to write output to (default stdout)")
+    parser.add_option(
+        '--html',
+        dest='use_html',
+        action='store_true',
+        help="Use HTML style filling (including automatic HTML quoting)")
+    parser.add_option(
+        '--env',
+        dest='use_env',
+        action='store_true',
+        help="Put the environment in as top-level variables")
+    options, args = parser.parse_args(args)
+    if len(args) < 1:
+        print 'You must give a template filename'
+        print dir(parser)
+        assert 0
+    template_name = args[0]
+    args = args[1:]
+    vars = {}
+    if options.use_env:
+        vars.update(os.environ)
+    for value in args:
+        if '=' not in value:
+            print 'Bad argument: %r' % value
+            sys.exit(2)
+        name, value = value.split('=', 1)
+        if name.startswith('py:'):
+            name = name[:3]
+            value = eval(value)
+        vars[name] = value
+    if template_name == '-':
+        template_content = sys.stdin.read()
+        template_name = '<stdin>'
+    else:
+        f = open(template_name, 'rb')
+        template_content = f.read()
+        f.close()
+    if options.use_html:
+        TemplateClass = HTMLTemplate
+    else:
+        TemplateClass = Template
+    template = TemplateClass(template_content, name=template_name)
+    result = template.substitute(vars)
+    if options.output:
+        f = open(options.output, 'wb')
+        f.write(result)
+        f.close()
+    else:
+        sys.stdout.write(result)
+
+if __name__ == '__main__':
+    from paste.util.template import fill_command
+    fill_command()
+        
+    
