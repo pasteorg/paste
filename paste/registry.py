@@ -1,7 +1,6 @@
 # (c) 2005 Ben Bangert
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
-
 """Registry for handling request-local module globals sanely
 
 Dealing with module globals in a thread-safe way is good if your
@@ -91,7 +90,6 @@ quick way to work around it is documented.
 
 """
 import sys
-import warnings
 import paste.util.threadinglocal as threadinglocal
 
 __all__ = ['StackedObjectProxy', 'RegistryManager', 'StackedObjectRestorer',
@@ -161,14 +159,6 @@ class StackedObjectProxy(object):
     def __nonzero__(self):
         return bool(self._current_obj())
 
-    def current_obj(self):
-        """
-        Deprecated (Aug 15 2006); moved to _current_obj.
-        """
-        warnings.warn('StackedObjectProxy.current_obj has been moved to '
-                      'StackedObjectProxy._current_obj', DeprecationWarning, 2)
-        return self._current_obj()
-
     def _current_obj(self):
         """Returns the current active object being proxied to
         
@@ -187,14 +177,6 @@ class StackedObjectProxy(object):
                 raise TypeError(
                     'No object (name: %s) has been registered for this '
                     'thread' % self.____name__)
-
-    def push_object(self, obj):
-        """
-        Deprecated (Aug 15 2006); moved to _push_object.
-        """
-        warnings.warn('StackedObjectProxy.push_object has been moved to '
-                      'StackedObjectProxy._push_object', DeprecationWarning, 2)
-        self._push_object(obj)
 
     def _push_object(self, obj):
         """Make ``obj`` the active object for this thread-local.
@@ -216,14 +198,6 @@ class StackedObjectProxy(object):
             self.____local__.objects = []
         self.____local__.objects.append(obj)
     
-    def pop_object(self, obj=None):
-        """
-        Deprecated (Aug 15 2006); moved to _pop_object.
-        """
-        warnings.warn('StackedObjectProxy.pop_object has been moved to '
-                      'StackedObjectProxy._pop_object', DeprecationWarning, 2)
-        self._pop_object(obj)
-
     def _pop_object(self, obj=None):
         """Remove a thread-local object.
         
