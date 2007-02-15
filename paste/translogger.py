@@ -6,6 +6,7 @@ Middleware for logging requests, using Apache combined log format
 
 import logging
 import time
+import urllib
 
 class TransLogger(object):
     """
@@ -49,6 +50,8 @@ class TransLogger(object):
 
     def __call__(self, environ, start_response):
         start = time.localtime()
+        req_uri = urllib.quote(environ.get('SCRIPT_NAME', '')
+                               + environ.get('PATH_INFO', ''))
         def replacement_start_response(status, headers, exc_info=None):
             # @@: Ideally we would count the bytes going by if no
             # content-length header was provided; but that does add
@@ -57,12 +60,11 @@ class TransLogger(object):
             for name, value in headers:
                 if name.lower() == 'content-length':
                     bytes = value
-            self.write_log(environ, start, status, bytes)
+            self.write_log(environ, req_uri, start, status, bytes)
             return start_response(status, headers)
         return self.application(environ, replacement_start_response)
 
-    def write_log(self, environ, start, status, bytes):
-        req_uri = environ.get('SCRIPT_NAME', '') + environ.get('PATH_INFO')
+    def write_log(self, environ, req_uri, start, status, bytes):
         if environ.get('QUERY_STRING'):
             req_uri += '?'+environ['QUERY_STRING']
         if bytes is None:
