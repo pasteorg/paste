@@ -87,7 +87,7 @@ page_template = HTMLTemplate('''
   <td colspan="2" class="bottom">
    <a href="#"
       onclick="
-        var el = document.getElementById('environ');
+        var el = document.getElementById('environ-{{thread.thread_id}}');
         if (el.style.display) {
             el.style.display = '';
             this.innerHTML = 'Hide environ';
@@ -98,7 +98,7 @@ page_template = HTMLTemplate('''
         return false
       ">Show environ</a>
    
-   <div id="environ" style="display: none">
+   <div id="environ-{{thread.thread_id}}" style="display: none">
     <table class="environ">
      {{for loop, item in looper(sorted(thread.environ.items()))}}
      {{py:key, value=item}}
@@ -230,12 +230,26 @@ def format_environ(environ):
     return ''.join(environ_rows)
     
 def format_time(time_length):
-    if time_length < 1:
-        return '%0.2fsec' % time_length
-    elif time_length < 60:
-        return '<span style="color: #900">%.1fsec</span>' % time_length
+    if time_length >= 60*1:
+        # More than an hour
+        time_string = '%i:%i:%i' % (int(time_length/60/60),
+                                    int(time_length/60) % 60,
+                                    time_length % (60*60))
+    elif time_length >= 120:
+        time_string = '%i:%i' % (int(time_length/60),
+                                 time_length % 60)
+    elif time_length > 60:
+        time_string = '%i sec' % time_length
+    elif time_length > 1:
+        time_string = '%0.1f sec' % time_length
     else:
-        return '<span style="background-color: #600; color: #fff">%isec</span>' % time_length
+        time_string = '%0.2f sec' % time_length
+    if time_length < 5:
+        return time_string
+    elif time_length < 120:
+        return '<span style="color: #900">%s</span>' % time_string
+    else:
+        return '<span style="background-color: #600; color: #fff">%s</span>' % time_string
 
 def shorten(s):
     if len(s) > 60:
