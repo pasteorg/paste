@@ -3,7 +3,7 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import cgi
 from paste.fixture import TestApp
-from paste.wsgiwrappers import settings, WSGIRequest, WSGIResponse
+from paste.wsgiwrappers import WSGIRequest, WSGIResponse
 
 class AssertApp(object):
     def __init__(self, assertfunc):
