@@ -21,7 +21,7 @@ corresponding to a database session id) is stored in the cookie.
   >>> from paste.httpserver import serve
   >>> from paste.fileapp import DataApp
   >>> from paste.httpexceptions import *
-  >>> # from paste.auth.cookie import AuthCookiehandler
+  >>> from paste.auth.cookie import AuthCookieHandler
   >>> from paste.wsgilib import parse_querystring
   >>> def testapp(environ, start_response):
   ...     user = dict(parse_querystring(environ)).get('user','')
