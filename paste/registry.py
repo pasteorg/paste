@@ -143,9 +143,9 @@ class StackedObjectProxy(object):
         try:
             return repr(self._current_obj())
         except (TypeError, AttributeError):
-            return '<%s.%s object at 0x%08x>' % (__name__,
-                                                   self.__class__.__name__,
-                                                   id(self))
+            return '<%s.%s object at 0x%x>' % (self.__class__.__module__,
+                                               self.__class__.__name__,
+                                               id(self))
     
     def __iter__(self):
         return iter(self._current_obj())
