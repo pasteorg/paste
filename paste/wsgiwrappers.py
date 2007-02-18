@@ -258,21 +258,20 @@ class WSGIRequest(object):
     def __repr__(self):
         """Show important attributes of the WSGIRequest"""
         pf = pformat
-        msg = ['<%s.%s at 0x%x method=%s,' % \
-                   (self.__class__.__module__, self.__class__.__name__,
-                    id(self), pf(self.method))]
-        msg.append('scheme=%s, host=%s, script_name=%s, path_info=%s,' % \
-                       (pf(self.scheme), pf(self.host),
-                        pf(self.script_name), pf(self.path_info)))
-        charset_msg = ''
+        msg = '<%s.%s at 0x%x method=%s,' % \
+            (self.__class__.__module__, self.__class__.__name__,
+             id(self), pf(self.method))
+        msg += '\nscheme=%s, host=%s, script_name=%s, path_info=%s,' % \
+            (pf(self.scheme), pf(self.host), pf(self.script_name),
+             pf(self.path_info))
+        msg += '\nlanguges=%s,' % pf(self.languages)
         if self.charset:
-            charset_msg = ' charset=%s, errors=%s,' % \
-                (pf(self.charset), pf(self.errors))
-        msg.append('languges=%s,%s' % (pf(self.languages), charset_msg))
-        msg.append('GET=%s,' % pf(self.GET))
-        msg.append('POST=%s,' % pf(self.POST))
-        msg.append('cookies=%s>' % pf(self.cookies))
-        return '\n'.join(msg)
+            msg += ' charset=%s, errors=%s,' % (pf(self.charset),
+                                                pf(self.errors))
+        msg += '\nGET=%s,' % pf(self.GET)
+        msg += '\nPOST=%s,' % pf(self.POST)
+        msg += '\ncookies=%s>' % pf(self.cookies)
+        return msg
 
 class WSGIResponse(object):
     """A basic HTTP response with content, headers, and out-bound cookies
