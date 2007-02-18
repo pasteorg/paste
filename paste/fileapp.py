@@ -97,23 +97,15 @@ class DataApp(object):
             return exc(environ, start_response)
         return self.get(environ, start_response)
 
+    def calculate_etag(self):
+        return str(self.last_modified) + '-' + str(self.content_length)
+
     def get(self, environ, start_response):
         headers = self.headers[:]
-        current_etag = str(self.last_modified)
+        current_etag = self.calculate_etag()
         ETAG.update(headers, current_etag)
         if self.expires is not None:
             EXPIRES.update(headers, delta=self.expires)
-
-        try:
-            client_clock = IF_MODIFIED_SINCE.parse(environ)
-            if client_clock >= int(self.last_modified):
-                # horribly inefficient, n^2 performance, yuck!
-                for head in list_headers(entity=True):
-                    head.delete(headers)
-                start_response('304 Not Modified', headers)
-                return [''] # empty body
-        except HTTPBadRequest, exce:
-            return exce.wsgi_application(environ, start_response)
 
         try:
             client_etags = IF_NONE_MATCH.parse(environ)
@@ -127,6 +119,22 @@ class DataApp(object):
                         return ['']
         except HTTPBadRequest, exce:
             return exce.wsgi_application(environ, start_response)
+
+        # If we get If-None-Match and If-Modified-Since, and
+        # If-None-Match doesn't match, then we should not try to
+        # figure out If-Modified-Since (which has 1-second granularity
+        # and just isn't as accurate)
+        if not client_etags:
+            try:
+                client_clock = IF_MODIFIED_SINCE.parse(environ)
+                if client_clock >= int(self.last_modified):
+                    # horribly inefficient, n^2 performance, yuck!
+                    for head in list_headers(entity=True):
+                        head.delete(headers)
+                    start_response('304 Not Modified', headers)
+                    return [''] # empty body
+            except HTTPBadRequest, exce:
+                return exce.wsgi_application(environ, start_response)
 
         (lower, upper) = (0, self.content_length - 1)
         range = RANGE.parse(environ)

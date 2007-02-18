@@ -9,6 +9,10 @@ svn trunk
 * In ``paste.httpserver`` remove the reverse DNS lookup to set
   ``REMOTE_HOST``
 
+* In ``paste.fileapp``, if the client sends both If-None-Match and
+  If-Modified-Since, prefer If-None-Match.  Make ETags include the
+  size as well as last modified timestamp.
+
 1.2.1
 -----
 
