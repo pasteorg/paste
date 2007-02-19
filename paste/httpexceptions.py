@@ -222,10 +222,7 @@ class HTTPException(Exception):
                    'server': SERVER_NAME,
                    'body': body }
 
-    def wsgi_application(self, environ, start_response, exc_info=None):
-        """
-        This exception as a WSGI application
-        """
+    def prepare_content(self, environ):
         if self.headers:
             headers = list(self.headers)
         else:
@@ -245,6 +242,20 @@ class HTTPException(Exception):
             replace_header(
                 headers, 'content-type',
                 cur_content_type + '; charset=utf8')
+        return headers, content
+
+    def response(self, environ):
+        from paste.wsgiwrappers import WSGIResponse
+        headers, content = self.prepare_content(environ)
+        resp = WSGIResponse(code=self.code, content=content)
+        resp.headers.update(dict(headers))
+        return resp
+
+    def wsgi_application(self, environ, start_response, exc_info=None):
+        """
+        This exception as a WSGI application
+        """
+        headers, content = self.prepare_content(environ)
         start_response('%s %s' % (self.code, self.title),
                        headers,
                        exc_info)
