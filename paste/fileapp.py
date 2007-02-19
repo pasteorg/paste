@@ -169,12 +169,15 @@ class FileApp(DataApp):
 
     def __init__(self, filename, headers=None, **kwargs):
         self.filename = filename
-        content_type, content_encoding = mimetypes.guess_type(self.filename)
+        content_type, content_encoding = self.guess_type()
         if content_type and 'content_type' not in kwargs:
             kwargs['content_type'] = content_type
         if content_encoding and 'content_encoding' not in kwargs:
             kwargs['content_encoding'] = content_encoding
         DataApp.__init__(self, None, headers, **kwargs)
+
+    def guess_type(self):
+        return mimetypes.guess_type(self.filename)
 
     def update(self, force=False):
         stat = os.stat(self.filename)

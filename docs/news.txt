@@ -11,7 +11,8 @@ svn trunk
 
 * In ``paste.fileapp``, if the client sends both If-None-Match and
   If-Modified-Since, prefer If-None-Match.  Make ETags include the
-  size as well as last modified timestamp.
+  size as well as last modified timestamp.  Make it possible to
+  override how mimetypes are guessed.
 
 1.2.1
 -----
