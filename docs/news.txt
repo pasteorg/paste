@@ -14,6 +14,9 @@ svn trunk
   size as well as last modified timestamp.  Make it possible to
   override how mimetypes are guessed.
 
+* ``HTTPException`` objects now have a ``exc.response(environ)``
+  method that returns a ``WSGIResponse`` object.
+
 1.2.1
 -----
 
