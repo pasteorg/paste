@@ -258,7 +258,7 @@ class WSGIRequest(object):
     def __repr__(self):
         """Show important attributes of the WSGIRequest"""
         pf = pformat
-        msg = '<%s.%s at 0x%x method=%s,' % \
+        msg = '<%s.%s object at 0x%x method=%s,' % \
             (self.__class__.__module__, self.__class__.__name__,
              id(self), pf(self.method))
         msg += '\nscheme=%s, host=%s, script_name=%s, path_info=%s,' % \
