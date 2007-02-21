@@ -18,6 +18,7 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 #     till this is completed.
 
 import atexit
+import traceback
 import socket, sys, threading, urlparse, Queue, urllib
 import posixpath
 import time
@@ -520,12 +521,22 @@ class ThreadPool(object):
             else:
                 self.worker_tracker[thread.get_ident()] = [time.time(), None]
                 try:
-                    runnable()
+                    try:
+                        runnable()
+                    except:
+                        # We are later going to call sys.exc_clear(),
+                        # removing all remnants of any exception, so
+                        # we should log it now.  But ideally no
+                        # exception should reach this level
+                        print >> sys.stderr, (
+                            'Unexpected exception in worker %r' % runnable)
+                        traceback.print_exc()
                 finally:
                     try:
                         del self.worker_tracker[thread.get_ident()]
                     except KeyError:
                         pass
+                    sys.exc_clear()
 
     def shutdown(self):
         """
