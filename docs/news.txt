@@ -17,6 +17,9 @@ svn trunk
 * ``HTTPException`` objects now have a ``exc.response(environ)``
   method that returns a ``WSGIResponse`` object.
 
+* ``egg:Paste#watch_threads`` will show tracebacks of each thread
+  under Python 2.5.
+
 1.2.1
 -----
 
