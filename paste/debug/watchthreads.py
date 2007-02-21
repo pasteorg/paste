@@ -2,8 +2,11 @@
 Watches the key ``paste.httpserver.thread_pool`` to see how many
 threads there are and report on any wedged threads.
 """
+import sys
 import cgi
 import time
+import traceback
+from cStringIO import StringIO
 from thread import get_ident
 from paste import httpexceptions
 from paste.request import construct_url, parse_formvars
@@ -36,6 +39,21 @@ page_template = HTMLTemplate('''
    table.thread tr.this_thread td {
      background-color: #006;
      color: #fff;
+   }
+   a.button {
+     background-color: #ddd;
+     border: #aaa outset 2px;
+     text-decoration: none;
+     margin-top: 10px;
+     font-size: 80%;
+     color: #000;
+   }
+   a.button:hover {
+     background-color: #eee;
+     border: #bbb outset 2px;
+   }
+   a.button:active {
+     border: #bbb inset 2px;
    }
   </style>
   <title>{{title}}</title>
@@ -85,18 +103,18 @@ page_template = HTMLTemplate('''
   </td>
  <tr>
   <td colspan="2" class="bottom">
-   <a href="#"
+   <a href="#" class="button" style="width: 9em; display: block"
       onclick="
         var el = document.getElementById('environ-{{thread.thread_id}}');
         if (el.style.display) {
             el.style.display = '';
-            this.innerHTML = 'Hide environ';
+            this.innerHTML = '&#9662; Hide environ';
         } else {
             el.style.display = 'none';
-            this.innerHTML = 'Show environ';
+            this.innerHTML = '&#9656; Show environ';
         }
         return false
-      ">Show environ</a>
+      ">&#9656; Show environ</a>
    
    <div id="environ-{{thread.thread_id}}" style="display: none">
     <table class="environ">
@@ -109,6 +127,26 @@ page_template = HTMLTemplate('''
      {{endfor}}
     </table>
    </div>
+
+   {{if thread.traceback}}
+   <a href="#" class="button" style="width: 9em; display: block"
+      onclick="
+        var el = document.getElementById('traceback-{{thread.thread_id}}');
+        if (el.style.display) {
+            el.style.display = '';
+            this.innerHTML = '&#9662; Hide traceback';
+        } else {
+            el.style.display = 'none';
+            this.innerHTML = '&#9656; Show traceback';
+        }
+        return false
+      ">&#9656; Show traceback</a>
+
+    <div id="traceback-{{thread.thread_id}}" style="display: none">
+      <pre class="traceback">{{thread.traceback}}</pre>
+    </div>
+    {{endif}}
+
   </td>
  </tr>
 </table>
@@ -170,6 +208,7 @@ class WatchThreads(object):
             thread.time_html = format_time(now-time_started)
             thread.uri_short = shorten(thread.uri)
             thread.environ = worker_environ
+            thread.traceback = traceback_thread(thread_id)
             
         page = page_template.substitute(
             title="Thread Pool Worker Tracker",
@@ -203,6 +242,21 @@ class WatchThreads(object):
             headers=[('Location', script_name+'?kill=%s' % thread_id)])
         return exc(environ, start_response)
         
+def traceback_thread(thread_id):
+    """
+    Returns a plain-text traceback of the given thread, or None if it
+    can't get a traceback.
+    """
+    if not hasattr(sys, '_current_frames'):
+        # Only 2.5 has support for this, with this special function
+        return None
+    frames = sys._current_frames()
+    if not thread_id in frames:
+        return None
+    frame = frames[thread_id]
+    out = StringIO()
+    traceback.print_stack(frame, file=out)
+    return out.getvalue()
 
 hide_keys = ['paste.httpserver.thread_pool']
 
