@@ -83,6 +83,7 @@ class WSGIHandlerMixin:
     HTTPRequestHandler derivative (as provided in Python's BaseHTTPServer).
     This assumes a ``wsgi_application`` handler on ``self.server``.
     """
+    lookup_addresses = False
 
     def log_request(self, *args, **kwargs):
         """ disable success request logging
@@ -187,6 +188,7 @@ class WSGIHandlerMixin:
                 content_length = 0
             rfile = LimitedLengthFile(rfile, content_length)
 
+        remote_address = self.client_address[0]
         self.wsgi_environ = {
                 'wsgi.version': (1,0)
                ,'wsgi.url_scheme': 'http'
@@ -206,13 +208,19 @@ class WSGIHandlerMixin:
                ,'SERVER_PORT': str(server_port)
                ,'SERVER_PROTOCOL': self.request_version
                # CGI not required by PEP-333
-               ,'REMOTE_ADDR': self.client_address[0]
+               ,'REMOTE_ADDR': remote_address
                }
 
-        address_string = self.address_string()
-        if address_string:
-            self.wsgi_environ['REMOTE_HOST'] = address_string
-            
+        if self.lookup_addresses:
+            if remote_address.startswith("192.168.") \
+            or remote_address.startswith("10.") \
+            or remote_address.startswith("172.16."):
+                pass
+            else:
+                address_string = None # self.address_string()
+                if address_string:
+                    self.wsgi_environ['REMOTE_HOST'] = address_string
+                
         if hasattr(self.server, 'thread_pool'):
             # Now that we know what the request was for, we should
             # tell the thread pool what its worker is working on
