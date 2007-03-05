@@ -83,7 +83,7 @@ class WSGIHandlerMixin:
     HTTPRequestHandler derivative (as provided in Python's BaseHTTPServer).
     This assumes a ``wsgi_application`` handler on ``self.server``.
     """
-    lookup_addresses = False
+    lookup_addresses = True
 
     def log_request(self, *args, **kwargs):
         """ disable success request logging
