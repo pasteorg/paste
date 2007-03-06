@@ -53,12 +53,18 @@ class DataApp(object):
         like changing ``Last-Modified`` and ``Content-Length`` headers.
 
     """
-    def __init__(self, content, headers=None, **kwargs):
+
+    allowed_methods = ('GET', 'HEAD')
+    
+    def __init__(self, content, headers=None, allowed_methods=None,
+                 **kwargs):
         assert isinstance(headers, (type(None), list))
         self.expires = None
         self.content = None
         self.content_length = None
         self.last_modified = 0
+        if allowed_methods is not None:
+            self.allowed_methods = allowed_methods
         self.headers = headers or []
         for (k, v) in kwargs.items():
             header = get_header(k)
@@ -90,10 +96,10 @@ class DataApp(object):
 
     def __call__(self, environ, start_response):
         method = environ['REQUEST_METHOD'].upper()
-        if method not in ('GET', 'HEAD'):
+        if method not in self.allowed_methods:
             exc = HTTPMethodNotAllowed(
                 'You cannot %s a file' % method,
-                headers=[('Allow', 'GET, HEAD')])
+                headers=[('Allow', ','.join(self.allowed_methods))])
             return exc(environ, start_response)
         return self.get(environ, start_response)
 
