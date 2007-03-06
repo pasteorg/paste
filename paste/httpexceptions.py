@@ -248,7 +248,7 @@ class HTTPException(Exception):
         from paste.wsgiwrappers import WSGIResponse
         headers, content = self.prepare_content(environ)
         resp = WSGIResponse(code=self.code, content=content)
-        resp.headers.update(dict(headers))
+        resp.headers = resp.headers.fromlist(headers)
         return resp
 
     def wsgi_application(self, environ, start_response, exc_info=None):
