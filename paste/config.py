@@ -85,10 +85,11 @@ class ConfigMiddleware(RegistryManager):
     """
     A WSGI middleware that adds a ``paste.config`` key to the request
     environment, as well as registering the configuration temporarily
-    (for the length of the request) with ``paste.config.CONFIG``.
+    (for the length of the request) with ``paste.config.CONFIG`` (or
+    any other ``DispatchingConfig`` object).
     """
 
-    def __init__(self, application, config):
+    def __init__(self, application, config, dispatching_config=CONFIG):
         """
         This delegates all requests to `application`, adding a *copy*
         of the configuration `config`.
@@ -99,7 +100,7 @@ class ConfigMiddleware(RegistryManager):
                 popped_config = environ['paste.config']
 
             conf = environ['paste.config'] = config.copy()
-            environ['paste.registry'].register(CONFIG, conf)
+            environ['paste.registry'].register(dispatching_config, conf)
 
             try:
                 app_iter = application(environ, start_response)
