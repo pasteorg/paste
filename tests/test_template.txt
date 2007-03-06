@@ -106,4 +106,13 @@ in Python, but it's more useful in templates generally)::
     3 Banana
     O:
     4 orange
-    
+
+It will also strip out empty lines, when there is a line that only
+contains a directive/statement (if/for, etc)::
+
+    >>> sub('{{if 1}}\n{{x}}\n{{endif}}\n', x=0)
+    '0\n'
+    >>> sub('{{if 1}}x={{x}}\n{{endif}}\n', x=1)
+    'x=1\n'
+    >>> sub('{{if 1}}\nx={{x}}\n{{endif}}\n', x=1)
+    'x=1\n'

@@ -358,7 +358,7 @@ def sub_html(content, **kw):
 ## Lexing and Parsing
 ############################################################
 
-def lex(s, name=None):
+def lex(s, name=None, trim_whitespace=True):
     """
     Lex a string into chunks:
 
@@ -409,7 +409,58 @@ def lex(s, name=None):
     part = s[last:]
     if part:
         chunks.append(part)
+    if trim_whitespace:
+        chunks = trim_lex(chunks)
     return chunks
+
+statement_re = re.compile(r'^(?:if |elif |else |for |py:)')
+single_statements = ['endif', 'endfor', 'continue', 'break']
+trail_whitespace_re = re.compile(r'\n[\t ]*$')
+lead_whitespace_re = re.compile(r'^[\t ]*\n')
+
+def trim_lex(tokens):
+    r"""
+    Takes a lexed set of tokens, and removes whitespace when there is
+    a directive on a line by itself:
+
+       >>> tokens = lex('{{if x}}\nx\n{{endif}}\ny', trim_whitespace=False)
+       >>> tokens
+       [('if x', (1, 3)), '\nx\n', ('endif', (3, 3)), '\ny']
+       >>> trim_lex(tokens)
+       [('if x', (1, 3)), 'x\n', ('endif', (3, 3)), 'y']
+    """
+    for i in range(len(tokens)):
+        current = tokens[i]
+        if isinstance(tokens[i], basestring):
+            # we don't trim this
+            continue
+        item = current[0]
+        if not statement_re.search(item) and item not in single_statements:
+            continue
+        if not i:
+            prev = ''
+        else:
+            prev = tokens[i-1]
+        if i+1 >= len(tokens):
+            next = ''
+        else:
+            next = tokens[i+1]
+        if (not isinstance(next, basestring)
+            or not isinstance(prev, basestring)):
+            continue
+        if ((not prev or trail_whitespace_re.search(prev))
+            and (not next or lead_whitespace_re.search(next))):
+            if prev:
+                m = trail_whitespace_re.search(prev)
+                # +1 to leave the leading \n on:
+                prev = prev[:m.start()+1]
+                tokens[i-1] = prev
+            if next:
+                m = lead_whitespace_re.search(next)
+                next = next[m.end():]
+                tokens[i+1] = next
+    return tokens
+        
 
 def find_position(string, index):
     """Given a string and index, return (line, column)"""
@@ -547,9 +598,9 @@ def parse_one_cond(tokens, name, context):
                 'No {{endif}}',
                 position=pos, name=name)
         if (isinstance(tokens[0], tuple)
-            and tokens[0][0] == 'endif'
-            or tokens[0][0].startswith('elif ')
-            or tokens[0][0] == 'else'):
+            and (tokens[0][0] == 'endif'
+                 or tokens[0][0].startswith('elif ')
+                 or tokens[0][0] == 'else')):
             return part, tokens
         next, tokens = parse_expr(tokens, name, context)
         content.append(next)
