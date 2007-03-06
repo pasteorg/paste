@@ -23,6 +23,10 @@ svn trunk
 * Made ``paste.util.template`` trim whitespace around statements that
   are on their own line.
 
+* ``paste.fileapp.DataApp`` now accepts ``allowed_headers=[...]`` to
+  specify the allowed headers.  By default only ``GET`` and ``HEAD``
+  are allowed.
+
 1.2.1
 -----
 
