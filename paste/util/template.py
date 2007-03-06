@@ -192,7 +192,11 @@ class Template(object):
         except:
             exc_info = sys.exc_info()
             e = exc_info[1]
-            e.args = (self._add_line_info(e.args[0], pos),)
+            if getattr(e, 'args'):
+                arg0 = e.args[0]
+            else:
+                arg0 = str(e)
+            e.args = (self._add_line_info(arg0, pos),)
             raise exc_info[0], e, exc_info[2]
 
     def _exec(self, code, ns, pos):
@@ -250,6 +254,10 @@ def sub(content, **kw):
     tmpl = Template(content, name=name)
     return tmpl.substitute(kw)
     return result
+
+def paste_script_template_renderer(content, vars, filename=None):
+    tmpl = Template(content, name=filename)
+    return tmpl.substitute(vars)
 
 class bunch(dict):
 
