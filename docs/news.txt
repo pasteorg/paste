@@ -27,6 +27,11 @@ svn trunk
   specify the allowed headers.  By default only ``GET`` and ``HEAD``
   are allowed.
 
+* Added ``paste.util.import_string.try_import_module``, which imports
+  modules and catches ``ImportError``, but only if it's an error
+  importing the specific module, not an uncaught ``ImportError`` in
+  the module being imported. 
+
 1.2.1
 -----
 
