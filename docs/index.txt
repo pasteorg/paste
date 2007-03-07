@@ -112,5 +112,5 @@ Components
 License
 =======
 
-Paste is distributed under the `MIT license <>
+Paste is distributed under the `MIT license
 <http://www.opensource.org/licenses/mit-license.php>`_.
