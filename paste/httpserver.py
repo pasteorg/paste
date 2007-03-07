@@ -812,9 +812,8 @@ def server_runner(wsgi_app, global_conf, *args, **kwargs):
 server_runner.__doc__ = serve.__doc__
 
 if __name__ == '__main__':
-    # serve exactly 3 requests and then stop, use an external
-    # program like wget or curl to submit these 3 requests.
     from paste.wsgilib import dump_environ
     #serve(dump_environ, ssl_pem="test.pem")
     serve(dump_environ, server_version="Wombles/1.0",
           protocol_version="HTTP/1.1", port="8888")
+
