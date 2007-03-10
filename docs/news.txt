@@ -3,6 +3,18 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* In ``paste.httpserver`` added lots of functionality to the
+  threadpool.  See ``paster points paste.server_runner http`` for the
+  documentation, or the docstrings in ``paste.httpserver``.  This
+  catches worker threads (and WSGI apps) that take too long to
+  complete their task; killing them eventually, adding more worker
+  threads when the pool is exhausted and it doesn't look good that
+  it'll clear soon, and optionally killing the process when there are
+  too many lost/zombie threads.
+
 1.3
 ---
 
