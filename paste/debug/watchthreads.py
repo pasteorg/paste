@@ -67,7 +67,15 @@ page_template = HTMLTemplate('''
   </div>
   {{endif}}
   <div>Pool size: {{nworkers}}
-       ({{nworkers_used}} used including current request)</div>
+       {{if actual_workers > nworkers}}
+         + {{actual_workers-nworkers}} extra
+       {{endif}}
+       ({{nworkers_used}} used including current request)<br>
+       idle: {{len(track_threads["idle"])}},
+       busy: {{len(track_threads["busy"])}},
+       hung: {{len(track_threads["hung"])}},
+       dying: {{len(track_threads["dying"])}},
+       zombie: {{len(track_threads["zombie"])}}</div>
 
 {{for thread in threads}}
 
@@ -108,10 +116,10 @@ page_template = HTMLTemplate('''
         var el = document.getElementById('environ-{{thread.thread_id}}');
         if (el.style.display) {
             el.style.display = '';
-            this.innerHTML = '&#9662; Hide environ';
+            this.innerHTML = \'&#9662; Hide environ\';
         } else {
             el.style.display = 'none';
-            this.innerHTML = '&#9656; Show environ';
+            this.innerHTML = \'&#9656; Show environ\';
         }
         return false
       ">&#9656; Show environ</a>
@@ -134,10 +142,10 @@ page_template = HTMLTemplate('''
         var el = document.getElementById('traceback-{{thread.thread_id}}');
         if (el.style.display) {
             el.style.display = '';
-            this.innerHTML = '&#9662; Hide traceback';
+            this.innerHTML = \'&#9662; Hide traceback\';
         } else {
             el.style.display = 'none';
-            this.innerHTML = '&#9656; Show traceback';
+            this.innerHTML = \'&#9656; Show traceback\';
         }
         return false
       ">&#9656; Show traceback</a>
@@ -213,12 +221,14 @@ class WatchThreads(object):
         page = page_template.substitute(
             title="Thread Pool Worker Tracker",
             nworkers=nworkers,
+            actual_workers=len(thread_pool.workers),
             nworkers_used=len(workers),
             script_name=environ['SCRIPT_NAME'],
             kill_thread_id=kill_thread_id,
             allow_kill=self.allow_kill,
             threads=threads,
-            this_thread_id=get_ident())
+            this_thread_id=get_ident(),
+            track_threads=thread_pool.track_threads())
 
         return [page]
 
@@ -284,14 +294,14 @@ def format_environ(environ):
     return ''.join(environ_rows)
     
 def format_time(time_length):
-    if time_length >= 60*1:
+    if time_length >= 60*60:
         # More than an hour
-        time_string = '%i:%i:%i' % (int(time_length/60/60),
-                                    int(time_length/60) % 60,
-                                    time_length % (60*60))
+        time_string = '%i:%02i:%02i' % (int(time_length/60/60),
+                                        int(time_length/60) % 60,
+                                        time_length % 60)
     elif time_length >= 120:
-        time_string = '%i:%i' % (int(time_length/60),
-                                 time_length % 60)
+        time_string = '%i:%02i' % (int(time_length/60),
+                                   time_length % 60)
     elif time_length > 60:
         time_string = '%i sec' % time_length
     elif time_length > 1:
@@ -317,6 +327,7 @@ def make_watch_threads(global_conf, allow_kill=False):
 make_watch_threads.__doc__ = WatchThreads.__doc__
 
 def make_bad_app(global_conf, pause=0):
+    pause = int(pause)
     def bad_app(environ, start_response):
         import thread
         if pause:
@@ -324,10 +335,9 @@ def make_bad_app(global_conf, pause=0):
         else:
             count = 0
             while 1:
-                #print "I'm alive %s (%s)" % (count, thread.get_ident())
+                print "I'm alive %s (%s)" % (count, thread.get_ident())
                 time.sleep(10)
                 count += 1
         start_response('200 OK', [('content-type', 'text/plain')])
-        return 'OK, paused %s seconds' % pause
+        return ['OK, paused %s seconds' % pause]
     return bad_app
-
