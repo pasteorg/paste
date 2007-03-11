@@ -542,8 +542,6 @@ class ThreadPool(object):
         self.logger = logger
         self.error_email = error_email
         self._worker_count = count()
-        for i in range(self.nworkers):
-            self.add_worker_thread()
 
         if not daemon:
             atexit.register(self.shutdown)
@@ -572,6 +570,8 @@ class ThreadPool(object):
         self.idle_workers = []
         # Used to keep track of threads that have been killed, but maybe aren't dead yet:
         self.dying_threads = {}
+        for i in range(self.nworkers):
+            self.add_worker_thread()
 
     def add_task(self, task):
         """
