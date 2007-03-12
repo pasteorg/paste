@@ -134,3 +134,10 @@ This does open up privacy problems, as it gives you access to all the
 request data in the site, including cookies, IP addresses, etc.  It
 shouldn't be left on in a public setting.
 
+socket_timeout
+--------------
+
+The HTTP server (not the thread pool) also accepts an argument
+``socket_timeout``.  It is turned off by default.  You might find it
+helpful to turn it on.
+
