@@ -517,16 +517,17 @@ class ThreadPool(object):
     
     SHUTDOWN = object()
 
-    def __init__(self, nworkers, name="ThreadPool", daemon=False,
-                 hung_thread_limit=30, # when a thread is marked "hung"
-                 kill_thread_limit=600, # when you kill that hung thread
-                 dying_limit=300, # seconds that a kill should take to go into effect (longer than this and the thread is a "zombie")
-                 spawn_if_under=5, # spawn if there's too many hung threads
-                 max_zombie_threads_before_die=0, # when to give up on the process
-                 hung_check_period=100, # every 100 requests check for hung workers
-                 logger=None, # Place to log messages to
-                 error_email=None, # Person(s) to notify if serious problem occurs
-                 ):
+    def __init__(
+        self, nworkers, name="ThreadPool", daemon=False,
+        hung_thread_limit=30, # when a thread is marked "hung"
+        kill_thread_limit=1800, # when you kill that hung thread
+        dying_limit=300, # seconds that a kill should take to go into effect (longer than this and the thread is a "zombie")
+        spawn_if_under=5, # spawn if there's too many hung threads
+        max_zombie_threads_before_die=0, # when to give up on the process
+        hung_check_period=100, # every 100 requests check for hung workers
+        logger=None, # Place to log messages to
+        error_email=None, # Person(s) to notify if serious problem occurs
+        ):
         """
         Create thread pool with `nworkers` worker threads.
         """
