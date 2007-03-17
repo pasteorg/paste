@@ -182,7 +182,6 @@ class WatchThreads(object):
         self.allow_kill = allow_kill
 
     def __call__(self, environ, start_response):
-        print 'starting watch_threads call'
         if 'paste.httpserver.thread_pool' not in environ:
             start_response('403 Forbidden', [('Content-type', 'text/plain')])
             return ['You must use the threaded Paste HTTP server to use this application']
