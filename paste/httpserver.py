@@ -930,10 +930,10 @@ class ThreadPoolMixIn(object):
     def __init__(self, nworkers, daemon=False, **threadpool_options):
         # Create and start the workers
         self.running = True
-        assert nworkers > 0, "ThreadPoolMixin servers must have at least one worker"
+        assert nworkers > 0, "ThreadPoolMixIn servers must have at least one worker"
         self.thread_pool = ThreadPool(
             nworkers,
-            "ThreadPoolMixin HTTP server on %s:%d"
+            "ThreadPoolMixIn HTTP server on %s:%d"
             % (self.server_name, self.server_port),
             daemon,
             **threadpool_options)
@@ -956,7 +956,7 @@ class ThreadPoolMixIn(object):
         if exc_class is ServerExit:
             # This is actually a request to stop the server
             raise
-        return super(ThreadPoolMixin, self).handle_error(request, client_address)
+        return super(ThreadPoolMixIn, self).handle_error(request, client_address)
 
     def process_request_in_thread(self, request, client_address):
         """
