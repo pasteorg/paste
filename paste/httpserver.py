@@ -120,6 +120,9 @@ class WSGIHandlerMixin:
         Write a chunk of the output stream; send headers if they
         have not already been sent.
         """
+        if not self.wsgi_headers_sent and not self.wsgi_curr_headers:
+            raise RuntimeError(
+                "Content returned before start_response called")
         if not self.wsgi_headers_sent:
             self.wsgi_headers_sent = True
             (status, headers) = self.wsgi_curr_headers
@@ -284,8 +287,11 @@ class WSGIHandlerMixin:
             return
         except:
             if not self.wsgi_headers_sent:
-                self.wsgi_curr_headers = ('500 Internal Server Error',
-                                        [('Content-type', 'text/plain')])
+                error_msg = "Internal Server Error\n"
+                self.wsgi_curr_headers = (
+                    '500 Internal Server Error',
+                    [('Content-type', 'text/plain'),
+                     ('Content-length', str(len(error_msg)))])
                 self.wsgi_write_chunk("Internal Server Error\n")
             raise
 
