@@ -436,7 +436,8 @@ class LimitedLengthFile(object):
         if length is None:
             length = left
         else:
-            length = max(length, left)
+            length = min(length, left)
+        # next two lines are hnecessary only if read(0) blocks
         if not left:
             return ''
         data = self.file.read(length)
