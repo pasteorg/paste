@@ -55,8 +55,8 @@ class GzipResponse(object):
         ct = header_value(headers,'content-type')
         ce = header_value(headers,'content-encoding')
         self.compressible = False
-        if (ct.startswith('text') or ct.startswith('application')) \
-            and not 'z' in ct:
+        if ct and (ct.startswith('text/') or ct.startswith('application/')) \
+            and 'zip' not in ct:
             self.compressible = True
         if ce:
             self.compressible = False
