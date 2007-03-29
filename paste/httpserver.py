@@ -581,6 +581,10 @@ class ThreadPool(object):
         self.idle_workers = []
         # Used to keep track of threads that have been killed, but maybe aren't dead yet:
         self.dying_threads = {}
+        # This is used to track when we last had to add idle workers;
+        # we shouldn't cull extra workers until some time has passed
+        # (hung_thread_limit) since workers were added:
+        self._last_added_new_idle_workers = 0
         for i in range(self.nworkers):
             self.add_worker_thread()
 
@@ -612,6 +616,7 @@ class ThreadPool(object):
                 self.logger.info(
                     'No idle tasks, and only %s busy tasks; adding %s more '
                     'workers', busy, self.spawn_if_under-busy)
+                self._last_added_new_idle_workers = time.time()
                 for i in range(self.spawn_if_under - busy):
                     self.add_worker_thread()
             else:
@@ -619,7 +624,8 @@ class ThreadPool(object):
                     'No extra workers needed (%s busy workers)',
                     busy)
         if (len(self.workers) > self.nworkers
-            and len(self.idle_workers) > 3):
+            and len(self.idle_workers) > 3
+            and time.time()-self._last_added_new_idle_workers > self.hung_thread_limit):
             # We've spawned worers in the past, but they aren't needed
             # anymore; kill off some
             self.logger.info(
