@@ -196,7 +196,12 @@ class WSGIHandlerMixin:
                 content_length = int(self.headers.get('Content-Length', '0'))
             except ValueError:
                 content_length = 0
-            rfile = LimitedLengthFile(rfile, content_length)
+            #
+            # @@: LimitedLengthFile is currently broken in connection
+            # with SSL (sporatic errors that are diffcult to trace, but
+            # ones that go away when you don't use LimitedLengthFile)
+            #
+            #rfile = LimitedLengthFile(rfile, content_length)
 
         remote_address = self.client_address[0]
         self.wsgi_environ = {
@@ -1054,10 +1059,13 @@ class ServerExit(SystemExit):
     caught)
     """
 
+# @@: ThreadPool is currently broken, it shouldn't be the default till
+#     it is thoroughly tested.
+#
 def serve(application, host=None, port=None, handler=None, ssl_pem=None,
           ssl_context=None, server_version=None, protocol_version=None,
           start_loop=True, daemon_threads=None, socket_timeout=None,
-          use_threadpool=True, threadpool_workers=10,
+          use_threadpool=False, threadpool_workers=10,
           threadpool_options=None):
     """
     Serves your ``application`` over HTTP(S) via WSGI interface
