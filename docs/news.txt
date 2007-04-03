@@ -15,6 +15,9 @@ svn trunk
   it'll clear soon, and optionally killing the process when there are
   too many lost/zombie threads.
 
+* In ``paste.exceptions`` always call ``start_response``; may help
+  problems when there is an exception in ``start_response`` itself.
+
 1.3
 ---
 
