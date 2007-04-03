@@ -126,31 +126,23 @@ class ErrorMiddleware(object):
         # We want to be careful about not sending headers twice,
         # and the content type that the app has committed to (if there
         # is an exception in the iterator body of the response)
-        started = []
         if environ.get('paste.throw_errors'):
             return self.application(environ, start_response)
         environ['paste.throw_errors'] = True
 
-        def detect_start_response(status, headers, exc_info=None):
-            started.append(True)
-            return start_response(status, headers, exc_info)
-
         try:
             __traceback_supplement__ = Supplement, self, environ
-            app_iter = self.application(environ, detect_start_response)
+            app_iter = self.application(environ, start_response)
             return self.make_catching_iter(app_iter, environ)
         except:
             exc_info = sys.exc_info()
             try:
-                if not started:
-                    # Only delegate expected exceptions if the response
-                    # has not been started.
-                    for expect in environ.get('paste.expected_exceptions', []):
-                        if isinstance(exc_info[1], expect):
-                            raise
-                    start_response('500 Internal Server Error',
-                                   [('content-type', 'text/html')],
-                                   exc_info)
+                for expect in environ.get('paste.expected_exceptions', []):
+                    if isinstance(exc_info[1], expect):
+                        raise
+                start_response('500 Internal Server Error',
+                               [('content-type', 'text/html')],
+                               exc_info)
                 # @@: it would be nice to deal with bad content types here
                 response = self.exception_handler(exc_info, environ)
                 return [response]
