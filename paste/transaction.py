@@ -94,7 +94,11 @@ def BasicTransactionHandler(application, factory):
             if should_commit.pop() < 400:
                 conn.commit()
             else:
-                conn.rollback()
+                try:
+                    conn.rollback()
+                except:
+                    # TODO: check if rollback has already happened
+                    return
             conn.close()
         def basictrans_start_response(status, headers, exc_info = None):
             should_commit.append(int(status.split(" ")[0]))
