@@ -214,6 +214,16 @@ class StackedObjectProxy(object):
                     'The object popped (%s) is not the same as the object '
                     'expected (%s)' % (popped, obj))
 
+    def _object_stack(self):
+        """Returns all of the objects stacked in this container
+
+        (Might return [] if there are none)
+        """
+        try:
+            return self.____local__.objects[:]
+        except AssertionError:
+            return []
+
     # The following methods will be swapped for their original versions by
     # StackedObjectRestorer when restoration is enabled. The original
     # functions (e.g. _current_obj) will be available at _current_obj_orig
