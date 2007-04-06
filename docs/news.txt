@@ -18,6 +18,11 @@ svn trunk
 * In ``paste.exceptions`` always call ``start_response``; may help
   problems when there is an exception in ``start_response`` itself.
 
+* Added method to ``paste.registry.StackedObjectProxy``,
+  ``_object_stack()``, which returns a list of all the registered
+  objects.  Useful if you want to search through the effective history
+  of a stacked object.
+
 1.3
 ---
 
