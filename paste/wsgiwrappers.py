@@ -283,7 +283,7 @@ class WSGIResponse(object):
     """
     defaults = StackedObjectProxy(
         default=dict(content_type='text/html',
-                     charset='UTF-8', errors='strict')
+                     charset='utf-8', errors='strict')
         )
     def __init__(self, content='', mimetype=None, code=200):
         self._iter = None
