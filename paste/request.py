@@ -368,7 +368,7 @@ class EnvironHeaders(DictMixin):
                 yield name
 
     def keys(self):
-        return list(self)
+        return list(iter(self))
 
     def __contains__(self, item):
         return self._trans_name(item) in self.environ
