@@ -23,6 +23,9 @@ svn trunk
   objects.  Useful if you want to search through the effective history
   of a stacked object.
 
+* Fixed infinite recursion problem with
+  ``paste.request.EnvironHeaders.keys()``.
+
 1.3
 ---
 
