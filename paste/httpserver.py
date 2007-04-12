@@ -196,12 +196,11 @@ class WSGIHandlerMixin:
                 content_length = int(self.headers.get('Content-Length', '0'))
             except ValueError:
                 content_length = 0
-            #
-            # @@: LimitedLengthFile is currently broken in connection
-            # with SSL (sporatic errors that are diffcult to trace, but
-            # ones that go away when you don't use LimitedLengthFile)
-            #
-            #rfile = LimitedLengthFile(rfile, content_length)
+            if not hasattr(self.connection, 'get_context'):
+                # @@: LimitedLengthFile is currently broken in connection
+                # with SSL (sporatic errors that are diffcult to trace, but
+                # ones that go away when you don't use LimitedLengthFile)
+                rfile = LimitedLengthFile(rfile, content_length)
 
         remote_address = self.client_address[0]
         self.wsgi_environ = {
@@ -526,7 +525,9 @@ class ThreadPool(object):
     necessarily reliable.  This is turned off by default, since it is
     only a good idea if you've deployed the server with some process
     watching from above (something similar to daemontools or zdaemon).
-    
+
+    Each worker thread only processes ``max_requests`` tasks before it
+    dies and replaces itself with a new worker thread.
     """
 
     
@@ -534,6 +535,7 @@ class ThreadPool(object):
 
     def __init__(
         self, nworkers, name="ThreadPool", daemon=False,
+        max_requests=100, # threads are killed after this many requests
         hung_thread_limit=30, # when a thread is marked "hung"
         kill_thread_limit=1800, # when you kill that hung thread
         dying_limit=300, # seconds that a kill should take to go into effect (longer than this and the thread is a "zombie")
@@ -547,6 +549,7 @@ class ThreadPool(object):
         Create thread pool with `nworkers` worker threads.
         """
         self.nworkers = nworkers
+        self.max_requests = max_requests
         self.name = name
         self.queue = Queue.Queue()
         self.workers = []
@@ -798,7 +801,12 @@ class ThreadPool(object):
         thread_obj = threading.currentThread()
         thread_id = thread_obj.thread_id = thread.get_ident()
         self.idle_workers.append(thread_id)
+        requests_processed = 0
         while True:
+            if self.max_requests and self.max_requests < requests_processed:
+                # Replace this thread then die
+                self.add_worker_thread()
+                break
             runnable = self.queue.get()
             if runnable is ThreadPool.SHUTDOWN:
                 self.logger.debug('Worker %s asked to SHUTDOWN', thread_id)
@@ -813,6 +821,7 @@ class ThreadPool(object):
                 except ValueError:
                     pass
                 self.worker_tracker[thread_id] = [time.time(), None]
+                requests_processed += 1
                 try:
                     try:
                         runnable()
@@ -1059,13 +1068,10 @@ class ServerExit(SystemExit):
     caught)
     """
 
-# @@: ThreadPool is currently broken, it shouldn't be the default till
-#     it is thoroughly tested.
-#
 def serve(application, host=None, port=None, handler=None, ssl_pem=None,
           ssl_context=None, server_version=None, protocol_version=None,
           start_loop=True, daemon_threads=None, socket_timeout=None,
-          use_threadpool=False, threadpool_workers=10,
+          use_threadpool=True, threadpool_workers=10,
           threadpool_options=None):
     """
     Serves your ``application`` over HTTP(S) via WSGI interface
@@ -1232,7 +1238,8 @@ def server_runner(wsgi_app, global_conf, **kwargs):
                  'threadpool_kill_thread_limit',
                  'threadpool_dying_limit', 'threadpool_spawn_if_under',
                  'threadpool_max_zombie_threads_before_die',
-                 'threadpool_hung_check_period']:
+                 'threadpool_hung_check_period',
+                 'threadpool_max_requests']:
         if name in kwargs:
             kwargs[name] = int(kwargs[name])
     for name in ['use_threadpool', 'daemon_threads']:
@@ -1252,6 +1259,12 @@ def server_runner(wsgi_app, global_conf, **kwargs):
 server_runner.__doc__ = serve.__doc__ + """
 
     You can also set these threadpool options:
+
+    ``threadpool_max_requests``:
+
+        The maximum number of requests a worker thread will process
+        before dying (and replacing itself with a new worker thread).
+        Default 100.
 
     ``threadpool_hung_thread_limit``:
 
