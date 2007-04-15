@@ -176,7 +176,7 @@ class WSGIHandlerMixin:
         argument can be used to override any settings.
         """
 
-        (_, _, path, query, fragment) = urlparse.urlsplit(self.path)
+        (scheme, netloc, path, query, fragment) = urlparse.urlsplit(self.path)
         path = urllib.unquote(path)
         endslash = path.endswith('/')
         path = posixpath.normpath(path)
@@ -224,6 +224,10 @@ class WSGIHandlerMixin:
                # CGI not required by PEP-333
                ,'REMOTE_ADDR': remote_address
                }
+        if scheme:
+            self.wsgi_environ['paste.httpserver.proxy.scheme'] = scheme
+        if netloc:
+            self.wsgi_environ['paste.httpserver.proxy.host'] = netloc
 
         if self.lookup_addresses:
             # @@: make lookup_addreses actually work, at this point
