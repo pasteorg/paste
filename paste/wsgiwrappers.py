@@ -124,7 +124,19 @@ class WSGIRequest(object):
     method = environ_getter('REQUEST_METHOD')
     script_name = environ_getter('SCRIPT_NAME')
     path_info = environ_getter('PATH_INFO')
-    urlvars = environ_getter('paste.urlvars', default_factory=dict)
+
+    def urlvars(self):
+        """
+        Return any variables matched in the URL (e.g.,
+        ``wsgiorg.routing_args``).
+        """
+        if 'paste.urlvars' in self.environ:
+            return self.environ['paste.urlvars']
+        elif 'wsgiorg.routing_args' in self.environ:
+            return self.environ['wsgiorg.routing_args'][1]
+        else:
+            return {}
+    urlvars = property(urlvars, doc=urlvars.__doc__)
     
     def is_xhr(self):
         """Returns a boolean if X-Requested-With is present and a XMLHttpRequest"""

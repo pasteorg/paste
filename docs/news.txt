@@ -26,6 +26,9 @@ svn trunk
 * Fixed infinite recursion problem with
   ``paste.request.EnvironHeaders.keys()``.
 
+* Fix ``paste.wsgiwrappers.WSGIRequest.urlvars`` to use
+  ``wsgiorg.routing_args``
+
 1.3
 ---
 
