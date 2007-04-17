@@ -34,6 +34,9 @@ svn trunk
 * Fix ``paste.wsgiwrappers.WSGIRequest.urlvars`` to use
   ``wsgiorg.routing_args``
 
+* Remove port from ``paste.request.construct_url`` if it's the default
+  port (e.g., port 80 for ``http``).
+
 1.3
 ---
 
