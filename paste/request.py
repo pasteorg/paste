@@ -202,7 +202,19 @@ def construct_url(environ, with_query_string=True, with_path_info=True,
     url = environ['wsgi.url_scheme']+'://'
 
     if environ.get('HTTP_HOST'):
-        url += environ['HTTP_HOST']
+        host = environ['HTTP_HOST']
+        port = None
+        if ':' in host:
+            host, port = host.split(':', 1)
+            if environ['wsgi.url_scheme'] == 'https':
+                if port == '443':
+                    port = None
+            elif environ['wsgi.url_scheme'] == 'http':
+                if port == '80':
+                    port = None
+        url += host
+        if port:
+            url += ':%s' % port
     else:
         url += environ['SERVER_NAME']
         if environ['wsgi.url_scheme'] == 'https':
