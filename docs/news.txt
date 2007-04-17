@@ -37,6 +37,9 @@ svn trunk
 * Remove port from ``paste.request.construct_url`` if it's the default
   port (e.g., port 80 for ``http``).
 
+* ``paste.proxy`` works with headers with continuations in the
+  response (i.e., a header that spans multiple lines).
+
 1.3
 ---
 

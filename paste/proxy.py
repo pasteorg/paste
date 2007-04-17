@@ -102,13 +102,8 @@ class Proxy(object):
                      path,
                      body, headers)
         res = conn.getresponse()
-        headers_out = []
-        for full_header in res.msg.headers:
-            header, value = full_header.split(':', 1)
-            value = value.strip()
-            if header.lower() not in filtered_headers:
-                headers_out.append((header, value))
-                
+        headers_out = parse_headers(res.msg)
+        
         status = '%s %s' % (res.status, res.reason)
         start_response(status, headers_out)
         # @@: Default?
@@ -221,12 +216,7 @@ class TransparentProxy(object):
         conn.request(environ['REQUEST_METHOD'],
                      path, body, headers)
         res = conn.getresponse()
-        headers_out = []
-        for full_header in res.msg.headers:
-            header, value = full_header.split(':', 1)
-            value = value.strip()
-            if header.lower() not in filtered_headers:
-                headers_out.append((header, value))
+        headers_out = parse_headers(res.msg)
                 
         status = '%s %s' % (res.status, res.reason)
         start_response(status, headers_out)
@@ -238,6 +228,33 @@ class TransparentProxy(object):
             body = res.read()
         conn.close()
         return [body]
+
+def parse_headers(message):
+    """
+    Turn a Message object into a list of WSGI-style headers.
+    """
+    headers_out = []        
+    for full_header in message.headers:
+        if not full_header:            
+            # Shouldn't happen, but we'll just ignore
+            continue                     
+        if full_header[0].isspace():
+            # Continuation line, add to the last header
+            if not headers_out:                        
+                raise ValueError(
+                    "First header starts with a space (%r)" % full_header)
+            last_header, last_value = headers_out.pop()                   
+            value = last_value + ' ' + full_header.strip()
+            headers_out.append((last_header, value))      
+            continue                                
+        try:        
+            header, value = full_header.split(':', 1)
+        except:                                      
+            raise ValueError("Invalid header: %r" % full_header)
+        value = value.strip()                                   
+        if header.lower() not in filtered_headers:
+            headers_out.append((header, value))   
+    return headers_out
 
 def make_transparent_proxy(
     global_conf, force_host=None, force_scheme='http'):
