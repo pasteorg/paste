@@ -941,7 +941,7 @@ class _AcceptLanguage(_MultiValueHeader):
     """
     Accept-Language, RFC 2616 section 14.4
     """
-    languageRegEx = re.compile(r"^[a-z]{2}(-[a-z]{2})?$", re.I)
+
     def parse(self, *args, **kwargs):
         """
         Return a list of language tags sorted by their "q" values.  For example,
@@ -956,8 +956,6 @@ class _AcceptLanguage(_MultiValueHeader):
         for lang in langs:
             pieces = lang.split(";")
             lang, params = pieces[0].strip().lower(), pieces[1:]
-            if not self.languageRegEx.match(lang):
-                continue
             q = 1
             for param in params:
                 lvalue, rvalue = param.split("=")
