@@ -38,7 +38,9 @@ svn trunk
   port (e.g., port 80 for ``http``).
 
 * ``paste.proxy`` works with headers with continuations in the
-  response (i.e., a header that spans multiple lines).
+  response (i.e., a header that spans multiple lines).  Also, treat a
+  missing Content-Length as 0, not unlimited (may have caused freeze ups for
+  some kinds of requests before).
 
 1.3
 ---
