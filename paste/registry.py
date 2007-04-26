@@ -138,6 +138,9 @@ class StackedObjectProxy(object):
     
     def __delitem__(self, key):
         del self._current_obj()[key]
+
+    def __call__(self, *args, **kw):
+        return self._current_obj()(*args, **kw)
     
     def __repr__(self):
         try:
