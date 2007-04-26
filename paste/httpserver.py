@@ -566,9 +566,6 @@ class ThreadPool(object):
         self.error_email = error_email
         self._worker_count = count()
 
-        if not daemon:
-            atexit.register(self.shutdown)
-
         assert (not kill_thread_limit
                 or kill_thread_limit >= hung_thread_limit), (
             "kill_thread_limit (%s) should be higher than hung_thread_limit (%s)"
@@ -597,6 +594,8 @@ class ThreadPool(object):
         # we shouldn't cull extra workers until some time has passed
         # (hung_thread_limit) since workers were added:
         self._last_added_new_idle_workers = 0
+        if not daemon:
+            atexit.register(self.shutdown)
         for i in range(self.nworkers):
             self.add_worker_thread()
 
