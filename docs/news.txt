@@ -42,6 +42,8 @@ svn trunk
   missing Content-Length as 0, not unlimited (may have caused freeze ups for
   some kinds of requests before).
 
+* ``StackedObjectProxy`` supports ``__call__``.
+
 1.3
 ---
 
