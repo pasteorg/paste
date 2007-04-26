@@ -727,14 +727,25 @@ class ThreadPool(object):
             # No killing should occur
             return
         now = time.time()
+        max_time = 0
+        total_time = 0
+        idle_workers = 0
+        starting_workers = 0
+        working_workers = 0
+        killed_workers = 0
         for worker in self.workers:
             if not hasattr(worker, 'thread_id'):
                 # Not setup yet
+                starting_workers += 1
                 continue
             if worker.thread_id not in self.worker_tracker:
                 # Must be idle
+                idle_workers += 1
                 continue
+            working_workers += 1
             time_started, info = self.worker_tracker[worker.thread_id]
+            max_time = max(max_time, now-time_started)
+            total_time += now-time_started
             if now - time_started > self.kill_thread_limit:
                 self.logger.warning(
                     'Thread %s hung (working on task for %i seconds)',
@@ -756,6 +767,18 @@ class ThreadPool(object):
                            limit=self.kill_thread_limit,
                            info=info_desc))
                 self.kill_worker(worker.thread_id)
+                killed_workers += 1
+        if working_workers:
+            ave_time = float(total_time) / working_workers
+            ave_time = '%.2fsec' % ave_time
+        else:
+            ave_time = 'N/A'
+        self.logger.debug(
+            "kill_hung_threads status: %s threads (%s working, %s idle, %s starting) "
+            "ave time %s, max time %.2fsec, killed %s workers"
+            % (idle_workers + starting_workers + working_workers,
+               working_workers, idle_workers, starting_workers,
+               ave_time, max_time, killed_workers))
         self.check_max_zombies()
 
     def check_max_zombies(self):
