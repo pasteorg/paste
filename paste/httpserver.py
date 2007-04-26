@@ -831,8 +831,14 @@ class ThreadPool(object):
         while True:
             if self.max_requests and self.max_requests < requests_processed:
                 # Replace this thread then die
+                self.logger.debug('Thread %s processed %i requests (limit %s); stopping thread'
+                                  % (thread_id, requests_processed, self.max_requests))
+                try:
+                    self.idle_workers.remove(thread_id)
+                except ValueError:
+                    pass
                 self.add_worker_thread()
-                break
+                return
             runnable = self.queue.get()
             if runnable is ThreadPool.SHUTDOWN:
                 self.logger.debug('Worker %s asked to SHUTDOWN', thread_id)
