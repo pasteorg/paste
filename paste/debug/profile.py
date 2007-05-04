@@ -27,7 +27,7 @@ class ProfileMiddleware(object):
     The data is isolated to that single request, and does not include
     data from previous requests.
 
-    This uses the ``hotshot`` module, which effects performance of the
+    This uses the ``hotshot`` module, which affects performance of the
     application.  It also runs in a single-threaded mode, so it is
     only usable in development environments.
     """
@@ -51,7 +51,12 @@ class ProfileMiddleware(object):
             start_response(status, headers, exc_info)
             return body.append
         def run_app():
-            body.extend(self.app(environ, replace_start_response))
+            app_iter = self.app(environ, replace_start_response)
+            try:
+                body.extend(app_iter)
+            finally:
+                if hasattr(app_iter, 'close'):
+                    app_iter.close()
         self.lock.acquire()
         try:
             prof = hotshot.Profile(self.log_filename)
