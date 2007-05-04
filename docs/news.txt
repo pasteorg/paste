@@ -44,6 +44,9 @@ svn trunk
 
 * ``StackedObjectProxy`` supports ``__call__``.
 
+* Fixed ``ProfileMiddleware`` not calling ``close()`` on consumed
+  app_iters.
+
 1.3
 ---
 
