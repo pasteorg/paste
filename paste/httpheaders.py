@@ -958,6 +958,9 @@ class _AcceptLanguage(_MultiValueHeader):
             lang, params = pieces[0].strip().lower(), pieces[1:]
             q = 1
             for param in params:
+                if '=' not in param:
+                    # Malformed request; probably a bot, we'll ignore
+                    continue
                 lvalue, rvalue = param.split("=")
                 lvalue = lvalue.strip().lower()
                 rvalue = rvalue.strip()
