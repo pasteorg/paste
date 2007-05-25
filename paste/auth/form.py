@@ -137,7 +137,12 @@ def make_form(app, global_conf, realm, authfunc, **kw):
     import types
     authfunc = eval_import(authfunc)
     assert isinstance(authfunc, types.FunctionType), "authfunc must resolve to a function"
-    return AuthFormHandler(app, realm, authfunc)
+    template = kw.get('template')
+    if template is not None:
+        template = eval_import(template)
+        assert isinstance(template, str), "template must resolve to a string"
+
+    return AuthFormHandler(app, authfunc, template)
 
 if "__main__" == __name__:
     import doctest
