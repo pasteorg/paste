@@ -208,19 +208,10 @@ class TestApp(object):
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
 
-    def post(self, url, params='', headers=None, extra_environ=None,
+    def _gen_request(self, method, url, params='', headers=None, extra_environ=None,
              status=None, upload_files=None, expect_errors=False):
         """
-        Do a POST request.  Very like the ``.get()`` method.
-        ``params`` are put in the body of the request.
-
-        ``upload_files`` is for file uploads.  It should be a list of
-        ``[(fieldname, filename, file_content)]``.  You can also use
-        just ``[(fieldname, filename)]`` and the file content will be
-        read from disk.
-
-        Returns a `response object
-        <class-paste.fixture.TestResponse.html>`_
+        Do a generic request.  
         """
         if headers is None:
             headers = {}
@@ -240,12 +231,66 @@ class TestApp(object):
         else:
             environ['QUERY_STRING'] = ''
         environ['CONTENT_LENGTH'] = str(len(params))
-        environ['REQUEST_METHOD'] = 'POST'
+        environ['REQUEST_METHOD'] = method
         environ['wsgi.input'] = StringIO(params)
         self._set_headers(headers, environ)
         environ.update(extra_environ)
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
+
+    def post(self, url, params='', headers=None, extra_environ=None,
+             status=None, upload_files=None, expect_errors=False):
+        """
+        Do a POST request.  Very like the ``.get()`` method.
+        ``params`` are put in the body of the request.
+
+        ``upload_files`` is for file uploads.  It should be a list of
+        ``[(fieldname, filename, file_content)]``.  You can also use
+        just ``[(fieldname, filename)]`` and the file content will be
+        read from disk.
+
+        Returns a `response object
+        <class-paste.fixture.TestResponse.html>`_
+        """
+        return self._gen_request('POST', url, params=params, headers=headers,
+                                 extra_environ=extra_environ,status=status,
+                                 upload_files=upload_files,
+                                 expect_errors=expect_errors)
+
+    def put(self, url, params='', headers=None, extra_environ=None,
+             status=None, upload_files=None, expect_errors=False):
+        """
+        Do a PUT request.  Very like the ``.get()`` method.
+        ``params`` are put in the body of the request.
+
+        ``upload_files`` is for file uploads.  It should be a list of
+        ``[(fieldname, filename, file_content)]``.  You can also use
+        just ``[(fieldname, filename)]`` and the file content will be
+        read from disk.
+
+        Returns a `response object
+        <class-paste.fixture.TestResponse.html>`_
+        """
+        return self._gen_request('PUT', url, params=params, headers=headers,
+                                 extra_environ=extra_environ,status=status,
+                                 upload_files=upload_files,
+                                 expect_errors=expect_errors)
+
+    def delete(self, url, params='', headers=None, extra_environ=None,
+               status=None, expect_errors=False):
+        """
+        Do a DELETE request.  Very like the ``.get()`` method.
+        ``params`` are put in the body of the request.
+
+        Returns a `response object
+        <class-paste.fixture.TestResponse.html>`_
+        """
+        return self._gen_request('DELETE', url, params=params, headers=headers,
+                                 extra_environ=extra_environ,status=status,
+                                 upload_files=None, expect_errors=expect_errors)
+
+    
+
 
     def _set_headers(self, headers, environ):
         """
@@ -381,8 +426,7 @@ class TestApp(object):
                        res.request.url, res.body))
             return
         if status is None:
-            if res.status == 200 or (
-                res.status >= 300 and res.status < 400):
+            if res.status >= 200 and res.status < 400:
                 return
             raise AppError(
                 "Bad response: %s (not 200 OK or 3xx redirect for %s)\n%s"
