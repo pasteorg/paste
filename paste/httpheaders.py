@@ -951,7 +951,7 @@ class _AcceptLanguage(_MultiValueHeader):
         header = self.__call__(*args, **kwargs)
         if header is None:
             return []
-        langs = header.split(",")
+        langs = [v for v in header.split(",") if v]
         qs = []
         for lang in langs:
             pieces = lang.split(";")

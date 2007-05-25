@@ -156,7 +156,7 @@ class WSGIRequest(object):
         if self._languages is not None:
             return self._languages
         acceptLanguage = self.environ.get('HTTP_ACCEPT_LANGUAGE')
-        langs = ACCEPT_LANGUAGE.parse(acceptLanguage)
+        langs = ACCEPT_LANGUAGE.parse(self.environ)
         fallback = self.defaults.get('language', 'en-us')
         if not fallback:
             return langs

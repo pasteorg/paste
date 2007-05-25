@@ -11,10 +11,11 @@ def simpleapp(environ, start_response):
     response_headers = [('Content-type','text/plain')]
     start_response(status, response_headers)
     request = WSGIRequest(environ)
-    return ['Hello world!\n', 'The get is %s' % str(request.GET),
-        ' and Val is %s' % request.GET.get('name'),
-        'The languages are: %s' % request.languages,
-        'The accepttypes is: %s' % request.match_accept(['text/html', 'application/xml'])]
+    return [
+        'Hello world!\n', 'The get is %s' % str(request.GET),
+        ' and Val is %s\n' % request.GET.get('name'),
+        'The languages are: %s\n' % request.languages,
+        'The accepttypes is: %s\n' % request.match_accept(['text/html', 'application/xml'])]
 
 def test_gets():
     app = TestApp(simpleapp)
