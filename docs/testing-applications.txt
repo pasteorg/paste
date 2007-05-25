@@ -141,8 +141,6 @@ Request objects:
 Form Submissions
 ================
 
-*New in svn trunk*
-
 You can fill out and submit forms from your tests.  First you get the
 form::
 
