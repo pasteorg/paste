@@ -8,7 +8,7 @@ from paste.registry import *
 from paste.registry import Registry
 from paste.evalexception.middleware import EvalException
 
-testobj = StackedObjectProxy()
+regobj = StackedObjectProxy()
 secondobj = StackedObjectProxy(default=dict(hi='people'))
 
 def simpleapp(environ, start_response):
@@ -21,7 +21,7 @@ def simpleapp_withregistry(environ, start_response):
     status = '200 OK'
     response_headers = [('Content-type','text/plain')]
     start_response(status, response_headers)
-    return ['Hello world!Value is %s\n' % testobj.keys()]
+    return ['Hello world!Value is %s\n' % regobj.keys()]
 
 def simpleapp_withregistry_default(environ, start_response):
     status = '200 OK'
@@ -44,7 +44,7 @@ class RegistryUsingApp(object):
         status = '200 OK'
         response_headers = [('Content-type','text/plain')]
         start_response(status, response_headers)
-        return ['Hello world!\nThe variable is %s' % str(testobj)]
+        return ['Hello world!\nThe variable is %s' % str(regobj)]
 
 class RegistryUsingIteratorApp(object):
     def __init__(self, var, value):
@@ -57,7 +57,7 @@ class RegistryUsingIteratorApp(object):
         status = '200 OK'
         response_headers = [('Content-type','text/plain')]
         start_response(status, response_headers)
-        return iter(['Hello world!\nThe variable is %s' % str(testobj)])
+        return iter(['Hello world!\nThe variable is %s' % str(regobj)])
 
 class RegistryMiddleMan(object):
     def __init__(self, app, var, value, depth):
@@ -70,7 +70,7 @@ class RegistryMiddleMan(object):
         if environ.has_key('paste.registry'):
             environ['paste.registry'].register(self.var, self.value)
         app_response = ['\nInserted by middleware!\nInsertValue at depth \
-            %s is %s' % (self.depth, str(testobj))]
+            %s is %s' % (self.depth, str(regobj))]
         app_iter = None
         app_iter = self.app(environ, start_response)
         if type(app_iter) in (list, tuple):
@@ -83,7 +83,7 @@ class RegistryMiddleMan(object):
                 app_iter.close()
             app_response.extend(response)
         app_response.extend(['\nAppended by middleware!\nAppendValue at \
-            depth %s is %s' % (self.depth, str(testobj))])
+            depth %s is %s' % (self.depth, str(regobj))])
         return app_response
             
 
@@ -94,7 +94,7 @@ def test_simple():
 
 def test_solo_registry():
     obj = {'hi':'people'}
-    wsgiapp = RegistryUsingApp(testobj, obj)
+    wsgiapp = RegistryUsingApp(regobj, obj)
     wsgiapp = RegistryManager(wsgiapp)
     app = TestApp(wsgiapp)
     res = app.get('/')
@@ -116,9 +116,9 @@ def test_with_default_object():
 def test_double_registry():
     obj = {'hi':'people'}
     secondobj = {'bye':'friends'}
-    wsgiapp = RegistryUsingApp(testobj, obj)
+    wsgiapp = RegistryUsingApp(regobj, obj)
     wsgiapp = RegistryManager(wsgiapp)
-    wsgiapp = RegistryMiddleMan(wsgiapp, testobj, secondobj, 0)
+    wsgiapp = RegistryMiddleMan(wsgiapp, regobj, secondobj, 0)
     wsgiapp = RegistryManager(wsgiapp)
     app = TestApp(wsgiapp)
     res = app.get('/')
@@ -133,11 +133,11 @@ def test_really_deep_registry():
         'maggie']
     valuelist = range(0, len(keylist))
     obj = {'hi':'people'}
-    wsgiapp = RegistryUsingApp(testobj, obj)
+    wsgiapp = RegistryUsingApp(regobj, obj)
     wsgiapp = RegistryManager(wsgiapp)
     for depth in valuelist:
         newobj = {keylist[depth]: depth}
-        wsgiapp = RegistryMiddleMan(wsgiapp, testobj, newobj, depth)
+        wsgiapp = RegistryMiddleMan(wsgiapp, regobj, newobj, depth)
         wsgiapp = RegistryManager(wsgiapp)
     app = TestApp(wsgiapp)
     res = app.get('/')
@@ -154,9 +154,9 @@ def test_really_deep_registry():
 def test_iterating_response():
     obj = {'hi':'people'}
     secondobj = {'bye':'friends'}
-    wsgiapp = RegistryUsingIteratorApp(testobj, obj)
+    wsgiapp = RegistryUsingIteratorApp(regobj, obj)
     wsgiapp = RegistryManager(wsgiapp)
-    wsgiapp = RegistryMiddleMan(wsgiapp, testobj, secondobj, 0)
+    wsgiapp = RegistryMiddleMan(wsgiapp, regobj, secondobj, 0)
     wsgiapp = RegistryManager(wsgiapp)
     app = TestApp(wsgiapp)
     res = app.get('/')
