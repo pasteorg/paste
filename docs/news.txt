@@ -47,6 +47,9 @@ svn trunk
 * Fixed ``ProfileMiddleware`` not calling ``close()`` on consumed
   app_iters.
 
+* ``httpheaders.AcceptLanguage`` now won't give an exception when
+  there is a malformed parameter in the header.
+
 1.3
 ---
 
