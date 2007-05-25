@@ -50,6 +50,11 @@ svn trunk
 * ``httpheaders.AcceptLanguage`` now won't give an exception when
   there is a malformed parameter in the header.
 
+* Fix ``paste.auth.form.auth_form`` Paste Deploy entry point.
+
+* Added REST methods to ``paste.fixture.TestApp``, so you can more
+  easily do requests like PUT and DELETE.  From Anders Pearson.
+
 1.3
 ---
 
