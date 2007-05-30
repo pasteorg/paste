@@ -125,6 +125,7 @@ page_template = HTMLTemplate('''
       ">&#9656; Show environ</a>
    
    <div id="environ-{{thread.thread_id}}" style="display: none">
+    {{if thread.environ:}}
     <table class="environ">
      {{for loop, item in looper(sorted(thread.environ.items()))}}
      {{py:key, value=item}}
@@ -134,6 +135,9 @@ page_template = HTMLTemplate('''
      </tr>
      {{endfor}}
     </table>
+    {{else}}
+    Thread is in process of starting
+    {{endif}}
    </div>
 
    {{if thread.traceback}}
