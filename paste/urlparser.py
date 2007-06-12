@@ -423,7 +423,7 @@ class StaticURLParser(object):
     """
     Like ``URLParser`` but only serves static files.
 
-    ``max_cache_age``:
+    ``cache_max_age``:
       integer specifies Cache-Control max_age in seconds
     """
     # @@: Should URLParser subclass from this?
@@ -523,7 +523,7 @@ def make_static(global_conf, document_root, cache_max_age=None):
     Return a WSGI application that serves a directory (configured
     with document_root)
     
-    max_cache_age - integer specifies CACHE_CONTROL max_age in seconds
+    cache_max_age - integer specifies CACHE_CONTROL max_age in seconds
     """
     if cache_max_age is not None:
         cache_max_age = int(cache_max_age)
