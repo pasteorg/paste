@@ -116,3 +116,17 @@ contains a directive/statement (if/for, etc)::
     'x=1\n'
     >>> sub('{{if 1}}\nx={{x}}\n{{endif}}\n', x=1)
     'x=1\n'
+
+Lastly, there is a special directive that will create a default value
+for a variable, if no value is given::
+
+    >>> sub('{{default x=1}}{{x}}', x=2)
+    '2'
+    >>> sub('{{default x=1}}{{x}}')
+    '1'
+    >>> # The normal case:
+    >>> sub('{{x}}')
+    Traceback (most recent call last):
+        ...
+    NameError: name 'x' is not defined at line 1 column 3
+

@@ -55,6 +55,9 @@ svn trunk
 * Added REST methods to ``paste.fixture.TestApp``, so you can more
   easily do requests like PUT and DELETE.  From Anders Pearson.
 
+* Added ``{{default var=default_value}}`` command to
+  ``paste.util.template``
+
 1.3
 ---
 
