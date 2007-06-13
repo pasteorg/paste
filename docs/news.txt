@@ -56,7 +56,7 @@ svn trunk
   easily do requests like PUT and DELETE.  From Anders Pearson.
 
 * Added ``{{default var=default_value}}`` command to
-  ``paste.util.template``
+  ``paste.util.template``.  Make ``{{# comment}}`` work.
 
 1.3
 ---

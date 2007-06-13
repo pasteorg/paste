@@ -16,6 +16,7 @@ syntax is::
       return 'baz'
   }}
   {{default var = default_value}}
+  {{# comment}}
 
 You use this with the ``Template`` class or the ``sub`` shortcut.
 The ``Template`` class takes the template string and the name of
@@ -155,6 +156,8 @@ class Template(object):
             if var not in ns:
                 result = self._eval(expr, ns, pos)
                 ns[var] = result
+        elif name == 'comment':
+            return
         else:
             assert 0, "Unknown code: %r" % name
 
@@ -579,6 +582,8 @@ def parse_expr(tokens, name, context=()):
         return parse_for(tokens, name, context)
     elif expr.startswith('default '):
         return parse_default(tokens, name, context)
+    elif expr.startswith('#'):
+        return ('comment', pos, tokens[0][0]), tokens[1:]
     return ('expr', pos, tokens[0][0]), tokens[1:]
 
 def parse_cond(tokens, name, context):
