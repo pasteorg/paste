@@ -15,6 +15,7 @@ syntax is::
   def foo(bar):
       return 'baz'
   }}
+  {{default var = default_value}}
 
 You use this with the ``Template`` class or the ``sub`` shortcut.
 The ``Template`` class takes the template string and the name of
@@ -39,6 +40,7 @@ __all__ = ['TemplateError', 'Template', 'sub', 'HTMLTemplate',
 
 token_re = re.compile(r'\{\{|\}\}')
 in_re = re.compile(r'\s+in\s+')
+var_re = re.compile(r'^[a-z_][a-z0-9_]*$', re.I)
 
 class TemplateError(Exception):
     """Exception raised while parsing a template
@@ -148,6 +150,11 @@ class Template(object):
                 func = self._eval(part, ns, pos)
                 base = func(base)
             out.append(self._repr(base, pos))
+        elif name == 'default':
+            var, expr = code[2], code[3]
+            if var not in ns:
+                result = self._eval(expr, ns, pos)
+                ns[var] = result
         else:
             assert 0, "Unknown code: %r" % name
 
@@ -570,6 +577,8 @@ def parse_expr(tokens, name, context=()):
             position=pos, name=name)
     elif expr.startswith('for '):
         return parse_for(tokens, name, context)
+    elif expr.startswith('default '):
+        return parse_default(tokens, name, context)
     return ('expr', pos, tokens[0][0]), tokens[1:]
 
 def parse_cond(tokens, name, context):
@@ -646,6 +655,27 @@ def parse_for(tokens, name, context):
             return ('for', pos, vars, expr, content), tokens[1:]
         next, tokens = parse_expr(tokens, name, context)
         content.append(next)
+
+def parse_default(tokens, name, context):
+    first, pos = tokens[0]
+    assert first.startswith('default ')
+    first = first.split(None, 1)[1]
+    parts = first.split('=', 1)
+    if len(parts) == 1:
+        raise TemplateError(
+            "Expression must be {{default var=value}}; no = found in %r" % first,
+            position=pos, name=name)
+    var = parts[0].strip()
+    if ',' in var:
+        raise TemplateError(
+            "{{default x, y = ...}} is not supported",
+            position=pos, name=name)
+    if not var_re.search(var):
+        raise TemplateError(
+            "Not a valid variable name for {{default}}: %r"
+            % var, position=pos, name=name)
+    expr = parts[1].strip()
+    return ('default', pos, var, expr), tokens[1:]
 
 _fill_command_usage = """\
 %prog [OPTIONS] TEMPLATE arg=value
