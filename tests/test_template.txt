@@ -130,3 +130,7 @@ for a variable, if no value is given::
         ...
     NameError: name 'x' is not defined at line 1 column 3
 
+And comments work::
+
+    >>> sub('Test=x{{#whatever}}')
+    'Test=x'
