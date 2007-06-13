@@ -49,3 +49,12 @@ def do_doctest_mod(module):
     failure, total = doctest.testmod(
         module, optionflags=options)
     assert not failure, "Failure in %r" % module
+
+if __name__ == '__main__':
+    import sys
+    import doctest
+    args = sys.argv[1:]
+    if not args:
+        args = filenames
+    for filename in args:
+        doctest.testfile(filename, module_relative=False)
