@@ -41,6 +41,8 @@ Because of this it is planned that major new development will happen
 outside of Paste.  This makes Paste a very stable and conservative
 piece of infrastructure for building on.  This is the intention.
 
+For up-to-the-minute status see the `news file <news.html>`_.
+
 Paste for Administrators
 ------------------------
 

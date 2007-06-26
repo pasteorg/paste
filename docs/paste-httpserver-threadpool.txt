@@ -14,6 +14,7 @@ When a WSGI application is called, it's possible that it will block
 indefinitely.  There's two basic ways you can manage threads:
 
 * Start a thread on every request, close it down when the thread stops
+
 * Start a pool of threads, and reuse those threads for subsequent
   requests
 
@@ -37,12 +38,18 @@ cases.
 The pool tracks all workers threads.  Threads can be in a few states:
 
 * Idle, waiting for a request ("idle")
+
 * Working on a request
+
   - For a reasonable amount of time ("busy")
+
   - For an unreasonably long amount of time ("hung")
+
 * Thread that should die
+
   - An exception has been injected that should kill the thread, but it
     hasn't happened yet ("dying")
+
   - An exception has been injected, but the thread has persisted for
     an unreasonable amount of time ("zombie")
 
