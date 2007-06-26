@@ -3,17 +3,18 @@ News
 
 .. contents::
 
-svn trunk
----------
+1.4
+---
 
 * In ``paste.httpserver`` added lots of functionality to the
-  threadpool.  See ``paster points paste.server_runner http`` for the
-  documentation, or the docstrings in ``paste.httpserver``.  This
-  catches worker threads (and WSGI apps) that take too long to
-  complete their task; killing them eventually, adding more worker
-  threads when the pool is exhausted and it doesn't look good that
-  it'll clear soon, and optionally killing the process when there are
-  too many lost/zombie threads.
+  threadpool.  See `the paste.httpserver threadpool documentation
+  <paste-httpserver-threadpool.html>`_ for details.  This catches
+  worker threads (and WSGI apps) that take too long to complete their
+  task; killing them eventually, adding more worker threads when the
+  pool is exhausted and it doesn't look good that it'll clear soon,
+  and optionally killing the process when there are too many
+  lost/zombie threads (you must be using some kind supervisor process
+  for this last response to make sense).
 
 * Save host and scheme information during real HTTP proxy requests to
   ``paste.httpserver``, into the keys
@@ -39,10 +40,11 @@ svn trunk
 
 * ``paste.proxy`` works with headers with continuations in the
   response (i.e., a header that spans multiple lines).  Also, treat a
-  missing Content-Length as 0, not unlimited (may have caused freeze ups for
-  some kinds of requests before).
+  missing Content-Length as 0, not unlimited (may have previously
+  caused freeze ups for some kinds of requests).
 
-* ``StackedObjectProxy`` supports ``__call__``.
+* ``StackedObjectProxy`` supports ``__call__`` (i.e., you can use
+  ``StackedObjectProxy`` with callable objects).
 
 * Fixed ``ProfileMiddleware`` not calling ``close()`` on consumed
   app_iters.
