@@ -1143,7 +1143,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         This an optional SSL certificate file (via OpenSSL). You can
         supply ``*`` and a development-only certificate will be
         created for you, or you can generate a self-signed test PEM
-        certificate file as follows:
+        certificate file as follows::
 
             $ openssl genrsa 1024 > host.key
             $ chmod 400 host.key
