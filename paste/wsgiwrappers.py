@@ -107,9 +107,6 @@ class WSGIRequest(object):
         # This isn't "state" really, since the object is derivative:
         self.headers = EnvironHeaders(environ)
         
-        # Default caching of requests using Response to not cache
-        self.headers['Cache-Control'] = 'no-cache'
-        
         defaults = self.defaults._current_obj()
         self.charset = defaults.get('charset')
         if self.charset:
@@ -297,8 +294,8 @@ class WSGIResponse(object):
 
     """
     defaults = StackedObjectProxy(
-        default=dict(content_type='text/html',
-                     charset='utf-8', errors='strict')
+        default=dict(content_type='text/html', charset='utf-8', 
+                     errors='strict', headers={'Cache-Control':'no-cache'})
         )
     def __init__(self, content='', mimetype=None, code=200):
         self._iter = None
@@ -315,6 +312,7 @@ class WSGIResponse(object):
             charset = defaults.get('charset')
             if charset:
                 mimetype = '%s; charset=%s' % (mimetype, charset)
+            self.headers.update(defaults.get('headers', {}))
         self.headers['Content-Type'] = mimetype
         self.errors = defaults.get('errors', 'strict')
 
