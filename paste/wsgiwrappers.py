@@ -106,7 +106,10 @@ class WSGIRequest(object):
         self.environ = environ
         # This isn't "state" really, since the object is derivative:
         self.headers = EnvironHeaders(environ)
-
+        
+        # Default caching of requests using Response to not cache
+        self.headers['Cache-Control'] = 'no-cache'
+        
         defaults = self.defaults._current_obj()
         self.charset = defaults.get('charset')
         if self.charset:
