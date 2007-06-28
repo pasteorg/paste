@@ -456,9 +456,7 @@ class LimitedLengthFile(object):
         return data
 
     def readline(self, *args):
-        # @@: I can't see any way to keep this from reading past the end
-        # except to implement readline and a buffer privately
-        data = self.file.readline(*args)
+        data = self.file.readline(self.length - self._consumed)
         self._consumed += len(data)
         return data
 
