@@ -3,6 +3,15 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* Allow customization of the ``paste.config.ConfigMiddleware`` environ
+  key.
+
+* Added a ``current`` method (an alias of ``current_conf``) to
+  ``paste.config.DispatchingConfig``.
+
 1.4
 ---
 
