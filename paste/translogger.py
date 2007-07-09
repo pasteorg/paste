@@ -94,7 +94,7 @@ class TransLogger(object):
 
 def make_filter(
     app, global_conf,
-    logger_name=None,
+    logger_name='wsgi',
     format=None,
     logging_level=logging.INFO,
     setup_console_handler=True,
