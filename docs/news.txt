@@ -12,6 +12,9 @@ svn trunk
 * Added a ``current`` method (an alias of ``current_conf``) to
   ``paste.config.DispatchingConfig``.
 
+* Make test response ``.form`` attribute work when you have a single
+  named form.
+
 1.4
 ---
 

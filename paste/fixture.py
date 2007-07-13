@@ -505,10 +505,13 @@ class TestResponse(object):
 
     def form__get(self):
         forms = self.forms
-        assert len(forms) > 0, (
-            "You used response.form, but no forms exist")
-        assert len(forms) == 1, (
-            "You used response.form, but more than one form exists")
+        if not forms:
+            raise TypeError(
+                "You used response.form, but no forms exist")
+        if 1 in forms:
+            # There is more than one form
+            raise TypeError(
+                "You used response.form, but more than one form exists")
         return forms[0]
 
     form = property(form__get,
