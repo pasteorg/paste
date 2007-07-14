@@ -99,7 +99,7 @@ class WSGIRequest(object):
     You are free to subclass this object.
 
     """
-    defaults = StackedObjectProxy(default=dict(charset=None, errors='strict',
+    defaults = StackedObjectProxy(default=dict(charset=None, errors='replace',
                                                decode_param_names=False,
                                                language='en-us'))
     def __init__(self, environ):
@@ -312,7 +312,7 @@ class WSGIResponse(object):
             charset = defaults.get('charset')
             if charset:
                 mimetype = '%s; charset=%s' % (mimetype, charset)
-            self.headers.update(defaults.get('headers', {}))
+        self.headers.update(defaults.get('headers', {}))
         self.headers['Content-Type'] = mimetype
         self.errors = defaults.get('errors', 'strict')
 
