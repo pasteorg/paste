@@ -188,8 +188,8 @@ class InputWrapper(object):
         assert type(v) is type("")
         return v
 
-    def readline(self):
-        v = self.input.readline()
+    def readline(self, *args):
+        v = self.input.readline(*args)
         assert type(v) is type("")
         return v
 
