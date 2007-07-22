@@ -11,7 +11,7 @@ application objects.  To use it, subclass the SWAP class like so::
        def __init__(self, *args, **kwargs):
            self.prefix = '/canal'
            self.app_obj = TestAppClass
-	   swap.SWAP.__init__(self, *args, **kwargs)
+           swap.SWAP.__init__(self, *args, **kwargs)
 
 where 'TestAppClass' is the application object from WSGI and '/canal'
 is the prefix for what is served by the SCGI Web-server-side process.
