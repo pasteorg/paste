@@ -1115,7 +1115,7 @@ class ServerExit(SystemExit):
 def serve(application, host=None, port=None, handler=None, ssl_pem=None,
           ssl_context=None, server_version=None, protocol_version=None,
           start_loop=True, daemon_threads=None, socket_timeout=None,
-          use_threadpool=True, threadpool_workers=10,
+          use_threadpool=None, threadpool_workers=10,
           threadpool_options=None):
     """
     Serves your ``application`` over HTTP(S) via WSGI interface
@@ -1243,6 +1243,12 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         assert protocol_version in ('HTTP/0.9', 'HTTP/1.0', 'HTTP/1.1')
         handler.protocol_version = protocol_version
 
+    if use_threadpool is None:
+        # The thread pooling code is horribly broken on FreeBSD
+        if 'FreeBSD' == os.uname()[0]:
+            use_threadpool = False
+        else:
+            use_threadpool = True
 
     if converters.asbool(use_threadpool):
         server = WSGIThreadPoolServer(application, server_address, handler,
