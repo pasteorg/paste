@@ -9,19 +9,19 @@ files.  At this time it has cache helpers and understands the
 if-modified-since request header.
 """
 
-import os, time, mimetypes
+import os, time, mimetypes, zipfile, tarfile
 from paste.httpexceptions import *
 from paste.httpheaders import *
 
 CACHE_SIZE = 4096
 BLOCK_SIZE = 4096 * 16
 
-__all__ = ['DataApp', 'FileApp']
+__all__ = ['DataApp', 'FileApp', 'ArchiveStore']
 
 class DataApp(object):
     """
     Returns an application that will send content in a single chunk,
-    this application has support for setting cashe-control and for
+    this application has support for setting cache-control and for
     responding to conditional (or HEAD) requests.
 
     Constructor Arguments:
@@ -255,4 +255,59 @@ class _FileIter(object):
 
     def close(self):
         self.file.close()
+
+class ArchiveStore(object):
+    """
+    Returns an application that serves up a DataApp for items requested
+    in a given zip or tar archive.
+
+    Constructor Arguments:
+
+        ``filepath``    the path to the archive being served
+
+    ``cache_control()``
+
+        This method provides validated construction of the ``Cache-Control``
+        header as well as providing for automated filling out of the
+        ``EXPIRES`` header for HTTP/1.0 clients.
+    """
+    
+    def __init__(self, filepath):
+        if zipfile.is_zipfile(filepath):
+            self.archive = zipfile.ZipFile(filepath,"r")
+        elif tarfile.is_tarfile(filepath):
+            self.archive = tarfile.TarFileCompat(filepath,"r")
+        else:
+            raise AssertionError("filepath '%s' is not a zip or tar " % filepath)
+        self.expires = None
+        self.last_modified = time.time()
+        self.cache = {}
+
+    def cache_control(self, **kwargs):
+        self.expires = CACHE_CONTROL.apply(self.headers, **kwargs) or None
+        return self
+
+    def __call__(self, environ, start_response):
+        path = environ.get("PATH_INFO","")
+        if path.startswith("/"):
+            path = path[1:]
+        application = self.cache.get(path)
+        if application:
+            return application(environ, start_response)
+        try:
+            info = self.archive.getinfo(path)
+        except KeyError:
+            exc = HTTPNotFound("The file requested, '%s', was not found." % path)
+            return exc.wsgi_application(environ, start_response)
+        if info.filename.endswith("/"):
+            exc = HTTPNotFound("Path requested, '%s', is not a file." % path)
+            return exc.wsgi_application(environ, start_response)
+        content_type, content_encoding = mimetypes.guess_type(info.filename)
+        app = DataApp(None, content_type = content_type, 
+                            content_encoding = content_encoding)
+        app.set_content(self.archive.read(path), 
+                time.mktime(info.date_time + (0,0,0)))
+        self.cache[path] = app
+        app.expires = self.expires
+        return app(environ, start_response)
 
