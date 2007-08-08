@@ -104,7 +104,7 @@ class URLMap(DictMixin):
         extra += '\nPATH_INFO: %r' % environ.get('PATH_INFO')
         extra += '\nHTTP_HOST: %r' % environ.get('HTTP_HOST')
         app = httpexceptions.HTTPNotFound(
-            'The resource was not found',
+            environ['PATH_INFO'],
             comment=extra).wsgi_application
         return app(environ, start_response)
 
