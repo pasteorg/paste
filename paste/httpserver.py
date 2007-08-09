@@ -293,6 +293,7 @@ class WSGIHandlerMixin:
             finally:
                 if hasattr(result,'close'):
                     result.close()
+                result = None
         except socket.error, exce:
             self.wsgi_connection_drop(exce, environ)
             return
