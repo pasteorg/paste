@@ -15,6 +15,8 @@ svn trunk
 * Make test response ``.form`` attribute work when you have a single
   named form.
 
+* Try to encode any unicode input to ``paste.auth.auth_tkt``
+
 1.4
 ---
 

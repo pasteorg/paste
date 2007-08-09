@@ -160,6 +160,10 @@ def parse_ticket(secret, ticket, ip):
     return (timestamp, userid, tokens, user_data)
     
 def calculate_digest(ip, timestamp, secret, userid, tokens, user_data):
+    secret = maybe_encode(secret)
+    userid = maybe_encode(userid)
+    tokens = maybe_encode(tokens)
+    user_data = maybe_encode(user_data)
     digest0 = md5.new(
         encode_ip_timestamp(ip, timestamp) + secret + userid + '\0'
         + tokens + '\0' + user_data).hexdigest()
@@ -176,6 +180,10 @@ def encode_ip_timestamp(ip, timestamp):
     ts_chars = ''.join(map(chr, ts))
     return ip_chars + ts_chars
 
+def maybe_encode(s, encoding='utf8'):
+    if isinstance(s, unicode):
+        s = s.encode(encoding)
+    return s
 
 class AuthTKTMiddleware(object):
 
