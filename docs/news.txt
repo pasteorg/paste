@@ -17,6 +17,10 @@ svn trunk
 
 * Try to encode any unicode input to ``paste.auth.auth_tkt``
 
+* ``paste.wsgiwrappers.WSGIResponse`` now has a ``.content_type``
+  attribute (that does not include parameters), and a ``.charset``
+  attribute (that gets the charset parameter).
+
 1.4
 ---
 
