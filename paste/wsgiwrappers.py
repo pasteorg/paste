@@ -458,6 +458,80 @@ class WSGIResponse(object):
                 'is an iterator)' % self.__class__.__name__
         return sum([len(chunk) for chunk in self._iter])
 
+    ########################################
+    ## Content-type and charset
+
+    def charset__get(self):
+        """
+        Get/set the charset (in the Content-Type)
+        """
+        header = self.headers.get('content-type')
+        if not header:
+            return None
+        match = _CHARSET_RE.search(header)
+        if match:
+            return match.group(1)
+        return None
+
+    def charset__set(self, charset):
+        if charset is None:
+            del self.charset
+            return
+        try:
+            header = self.headers.pop('content-type')
+        except KeyError:
+            raise AttributeError(
+                "You cannot set the charset when on content-type is defined")
+        match = _CHARSET_RE.search(header)
+        if match:
+            header = header[:match.start()] + header[match.end():]
+        header += '; charset=%s' % charset
+        self.headers['content-type'] = header
+
+    def charset__del(self):
+        try:
+            header = self.headers.pop('content-type')
+        except KeyError:
+            # Don't need to remove anything
+            return
+        match = _CHARSET_RE.search(header)
+        if match:
+            header = header[:match.start()] + header[match.end():]
+        self.headers['content-type'] = header
+
+    charset = property(charset__get, charset__set, charset__del, doc=charset__get.__doc__)
+
+    def content_type__get(self):
+        """
+        Get/set the Content-Type header (or None), *without* the
+        charset or any parameters.
+
+        If you include parameters (or ``;`` at all) when setting the
+        content_type, any existing parameters will be deleted;
+        otherwise they will be preserved.
+        """
+        header = self.headers.get('content-type')
+        if not header:
+            return None
+        return header.split(';', 1)[0]
+
+    def content_type__set(self, value):
+        if ';' not in value:
+            header = self.headers.get('content-type', '')
+            if ';' in header:
+                params = header.split(';', 1)[1]
+                value += ';' + params
+        self.headers['content-type'] = value
+
+    def content_type__del(self):
+        try:
+            del self.headers['content-type']
+        except KeyError:
+            pass
+
+    content_type = property(content_type__get, content_type__set,
+                            content_type__del, doc=content_type__get.__doc__)
+
 ## @@ I'd love to remove this, but paste.httpexceptions.get_exception
 ##    doesn't seem to work...
 # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html

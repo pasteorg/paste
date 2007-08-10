@@ -99,6 +99,8 @@ def test_wsgirequest_charset_fileupload():
 
 def test_wsgiresponse_charset():
     response = WSGIResponse(mimetype='text/html; charset=UTF-8')
+    assert response.content_type == 'text/html'
+    assert response.charset == 'UTF-8'
     response.write(u'test')
     response.write(u'test2')
     response.write('test3')
