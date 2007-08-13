@@ -617,8 +617,8 @@ class ThreadPool(object):
                 if not hasattr(worker, 'thread_id'):
                     # Not initialized
                     continue
-                if worker.thread_id in self.worker_tracker:
-                    time_started, info = self.worker_tracker[worker.thread_id]
+                time_started, info = self.worker_tracker.get(worker.thread_id, (None, None))
+                if time_started is not None:
                     if now - time_started < self.hung_thread_limit:
                         busy += 1
             if busy < self.spawn_if_under:
