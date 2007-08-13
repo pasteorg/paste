@@ -617,7 +617,8 @@ class ThreadPool(object):
                 if not hasattr(worker, 'thread_id'):
                     # Not initialized
                     continue
-                time_started, info = self.worker_tracker.get(worker.thread_id, (None, None))
+                time_started, info = self.worker_tracker.get(worker.thread_id,
+                                                             (None, None))
                 if time_started is not None:
                     if now - time_started < self.hung_thread_limit:
                         busy += 1
@@ -658,8 +659,9 @@ class ThreadPool(object):
                 # The worker hasn't fully started up, we should just
                 # ignore it
                 continue
-            if worker.thread_id in self.worker_tracker:
-                time_started, info = self.worker_tracker[worker.thread_id]
+            time_started, info = self.worker_tracker.get(worker.thread_id,
+                                                         (None, None))
+            if time_started is not None:
                 if now - time_started > self.hung_thread_limit:
                     result['hung'].append(worker)
                 else:
@@ -737,12 +739,13 @@ class ThreadPool(object):
                 # Not setup yet
                 starting_workers += 1
                 continue
-            if worker.thread_id not in self.worker_tracker:
+            time_started, info = self.worker_tracker.get(worker.thread_id,
+                                                         (None, None))
+            if time_started is None:
                 # Must be idle
                 idle_workers += 1
                 continue
             working_workers += 1
-            time_started, info = self.worker_tracker[worker.thread_id]
             max_time = max(max_time, now-time_started)
             total_time += now-time_started
             if now - time_started > self.kill_thread_limit:
