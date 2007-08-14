@@ -88,6 +88,7 @@ class ErrorMiddleware(object):
                  error_subject_prefix=None,
                  error_message=None,
                  xmlhttp_key=None):
+        from paste.util import converters
         self.application = application
         # @@: global_conf should be handled elsewhere in a separate
         # function for the entry point
@@ -97,7 +98,6 @@ class ErrorMiddleware(object):
             debug = converters.asbool(global_conf.get('debug'))
         if show_exceptions_in_wsgi_errors is NoDefault:
             show_exceptions_in_wsgi_errors = converters.asbool(global_conf.get('show_exceptions_in_wsgi_errors'))
-        from paste.util import converters
         self.debug_mode = converters.asbool(debug)
         if error_email is None:
             error_email = (global_conf.get('error_email')
