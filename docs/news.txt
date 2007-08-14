@@ -21,6 +21,9 @@ svn trunk
   attribute (that does not include parameters), and a ``.charset``
   attribute (that gets the charset parameter).
 
+* Inherit inherit show_exceptions_in_wsgi_errors from global
+  configuration.  Inherit ``debug`` more properly.
+
 1.4
 ---
 
