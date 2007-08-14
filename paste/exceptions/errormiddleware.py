@@ -82,7 +82,7 @@ class ErrorMiddleware(object):
                  debug=NoDefault,
                  error_email=None,
                  error_log=None,
-                 show_exceptions_in_wsgi_errors=False,
+                 show_exceptions_in_wsgi_errors=NoDefault,
                  from_address=None,
                  smtp_server=None,
                  error_subject_prefix=None,
@@ -94,7 +94,9 @@ class ErrorMiddleware(object):
         if global_conf is None:
             global_conf = {}
         if debug is NoDefault:
-            debug = global_conf.get('debug')
+            debug = converters.asbool(global_conf.get('debug'))
+        if show_exceptions_in_wsgi_errors is NoDefault:
+            show_exceptions_in_wsgi_errors = converters.asbool(global_conf.get('show_exceptions_in_wsgi_errors'))
         from paste.util import converters
         self.debug_mode = converters.asbool(debug)
         if error_email is None:
