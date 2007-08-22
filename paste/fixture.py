@@ -910,7 +910,7 @@ class Form(object):
     # @@: This really should be using Mechanize/ClientForm or
     # something...
 
-    _tag_re = re.compile(r'<(/?)([a-z0-9_\-]*)([^>]*?)>', re.I)
+    _tag_re = re.compile(r'<(/?)([:a-z0-9_\-]*)([^>]*?)>', re.I)
 
     def __init__(self, response, text):
         self.response = response
