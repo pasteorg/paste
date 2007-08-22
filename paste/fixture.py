@@ -522,7 +522,7 @@ class TestResponse(object):
                     page.
                     """)
 
-    _tag_re = re.compile(r'<(/?)([a-z0-9_\-]*)(.*?)>', re.S|re.I)
+    _tag_re = re.compile(r'<(/?)([:a-z0-9_\-]*)(.*?)>', re.S|re.I)
 
     def _parse_forms(self):
         forms = self._forms_indexed = {}
