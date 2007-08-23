@@ -1234,7 +1234,12 @@ class Text(Field):
     """
     Field representing ``<input type="text">``
     """
-
+    def __init__(self, form, tag, name, pos,
+                 value='', id=None, **attrs):
+        #text fields default to empty string        
+        Field.__init__(self, form, tag, name, pos,
+                       value=value, id=id, **attrs)
+                        
 Field.classes['text'] = Text
 
 class Textarea(Text):
