@@ -1248,11 +1248,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         handler.protocol_version = protocol_version
 
     if use_threadpool is None:
-        # The thread pooling code is horribly broken on FreeBSD
-        if 'FreeBSD' == os.uname()[0]:
-            use_threadpool = False
-        else:
-            use_threadpool = True
+        use_threadpool = True
 
     if converters.asbool(use_threadpool):
         server = WSGIThreadPoolServer(application, server_address, handler,
