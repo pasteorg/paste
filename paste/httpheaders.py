@@ -913,7 +913,7 @@ class _Range(_MultiValueHeader):
         ranges = []
         last_end   = -1
         try:
-            (units, range) = value.split("=")
+            (units, range) = value.split("=", 1)
             units = units.strip().lower()
             for item in range.split(","):
                 (begin, end) = item.split("-")
