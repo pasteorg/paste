@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* Fix problem with ``paste.wsgilib.intercept_output`` and passing up
+  exceptions.
+
 1.4.1
 -----
 

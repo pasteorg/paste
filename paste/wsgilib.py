@@ -530,7 +530,7 @@ def intercept_output(environ, application, conditional=None,
     def replacement_start_response(status, headers, exc_info=None):
         if conditional is not None and not conditional(status, headers):
             data.append(None)
-            return start_response(status, headers)
+            return start_response(status, headers, exc_info)
         if data:
             data[:] = []
         data.append(status)
