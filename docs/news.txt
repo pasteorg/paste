@@ -3,8 +3,11 @@ News
 
 .. contents::
 
-svn trunk
----------
+1.4.2
+-----
+
+* Remove FreeBSD threadpool condition in paste.httpserver (which was
+  also breaking code for Windows users).
 
 * Fix problem with ``paste.wsgilib.intercept_output`` and passing up
   exceptions.
