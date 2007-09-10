@@ -986,7 +986,7 @@ class _ContentRange(_SingleValueHeader):
     Content-Range, RFC 2616 section 14.6
     """
     def compose(self, first_byte=None, last_byte=None, total_length=None):
-        retval = "%d-%d/%d" % (first_byte, last_byte, total_length)
+        retval = "bytes %d-%d/%d" % (first_byte, last_byte, total_length)
         assert last_byte == -1 or first_byte <= last_byte
         assert last_byte  < total_length
         return (retval,)

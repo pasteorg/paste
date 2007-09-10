@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* ``paste.httpheaders.CONTENT_RANGE`` returns ``bytes
+  START-END/LENGTH`` instead of just ``START-END/LENGTH``
+
 1.4.2
 -----
 
