@@ -13,6 +13,9 @@ svn trunk
   ``'application/x-www-form-urlencoded'`` whenever there are
   parameters (and no other content type was provided).
 
+* In ``paste.session``, when cleaning files ignore files that aren't
+  session files.
+
 1.4.2
 -----
 
