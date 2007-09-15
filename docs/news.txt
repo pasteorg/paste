@@ -9,6 +9,10 @@ svn trunk
 * ``paste.httpheaders.CONTENT_RANGE`` returns ``bytes
   START-END/LENGTH`` instead of just ``START-END/LENGTH``
 
+* In ``paste.fixture.TestApp`` set ``CONTENT_TYPE`` to
+  ``'application/x-www-form-urlencoded'`` whenever there are
+  parameters (and no other content type was provided).
+
 1.4.2
 -----
 

@@ -226,6 +226,8 @@ class TestApp(object):
             content_type, params = self.encode_multipart(
                 params, upload_files)
             environ['CONTENT_TYPE'] = content_type
+        elif params:
+            environ.setdefault('CONTENT_TYPE', 'application/x-www-form-urlencoded')
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
         else:
