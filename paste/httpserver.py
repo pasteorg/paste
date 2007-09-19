@@ -1228,7 +1228,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
             else:
                 ssl_context = SSL.Context(SSL.SSLv23_METHOD)
                 ssl_context.use_privatekey_file(ssl_pem)
-                ssl_context.use_certificate_file(ssl_pem)
+                ssl_context.use_certificate_chain_file(ssl_pem)
 
     host = host or '127.0.0.1'
     if not port:
