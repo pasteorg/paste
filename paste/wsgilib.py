@@ -227,7 +227,7 @@ def catch_errors_app(application, environ, start_response, error_callback_app,
         return error_callback_app(environ, start_response, sys.exc_info())
     if type(app_iter) in (list, tuple):
         # These won't produce exceptions
-        if ok_callback:
+        if ok_callback is not None:
             ok_callback()
         return app_iter
     else:

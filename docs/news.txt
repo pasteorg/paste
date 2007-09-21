@@ -16,6 +16,9 @@ svn trunk
 * In ``paste.session``, when cleaning files ignore files that aren't
   session files.
 
+* ``paste.httpexceptions.HTTPExceptionHandler`` will no longer catch
+  exceptions raised during the app_iter iteration.
+
 1.4.2
 -----
 

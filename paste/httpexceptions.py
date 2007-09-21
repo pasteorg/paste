@@ -628,18 +628,10 @@ class HTTPExceptionHandler(object):
         environ['paste.httpexceptions'] = self
         environ.setdefault('paste.expected_exceptions',
                            []).append(HTTPException)
-        return catch_errors_app(
-            self.application, environ, start_response,
-            self.send_http_response, catch=HTTPException)
-
-    def send_http_response(self, environ, start_response, exc_info):
         try:
-            exc = exc_info[1]
-            assert(isinstance(exc, HTTPException)), \
-                'send_http_response triggered via a non HTTPException'
-            return exc.wsgi_application(environ, start_response, exc_info)
-        finally:
-            exc_info = None
+            return self.application(environ, start_response)
+        except HTTPException, exc:
+            return exc(environ, start_response)
 
 def middleware(*args, **kw):
     import warnings
