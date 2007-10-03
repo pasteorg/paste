@@ -6,6 +6,10 @@ News
 svn trunk
 ---------
 
+* Fixed memory leak with ``paste.registry`` not properly removing
+  all references to registered objects should register be called
+  multiple times during a single context for a StackedObjectProxy.
+
 * ``paste.httpheaders.CONTENT_RANGE`` returns ``bytes
   START-END/LENGTH`` instead of just ``START-END/LENGTH``
 
