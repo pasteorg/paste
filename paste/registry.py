@@ -290,9 +290,13 @@ class Registry(object):
     
     def register(self, stacked, obj):
         """Register an object with a StackedObjectProxy"""
-        stacked._push_object(obj)
         myreglist = self.reglist[-1]
-        myreglist.setdefault(id(stacked), []).append((stacked, obj))
+        stacked_id = id(stacked)
+        if stacked_id in myreglist:
+            stacked._pop_object(myreglist[stacked_id])
+            del myreglist[stacked_id]
+        stacked._push_object(obj)
+        myreglist[stacked_id] = (stacked, obj)
 
     def replace(self, stacked, obj):
         """Replace the object referenced by a StackedObjectProxy with a
@@ -302,19 +306,18 @@ class Registry(object):
         be registered.
         """
         myreglist = self.reglist[-1]
-        if id(stacked) in myreglist:
-            for stacked, obj in myreglist[id(stacked)]:
-                stacked._pop_object(obj)
-        del myreglist[id(stacked)]
+        stacked_id = id(stacked)
+        if stacked_id in myreglist:
+            stacked._pop_object(myreglist[stacked_id])
+            del myreglist[stacked_id]
         stacked._push_object(obj)
-        myreglist.setdefault(id(stacked), []).append((stacked, obj))
+        myreglist[stacked_id] = (stacked, obj)
     
     def cleanup(self):
         """Remove all objects from all StackedObjectProxy instances that
         were tracked at this Registry context"""
-        for id, lst in self.reglist[-1].iteritems():
-            for stacked, obj in lst:
-                stacked._pop_object(obj)
+        for stacked, obj in self.reglist[-1].itervalues():
+            stacked._pop_object(obj)
         self.reglist.pop()
         
 class RegistryManager(object):
