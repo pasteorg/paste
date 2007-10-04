@@ -20,7 +20,7 @@ from paste.util.mimeparse import desired_matches
 
 __all__ = ['WSGIRequest', 'WSGIResponse']
 
-_CHARSET_RE = re.compile(r'.*;\s*charset=(.*?)(;|$)', re.I)
+_CHARSET_RE = re.compile(r';\s*charset=([^;]*)', re.I)
 
 class DeprecatedSettings(StackedObjectProxy):
     def _push_object(self, obj):
@@ -257,7 +257,7 @@ class WSGIRequest(object):
         Determine the encoding as specified by the browser via the
         Content-Type's charset parameter, if one is set
         """
-        charset_match = _CHARSET_RE.match(self.headers.get('Content-Type', ''))
+        charset_match = _CHARSET_RE.search(self.headers.get('Content-Type', ''))
         if charset_match:
             return charset_match.group(1)
 
@@ -364,7 +364,7 @@ class WSGIResponse(object):
         Determine the encoding as specified by the Content-Type's charset
         parameter, if one is set
         """
-        charset_match = _CHARSET_RE.match(self.headers.get('Content-Type', ''))
+        charset_match = _CHARSET_RE.search(self.headers.get('Content-Type', ''))
         if charset_match:
             return charset_match.group(1)
     
@@ -481,7 +481,7 @@ class WSGIResponse(object):
             header = self.headers.pop('content-type')
         except KeyError:
             raise AttributeError(
-                "You cannot set the charset when on content-type is defined")
+                "You cannot set the charset when no content-type is defined")
         match = _CHARSET_RE.search(header)
         if match:
             header = header[:match.start()] + header[match.end():]
