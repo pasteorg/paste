@@ -308,7 +308,7 @@ class Registry(object):
         myreglist = self.reglist[-1]
         stacked_id = id(stacked)
         if stacked_id in myreglist:
-            stacked._pop_object(myreglist[stacked_id])
+            stacked._pop_object(myreglist[stacked_id][1])
             del myreglist[stacked_id]
         stacked._push_object(obj)
         myreglist[stacked_id] = (stacked, obj)
