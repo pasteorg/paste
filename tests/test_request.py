@@ -48,3 +48,14 @@ def test_mime_parsing():
     
     res = app.get('/', headers={'Accept':'application/xml,*/*'})
     assert "accepttypes is: ['text/html', 'application/xml']" in res
+
+def test_bad_cookie():
+    env = {}
+    env['HTTP_COOKIE'] = '070-it-:><?0'
+    assert get_cookie_dict(env) == {}
+    env['HTTP_COOKIE'] = 'foo=bar'
+    assert get_cookie_dict(env) == {'foo': 'bar'}
+    env['HTTP_COOKIE'] = '...'
+    assert get_cookie_dict(env) == {}
+    env['HTTP_COOKIE'] = '=foo'
+    assert get_cookie_dict(env) == {}
