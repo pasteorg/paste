@@ -403,9 +403,10 @@ def check_content_type(status, headers):
     # @@: need one more person to verify this interpretation of RFC 2616
     #     http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
     NO_MESSAGE_BODY = (201, 204, 304)
+    NO_MESSAGE_TYPE = (204, 304)
     for name, value in headers:
         if name.lower() == 'content-type':
-            if code not in NO_MESSAGE_BODY:
+            if code not in NO_MESSAGE_TYPE:
                 return
             assert 0, (("Content-Type header found in a %s response, "
                         "which must not return content.") % code)
