@@ -116,7 +116,7 @@ class URLParser(object):
         self.index_names = converters.aslist(index_names)
         if hide_extensions is NoDefault:
             hide_extensions = global_conf.get(
-                'hide_extensions', ('.pyc', 'bak', 'py~'))
+                'hide_extensions', ('.pyc', '.bak', '.py~', '.pyo'))
         self.hide_extensions = converters.aslist(hide_extensions)
         if ignore_extensions is NoDefault:
             ignore_extensions = global_conf.get(
