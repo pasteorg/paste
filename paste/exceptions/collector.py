@@ -29,6 +29,7 @@ except ImportError:
     from StringIO import StringIO
 import linecache
 from paste.exceptions import serial_number_generator
+import warnings
 
 DEBUG_EXCEPTION_FORMATTER = True
 DEBUG_IDENT_PREFIX = 'E-'
@@ -265,9 +266,14 @@ class ExceptionCollector(object):
         co = f.f_code
         filename = co.co_filename
         name = co.co_name
-        locals = f.f_locals
         globals = f.f_globals
-
+        locals = f.f_locals
+        if not hasattr(locals, 'has_key'):
+            # Something weird about this frame; it's not a real dict
+            warnings.warn(
+                "Frame %s has an invalid locals(): %r" % (
+                globals.get('__name__', 'unknown'), locals))
+            locals = {}
         data = {}
         data['modname'] = globals.get('__name__', None)
         data['filename'] = filename
