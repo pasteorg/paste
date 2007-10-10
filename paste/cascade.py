@@ -7,6 +7,8 @@ return ``404 Not Found``.
 """
 from paste import httpexceptions
 from paste.util import converters
+import tempfile
+from cStringIO import StringIO
 
 __all__ = ['Cascade']
 
@@ -74,8 +76,27 @@ class Cascade(object):
                 return _consuming_writer
             return start_response(status, headers, exc_info)
 
+        length = int(environ.get('CONTENT_LENGTH', '0'))
+        if length > 0:
+            # We have to copy wsgi.input
+            copy_wsgi_input = True
+            if length > 4096 or length == -1:
+                f = tempfile.TemporaryFile()
+                copy_len = length
+                while copy_len:
+                    chunk = environ['wsgi.input'].read(min(copy_len, 4096))
+                    f.write(chunk)
+                    copy_len -= len(chunk)
+                f.seek(0)
+            else:
+                f = StringIO(environ['wsgi.input'].read(length))
+            environ['wsgi.input'] = f
+        else:
+            copy_wsgi_input = False
         for app in self.apps[:-1]:
             environ_copy = environ.copy()
+            if copy_wsgi_input:
+                environ_copy['wsgi.input'].seek(0)
             failed = []
             try:
                 v = app(environ_copy, repl_start_response)
