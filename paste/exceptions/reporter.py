@@ -5,6 +5,7 @@ from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 import smtplib
 import time
+from socket import sslerror
 from paste.exceptions import formatter
 
 class Reporter(object):
@@ -35,14 +36,27 @@ class EmailReporter(Reporter):
     to_addresses = None
     from_address = None
     smtp_server = 'localhost'
+    smtp_username = None
+    smtp_password = None
+    smtp_use_tls = False
     subject_prefix = ''
 
     def report(self, exc_data):
         msg = self.assemble_email(exc_data)
         server = smtplib.SMTP(self.smtp_server)
+        if self.smtp_use_tls:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+        if self.smtp_username and self.smtp_password:
+            server.login(self.smtp_username, self.smtp_password)
         server.sendmail(self.from_address,
                         self.to_addresses, msg.as_string())
-        server.quit()
+        try:
+            server.quit()
+        except sslerror:
+            # sslerror is raised in tls connections on closing sometimes
+            pass
 
     def check_params(self):
         if not self.to_addresses:

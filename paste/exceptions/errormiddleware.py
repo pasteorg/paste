@@ -47,7 +47,8 @@ class ErrorMiddleware(object):
           If true, then errors will be printed to ``wsgi.errors`` 
           (frequently a server error log, or stderr).
 
-      ``from_address``, ``smtp_server``, ``error_subject_prefix``:
+      ``from_address``, ``smtp_server``, ``error_subject_prefix``,
+      ``smtp_username``, ``smtp_password``, ``smtp_use_tls``:
           variables to control the emailed exception reports
 
       ``error_message``:
@@ -85,6 +86,9 @@ class ErrorMiddleware(object):
                  show_exceptions_in_wsgi_errors=NoDefault,
                  from_address=None,
                  smtp_server=None,
+                 smtp_username=None,
+                 smtp_password=None,
+                 smtp_use_tls=False,
                  error_subject_prefix=None,
                  error_message=None,
                  xmlhttp_key=None):
@@ -113,6 +117,9 @@ class ErrorMiddleware(object):
         if smtp_server is None:
             smtp_server = global_conf.get('smtp_server', 'localhost')
         self.smtp_server = smtp_server
+        self.smtp_username = smtp_username or global_conf.get('smtp_username')
+        self.smtp_password = smtp_password or global_conf.get('smtp_password')
+        self.smtp_use_tls = smtp_use_tls or converters.asbool(global_conf.get('smtp_use_tls'))
         self.error_subject_prefix = error_subject_prefix or ''
         if error_message is None:
             error_message = global_conf.get('error_message')
@@ -173,6 +180,9 @@ class ErrorMiddleware(object):
             show_exceptions_in_wsgi_errors=self.show_exceptions_in_wsgi_errors,
             error_email_from=self.from_address,
             smtp_server=self.smtp_server,
+            smtp_username=self.smtp_username,
+            smtp_password=self.smtp_password,
+            smtp_use_tls=self.smtp_use_tls,
             error_subject_prefix=self.error_subject_prefix,
             error_message=self.error_message,
             simple_html_error=simple_html_error)
@@ -296,6 +306,9 @@ def handle_exception(exc_info, error_stream, html=True,
                      show_exceptions_in_wsgi_errors=False,
                      error_email_from='errors@localhost',
                      smtp_server='localhost',
+                     smtp_username=None, 
+                     smtp_password=None, 
+                     smtp_use_tls=False,
                      error_subject_prefix='',
                      error_message=None,
                      simple_html_error=False,
@@ -326,6 +339,9 @@ def handle_exception(exc_info, error_stream, html=True,
             to_addresses=error_email,
             from_address=error_email_from,
             smtp_server=smtp_server,
+            smtp_username=smtp_username,
+            smtp_password=smtp_password,
+            smtp_use_tls=smtp_use_tls,
             subject_prefix=error_subject_prefix)
         rep_err = send_report(rep, exc_data, html=html)
         if rep_err:
