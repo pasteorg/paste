@@ -23,6 +23,10 @@ svn trunk
 * ``paste.httpexceptions.HTTPExceptionHandler`` will no longer catch
   exceptions raised during the app_iter iteration.
 
+* ``paste.cascade.Cascade`` copies ``wsgi.input`` when cascading, so
+  that one of the applications cannot read the input and leave a later
+  application blocked when it tries to read the input.
+
 * Fix assigning to ``WSGIResponse.charset`` breaking the content-type.
 
 1.4.2
