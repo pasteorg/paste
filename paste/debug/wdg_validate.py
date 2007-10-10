@@ -59,9 +59,10 @@ class WDGValidateMiddleware(object):
                 app_iter.close()
         page = output.getvalue()
         status, headers = response
-        v = wsgilib.header_value(headers, 'content-type')
+        v = wsgilib.header_value(headers, 'content-type') or ''
         if (not v.startswith('text/html')
-            and not v.startswith('text/xhtml+xml')):
+            and not v.startswith('text/xhtml')
+            and not v.startswith('application/xhtml')):
             # Can't validate
             # @@: Should validate CSS too... but using what?
             return [page]
