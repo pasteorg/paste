@@ -29,6 +29,10 @@ svn trunk
 
 * Fix assigning to ``WSGIResponse.charset`` breaking the content-type.
 
+* SMTP authentication is supported for the exception handler.  You may
+  now set ``smtp_username``, ``smtp_password`` and ``smtp_use_tls`` to
+  control this behavior.  From pthy.
+
 1.4.2
 -----
 
