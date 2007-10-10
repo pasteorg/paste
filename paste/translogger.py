@@ -99,7 +99,7 @@ def make_filter(
     logging_level=logging.INFO,
     setup_console_handler=True,
     set_logger_level=logging.DEBUG):
-    from paste.deploy.converters import asbool
+    from paste.util.converters import asbool
     if isinstance(logging_level, basestring):
         logging_level = logging._levelNames[logging_level]
     if isinstance(set_logger_level, basestring):
