@@ -80,13 +80,16 @@ class Cascade(object):
         if length > 0:
             # We have to copy wsgi.input
             copy_wsgi_input = True
-            if length > 4096 or length == -1:
+            if length > 4096 or length < 0:
                 f = tempfile.TemporaryFile()
-                copy_len = length
-                while copy_len:
-                    chunk = environ['wsgi.input'].read(min(copy_len, 4096))
-                    f.write(chunk)
-                    copy_len -= len(chunk)
+                if length < 0:
+                    f.write(environ['wsgi.input'].read())
+                else:
+                    copy_len = length
+                    while copy_len > 0:
+                        chunk = environ['wsgi.input'].read(min(copy_len, 4096))
+                        f.write(chunk)
+                        copy_len -= len(chunk)
                 f.seek(0)
             else:
                 f = StringIO(environ['wsgi.input'].read(length))
