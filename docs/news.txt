@@ -3,8 +3,8 @@ News
 
 .. contents::
 
-svn trunk
----------
+1.5
+---
 
 * Fixed memory leak with ``paste.registry`` not properly removing
   all references to registered objects should register be called
