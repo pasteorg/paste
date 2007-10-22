@@ -76,7 +76,10 @@ class Cascade(object):
                 return _consuming_writer
             return start_response(status, headers, exc_info)
 
-        length = int(environ.get('CONTENT_LENGTH', '0'))
+        try:
+            length = int(environ.get('CONTENT_LENGTH', 0) or 0)
+        except ValueError:
+            length = 0
         if length > 0:
             # We have to copy wsgi.input
             copy_wsgi_input = True
