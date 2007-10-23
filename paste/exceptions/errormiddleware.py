@@ -47,8 +47,7 @@ class ErrorMiddleware(object):
           If true, then errors will be printed to ``wsgi.errors`` 
           (frequently a server error log, or stderr).
 
-      ``from_address``, ``smtp_server``, ``error_subject_prefix``,
-      ``smtp_username``, ``smtp_password``, ``smtp_use_tls``:
+      ``from_address``, ``smtp_server``, ``error_subject_prefix``, ``smtp_username``, ``smtp_password``, ``smtp_use_tls``:
           variables to control the emailed exception reports
 
       ``error_message``:

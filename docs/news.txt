@@ -3,8 +3,8 @@ News
 
 .. contents::
 
-svn trunk
----------
+1.5.1
+-----
 
 * Make ``paste.cascade`` more tolerant of a missing or invalid
   Content-Length.
