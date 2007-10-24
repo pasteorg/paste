@@ -116,6 +116,8 @@ class Cascade(object):
                         v.close()
             except self.catch_exceptions, e:
                 pass
+        if copy_wsgi_input:
+            environ['wsgi.input'].seek(0)
         return self.apps[-1](environ, start_response)
 
 def _consuming_writer(s):
