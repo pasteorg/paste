@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* Make the import of ``socket.sslerror`` conditional in
+  ``paste.exceptions.reporter`` (needed for Python interpreters
+  compiled without SSL support).
+
 1.5.1
 -----
 
