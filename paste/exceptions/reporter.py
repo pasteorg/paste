@@ -5,7 +5,10 @@ from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 import smtplib
 import time
-from socket import sslerror
+try:
+    from socket import sslerror
+except ImportError:
+    sslerror = None
 from paste.exceptions import formatter
 
 class Reporter(object):
