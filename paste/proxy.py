@@ -194,7 +194,7 @@ class TransparentProxy(object):
                 key = key[5:].lower().replace('_', '-')
                 headers[key] = value
         headers['host'] = host
-        if 'REMOTE_ADDR' in environ:
+        if 'REMOTE_ADDR' in environ and 'HTTP_X_FORWARDED_FOR' not in environ:
             headers['x-forwarded-for'] = environ['REMOTE_ADDR']
         if environ.get('CONTENT_TYPE'):
             headers['content-type'] = environ['CONTENT_TYPE']
