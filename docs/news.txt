@@ -10,6 +10,9 @@ svn trunk
   ``paste.exceptions.reporter`` (needed for Python interpreters
   compiled without SSL support).
 
+* In ``paste.proxy.TransparentProxy``, don't overwrite
+  ``X-Forwarded-For`` header if it is already in the environment.
+
 1.5.1
 -----
 
