@@ -134,10 +134,10 @@ class WSGIHandlerMixin:
             #
             send_close = True
             for (k, v) in  headers:
-                k = k.lower()
-                if 'content-length' == k:
+                lk = k.lower()
+                if 'content-length' == lk:
                     send_close = False
-                if 'connection' == k:
+                if 'connection' == lk:
                     if 'close' == v.lower():
                         self.close_connection = 1
                         send_close = False
