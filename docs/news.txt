@@ -22,6 +22,8 @@ svn trunk
   ``paste.httpserver``, avoiding some possible errors (``sslv3 alert
   bad record mac``).
 
+* Fix small issue with ``paste.cgiapp`` and mod_wsgi.
+
 1.5.1
 -----
 
