@@ -247,7 +247,11 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
                 data = proc._translate_newlines(data)
             stderr.write(data)
 
-    proc.wait()
+    try:
+        proc.wait()
+    except OSError, e:
+        if e.errno != 10:
+            raise
     
 def make_cgi_application(global_conf, script, path=None, include_os_environ=None,
                          query_string=None):
