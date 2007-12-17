@@ -15,6 +15,9 @@ svn trunk
 
 * Added ``226 IM Used`` status code to ``paste.wsgiwrappers``
 
+* In ``paste.fixture.TestApp`` treat ``<image type="image">`` the same
+  as a submit button.
+
 1.5.1
 -----
 
