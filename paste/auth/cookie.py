@@ -131,7 +131,7 @@ class AuthCookieSigner(object):
         need to be escaped and quoted).  The expiration of this
         cookie is handled server-side in the auth() function.
         """
-        cookie = base64.b64encode(
+        cookie = base64.encodestring(
             hmac.new(self.secret, content, sha).digest() +
             make_time(time.time() + 60*self.timeout) +
             content).replace("/", "_").replace("=", "~")
@@ -144,7 +144,7 @@ class AuthCookieSigner(object):
         Authenticate the cooke using the signature, verify that it
         has not expired; and return the cookie's content
         """
-        decode = base64.b64decode(
+        decode = base64.decodestring(
             cookie.replace("_", "/").replace("~", "="))
         signature = decode[:_signature_size]
         expires = decode[_signature_size:_header_size]
