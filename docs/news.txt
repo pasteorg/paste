@@ -13,6 +13,8 @@ svn trunk
 * In ``paste.proxy.TransparentProxy``, don't overwrite
   ``X-Forwarded-For`` header if it is already in the environment.
 
+* Added ``226 IM Used`` status code to ``paste.wsgiwrappers``
+
 1.5.1
 -----
 
