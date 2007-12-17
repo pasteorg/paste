@@ -18,6 +18,10 @@ svn trunk
 * In ``paste.fixture.TestApp`` treat ``<image type="image">`` the same
   as a submit button.
 
+* Use ``OpenSSL.tsafe.Connection`` for https with
+  ``paste.httpserver``, avoiding some possible errors (``sslv3 alert
+  bad record mac``).
+
 1.5.1
 -----
 
