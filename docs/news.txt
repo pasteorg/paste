@@ -24,6 +24,9 @@ svn trunk
 
 * Fix small issue with ``paste.cgiapp`` and mod_wsgi.
 
+* Use ``BaseCookie`` instead of ``SimpleCookie`` for storing cookies
+  (avoids quoting cookie values).
+
 1.5.1
 -----
 
