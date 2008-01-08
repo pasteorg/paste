@@ -298,7 +298,7 @@ Lets's update that::
             webinfo.request = Request(environ)
             webinfo.response = Response()
             obj = self.find_object(self.root, environ)
-            response_body = obj(**webinfo.request.fields)
+            response_body = obj(**dict(webinfo.request.fields))
             start_response('200 OK', webinfo.response.headers.items())
             return [response_body]
 
