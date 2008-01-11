@@ -492,6 +492,7 @@ def intercept_output(environ, application, conditional=None,
             def replacement_app(environ, start_response):
                 status, headers, body = intercept_output(
                     environ, application)
+                start_response(status, headers)
                 content_type = header_value(headers, 'content-type')
                 if (not content_type
                     or not content_type.startswith('text/html')):
@@ -517,6 +518,7 @@ def intercept_output(environ, application, conditional=None,
                     start_response)
                 if status is None:
                     return body
+                start_response(status, headers)
                 body = re.sub(r'<.*?>', '', body)
                 return [body]
             return replacement_app
