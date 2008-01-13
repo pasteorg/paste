@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+1.6.1
+-----
+
+* Fixed bug in paste lint where PATH_INFO would become unicode.
+
 1.6
 ---
 
