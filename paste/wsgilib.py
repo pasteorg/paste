@@ -304,6 +304,8 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     if path:
         (_, _, path_info, query, fragment) = urlsplit(str(path))
         path_info = urllib.unquote(path_info)
+        # urlsplit returns unicode so coerce it back to str
+        path_info, query = str(path_info), str(query)
         basic_environ['PATH_INFO'] = path_info
         if query:
             basic_environ['QUERY_STRING'] = query
