@@ -464,7 +464,10 @@ class LimitedLengthFile(object):
         return data
 
     def readline(self, *args):
-        data = self.file.readline(self.length - self._consumed)
+        max_read = self.length - self._consumed
+        if len(args):
+            max_read = min(args[0], max_read
+        data = self.file.readline(max_read)
         self._consumed += len(data)
         return data
 
