@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* Fixed bug in `paste.httpserver` where
+  ``environ['wsgi.input'].readline(max_size)`` ignored the max_size
+  argument, which can lead to large memory usage (from Jakub Stolarski)
+
 1.6.1
 -----
 
