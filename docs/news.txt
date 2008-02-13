@@ -10,6 +10,9 @@ svn trunk
   ``environ['wsgi.input'].readline(max_size)`` ignored the max_size
   argument, which can lead to large memory usage (from Jakub Stolarski)
 
+* Make `paste.cascade` notice sockets that have stopped producing
+  data.  From Casey Zednick.
+
 1.6.1
 -----
 
