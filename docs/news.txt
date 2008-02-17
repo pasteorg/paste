@@ -13,6 +13,10 @@ svn trunk
 * Make `paste.cascade` notice sockets that have stopped producing
   data.  From Casey Zednick.
 
+* In ``paste.fixture.TestApp`` Accept MultiDict values for the
+  ``params`` argument in requests.  (Anything with a ``.items()``
+  method will have its items encoded as the request parameters.)
+
 1.6.1
 -----
 

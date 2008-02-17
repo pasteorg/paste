@@ -12,4 +12,7 @@ def test_fixture():
     res = app.delete('/')
     assert (res.request.environ['REQUEST_METHOD'] ==
             'DELETE')
-    
+    class FakeDict(object):
+        def items(self):
+            return [('a', '10'), ('a', '20')]
+    res = app.post('/params', params=FakeDict())
