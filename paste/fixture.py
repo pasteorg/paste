@@ -221,6 +221,9 @@ class TestApp(object):
         # @@: Should this be all non-strings?
         if isinstance(params, (list, tuple, dict)):
             params = urllib.urlencode(params)
+        if hasattr(params, 'items'):
+            # Some other multi-dict like format
+            params = urllib.urlencode(params.items())
         if upload_files:
             params = cgi.parse_qsl(params, keep_blank_values=True)
             content_type, params = self.encode_multipart(
