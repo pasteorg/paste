@@ -18,7 +18,6 @@ import time
 import cgi
 import os
 import shutil
-import webbrowser
 import smtplib
 import shlex
 from Cookie import BaseCookie
@@ -843,6 +842,7 @@ class TestResponse(object):
         Show this response in a browser window (for debugging purposes,
         when it's hard to read the HTML).
         """
+        import webbrowser
         fn = tempnam_no_warning(None, 'paste-fixture') + '.html'
         f = open(fn, 'wb')
         f.write(self.body)
