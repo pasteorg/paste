@@ -195,7 +195,6 @@ import keyword
 import token
 import tokenize
 import traceback
-import webbrowser
 try :
     import cStringIO as StringIO
 except:
@@ -1168,6 +1167,7 @@ def walkdir(dir):
 def showpage(path):
     """Helper function to open webpages"""
     try:
+        import webbrowser
         webbrowser.open_new(os.path.abspath(path))
     except:
         traceback.print_exc()
