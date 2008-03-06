@@ -133,7 +133,9 @@ class SessionFactory(object):
         id() is incorporated into the generation.  Relies on md5 and
         returns a 32 character long string.
         """
-        r = [time.time(), random.random(), os.times()]
+        r = [time.time(), random.random()]
+        if hasattr(os, 'times'):
+            r.append(os.times())
         if for_object is not None:
             r.append(id(for_object))
         md5_hash = md5.new(str(r))
