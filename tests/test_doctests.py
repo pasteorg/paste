@@ -1,4 +1,4 @@
-import doctest
+from paste.util import doctest24 as doctest
 from paste.util.import_string import simple_import
 import os
 
