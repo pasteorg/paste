@@ -1241,7 +1241,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
                 ssl_context.use_certificate_chain_file(ssl_pem)
 
     host = host or '127.0.0.1'
-    if not port:
+    if port is None:
         if ':' in host:
             host, port = host.split(':', 1)
         else:

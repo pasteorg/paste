@@ -17,6 +17,8 @@ svn trunk
   ``params`` argument in requests.  (Anything with a ``.items()``
   method will have its items encoded as the request parameters.)
 
+* Fix `paste.httpserver` to allow binding to port 0.
+
 1.6.1
 -----
 
