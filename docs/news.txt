@@ -19,6 +19,9 @@ svn trunk
 
 * Fix `paste.httpserver` to allow binding to port 0.
 
+* In ``paste.auth.auth_tkt``, set the same cookies (with the same
+  domains) in ``set_cookie`` as get unset in ``logout_user_cookie``.
+
 1.6.1
 -----
 
