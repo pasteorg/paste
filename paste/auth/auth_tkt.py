@@ -299,9 +299,16 @@ class AuthTKTMiddleware(object):
             secure=self.secure)
         # @@: Should we set REMOTE_USER etc in the current
         # environment right now as well?
+        cur_domain = environ.get('HTTP_HOST', environ.get('SERVER_NAME'))
+        wild_domain = '.' + cur_domain
         cookies = [
             ('Set-Cookie', '%s=%s; Path=/' % (
-            self.cookie_name, ticket.cookie_value()))]
+            self.cookie_name, ticket.cookie_value())),
+            ('Set-Cookie', '%s=%s; Path=/; Domain=%s' % (
+            self.cookie_name, ticket.cookie_value(), cur_domain)),
+            ('Set-Cookie', '%s=%s; Path=/; Domain=%s' % (
+            self.cookie_name, ticket.cookie_value(), wild_domain))
+            ]
         return cookies
     
     def logout_user_cookie(self, environ):
