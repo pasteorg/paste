@@ -27,5 +27,8 @@ def test_req():
     assert doit('127.0.0.1') == 'None:system'
     assert doit('192.168.15.12') == 'None:worker'
     assert doit('192.168.0.4') == 'None:worker'
-    assert doit('192.168.0.5') == 'bob:editor,worker'
+    result = doit('192.168.0.5')
+    assert result.startswith('bob:')
+    assert 'editor' in result and 'worker' in result
+    assert result.count(',') == 1
     assert doit('192.168.0.8') == 'None:editor'
