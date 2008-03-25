@@ -63,8 +63,7 @@ def html_unquote(s, encoding=None):
 def strip_html(s):
     # should this use html_unquote?
     s = re.sub('<.*?>', '', s)
-    s = s.replace('&nbsp;', ' ').replace('&lt;', '<')
-    s = s.replace('&gt;', '>').replace('&amp;','&')
+    s = html_unquote(s)
     return s
 
 def no_quote(s):
