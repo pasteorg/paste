@@ -54,6 +54,7 @@ class TransLogger(object):
                                + environ.get('PATH_INFO', ''))
         if environ.get('QUERY_STRING'):
             req_uri += '?'+environ['QUERY_STRING']
+        method = environ['REQUEST_METHOD']
         def replacement_start_response(status, headers, exc_info=None):
             # @@: Ideally we would count the bytes going by if no
             # content-length header was provided; but that does add
@@ -62,11 +63,11 @@ class TransLogger(object):
             for name, value in headers:
                 if name.lower() == 'content-length':
                     bytes = value
-            self.write_log(environ, req_uri, start, status, bytes)
+            self.write_log(environ, method, req_uri, start, status, bytes)
             return start_response(status, headers)
         return self.application(environ, replacement_start_response)
 
-    def write_log(self, environ, req_uri, start, status, bytes):
+    def write_log(self, environ, method, req_uri, start, status, bytes):
         if bytes is None:
             bytes = '-'
         if time.daylight:
@@ -80,7 +81,7 @@ class TransLogger(object):
         d = {
             'REMOTE_ADDR': environ.get('REMOTE_ADDR') or '-',
             'REMOTE_USER': environ.get('REMOTE_USER') or '-',
-            'REQUEST_METHOD': environ['REQUEST_METHOD'],
+            'REQUEST_METHOD': method,
             'REQUEST_URI': req_uri,
             'HTTP_VERSION': environ.get('SERVER_PROTOCOL'),
             'time': time.strftime('%d/%b/%Y:%H:%M:%S ', start) + offset,
