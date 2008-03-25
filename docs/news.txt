@@ -22,6 +22,10 @@ svn trunk
 * In ``paste.auth.auth_tkt``, set the same cookies (with the same
   domains) in ``set_cookie`` as get unset in ``logout_user_cookie``.
 
+* In ``paste.translogger`` save REQUEST_METHOD in case it gets
+  overridden somewhere (e.g., when using errordocuments POST would
+  show up as GET).
+
 1.6.1
 -----
 
