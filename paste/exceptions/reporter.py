@@ -93,7 +93,7 @@ class EmailReporter(Reporter):
         msg.attach(html_msg)
         msg.attach(html_long)
         subject = '%s: %s' % (exc_data.exception_type,
-                           formatter.truncate(str(exc_data.exception_value)))
+                              formatter.truncate(str(exc_data.exception_value)))
         msg['Subject'] = self.subject_prefix + subject
         msg['From'] = self.from_address
         msg['To'] = ', '.join(self.to_addresses)

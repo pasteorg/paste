@@ -76,7 +76,7 @@ def test_redapp():
         '302 Found\n'
         'This resource was found at /bing/foo;\n'
         'you should be redirected automatically.\n')
-    assert "text/plain" == header_value(saved[1][1],'content-type')
+    assert "text/plain; charset=utf8" == header_value(saved[1][1],'content-type')
     assert "/bing/foo" == header_value(saved[1][1],'location')
 
 def test_misc():
