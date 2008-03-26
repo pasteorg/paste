@@ -32,7 +32,7 @@ class ProfileMiddleware(object):
     only usable in development environments.
     """
 
-    style = ('background-color: #ff9; color: #000; '
+    style = ('clear: both; background-color: #ff9; color: #000; '
              'border: 2px solid #000; padding: 5px;')
 
     def __init__(self, app, global_conf=None,
@@ -68,7 +68,7 @@ class ProfileMiddleware(object):
             body = ''.join(body)
             headers = catch_response[1]
             content_type = response.header_value(headers, 'content-type')
-            if not content_type.startswith('text/html'):
+            if content_type is None or not content_type.startswith('text/html'):
                 # We can't add info to non-HTML output
                 return [body]
             stats = hotshot.stats.load(self.log_filename)
