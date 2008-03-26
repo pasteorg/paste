@@ -792,6 +792,9 @@ class TestResponse(object):
         """
         if not isinstance(s, (str, unicode)):
             s = str(s)
+        if isinstance(s, unicode):
+            ## FIXME: we don't know that this response uses utf8:
+            s = s.encode('utf8')
         return (self.body.find(s) != -1
                 or self.normal_body.find(s) != -1)
 
