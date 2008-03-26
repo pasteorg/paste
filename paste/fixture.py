@@ -372,7 +372,8 @@ class TestApp(object):
             c = BaseCookie()
             for name, value in self.cookies.items():
                 c[name] = value
-            req.environ['HTTP_COOKIE'] = str(c).split(': ', 1)[1]
+            hc = '; '.join(['='.join([m.key, m.value]) for m in c.values()])
+            req.environ['HTTP_COOKIE'] = hc
         req.environ['paste.testing'] = True
         req.environ['paste.testing_variables'] = {}
         app = lint.middleware(self.app)
