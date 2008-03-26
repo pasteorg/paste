@@ -276,7 +276,7 @@ class WSGIRequest(object):
         msg += '\nscheme=%s, host=%s, script_name=%s, path_info=%s,' % \
             (pf(self.scheme), pf(self.host), pf(self.script_name),
              pf(self.path_info))
-        msg += '\nlanguges=%s,' % pf(self.languages)
+        msg += '\nlanguages=%s,' % pf(self.languages)
         if self.charset:
             msg += ' charset=%s, errors=%s,' % (pf(self.charset),
                                                 pf(self.errors))
