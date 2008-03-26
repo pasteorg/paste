@@ -26,6 +26,8 @@ svn trunk
   overridden somewhere (e.g., when using errordocuments POST would
   show up as GET).
 
+* Exceptions with unicode messages don't cause the collector to fail.
+
 1.6.1
 -----
 

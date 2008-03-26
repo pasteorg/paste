@@ -44,6 +44,9 @@ def bad_app():
     "No argument list!"
     return None
 
+def unicode_bad_app(environ, start_response):
+    raise ValueError(u"\u1000")
+
 def start_response_app(environ, start_response):
     "raise error before start_response"
     raise ValueError("hi")
@@ -76,20 +79,22 @@ def test_makes_exception():
     assert 'paste.lint' in res
     assert 'paste.exceptions.errormiddleware' in res
 
+def test_unicode_exception():
+    res = do_request(unicode_bad_app)
+    
+
 def test_start_res():
     res = do_request(start_response_app)
     res = strip_html(str(res))
-    #print res
     assert 'ValueError: hi' in res
     assert 'test_error_middleware' in res
-    assert ':49 in start_response_app' in res
+    assert ':52 in start_response_app' in res
 
 def test_after_start():
     res = do_request(after_start_response_app, 200)
     res = strip_html(str(res))
     #print res
     assert 'ValueError: error2' in res
-    assert ':53' in res
 
 def test_iter_app():
     res = do_request(lint.middleware(iter_app), 200)
