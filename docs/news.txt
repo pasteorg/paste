@@ -34,6 +34,10 @@ svn trunk
 * ``paste.fixture.TestApp`` can store multiple cookie values
   (previously only one cookie was stored; from Andrey Lebedev)
 
+* ``u'' in TestApp(app).get('/')`` will work when the body isn't ASCII
+  (before it would give a unicode error).  This problem wasn't present
+  in the recommended `WebTest <http://pythonpaste.org/webtest/>`_.
+
 1.6.1
 -----
 
