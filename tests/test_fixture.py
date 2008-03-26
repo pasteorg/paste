@@ -16,3 +16,13 @@ def test_fixture():
         def items(self):
             return [('a', '10'), ('a', '20')]
     res = app.post('/params', params=FakeDict())
+
+    # test multiple cookies in one request
+    app.cookies['one'] = 'first';
+    app.cookies['two'] = 'second';
+    app.cookies['three'] = '';
+    res = app.get('/')
+    hc = res.request.environ['HTTP_COOKIE'].split('; ');
+    assert ('one=first' in hc)
+    assert ('two=second' in hc)
+    assert ('three=' in hc)
