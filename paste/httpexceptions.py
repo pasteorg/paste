@@ -616,6 +616,10 @@ class HTTPExceptionHandler(object):
     ``HTTPException``) and turns them into proper HTTP responses.
     Note if the headers have already been sent, the stack trace is
     always maintained as this indicates a programming error.
+
+    Note that you must raise the exception before returning the
+    app_iter, and you cannot use this with generator apps that don't
+    raise an exception until after their app_iter is iterated over.
     """
 
     def __init__(self, application, warning_level=None):
