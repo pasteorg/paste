@@ -38,6 +38,9 @@ svn trunk
   (before it would give a unicode error).  This problem wasn't present
   in the recommended `WebTest <http://pythonpaste.org/webtest/>`_.
 
+* ``paste.debug.profile`` won't break when content is served with no
+  Content-Type.
+
 1.6.1
 -----
 
