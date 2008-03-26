@@ -33,6 +33,7 @@ import warnings
 
 DEBUG_EXCEPTION_FORMATTER = True
 DEBUG_IDENT_PREFIX = 'E-'
+FALLBACK_ENCODING = 'UTF-8'
 
 __all__ = ['collect_exception', 'ExceptionCollector']
 
@@ -364,7 +365,7 @@ class ExceptionCollector(object):
             frames=frames,
             exception_formatted=self.collectExceptionOnly(etype, value),
             exception_type=etype,
-            exception_value=str(value),
+            exception_value=self.safeStr(value),
             identification_code=ident,
             date=time.localtime(),
             extra_data=extra_data)
@@ -378,6 +379,17 @@ class ExceptionCollector(object):
             except:
                 pass
         return result
+
+    def safeStr(self, obj):
+        try:
+            return str(obj)
+        except UnicodeEncodeError:
+            try:
+                return unicode(obj).encode(FALLBACK_ENCODING, 'replace')
+            except UnicodeEncodeError:
+                # This is when something is really messed up, but this can
+                # happen when the __str__ of an object has to handle unicode
+                return repr(obj)
 
 limit = 200
 
