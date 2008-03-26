@@ -28,6 +28,9 @@ svn trunk
 
 * Exceptions with unicode messages don't cause the collector to fail.
 
+* Sometimes ErrorMiddleware would not call start_response properly;
+  this is fixed (from inducer).
+
 1.6.1
 -----
 

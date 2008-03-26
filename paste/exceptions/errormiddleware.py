@@ -140,8 +140,9 @@ class ErrorMiddleware(object):
 
         try:
             __traceback_supplement__ = Supplement, self, environ
-            app_iter = self.application(environ, start_response)
-            return self.make_catching_iter(app_iter, environ)
+            sr_checker = ResponseStartChecker(start_response)
+            app_iter = self.application(environ, sr_checker)
+            return self.make_catching_iter(app_iter, environ, sr_checker)
         except:
             exc_info = sys.exc_info()
             try:
@@ -158,11 +159,11 @@ class ErrorMiddleware(object):
                 # clean up locals...
                 exc_info = None
 
-    def make_catching_iter(self, app_iter, environ):
+    def make_catching_iter(self, app_iter, environ, sr_checker):
         if isinstance(app_iter, (list, tuple)):
             # These don't raise
             return app_iter
-        return CatchingIter(app_iter, environ, self)
+        return CatchingIter(app_iter, environ, sr_checker, self)
 
     def exception_handler(self, exc_info, environ):
         simple_html_error = False
@@ -186,6 +187,15 @@ class ErrorMiddleware(object):
             error_message=self.error_message,
             simple_html_error=simple_html_error)
 
+class ResponseStartChecker(object):
+    def __init__(self, start_response):
+        self.start_response = start_response
+        self.response_started = False
+
+    def __call__(self, *args):
+        self.response_started = True
+        self.start_response(*args)
+
 class CatchingIter(object):
 
     """
@@ -194,10 +204,11 @@ class CatchingIter(object):
     display or report as necessary.
     """
 
-    def __init__(self, app_iter, environ, error_middleware):
+    def __init__(self, app_iter, environ, start_checker, error_middleware):
         self.app_iterable = app_iter
         self.app_iterator = iter(app_iter)
         self.environ = environ
+        self.start_checker = start_checker
         self.error_middleware = error_middleware
         self.closed = False
 
@@ -221,12 +232,19 @@ class CatchingIter(object):
         except:
             self.closed = True
             close_response = self._close()
+            exc_info = sys.exc_info()
             response = self.error_middleware.exception_handler(
-                sys.exc_info(), self.environ)
+                exc_info, self.environ)
             if close_response is not None:
                 response += (
                     '<hr noshade>Error in .close():<br>%s'
                     % close_response)
+
+            if not self.start_checker.response_started:
+                self.start_checker('500 Internal Server Error',
+                               [('content-type', 'text/html')],
+                               exc_info)
+
             return response
 
     def close(self):
