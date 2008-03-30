@@ -3,6 +3,12 @@ from paste.urlparser import *
 from paste.fixture import *
 from pkg_resources import get_distribution
 
+def relative_path(name):
+    here = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        'urlparser_data')
+    f = os.path.join('urlparser_data', '..', 'urlparser_data', name)
+    return os.path.join(here, f)
+
 def path(name):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         'urlparser_data', name)
@@ -57,7 +63,7 @@ def test_deep():
     assert 'http://localhost/sub/' in res
     res = app.get('/sub/')
     assert 'index3' in res
-    
+
 def test_python():
     app = make_app('python')
     res = app.get('/simpleapp')
@@ -68,14 +74,14 @@ def test_python():
     assert 'test2' in res
     res = app.get('/sub/simpleapp')
     assert 'subsimple' in res
-    
+
 def test_hook():
     app = make_app('hook')
     res = app.get('/bob/app')
     assert 'user: bob' in res
     res = app.get('/tim/')
     assert 'index: tim' in res
-    
+
 def test_not_found_hook():
     app = make_app('not_found')
     res = app.get('/simple/notfound')
@@ -94,7 +100,12 @@ def test_not_found_hook():
     res = app.get('/user/bob/list')
     assert res.status == 200
     assert 'user: bob' in res
-    
+
+def test_relative_path_in_static_parser():
+    x = relative_path('find_file')
+    app = StaticURLParser(relative_path('find_file'))
+    assert '..' not in app.root_directory
+
 def test_static_parser():
     app = StaticURLParser(path('find_file'))
     testapp = TestApp(app)
@@ -129,7 +140,7 @@ def test_egg_parser():
     res = testapp.get('/util/classinit', status=404)
     res = testapp.get('/util', status=301)
     res = testapp.get('/util/classinit.py/foo', status=404)
-    
+
     # Find a readable file in the Paste pkg's root directory (or upwards the
     # directory tree). Ensure it's not accessible via the URLParser
     unreachable_test_file = None
@@ -158,4 +169,4 @@ def test_egg_parser():
     res = testapp.get(unreachable_path, status=404)
     res = testapp.get('/util/..' + unreachable_path, status=404)
     res = testapp.get(unreachable_path_quoted, status=404)
-    res = testapp.get('/util/%2e%2e' + unreachable_path_quoted, status=404)    
+    res = testapp.get('/util/%2e%2e' + unreachable_path_quoted, status=404)

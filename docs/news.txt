@@ -41,6 +41,9 @@ svn trunk
 * ``paste.debug.profile`` won't break when content is served with no
   Content-Type.
 
+* Accept relative paths and paths with ``/../`` in them for
+  ``paste.urlparser.StaticURLParser`` (from Eric Larson)
+
 1.6.1
 -----
 
