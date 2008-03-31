@@ -120,6 +120,18 @@ class StackedObjectProxy(object):
         self.__dict__['____local__'] = threadinglocal.local()
         if default is not NoDefault:
             self.__dict__['____default_object__'] = default
+
+    def __dir__(self):
+        """Return a list of the StackedObjectProxy's and proxied
+        object's (if one exists) names.
+        """
+        dir_list = dir(self.__class__) + self.__dict__.keys()
+        try:
+            dir_list.extend(dir(self._current_obj()))
+        except TypeError:
+            pass
+        dir_list.sort()
+        return dir_list
     
     def __getattr__(self, attr):
         return getattr(self._current_obj(), attr)
