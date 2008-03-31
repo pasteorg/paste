@@ -44,6 +44,9 @@ svn trunk
 * Accept relative paths and paths with ``/../`` in them for
   ``paste.urlparser.StaticURLParser`` (from Eric Larson)
 
+* ``StackedObjectProxy``'s now include the proxied object's names via
+  ``__dir__`` (for Python 2.6).
+
 1.6.1
 -----
 
