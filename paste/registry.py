@@ -335,13 +335,17 @@ class RegistryManager(object):
     object which is a Registry instance.
         
     """
-    def __init__(self, application):
+    def __init__(self, application, streaming=False):
         self.application = application
+        self.streaming = streaming
         
     def __call__(self, environ, start_response):
         app_iter = None
         reg = environ.setdefault('paste.registry', Registry())
         reg.prepare()
+        if self.streaming:
+            return self.streaming_iter(reg, environ, start_response)
+        
         try:
             app_iter = self.application(environ, start_response)
         except Exception, e:
@@ -370,6 +374,36 @@ class RegistryManager(object):
             reg.cleanup()
         
         return app_iter
+    
+    def streaming_iter(self, reg, environ, start_response):
+        try:
+            for item in self.application(environ, start_response):
+                yield item
+        except Exception, e:
+            # Regardless of if the content is an iterable, generator, list
+            # or tuple, we clean-up right now. If its an iterable/generator
+            # care should be used to ensure the generator has its own ref
+            # to the actual object
+            if environ.get('paste.evalexception'):
+                # EvalException is present in the WSGI stack
+                expected = False
+                for expect in environ.get('paste.expected_exceptions', []):
+                    if isinstance(e, expect):
+                        expected = True
+                if not expected:
+                    # An unexpected exception: save state for EvalException
+                    restorer.save_registry_state(environ)
+            reg.cleanup()
+            raise
+        except:
+            # Save state for EvalException if it's present
+            if environ.get('paste.evalexception'):
+                restorer.save_registry_state(environ)
+            reg.cleanup()
+            raise
+        else:
+            reg.cleanup()
+
 
 class StackedObjectRestorer(object):
     """Track StackedObjectProxies and their proxied objects for automatic
