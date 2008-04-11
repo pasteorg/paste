@@ -47,6 +47,9 @@ svn trunk
 * ``StackedObjectProxy``'s now include the proxied object's names via
   ``__dir__`` (for Python 2.6).
 
+* Use ``environ['wsgi.file_wrapper']`` when available (in
+  ``paste.fileapp``).
+
 1.6.1
 -----
 
