@@ -230,7 +230,11 @@ class FileApp(DataApp):
         if is_head:
             return ['']
         file.seek(lower)
-        return _FileIter(file, size=content_length)
+        file_wrapper = environ.get('wsgi.file_wrapper', None)
+        if file_wrapper:
+            return file_wrapper(file, BLOCK_SIZE)
+        else:
+            return _FileIter(file, size=content_length)
 
 class _FileIter(object):
 
