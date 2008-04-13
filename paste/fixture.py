@@ -1525,7 +1525,7 @@ class ProcResult(object):
 
     def assert_no_error(self):
         __tracebackhide__ = True
-        assert self.returncode is 0, (
+        assert self.returncode == 0, (
             "Script returned code: %s" % self.returncode)
 
     def assert_no_stderr(self):
