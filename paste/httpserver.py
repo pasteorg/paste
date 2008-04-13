@@ -241,19 +241,19 @@ class WSGIHandlerMixin:
                 address_string = None # self.address_string()
                 if address_string:
                     self.wsgi_environ['REMOTE_HOST'] = address_string
-                
+
         if hasattr(self.server, 'thread_pool'):
             # Now that we know what the request was for, we should
             # tell the thread pool what its worker is working on
             self.server.thread_pool.worker_tracker[thread.get_ident()][1] = self.wsgi_environ
             self.wsgi_environ['paste.httpserver.thread_pool'] = self.server.thread_pool
-        
+
         for k, v in self.headers.items():
             key = 'HTTP_' + k.replace("-","_").upper()
             if key in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
                 continue
             self.wsgi_environ[key] = ','.join(self.headers.getheaders(k))
-        
+
         if hasattr(self.connection,'get_context'):
             self.wsgi_environ['wsgi.url_scheme'] = 'https'
             # @@: extract other SSL parameters from pyOpenSSL at...
@@ -435,7 +435,7 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
 
     def address_string(self):
         """Return the client address formatted for logging.
-        
+
         This is overridden so that no hostname lookup is done.
         """
         return ''
@@ -543,7 +543,7 @@ class ThreadPool(object):
     dies and replaces itself with a new worker thread.
     """
 
-    
+
     SHUTDOWN = object()
 
     def __init__(
@@ -1010,7 +1010,7 @@ class ThreadPool(object):
         server.sendmail(from_address, error_emails, message)
         server.quit()
         print 'email sent to', error_emails, message
-        
+
 class ThreadPoolMixIn(object):
     """
     Mix-in class to process requests from a thread pool
@@ -1316,7 +1316,7 @@ def server_runner(wsgi_app, global_conf, **kwargs):
     kwargs['threadpool_options'] = threadpool_options
     serve(wsgi_app, **kwargs)
 
-server_runner.__doc__ = serve.__doc__ + """
+server_runner.__doc__ = (serve.__doc__ or '') + """
 
     You can also set these threadpool options:
 
