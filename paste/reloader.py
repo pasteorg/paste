@@ -79,9 +79,12 @@ class Monitor(object):
         filenames = self.extra_files[:]
         for module in sys.modules.values():
             try:
-                filenames.append(module.__file__)
+                filename = module.__file__
             except AttributeError:
                 continue
+            if filename is None:
+                continue
+            filenames.append(filename)
         for filename in filenames:
             try:
                 stat = os.stat(filename)
