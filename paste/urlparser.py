@@ -455,7 +455,7 @@ class StaticURLParser(object):
         else:
             filename = request.path_info_pop(environ)
         full = os.path.normcase(os.path.normpath(
-                os.path.join(self.directory, filename))))
+            os.path.join(self.directory, filename)))
         if os.path.sep != '/':
             full = full.replace('/', os.path.sep)
         if self.root_directory is not None and not full.startswith(self.root_directory):
