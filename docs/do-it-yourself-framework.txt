@@ -5,6 +5,12 @@ A Do-It-Yourself Framework
 :revision: $Rev$
 :date: $LastChangedDate$
 
+This tutorial has been translated `into Portuguese
+<http://montegasppa.blogspot.com/2007/06/um-framework-faa-voc-mesmo.html>`_.
+
+A newer version of this article is available `using WebOb
+<http://pythonpaste.org/webob/do-it-yourself.html>`_.
+
 .. contents::
 
 .. comments:
