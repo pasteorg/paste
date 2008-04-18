@@ -454,7 +454,8 @@ class StaticURLParser(object):
             filename = 'index.html'
         else:
             filename = request.path_info_pop(environ)
-        full = os.path.normpath(os.path.join(self.directory, filename))
+        full = os.path.normcase(os.path.normpath(
+                os.path.join(self.directory, filename))))
         if os.path.sep != '/':
             full = full.replace('/', os.path.sep)
         if self.root_directory is not None and not full.startswith(self.root_directory):
@@ -564,7 +565,8 @@ class PkgResourcesParser(StaticURLParser):
             filename = 'index.html'
         else:
             filename = request.path_info_pop(environ)
-        resource = os.path.normpath(self.resource_name + '/' + filename)
+        resource = os.path.normcase(os.path.normpath(
+                    self.resource_name + '/' + filename))
         if self.root_resource is not None and not resource.startswith(self.root_resource):
             # Out of bounds
             return self.not_found(environ, start_response)

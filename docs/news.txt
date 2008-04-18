@@ -42,7 +42,9 @@ svn trunk
   Content-Type.
 
 * Accept relative paths and paths with ``/../`` in them for
-  ``paste.urlparser.StaticURLParser`` (from Eric Larson)
+  ``paste.urlparser.StaticURLParser`` (from Eric Larson).  Also fix
+  problem with case normalization on Windows (from Ionel Maries
+  Cristian).
 
 * ``StackedObjectProxy``'s now include the proxied object's names via
   ``__dir__`` (for Python 2.6).
