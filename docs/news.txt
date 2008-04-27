@@ -52,6 +52,8 @@ svn trunk
 * Use ``environ['wsgi.file_wrapper']`` when available (in
   ``paste.fileapp``).
 
+* Make ``paste.debug.prints` compatible with App Engine.
+
 1.6.1
 -----
 
