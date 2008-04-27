@@ -1,5 +1,34 @@
 Python Paste
-++++++++++++
+============
+
+Contents:
+
+.. toctree::
+   :maxdepth: 1
+
+   news
+   testing-applications
+   url-parsing-with-wsgi
+   do-it-yourself-framework
+   paste-httpserver-threadpool
+   developer-features
+   DeveloperGuidelines
+   StyleGuide
+   paste-httpserver-threadpool
+   testing-applications
+   url-parsing-with-wsgi
+   community/index.txt
+   community/mailing-list.txt
+   community/repository.txt
+   download/index.txt
+   license
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 
 .. comment:
 
@@ -21,96 +50,16 @@ Python Paste
    DSL? DSF!
    Paste: Comfort for the framework-scarred
 
-Python Paste brings consistency to Python web development and web
-application installation, providing tools for both developers and
-system administrators.
-
-Status
-------
-
-Paste has passed version 1.0.  Paste is an actively maintained
-project.  As of 1.0 (and actually before) we'll make a strong effort
-to maintain backward compatibility.  This will include deprecation
-warnings when necessary.  Major changes will take place under new
-functions or with new entry points.
-
-Using Paste does not exclude the use of other WSGI libraries and
-components.  There's really no advantage to putting new development or
-major rewrites in Paste, as opposed to putting them in new packages.
-Because of this it is planned that major new development will happen
-outside of Paste.  This makes Paste a very stable and conservative
-piece of infrastructure for building on.  This is the intention.
-
-For up-to-the-minute status see the `news file <news.html>`_.
-
-Paste for Administrators
-------------------------
-
-* Easily install, run, and configure multiple Paste-enabled web
-  applications at once, and integrate them into your website how you
-  want (SCGI, FCGI, AJP, WSGI)
-
-* Manage and install web applications system-wide for easy maintenance
-
-.. comment:
-
-  * `See an installation example <install-example.html>`_ or `read more
-    about what Paste-enabled means... <enabled.html>`_
-
-Paste for Web Developers
-------------------------
-
-* Increase your web application's audience
-
-* Provide starter templates and custom commands for using your web
-  framework
-
-* Keep your development and deployment straightened out, and your
-  automated testing streamlined
-
-* Attention paid to the full development cycle -- starting projects,
-  converting old projects, updating and deploying projects -- using a
-  set of `complementary packages and tools <related-projects.html>`_
-
-* `read more about some of the available features
-  <developer-features.html>`_
-
-.. comment:
-
-  * `See a development example <develop-example.html>`_ or `read more
-    about using Paste in your
-    applications... <developer-features.html>`_
-
-Documentation
-=============
-
-* `Testing applications with Paste <testing-applications.html>`_
-* `URL parsing with WSGI <url-parsing-with-wsgi.html>`_
-* `A Do-It-Yourself Framework <do-it-yourself-framework.html>`_
-* `Paste HTTP Server Thread Pool <paste-httpserver-threadpool.html>`_
-* `Contributing developer guidelines <DeveloperGuidelines.html>`_
-* `Style guide <StyleGuide.html>`_
-
-Components
-==========
+Other Components
+================
 
 * `Paste Deploy <./deploy/>`_
 
 * `Paste Script <./script/>`_
 
-* `Paste Module Index <module-index.html>`_
-
-* `Paste WebKit <./webkit/>`_
-
-* `Wareweb <./wareweb/>`_
+* `WebOb <./webob/>`_
 
 * `WSGI specification <http://www.python.org/peps/pep-0333.html>`_
-
-* `Example application: to-do
-  <http://svn.pythonpaste.org/Paste/apps/Todo_SQLObject_ZPT/trunk/>`_.
-
-* `Example application: FileBrowser
-  <http://svn.pythonpaste.org/Paste/apps/FileBrowser/trunk/>`_
 
 License
 =======

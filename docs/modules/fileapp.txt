@@ -1,0 +1,14 @@
+:mod:`paste.fileapp` -- Serve files
+===================================
+
+.. automodule:: paste.fileapp
+
+Module Contents
+---------------
+
+.. autoclass:: FileApp
+.. autofunction:: DataApp
+.. autofunction:: ArchiveStore
+
+
+
