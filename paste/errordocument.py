@@ -117,7 +117,7 @@ class StatusBasedForward(object):
     could be useful for passing the status code and message into another 
     application to display an error document:
     
-    .. code-block:: Python
+    .. code-block:: python
     
         from paste.errordocument import StatusBasedForward
         from paste.recursive import RecursiveMiddleware

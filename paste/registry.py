@@ -23,7 +23,7 @@ WSGI application everything will work properly.
 
 Example:
 
-.. code-block:: Python
+.. code-block:: python
     
     #yourpackage/__init__.py
     
@@ -63,7 +63,7 @@ thousands of times per request, the performance of the proxy will start to
 become more noticeable. In that circumstance, the problem can be avoided by
 getting at the actual object via the proxy with the ``_current_obj`` function:
 
-.. code-block:: Python
+.. code-block:: python
     
     #sessions.py
     Session = StackedObjectProxy()
@@ -198,7 +198,7 @@ class StackedObjectProxy(object):
         
         This should be used like:
         
-        .. code-block:: Python
+        .. code-block:: python
 
             obj = yourobject()
             module.glob = StackedObjectProxy()

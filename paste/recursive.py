@@ -104,7 +104,7 @@ class ForwardRequestException(Exception):
 
     Basic usage (must have ``RecursiveMiddleware`` present) :
     
-    .. code-block:: Python
+    .. code-block:: python
     
         from paste.recursive import ForwardRequestException
         def app(environ, start_response):
@@ -130,7 +130,7 @@ class ForwardRequestException(Exception):
     You could also specify an ``environ`` dictionary instead of a url. Using 
     the same example as before:
     
-    .. code-block:: Python
+    .. code-block:: python
     
         def app(environ, start_response):
             ... same as previous example ...
@@ -144,7 +144,7 @@ class ForwardRequestException(Exception):
     but use the headers and resposne body from the forwarded response you might
     do this:
     
-    .. code-block:: Python
+    .. code-block:: python
 
         from paste.recursive import ForwardRequestException
         from paste.recursive import RecursiveMiddleware
@@ -286,7 +286,7 @@ class Forwarder(Recursive):
     It returns an iterator that must be returned back up the call
     stack, so it must be used like:
     
-    .. code-block:: Python
+    .. code-block:: python
 
         return environ['paste.recursive.forward'](path)
 

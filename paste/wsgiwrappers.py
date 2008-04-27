@@ -337,7 +337,7 @@ class WSGIResponse(object):
         
         Example usage:
         
-        .. code-block:: Python
+        .. code-block:: python
 
             def wsgi_app(environ, start_response):
                 response = WSGIResponse()

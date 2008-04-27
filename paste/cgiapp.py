@@ -256,6 +256,8 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
 def make_cgi_application(global_conf, script, path=None, include_os_environ=None,
                          query_string=None):
     """
+    Paste Deploy interface for :class:`CGIApplication`
+    
     This object acts as a proxy to a CGI application.  You pass in the
     script path (``script``), an optional path to search for the
     script (if the name isn't absolute) (``path``).  If you don't give
