@@ -14,15 +14,17 @@ __all__ = ['Cascade']
 
 def make_cascade(loader, global_conf, catch='404', **local_conf):
     """
-    Expects configuration like:
+    Entry point for Paste Deploy configuration
+    
+    Expects configuration like::
 
-    [composit:cascade]
-    use = egg:Paste#cascade
-    # all start with 'app' and are sorted alphabetically
-    app1 = foo
-    app2 = bar
-    ...
-    catch = 404 500 ...
+        [composit:cascade]
+        use = egg:Paste#cascade
+        # all start with 'app' and are sorted alphabetically
+        app1 = foo
+        app2 = bar
+        ...
+        catch = 404 500 ...
     """
     catch = map(int, converters.aslist(catch))
     apps = []
@@ -48,6 +50,8 @@ class Cascade(object):
 
     If all applications fail, then the last application's failure
     response is used.
+
+    Instances of this class are WSGI applications.
     """
 
     def __init__(self, applications, catch=(404,)):
@@ -68,6 +72,9 @@ class Cascade(object):
         self.catch_exceptions = tuple(self.catch_exceptions)
                 
     def __call__(self, environ, start_response):
+        """
+        WSGI application interface
+        """
         failed = []
         def repl_start_response(status, headers, exc_info=None):
             code = int(status.split(None, 1)[0])

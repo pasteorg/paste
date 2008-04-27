@@ -437,7 +437,7 @@ def capture_output(environ, start_response, application):
     Sends status and header, but *not* body.  Returns (status,
     headers, body).  Typically this is used like:
     
-    .. code-block:: Python
+    .. code-block:: python
 
         def dehtmlifying_middleware(application):
             def replacement_app(environ, start_response):
@@ -488,7 +488,7 @@ def intercept_output(environ, application, conditional=None,
 
     Typically this is used like:
     
-    .. code-block:: Python
+    .. code-block:: python
 
         def dehtmlifying_middleware(application):
             def replacement_app(environ, start_response):
@@ -510,7 +510,7 @@ def intercept_output(environ, application, conditional=None,
     will be returned.  You must detect that in your code and return
     the app_iter, like:
     
-    .. code-block:: Python
+    .. code-block:: python
 
         def dehtmlifying_middleware(application):
             def replacement_app(environ, start_response):

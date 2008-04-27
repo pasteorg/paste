@@ -197,7 +197,7 @@ def error_response(environ, error_code, message,
 
     Use like:
     
-    .. code-block:: Python
+    .. code-block:: python
 
         status, headers, body = wsgilib.error_response(
             '301 Moved Permanently', 'Moved to <a href="%s">%s</a>'
