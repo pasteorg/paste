@@ -6,53 +6,54 @@ News
 svn trunk
 ---------
 
-* Fixed bug in `paste.httpserver` where
+* Fixed bug in :mod:`paste.httpserver` where
   ``environ['wsgi.input'].readline(max_size)`` ignored the max_size
   argument, which can lead to large memory usage (from Jakub Stolarski)
 
-* Make `paste.cascade` notice sockets that have stopped producing
+* Make :mod:`paste.cascade` notice sockets that have stopped producing
   data.  From Casey Zednick.
 
-* In ``paste.fixture.TestApp`` Accept MultiDict values for the
+* In :class:`paste.fixture.TestApp` Accept MultiDict values for the
   ``params`` argument in requests.  (Anything with a ``.items()``
   method will have its items encoded as the request parameters.)
 
-* Fix `paste.httpserver` to allow binding to port 0.
+* Fix :mod:`paste.httpserver` to allow binding to port 0.
 
-* In ``paste.auth.auth_tkt``, set the same cookies (with the same
+* In :mod:`paste.auth.auth_tkt`, set the same cookies (with the same
   domains) in ``set_cookie`` as get unset in ``logout_user_cookie``.
 
-* In ``paste.translogger`` save REQUEST_METHOD in case it gets
+* In :mod:`paste.translogger` save REQUEST_METHOD in case it gets
   overridden somewhere (e.g., when using errordocuments POST would
   show up as GET).
 
 * Exceptions with unicode messages don't cause the collector to fail.
 
-* Sometimes ErrorMiddleware would not call start_response properly;
-  this is fixed (from Andreas Kloecker).
+* Sometimes :class:`paste.exceptions.errormiddleware.ErrorMiddleware`
+  would not call start_response properly; this is fixed (from Andreas
+  Kloecker).
 
-* ``paste.fixture.TestApp`` can store multiple cookie values
+* :mod:`paste.fixture.TestApp` can store multiple cookie values
   (previously only one cookie was stored; from Andrey Lebedev)
 
 * ``u'' in TestApp(app).get('/')`` will work when the body isn't ASCII
   (before it would give a unicode error).  This problem wasn't present
   in the recommended `WebTest <http://pythonpaste.org/webtest/>`_.
 
-* ``paste.debug.profile`` won't break when content is served with no
+* :mod:`paste.debug.profile` won't break when content is served with no
   Content-Type.
 
 * Accept relative paths and paths with ``/../`` in them for
-  ``paste.urlparser.StaticURLParser`` (from Eric Larson).  Also fix
+  :class:`paste.urlparser.StaticURLParser` (from Eric Larson).  Also fix
   problem with case normalization on Windows (from Ionel Maries
   Cristian).
 
-* ``StackedObjectProxy``'s now include the proxied object's names via
+* :class:`paste.registry.StackedObjectProxy`'s now include the proxied object's names via
   ``__dir__`` (for Python 2.6).
 
 * Use ``environ['wsgi.file_wrapper']`` when available (in
   ``paste.fileapp``).
 
-* Make ``paste.debug.prints` compatible with App Engine.
+* Make :mod:`paste.debug.prints` compatible with App Engine.
 
 1.6.1
 -----
