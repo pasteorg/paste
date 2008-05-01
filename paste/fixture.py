@@ -1102,6 +1102,8 @@ class Form(object):
             field = self.get(name, index=index)
             submit.append((field.name, field.value_if_submitted()))
         for name, fields in self.fields.items():
+            if name is None:
+                continue
             for field in fields:
                 value = field.value
                 if value is None:
