@@ -7,7 +7,9 @@ svn trunk
 ---------
 
 * Fixed bug in :class:`paste.fixture.TestApp` that would submit forms
-  with unnamed fields (like an unnamed submit button).
+  with unnamed fields (like an unnamed submit button).  Also made
+  checkboxes with no explicit ``value`` send ``on`` instead of
+  ``checked`` (which is what browsers do).
 
 * Fixed bug in :mod:`paste.httpserver` where
   ``environ['wsgi.input'].readline(max_size)`` ignored the max_size
