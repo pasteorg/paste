@@ -60,6 +60,9 @@ svn trunk
 
 * Make :mod:`paste.debug.prints` compatible with App Engine.
 
+* Fix the ``domain`` keyword in
+  :method:`paste.wsgiwrappers.WSGIResponse.delete_cookie`.
+
 1.6.1
 -----
 
