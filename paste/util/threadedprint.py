@@ -215,7 +215,7 @@ class StdinCatcher(filemixin.FileMixin):
     def register(self, catcher, name=None,
                  currentThread=threading.currentThread):
         if name is None:
-            name = currentThread.getName()
+            name = currentThread().getName()
         self._catchers[name] = catcher
 
     def deregister(self, catcher, name=None,
