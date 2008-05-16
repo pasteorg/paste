@@ -193,10 +193,10 @@ class StdinCatcher(filemixin.FileMixin):
         name = currentThread().getName()
         catchers = self._catchers
         if not catchers.has_key(name):
-            self._defaultfunc(name, size)
+            return self._defaultfunc(name, size)
         else:
             catcher = catchers[name]
-            catcher.read(size)
+            return catcher.read(size)
 
     def _readdefault(self, name, size):
         self._default.read(size)
