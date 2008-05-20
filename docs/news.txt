@@ -3,8 +3,8 @@ News
 
 .. contents::
 
-svn trunk
----------
+1.7
+---
 
 * Fixed bug in :class:`paste.fixture.TestApp` that would submit forms
   with unnamed fields (like an unnamed submit button).  Also made
