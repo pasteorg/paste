@@ -16,7 +16,7 @@ from paste.httpheaders import *
 CACHE_SIZE = 4096
 BLOCK_SIZE = 4096 * 16
 
-__all__ = ['DataApp', 'FileApp', 'ArchiveStore']
+__all__ = ['DataApp', 'FileApp', 'DirApp', 'ArchiveStore']
 
 class DataApp(object):
     """
@@ -55,7 +55,7 @@ class DataApp(object):
     """
 
     allowed_methods = ('GET', 'HEAD')
-    
+
     def __init__(self, content, headers=None, allowed_methods=None,
                  **kwargs):
         assert isinstance(headers, (type(None), list))
@@ -260,6 +260,33 @@ class _FileIter(object):
     def close(self):
         self.file.close()
 
+
+class DirectoryApp(object):
+    """
+    Returns an application that dispatches requests to corresponding FileApps based on PATH_INFO.
+    FileApp instances are cached. This app makes sure not to serve any files that are not in a subdirectory.
+    """
+
+    def __init__(self, path):
+        self.path = os.path.abspath(path)
+        self.cached_apps = {}
+        assert os.path.isdir(self.path)
+
+    def __call__(self, environ, start_response):
+        path_info = environ['PATH_INFO']
+        app = self.cached_apps.get(path_info)
+        if app is None:
+            path = os.path.join(self.path, path_info.lstrip('/'))
+            if not os.path.normpath(path).startswith(self.path):
+                app = HTTPForbidden()
+            elif os.path.isfile(path):
+                app = FileApp(path)
+                self.cached_apps[path_info] = app
+            else:
+                app = HTTPNotFound(comment=path)
+        return app(environ, start_response)
+
+
 class ArchiveStore(object):
     """
     Returns an application that serves up a DataApp for items requested
@@ -275,7 +302,7 @@ class ArchiveStore(object):
         header as well as providing for automated filling out of the
         ``EXPIRES`` header for HTTP/1.0 clients.
     """
-    
+
     def __init__(self, filepath):
         if zipfile.is_zipfile(filepath):
             self.archive = zipfile.ZipFile(filepath,"r")
@@ -307,9 +334,9 @@ class ArchiveStore(object):
             exc = HTTPNotFound("Path requested, '%s', is not a file." % path)
             return exc.wsgi_application(environ, start_response)
         content_type, content_encoding = mimetypes.guess_type(info.filename)
-        app = DataApp(None, content_type = content_type, 
+        app = DataApp(None, content_type = content_type,
                             content_encoding = content_encoding)
-        app.set_content(self.archive.read(path), 
+        app.set_content(self.archive.read(path),
                 time.mktime(info.date_time + (0,0,0)))
         self.cache[path] = app
         app.expires = self.expires
