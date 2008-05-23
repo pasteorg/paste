@@ -16,7 +16,7 @@ from paste.httpheaders import *
 CACHE_SIZE = 4096
 BLOCK_SIZE = 4096 * 16
 
-__all__ = ['DataApp', 'FileApp', 'DirApp', 'ArchiveStore']
+__all__ = ['DataApp', 'FileApp', 'DirectoryApp', 'ArchiveStore']
 
 class DataApp(object):
     """
