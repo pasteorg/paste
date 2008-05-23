@@ -269,8 +269,10 @@ class DirectoryApp(object):
 
     def __init__(self, path):
         self.path = os.path.abspath(path)
-        self.cached_apps = {}
+        if not self.path.endswith(os.path.sep):
+            self.path += os.path.sep
         assert os.path.isdir(self.path)
+        self.cached_apps = {}
 
     def __call__(self, environ, start_response):
         path_info = environ['PATH_INFO']
