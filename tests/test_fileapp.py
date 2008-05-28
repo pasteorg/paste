@@ -122,6 +122,29 @@ def test_file():
         import os
         os.unlink(tempfile)
 
+def test_dir():
+    import os
+    import tempfile
+    tmpdir = tempfile.mkdtemp()
+    try:
+        tmpfile = os.path.join(tmpdir, 'file')
+        tmpsubdir = os.path.join(tmpdir, 'dir')
+        open(tmpfile, 'w').write('abcd')
+        os.mkdir(tmpsubdir)
+        try:
+            from paste import fileapp
+            app = fileapp.DirectoryApp(tmpdir)
+            for path in ['/', '', '//', '/..', '/.', '/../..']:
+                assert TestApp(app).get(path, status=403).status == 403, ValueError(path)
+            for path in ['/~', '/foo', '/dir', '/dir/']:
+                assert TestApp(app).get(path, status=404).status == 404, ValueError(path)
+            assert TestApp(app).get('/file').body == 'abcd'
+        finally:
+            os.remove(tmpfile)
+            os.rmdir(tmpsubdir)
+    finally:
+        os.rmdir(tmpdir)
+
 def _excercize_range(build,content):
     # full content request, but using ranges'
     res = build("bytes=0-%d" % (len(content)-1))
@@ -206,4 +229,4 @@ def test_methods():
     assert res.headers == get_res.headers
     assert not res.body
     app.post('', status=405) # Method Not Allowed
-    
+
