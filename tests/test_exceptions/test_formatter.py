@@ -93,7 +93,7 @@ def test_trim():
         except:
             result = format(f, trim_source_paths=[(current, '.')])
             assert current not in result
-            assert '/test_formatter.py' in result
+            assert ('%stest_formatter.py' % os.sep) in result, ValueError(repr(result))
         else:
             assert 0
 
@@ -148,7 +148,7 @@ def test_hide_after():
                 # A little whitespace to keep this line out of the
                 # content part of the report
 
-                
+
                 hide, 'reset',
                 raise_error)
         except:
@@ -159,7 +159,7 @@ def test_hide_after():
             assert 'raise_error' in result
         else:
             assert 0
-            
+
 def test_hide_before():
     for f in formats:
         try:

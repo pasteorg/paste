@@ -30,6 +30,7 @@ import os
 import md5
 import datetime
 import threading
+import tempfile
 
 try:
     import cPickle
@@ -79,7 +80,7 @@ class SessionFactory(object):
                  session_class=None,
                  session_expiration=60*12, # in minutes
                  **session_class_kw):
-        
+
         self.created = False
         self.used = False
         self.environ = environ
@@ -171,7 +172,7 @@ cleanup_cycle = datetime.timedelta(seconds=15*60) #15 min
 
 class FileSession(object):
 
-    def __init__(self, sid, create=False, session_file_path='/tmp',
+    def __init__(self, sid, create=False, session_file_path=tempfile.gettempdir(),
                  chmod=None,
                  expiration=2880, # in minutes: 48 hours
                  ):
@@ -295,7 +296,7 @@ def make_session_middleware(
 
       session_expiration:
           The time each session lives, in minutes.  This controls
-          the cookie expiration.  Default 12 hours.  
+          the cookie expiration.  Default 12 hours.
 
       expiration:
           The time each session lives on disk.  Old sessions are
