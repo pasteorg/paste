@@ -432,7 +432,7 @@ class StaticURLParser(object):
                  cache_max_age=None):
         if os.path.sep != '/':
             directory = directory.replace(os.path.sep, '/')
-        self.directory = directory
+        self.directory = os.path.normcase(os.path.abspath(directory))
         self.root_directory = root_directory
         if root_directory is not None:
             self.root_directory = os.path.normpath(self.root_directory)
