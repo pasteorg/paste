@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* Normalize and make absolute the paths passed to
+  :class:`paste.urlparser.StaticURLParser` (before passing a
+  relative-to-cwd path to that class would cause Forbidden errors).
+
 1.7
 ---
 
