@@ -265,6 +265,7 @@ class DirectoryApp(object):
     """
     Returns an application that dispatches requests to corresponding FileApps based on PATH_INFO.
     FileApp instances are cached. This app makes sure not to serve any files that are not in a subdirectory.
+    To customize FileApp creation override ``DirectoryApp.make_fileapp``
     """
 
     def __init__(self, path):
@@ -274,6 +275,8 @@ class DirectoryApp(object):
         assert os.path.isdir(self.path)
         self.cached_apps = {}
 
+    make_fileapp = FileApp
+
     def __call__(self, environ, start_response):
         path_info = environ['PATH_INFO']
         app = self.cached_apps.get(path_info)
@@ -282,7 +285,7 @@ class DirectoryApp(object):
             if not os.path.normpath(path).startswith(self.path):
                 app = HTTPForbidden()
             elif os.path.isfile(path):
-                app = FileApp(path)
+                app = self.make_fileapp(path)
                 self.cached_apps[path_info] = app
             else:
                 app = HTTPNotFound(comment=path)
