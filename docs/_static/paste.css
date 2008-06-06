@@ -1,15 +1,15 @@
-a.invisible-link:visited {
-  color: inherit;
+a.invisible-link {
+  color: #fff;
   text-decoration: none;
 }
 
 a.invisible-link:visited {
-  color: inherit;
+  color: #fff;
   text-decoration: none;
 }
 
 a.invisible:link {
-  color: inherit;
+  color: #fff;
   text-decoration: none;
 }
 
