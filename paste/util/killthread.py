@@ -7,6 +7,9 @@ try:
 except ImportError:
     raise ImportError(
         "You cannot use paste.util.killthread without ctypes installed")
+if not hasattr(ctypes, 'pythonapi'):
+    raise ImportError(
+        "You cannot use paste.util.killthread without ctypes.pythonapi")
 
 def async_raise(tid, exctype):
     """raises the exception, performs cleanup if needed.
