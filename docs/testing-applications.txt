@@ -31,7 +31,7 @@ the actual test functions are also named starting with ``test_``.
 
 In your testing module you should do::
 
-    from paste.tests.fixture import setup_module
+    from paste.fixture import setup_module
 
 This will add some initialization, will load your configure, will call
 a ``reset_state`` function if you define one, and will insert the
