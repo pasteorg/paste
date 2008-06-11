@@ -1697,7 +1697,7 @@ def setup_module(module=None):
 
     Use like::
 
-        from paste.tests.fixture import setup_module
+        from paste.fixture import setup_module
     """
     if module is None:
         # The module we were called from must be the module...
