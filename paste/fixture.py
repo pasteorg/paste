@@ -1700,6 +1700,7 @@ def setup_module(module=None):
         from paste.fixture import setup_module
     """
     # Deprecated June 2008
+    import warnings
     warnings.warn(
         'setup_module is deprecated',
         DeprecationWarning, 2)
