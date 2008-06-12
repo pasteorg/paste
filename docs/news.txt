@@ -10,6 +10,8 @@ svn trunk
   :class:`paste.urlparser.StaticURLParser` (before passing a
   relative-to-cwd path to that class would cause Forbidden errors).
 
+* Deprecate :func:`paste.fixture.setup_module`
+
 1.7
 ---
 

@@ -1699,6 +1699,10 @@ def setup_module(module=None):
 
         from paste.fixture import setup_module
     """
+    # Deprecated June 2008
+    warnings.warn(
+        'setup_module is deprecated',
+        DeprecationWarning, 2)
     if module is None:
         # The module we were called from must be the module...
         module = sys._getframe().f_back.f_globals['__name__']

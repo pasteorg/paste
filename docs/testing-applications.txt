@@ -21,31 +21,6 @@ easily and without a server.
 
 .. include:: include/contact.txt
 
-The Test Environment
-====================
-
-This has been written with `py.test
-<http://codespeak.net/py/current/doc/test.html>`_ in mind.  The
-py.test convention is to put tests in modules named ``test_*.py``, and
-the actual test functions are also named starting with ``test_``.
-
-In your testing module you should do::
-
-    from paste.fixture import setup_module
-
-This will add some initialization, will load your configure, will call
-a ``reset_state`` function if you define one, and will insert the
-variables ``app`` and ``CONFIG`` in your module.
-
-If you have path problems you can set ``$PYTHONPATH``, or you can add
-something to a ``conftest.py`` module, like::
-
-    import sys
-    sys.path.append('path/to/Paste', ...)
-
-Note that paths given in the ``sys_path`` configuration item will also
-be loaded (but Paste itself must be found first).
-
 The Tests Themselves
 ====================
 
