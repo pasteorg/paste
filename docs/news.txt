@@ -3,8 +3,8 @@ News
 
 .. contents::
 
-svn trunk
----------
+1.7.1
+-----
 
 * Normalize and make absolute the paths passed to
   :class:`paste.urlparser.StaticURLParser` (before passing a
