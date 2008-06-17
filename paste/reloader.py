@@ -96,6 +96,9 @@ class Monitor(object):
                 continue
             if filename.endswith('.pyc') and os.path.exists(filename[:-1]):
                 mtime = max(os.stat(filename[:-1]).st_mtime, mtime)
+            elif filename.endswith('$py.class') and \
+                    os.path.exists(filename[:-9] + '.py'):
+                mtime = max(os.stat(filename[:-9] + '.py').st_mtime, mtime)
             if not self.module_mtimes.has_key(filename):
                 self.module_mtimes[filename] = mtime
             elif self.module_mtimes[filename] < mtime:
