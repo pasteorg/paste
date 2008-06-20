@@ -323,9 +323,11 @@ except ImportError:
     SocketErrors = (socket.error,)
     class SecureHTTPServer(HTTPServer):
         def __init__(self, server_address, RequestHandlerClass,
-                     ssl_context=None):
+                     ssl_context=None, request_queue_size=None):
             assert not ssl_context, "pyOpenSSL not installed"
             HTTPServer.__init__(self, server_address, RequestHandlerClass)
+            if request_queue_size:
+                self.socket.listen(request_queue_size)
 else:
 
     class _ConnFixer(object):
@@ -351,7 +353,7 @@ else:
         """
 
         def __init__(self, server_address, RequestHandlerClass,
-                     ssl_context=None):
+                     ssl_context=None, request_queue_size=None):
             # This overrides the implementation of __init__ in python's
             # SocketServer.TCPServer (which BaseHTTPServer.HTTPServer
             # does not override, thankfully).
@@ -369,6 +371,8 @@ else:
                             self._lock.release()
                 self.socket = TSafeConnection(ssl_context, self.socket)
             self.server_bind()
+            if request_queue_size:
+                self.socket.listen(request_queue_size)
             self.server_activate()
 
         def get_request(self):
@@ -1080,7 +1084,6 @@ class ThreadPoolMixIn(object):
         """
         # We set the timeout here so that we can trap interrupts on windows
         self.socket.settimeout(1)
-        self.socket.listen(self.request_queue_size)
 
     def server_close(self):
         """
@@ -1092,9 +1095,11 @@ class ThreadPoolMixIn(object):
 
 class WSGIServerBase(SecureHTTPServer):
     def __init__(self, wsgi_application, server_address,
-                 RequestHandlerClass=None, ssl_context=None):
+                 RequestHandlerClass=None, ssl_context=None,
+                 request_queue_size=None):
         SecureHTTPServer.__init__(self, server_address,
-                                  RequestHandlerClass, ssl_context)
+                                  RequestHandlerClass, ssl_context,
+                                  request_queue_size=request_queue_size)
         self.wsgi_application = wsgi_application
         self.wsgi_socket_timeout = None
 
@@ -1112,9 +1117,10 @@ class WSGIThreadPoolServer(ThreadPoolMixIn, WSGIServerBase):
     def __init__(self, wsgi_application, server_address,
                  RequestHandlerClass=None, ssl_context=None,
                  nworkers=10, daemon_threads=False,
-                 threadpool_options=None):
+                 threadpool_options=None, request_queue_size=None):
         WSGIServerBase.__init__(self, wsgi_application, server_address,
-                                RequestHandlerClass, ssl_context)
+                                RequestHandlerClass, ssl_context,
+                                request_queue_size=request_queue_size)
         if threadpool_options is None:
             threadpool_options = {}
         ThreadPoolMixIn.__init__(self, nworkers, daemon_threads,
@@ -1130,7 +1136,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
           ssl_context=None, server_version=None, protocol_version=None,
           start_loop=True, daemon_threads=None, socket_timeout=None,
           use_threadpool=None, threadpool_workers=10,
-          threadpool_options=None):
+          threadpool_options=None, request_queue_size=5):
     """
     Serves your ``application`` over HTTP(S) via WSGI interface
 
@@ -1226,6 +1232,12 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         threadpool.  See paste.httpserver.ThreadPool for specific
         options (``threadpool_workers`` is a specific option that can
         also go here).
+    
+    ``request_queue_size``
+
+        The 'backlog' argument to socket.listen(); specifies the
+        maximum number of queued connections.
+
     """
     is_ssl = False
     if ssl_pem or ssl_context:
@@ -1264,9 +1276,11 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         server = WSGIThreadPoolServer(application, server_address, handler,
                                       ssl_context, int(threadpool_workers),
                                       daemon_threads,
-                                      threadpool_options=threadpool_options)
+                                      threadpool_options=threadpool_options,
+                                      request_queue_size=request_queue_size)
     else:
-        server = WSGIServer(application, server_address, handler, ssl_context)
+        server = WSGIServer(application, server_address, handler, ssl_context,
+                            request_queue_size=request_queue_size)
         if daemon_threads:
             server.daemon_threads = daemon_threads
 
@@ -1299,7 +1313,7 @@ def server_runner(wsgi_app, global_conf, **kwargs):
                  'threadpool_dying_limit', 'threadpool_spawn_if_under',
                  'threadpool_max_zombie_threads_before_die',
                  'threadpool_hung_check_period',
-                 'threadpool_max_requests']:
+                 'threadpool_max_requests', 'request_queue_size']:
         if name in kwargs:
             kwargs[name] = int(kwargs[name])
     for name in ['use_threadpool', 'daemon_threads']:
@@ -1375,6 +1389,7 @@ server_runner.__doc__ = (serve.__doc__ or '') + """
 
         When threads are killed or the process restarted, this email
         address will be contacted (using an SMTP server on localhost).
+    
 """
 
 
