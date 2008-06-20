@@ -32,7 +32,7 @@ paste.httpserver and paste.debug.watchthreads:
   Not sure what to call this.
 
 paste.cascade and paste.errordocuments:
-  Not sure; Ben has an implementation of errordocuments
+  Not sure; Ben has an implementation of errordocuments in ``pylons.middleware.StatusCodeRedirect``
 
 paste.urlmap, paste.deploy.config.PrefixMiddleware:
   In... some routing thing?  Together with the previous package?
