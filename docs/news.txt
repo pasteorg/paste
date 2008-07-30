@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* In :mod:`paste.proxy`, added some more headers that are disallowed
+  in WSGI (e.g., Keep-Alive).  Send Content-Length.
+
 1.7.1
 -----
 
