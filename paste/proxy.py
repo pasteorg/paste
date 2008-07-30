@@ -39,7 +39,14 @@ from paste.util.converters import aslist
 # Remove these headers from response (specify lower case header
 # names):
 filtered_headers = (     
-    'transfer-encoding',    
+    'transfer-encoding',
+    'connection',
+    'keep-alive',
+    'proxy-authenticate',
+    'proxy-authorization',
+    'te',
+    'trailers',
+    'upgrade',
 )
 
 class Proxy(object):
@@ -83,6 +90,7 @@ class Proxy(object):
         if environ.get('CONTENT_TYPE'):
             headers['content-type'] = environ['CONTENT_TYPE']
         if environ.get('CONTENT_LENGTH'):
+            headers['content-length'] = environ['CONTENT_LENGTH'] 
             length = int(environ['CONTENT_LENGTH'])
             body = environ['wsgi.input'].read(length)
         else:
