@@ -336,16 +336,15 @@ def handle_exception(exc_info, error_stream, html=True,
     Use like::
 
         import sys
-        import paste
-        import paste.error_middleware
+        from paste.exceptions.errormiddleware import handle_exception
         try:
             do stuff
         except:
-            paste.error_middleware.exception_handler(
-                sys.exc_info(), paste.CONFIG, sys.stderr, html=False)
+            handle_exception(
+                sys.exc_info(), sys.stderr, html=False, ...other config...)
 
     If you want to report, but not fully catch the exception, call
-    ``raise`` after ``exception_handler``, which (when given no argument)
+    ``raise`` after ``handle_exception``, which (when given no argument)
     will reraise the exception.
     """
     reported = False
