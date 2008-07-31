@@ -23,6 +23,7 @@ import cgi
 from paste.util import threadedprint
 from paste import wsgilib
 from paste import response
+import sys
 
 _threadedprint_installed = False
 
@@ -53,6 +54,9 @@ class PrintDebugMiddleware(object):
 
     ``environ['paste.remove_printdebug']`` is a function that, if
     called, will disable printing of output for that request.
+
+    If you have ``replace_stdout=True`` then stdout is replaced, not
+    captured.
     """
 
     log_template = (
@@ -62,7 +66,7 @@ class PrintDebugMiddleware(object):
         '%s</pre>')
 
     def __init__(self, app, global_conf=None, force_content_type=False,
-                 print_wsgi_errors=True):
+                 print_wsgi_errors=True, replace_stdout=False):
         # @@: global_conf should be handled separately and only for
         # the entry point
         self.app = app
@@ -71,6 +75,8 @@ class PrintDebugMiddleware(object):
             from paste.deploy.converters import asbool
             print_wsgi_errors = asbool(print_wsgi_errors)
         self.print_wsgi_errors = print_wsgi_errors
+        self.replace_stdout = replace_stdout
+        self._threaded_print_stdout = None
 
     def __call__(self, environ, start_response):
         global _threadedprint_installed
@@ -78,10 +84,12 @@ class PrintDebugMiddleware(object):
             # In a testing environment this interception isn't
             # useful:
             return self.app(environ, start_response)
-        if not _threadedprint_installed:
+        if (not _threadedprint_installed
+            or self._threaded_print_stdout is not sys.stdout):
             # @@: Not strictly threadsafe
             _threadedprint_installed = True
-            threadedprint.install(leave_stdout=True)
+            threadedprint.install(leave_stdout=not self.replace_stdout)
+            self._threaded_print_stdout = sys.stdout
         removed = []
         def remove_printdebug():
             removed.append(None)
