@@ -149,7 +149,7 @@ _oldstdout = None
 
 def install(**kw):
     global _printcatcher, _oldstdout, register, deregister
-    if not _printcatcher:
+    if (not _printcatcher or sys.stdout is not _printcatcher):
         _oldstdout = sys.stdout
         _printcatcher = sys.stdout = PrintCatcher(**kw)
         register = _printcatcher.register
