@@ -449,6 +449,8 @@ class LimitedLengthFile(object):
         self.file = file
         self.length = length
         self._consumed = 0
+        if hasattr(self.file, 'seek'):
+            self.seek = self._seek
 
     def __repr__(self):
         base_repr = repr(self.file)
@@ -491,7 +493,7 @@ class LimitedLengthFile(object):
 
     ## Optional methods ##
 
-    def seek(self, place):
+    def _seek(self, place):
         self.file.seek(place)
         self._consumed = place
 

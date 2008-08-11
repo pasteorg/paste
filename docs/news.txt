@@ -11,6 +11,10 @@ svn trunk
 
 * Make :mod:`paste.debug.prints` work with Google App Engine.
 
+* Make ``environ['wsgi.input']`` with :mod:`paste.httpserver` only
+  have a ``seek`` method if it is wrapping something with a seek
+  method (which usually it is not).
+
 1.7.1
 -----
 
