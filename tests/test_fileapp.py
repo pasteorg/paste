@@ -129,7 +129,9 @@ def test_dir():
     try:
         tmpfile = os.path.join(tmpdir, 'file')
         tmpsubdir = os.path.join(tmpdir, 'dir')
-        open(tmpfile, 'w').write('abcd')
+        fp = open(tmpfile, 'w')
+        fp.write('abcd')
+        fp.close()
         os.mkdir(tmpsubdir)
         try:
             from paste import fileapp
