@@ -231,7 +231,7 @@ class URLParser(object):
             url += '?' + environ['QUERY_STRING']
         exc = httpexceptions.HTTPMovedPermanently(
             'The resource has moved to %s - you should be redirected '
-            'automatically.''' % url,
+            'automatically.' % url,
             headers=[('location', url)])
         return exc.wsgi_application(environ, start_response)
 
@@ -500,7 +500,7 @@ class StaticURLParser(object):
             url += '?' + environ['QUERY_STRING']
         exc = httpexceptions.HTTPMovedPermanently(
             'The resource has moved to %s - you should be redirected '
-            'automatically.''' % url,
+            'automatically.' % url,
             headers=[('location', url)])
         return exc.wsgi_application(environ, start_response)
         
