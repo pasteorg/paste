@@ -105,6 +105,8 @@ class Proxy(object):
             path = urlparse.urljoin(self.path, request_path)
         else:
             path = path_info
+        if environ.get('QUERY_STRING'):
+            path += '?' + environ['QUERY_STRING']
             
         conn.request(environ['REQUEST_METHOD'],
                      path,

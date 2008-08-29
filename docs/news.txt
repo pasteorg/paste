@@ -7,7 +7,9 @@ svn trunk
 ---------
 
 * In :mod:`paste.proxy`, added some more headers that are disallowed
-  in WSGI (e.g., Keep-Alive).  Send Content-Length.
+  in WSGI (e.g., Keep-Alive).  Send Content-Length.  Also fix the
+  missing query string when using :class:`paste.proxy.Proxy`
+  (:class:`paste.proxy.TransparentProxy` already worked).
 
 * Make :mod:`paste.debug.prints` work with Google App Engine.
 
