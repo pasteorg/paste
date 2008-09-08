@@ -17,6 +17,9 @@ svn trunk
   have a ``seek`` method if it is wrapping something with a seek
   method (which usually it is not).
 
+* In :mod:`paste.httpserver` re-raise KeyboardInterrupt in worker
+  threads.
+
 1.7.1
 -----
 

@@ -1064,6 +1064,9 @@ class ThreadPoolMixIn(object):
         except:
             self.handle_error(request, client_address)
             self.close_request(request)
+            exc = sys.exc_info()[1]
+            if isinstance(exc, (MemoryError, KeyboardInterrupt)):
+                raise
 
     def serve_forever(self):
         """
