@@ -20,6 +20,9 @@ svn trunk
 * In :mod:`paste.httpserver` re-raise KeyboardInterrupt in worker
   threads.
 
+* Added support for the ``HttpOnly`` Cookie property to
+  :mod:`paste.wsgiwrappers`
+
 1.7.1
 -----
 

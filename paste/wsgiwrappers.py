@@ -378,14 +378,14 @@ class WSGIResponse(object):
         return self.headers.has_key(header)
 
     def set_cookie(self, key, value='', max_age=None, expires=None, path='/',
-                   domain=None, secure=None):
+                   domain=None, secure=None, httponly=None):
         """
         Define a cookie to be sent via the outgoing HTTP headers
         """
         self.cookies[key] = value
         for var_name, var_value in [
             ('max_age', max_age), ('path', path), ('domain', domain),
-            ('secure', secure), ('expires', expires)]:
+            ('secure', secure), ('expires', expires), ('httponly', httponly)]:
             if var_value is not None and var_value is not False:
                 self.cookies[key][var_name.replace('_', '-')] = var_value
 
