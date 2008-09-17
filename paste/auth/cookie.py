@@ -41,12 +41,18 @@ corresponding to a database session id) is stored in the cookie.
 
 """
 
-import sha, hmac, base64, random, time, warnings
+import hmac, base64, random, time, warnings
+try:
+    from hashlib import sha1
+except ImportError:
+    # NOTE: We have to use the callable with hashlib (hashlib.sha1),
+    # otherwise hmac only accepts the sha module object itself
+    import sha as sha1
 from paste.request import get_cookies
 
 def make_time(value):
     return time.strftime("%Y%m%d%H%M", time.gmtime(value))
-_signature_size = len(hmac.new('x', 'x', sha).digest())
+_signature_size = len(hmac.new('x', 'x', sha1).digest())
 _header_size = _signature_size + len(make_time(time.time()))
 
 # @@: Should this be using urllib.quote?
@@ -132,7 +138,7 @@ class AuthCookieSigner(object):
         cookie is handled server-side in the auth() function.
         """
         cookie = base64.encodestring(
-            hmac.new(self.secret, content, sha).digest() +
+            hmac.new(self.secret, content, sha1).digest() +
             make_time(time.time() + 60*self.timeout) +
             content).replace("/", "_").replace("=", "~")
         if len(cookie) > self.maxlen:
@@ -149,7 +155,7 @@ class AuthCookieSigner(object):
         signature = decode[:_signature_size]
         expires = decode[_signature_size:_header_size]
         content = decode[_header_size:]
-        if signature == hmac.new(self.secret, content, sha).digest():
+        if signature == hmac.new(self.secret, content, sha1).digest():
             if int(expires) > int(make_time(time.time())):
                 return content
             else:

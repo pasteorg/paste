@@ -8,7 +8,10 @@ to create compact representations that are unique for a certain string
 (or concatenation of strings)
 """
 
-import md5
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
 
 good_characters = "23456789abcdefghjkmnpqrtuvwxyz"
 
@@ -49,13 +52,16 @@ def hash_identifier(s, length, pad=True, hasher=md5, prefix='',
     length.  E.g., ``group=4`` will cause a identifier like
     ``a5f3-hgk3-asdf``.  Grouping occurs before the prefix.
     """
+    if not callable(hasher):
+        # Accept sha/md5 modules as well as callables
+        hasher = hasher.new
     if length > 26 and hasher is md5:
         raise ValueError, (
             "md5 cannot create hashes longer than 26 characters in "
             "length (you gave %s)" % length)
     if isinstance(s, unicode):
         s = s.encode('utf-8')
-    h = hasher.new(str(s))
+    h = hasher(str(s))
     bin_hash = h.digest()
     modulo = base ** length
     number = 0
