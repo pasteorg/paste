@@ -38,7 +38,10 @@ non-Python code run under Apache.
 """
 
 import time as time_mod
-import md5
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
 import Cookie
 from paste import request
 
@@ -164,10 +167,10 @@ def calculate_digest(ip, timestamp, secret, userid, tokens, user_data):
     userid = maybe_encode(userid)
     tokens = maybe_encode(tokens)
     user_data = maybe_encode(user_data)
-    digest0 = md5.new(
+    digest0 = md5(
         encode_ip_timestamp(ip, timestamp) + secret + userid + '\0'
         + tokens + '\0' + user_data).hexdigest()
-    digest = md5.new(digest0 + secret).hexdigest()
+    digest = md5(digest0 + secret).hexdigest()
     return digest
 
 def encode_ip_timestamp(ip, timestamp):

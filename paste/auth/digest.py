@@ -31,11 +31,15 @@ to use sha would be a good thing.
 """
 from paste.httpexceptions import HTTPUnauthorized
 from paste.httpheaders import *
-import md5, time, random
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
+import time, random
 
 def digest_password(realm, username, password):
     """ construct the appropriate hashcode needed for HTTP digest """
-    return md5.md5("%s:%s:%s" % (username, realm, password)).hexdigest()
+    return md5("%s:%s:%s" % (username, realm, password)).hexdigest()
 
 class AuthDigestAuthenticator(object):
     """ implementation of RFC 2617 - HTTP Digest Authentication """
@@ -46,9 +50,9 @@ class AuthDigestAuthenticator(object):
 
     def build_authentication(self, stale = ''):
         """ builds the authentication error """
-        nonce  = md5.md5(
+        nonce  = md5(
             "%s:%s" % (time.time(), random.random())).hexdigest()
-        opaque = md5.md5(
+        opaque = md5(
             "%s:%s" % (time.time(), random.random())).hexdigest()
         self.nonce[nonce] = None
         parts = {'realm': self.realm, 'qop': 'auth',
@@ -64,12 +68,12 @@ class AuthDigestAuthenticator(object):
         """ computes the authentication, raises error if unsuccessful """
         if not ha1:
             return self.build_authentication()
-        ha2 = md5.md5('%s:%s' % (method, path)).hexdigest()
+        ha2 = md5('%s:%s' % (method, path)).hexdigest()
         if qop:
             chk = "%s:%s:%s:%s:%s:%s" % (ha1, nonce, nc, cnonce, qop, ha2)
         else:
             chk = "%s:%s:%s" % (ha1, nonce, ha2)
-        if response != md5.md5(chk).hexdigest():
+        if response != md5(chk).hexdigest():
             if nonce in self.nonce:
                 del self.nonce[nonce]
             return self.build_authentication()

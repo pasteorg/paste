@@ -27,7 +27,6 @@ from Cookie import SimpleCookie
 import time
 import random
 import os
-import md5
 import datetime
 import threading
 import tempfile
@@ -36,6 +35,10 @@ try:
     import cPickle
 except ImportError:
     import pickle as cPickle
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
 from paste import wsgilib
 from paste import request
 
@@ -139,7 +142,7 @@ class SessionFactory(object):
             r.append(os.times())
         if for_object is not None:
             r.append(id(for_object))
-        md5_hash = md5.new(str(r))
+        md5_hash = md5(str(r))
         try:
             return md5_hash.hexdigest()
         except AttributeError:
