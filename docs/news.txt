@@ -23,6 +23,9 @@ svn trunk
 * Added support for the ``HttpOnly`` Cookie property to
   :mod:`paste.wsgiwrappers`
 
+* Added :func:`paste.reloader.add_file_callback`, which lets you watch
+  files based on a callback.
+
 1.7.1
 -----
 
