@@ -26,15 +26,25 @@ or is run from this .bat file (if you use Windows)::
     if %errorlevel% == 3 goto repeat
 
 or run a monitoring process in Python (``paster serve --reload`` does
-this).  Use the watch_file(filename) function to cause a
-reload/restart for other other non-Python files (e.g., configuration
-files).
+this).  
+
+Use the ``watch_file(filename)`` function to cause a reload/restart for
+other other non-Python files (e.g., configuration files).  If you have
+a dynamic set of files that grows over time you can use something like::
+
+    def watch_config_files():
+        return CONFIG_FILE_CACHE.keys()
+    paste.reloader.add_file_callback(watch_config_files)
+
+Then every time the reloader polls files it will call
+``watch_config_files`` and check all the filenames it returns.
 """
 
 import os
 import sys
 import time
 import threading
+import traceback
 from paste.util.classinstance import classinstancemethod
 
 def install(poll_interval=1):
@@ -55,13 +65,15 @@ class Monitor(object):
 
     instances = []
     global_extra_files = []
+    global_file_callbacks = []
 
     def __init__(self, poll_interval):
         self.module_mtimes = {}
         self.keep_running = True
         self.poll_interval = poll_interval
-        self.extra_files = self.global_extra_files[:]
+        self.extra_files = list(self.global_extra_files)
         self.instances.append(self)
+        self.file_callbacks = list(self.global_file_callbacks)
 
     def periodic_reload(self):
         while 1:
@@ -76,7 +88,13 @@ class Monitor(object):
             time.sleep(self.poll_interval)
 
     def check_reload(self):
-        filenames = self.extra_files[:]
+        filenames = list(self.extra_files)
+        for file_callback in self.file_callbacks:
+            try:
+                filenames.extend(file_callback())
+            except:
+                print >> sys.stderr, "Error calling paste.reloader callback %r:" % file_callback
+                traceback.print_exc()
         for module in sys.modules.values():
             try:
                 filename = module.__file__
@@ -108,6 +126,7 @@ class Monitor(object):
         return True
 
     def watch_file(self, cls, filename):
+        """Watch the named file for changes"""
         filename = os.path.abspath(filename)
         if self is None:
             for instance in cls.instances:
@@ -118,4 +137,17 @@ class Monitor(object):
 
     watch_file = classinstancemethod(watch_file)
 
+    def add_file_callback(self, cls, callback):
+        """Add a callback -- a function that takes no parameters -- that will
+        return a list of filenames to watch for changes."""
+        if self is None:
+            for instance in cls.instances:
+                instance.add_file_callback(callback)
+            cls.global_file_callbacks.append(callback)
+        else:
+            self.file_callbacks.append(callback)
+
+    add_file_callback = classinstancemethod(add_file_callback)
+
 watch_file = Monitor.watch_file
+add_file_callback = Monitor.add_file_callback
