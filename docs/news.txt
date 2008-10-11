@@ -30,6 +30,9 @@ svn trunk
 
 * Fix :mod:`paste.auth.cookie` generating bad headers.
 
+* Added :class:`paste.reloader.JythonMonitor` for an experimental,
+  optimized reloader on Jython.
+
 1.7.1
 -----
 
