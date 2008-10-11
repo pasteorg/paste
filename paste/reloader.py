@@ -76,7 +76,7 @@ class Monitor(object):
         self.file_callbacks = list(self.global_file_callbacks)
 
     def periodic_reload(self):
-        while 1:
+        while True:
             if not self.check_reload():
                 # use os._exit() here and not sys.exit() since within a
                 # thread sys.exit() just closes the given thread and
@@ -100,9 +100,8 @@ class Monitor(object):
                 filename = module.__file__
             except (AttributeError, ImportError), exc:
                 continue
-            if filename is None:
-                continue
-            filenames.append(filename)
+            if filename is not None:
+                filenames.append(filename)
         for filename in filenames:
             try:
                 stat = os.stat(filename)
@@ -149,5 +148,33 @@ class Monitor(object):
 
     add_file_callback = classinstancemethod(add_file_callback)
 
+class JythonMonitor(Monitor):
+
+    """
+    Monitor that utilizes Jython's special
+    ``_systemrestart.SystemRestart`` exception.
+
+    When raised from the main thread it causes Jython to reload the
+    interpreter in the existing Java process (avoiding startup time).
+
+    Note that this functionality of Jython is experimental and may
+    change in the future.
+    """
+
+    def __init__(self, *args, **kwargs):
+        Monitor.__init__(self, *args, **kwargs)
+
+    def periodic_reload(self):
+        while True:
+            if not self.check_reload():
+                raise SystemRestart()
+        time.sleep(self.poll_interval)
+
+if sys.platform.startswith('java'):
+    try:
+        from _systemrestart import SystemRestart
+    except ImportError:
+        del JythonMonitor
+    
 watch_file = Monitor.watch_file
 add_file_callback = Monitor.add_file_callback
