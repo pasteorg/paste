@@ -168,7 +168,7 @@ class JythonMonitor(Monitor):
         while True:
             if not self.check_reload():
                 raise SystemRestart()
-        time.sleep(self.poll_interval)
+            time.sleep(self.poll_interval)
 
 if sys.platform.startswith('java'):
     try:
