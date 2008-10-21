@@ -168,9 +168,6 @@ if sys.platform.startswith('java'):
             may change in the future.
             """
 
-            def __init__(self, *args, **kwargs):
-                Monitor.__init__(self, *args, **kwargs)
-
             def periodic_reload(self):
                 while True:
                     if not self.check_reload():
