@@ -178,6 +178,7 @@ For the latest changes see the `news file
       grantip = paste.auth.grantip:make_grantip
       openid = paste.auth.open_id:make_open_id_middleware [openid]
       pony = paste.pony:make_pony
+      cowbell = paste.cowbell:make_cowbell
       errordocument = paste.errordocument:make_errordocument
       auth_cookie = paste.auth.cookie:make_auth_cookie
       translogger = paste.translogger:make_filter
