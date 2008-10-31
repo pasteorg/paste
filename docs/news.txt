@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+svn trunk
+---------
+
+* I got a fever and the only prescription is more :mod:`paste.cowbell`!
+
 1.7.2
 -----
 
