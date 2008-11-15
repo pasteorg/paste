@@ -8,6 +8,8 @@ svn trunk
 
 * I got a fever and the only prescription is more :mod:`paste.cowbell`!
 
+* Fix :mod:`paste.httpserver` on Python 2.6.
+
 1.7.2
 -----
 

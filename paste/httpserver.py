@@ -369,6 +369,12 @@ else:
                             return self._ssl_conn.settimeout(*args)
                         finally:
                             self._lock.release()
+                    def gettimeout(self):
+                        self._lock.acquire()
+                        try:
+                            return self._ssl_conn.gettimeout()
+                        finally:
+                            self._lock.release()
                 self.socket = TSafeConnection(ssl_context, self.socket)
             self.server_bind()
             if request_queue_size:
