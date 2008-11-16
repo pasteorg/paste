@@ -8,5 +8,5 @@ def test_paste_website():
     app = proxy.Proxy('http://pythonpaste.org')
     app = TestApp(app)
     res = app.get('/')
-    assert 'Documentation' in res
+    assert 'documentation' in res
     
