@@ -50,7 +50,7 @@ def html_unquote(s, encoding=None):
     >>> html_unquote('&lt;hey&nbsp;you&gt;')
     u'<hey\xa0you>'
     >>> html_unquote('')
-    u''
+    ''
     >>> html_unquote('&blahblah;')
     u'&blahblah;'
     >>> html_unquote('\xe1\x80\xa9')

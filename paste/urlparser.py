@@ -430,20 +430,22 @@ class StaticURLParser(object):
 
     def __init__(self, directory, root_directory=None,
                  cache_max_age=None):
-        if os.path.sep != '/':
-            directory = directory.replace(os.path.sep, '/')
-        self.directory = os.path.normcase(os.path.abspath(directory))
+        self.directory = self.normpath(directory)
         self.root_directory = root_directory
         if root_directory is not None:
-            self.root_directory = os.path.normpath(self.root_directory)
+            self.root_directory = self.normpath(self.root_directory)
         else:
-            self.root_directory = directory
-        self.root_directory = os.path.normcase(os.path.normpath(
-            os.path.abspath(self.root_directory)))
+            self.root_directory = self.directory
         self.cache_max_age = cache_max_age
-        if os.path.sep != '/':
-            directory = directory.replace('/', os.path.sep)
-            self.root_directory = self.root_directory.replace('/', os.path.sep)
+
+    def normpath(path):
+        path = os.path.normcase( 
+            os.path.normpath( 
+                os.path.abspath(path))) 
+        if os.path.sep != '/': 
+            path = path.replace(os.path.sep, '/') 
+        return path 
+    normpath = staticmethod(normpath)
 
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
