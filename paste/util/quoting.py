@@ -50,13 +50,17 @@ def html_unquote(s, encoding=None):
     >>> html_unquote('&lt;hey&nbsp;you&gt;')
     u'<hey\xa0you>'
     >>> html_unquote('')
-    ''
+    u''
     >>> html_unquote('&blahblah;')
     u'&blahblah;'
     >>> html_unquote('\xe1\x80\xa9')
     u'\u1029'
     """
     if isinstance(s, str):
+        if s == '':
+            # workaround re.sub('', '', u'') returning '' < 2.5.1
+            # instead of u'' >= 2.5.1
+            return u''
         s = s.decode(encoding or default_encoding)
     return _unquote_re.sub(_entity_subber, s)
 
