@@ -58,8 +58,8 @@ def html_unquote(s, encoding=None):
     """
     if isinstance(s, str):
         if s == '':
-            # workaround re.sub('', '', u'') returning '' < 2.5.1
-            # instead of u'' >= 2.5.1
+            # workaround re.sub('', '', u'') returning '' < 2.5.2
+            # instead of u'' >= 2.5.2
             return u''
         s = s.decode(encoding or default_encoding)
     return _unquote_re.sub(_entity_subber, s)
