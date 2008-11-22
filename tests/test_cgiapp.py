@@ -6,7 +6,8 @@ from paste.fixture import *
 
 data_dir = os.path.join(os.path.dirname(__file__), 'cgiapp_data')
 
-if sys.platform != 'win32': # these CGI scripts can't work on Windows
+# these CGI scripts can't work on Windows or Jython
+if sys.platform != 'win32' and not sys.platform.startswith('java'):
     def test_ok():
         app = TestApp(CGIApplication({}, script='ok.cgi', path=[data_dir]))
         res = app.get('')
