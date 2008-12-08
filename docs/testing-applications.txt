@@ -14,7 +14,7 @@ Paste includes functionality for testing your application in a
 convenient manner.  These facilities are quite young, and feedback is
 invited.  Feedback and discussion should take place on the
 `Paste-users list
-<http://pythonpaste.org/mailman/listinfo/paste-users>`_.
+<http://groups.google.com/group/paste-users>`_.
 
 These facilities let you test your Paste and WSGI-based applications
 easily and without a server. 
