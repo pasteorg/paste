@@ -419,7 +419,6 @@ def make_py(parser, environ, filename):
 URLParser.register_constructor('.py', make_py)
 
 class StaticURLParser(object):
-    
     """
     Like ``URLParser`` but only serves static files.
 
@@ -431,20 +430,11 @@ class StaticURLParser(object):
     def __init__(self, directory, root_directory=None,
                  cache_max_age=None):
         self.directory = self.normpath(directory)
-        self.root_directory = root_directory
-        if root_directory is not None:
-            self.root_directory = self.normpath(self.root_directory)
-        else:
-            self.root_directory = self.directory
+        self.root_directory = self.normpath(root_directory or directory)
         self.cache_max_age = cache_max_age
 
     def normpath(path):
-        path = os.path.normcase( 
-            os.path.normpath( 
-                os.path.abspath(path))) 
-        if os.path.sep != '/': 
-            path = path.replace(os.path.sep, '/') 
-        return path 
+        return os.path.normcase(os.path.abspath(path))
     normpath = staticmethod(normpath)
 
     def __call__(self, environ, start_response):
@@ -456,20 +446,15 @@ class StaticURLParser(object):
             filename = 'index.html'
         else:
             filename = request.path_info_pop(environ)
-        full = os.path.normcase(os.path.normpath(
-            os.path.join(self.directory, filename)))
-        if os.path.sep != '/':
-            full = full.replace('/', os.path.sep)
-        if self.root_directory is not None and not full.startswith(self.root_directory):
+        full = self.normpath(os.path.join(self.directory, filename))
+        if not full.startswith(self.root_directory):
             # Out of bounds
             return self.not_found(environ, start_response)
         if not os.path.exists(full):
             return self.not_found(environ, start_response)
         if os.path.isdir(full):
             # @@: Cache?
-            child_root = self.root_directory is not None and \
-                self.root_directory or self.directory
-            return self.__class__(full, root_directory=child_root, 
+            return self.__class__(full, root_directory=self.root_directory,
                                   cache_max_age=self.cache_max_age)(environ,
                                                                    start_response)
         if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
@@ -482,7 +467,7 @@ class StaticURLParser(object):
                 ETAG.update(headers, mytime)
                 start_response('304 Not Modified', headers)
                 return [''] # empty body
-        
+
         fa = self.make_app(full)
         if self.cache_max_age:
             fa.cache_control(max_age=self.cache_max_age)
@@ -505,7 +490,7 @@ class StaticURLParser(object):
             'automatically.' % url,
             headers=[('location', url)])
         return exc.wsgi_application(environ, start_response)
-        
+
     def not_found(self, environ, start_response, debug_message=None):
         exc = httpexceptions.HTTPNotFound(
             'The resource at %s could not be found'
@@ -519,7 +504,7 @@ class StaticURLParser(object):
         exc = httpexceptions.HTTPNotFound(
             'The trailing path %r is not allowed' % environ['PATH_INFO'])
         return exc.wsgi_application(environ, start_response)
-    
+
     def __repr__(self):
         return '<%s %r>' % (self.__class__.__name__, self.directory)
 
@@ -527,7 +512,7 @@ def make_static(global_conf, document_root, cache_max_age=None):
     """
     Return a WSGI application that serves a directory (configured
     with document_root)
-    
+
     cache_max_age - integer specifies CACHE_CONTROL max_age in seconds
     """
     if cache_max_age is not None:
@@ -582,7 +567,7 @@ class PkgResourcesParser(StaticURLParser):
                                   root_resource=child_root)(environ, start_response)
         if environ.get('PATH_INFO') and environ.get('PATH_INFO') != '/':
             return self.error_extra_path(environ, start_response)
-        
+
         type, encoding = mimetypes.guess_type(resource)
         if not type:
             type = 'application/octet-stream'
@@ -596,7 +581,7 @@ class PkgResourcesParser(StaticURLParser):
         start_response('200 OK',
                        [('content-type', type)])
         return fileapp._FileIter(file)
-        
+
     def not_found(self, environ, start_response, debug_message=None):
         exc = httpexceptions.HTTPNotFound(
             'The resource at %s could not be found'
@@ -639,13 +624,13 @@ def make_url_parser(global_conf, directory, base_python_name,
         hide_extensions = global_conf.get(
             'hide_extensions', ('.pyc', 'bak', 'py~'))
     hide_extensions = converters.aslist(hide_extensions)
-    
+
     if ignore_extensions is None:
         ignore_extensions = global_conf.get(
             'ignore_extensions', ())
     ignore_extensions = converters.aslist(ignore_extensions)
     # There's no real way to set constructors currently...
-    
+
     return URLParser({}, directory, base_python_name,
                      index_names=index_names,
                      hide_extensions=hide_extensions,
