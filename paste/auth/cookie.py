@@ -140,7 +140,7 @@ class AuthCookieSigner(object):
         cookie = base64.encodestring(
             hmac.new(self.secret, content, sha1).digest() +
             make_time(time.time() + 60*self.timeout) +
-            content)[:-1]
+            content)
         cookie = cookie.replace("/", "_").replace("=", "~")
         cookie = cookie.replace('\n', '').replace('\r', '')
         if len(cookie) > self.maxlen:
