@@ -10,6 +10,9 @@ svn trunk
 
 * Fix :mod:`paste.httpserver` on Python 2.6.
 
+* Fix :mod:`paste.auth.cookie`, which would insert newlines for long
+  cookies.
+
 1.7.2
 -----
 
