@@ -142,6 +142,7 @@ class AuthCookieSigner(object):
             make_time(time.time() + 60*self.timeout) +
             content)[:-1]
         cookie = cookie.replace("/", "_").replace("=", "~")
+        cookie = cookie.replace('\n', '').replace('\r', '')
         if len(cookie) > self.maxlen:
             raise CookieTooLarge(content, cookie)
         return cookie
