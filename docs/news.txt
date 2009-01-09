@@ -13,6 +13,9 @@ svn trunk
 * Fix :mod:`paste.auth.cookie`, which would insert newlines for long
   cookies.
 
+* :mod:`paste.util.mimeparse` parses a single ``*`` in Accept headers
+  (sent by IE 6).
+
 1.7.2
 -----
 

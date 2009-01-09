@@ -32,7 +32,10 @@ def parse_mime_type(mime_type):
     parts = mime_type.split(";")
     params = dict([tuple([s.strip() for s in param.split("=")])\
             for param in parts[1:] ])
-    (type, subtype) = parts[0].split("/")
+    try:
+        (type, subtype) = parts[0].split("/")
+    except ValueError:
+        type, subtype = parts[0], '*'
     return (type.strip(), subtype.strip(), params)
 
 def parse_media_range(range):
