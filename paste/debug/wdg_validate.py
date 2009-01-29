@@ -72,9 +72,13 @@ class WDGValidateMiddleware(object):
         # @@: Should capture encoding too
         html_errors = self.call_wdg_validate(
             self.wdg_path, ops, page)
-        if not html_errors:
-            return [page]
-        return self.add_error(page, html_errors)
+        if html_errors:
+            page = self.add_error(page, html_errors)[0]
+            headers.remove(
+                     ('Content-Length', 
+                      str(wsgilib.header_value(headers, 'content-length'))))
+            headers.append(('Content-Length', str(len(page))))
+        return [page]
     
     def call_wdg_validate(self, wdg_path, ops, page):
         if subprocess is None:
@@ -99,7 +103,7 @@ class WDGValidateMiddleware(object):
         if match:
             return [html_page[:match.start()]
                     + add_text
-                    + html_page[match.end():]]
+                    + html_page[match.start():]]
         else:
             return [html_page + add_text]
 

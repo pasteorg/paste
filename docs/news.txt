@@ -16,6 +16,8 @@ svn trunk
 * :mod:`paste.util.mimeparse` parses a single ``*`` in Accept headers
   (sent by IE 6).
 
+* Fix some problems with the ``wdg_validate`` middleware.
+
 1.7.2
 -----
 
