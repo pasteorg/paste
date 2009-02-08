@@ -209,9 +209,11 @@ class StackedObjectProxy(object):
                 module.glob._pop_object(conf)
         
         """
-        if not hasattr(self.____local__, 'objects'):
+        try:
+            self.____local__.objects.append(obj)
+        except AttributeError:
             self.____local__.objects = []
-        self.____local__.objects.append(obj)
+            self.____local__.objects.append(obj)
     
     def _pop_object(self, obj=None):
         """Remove a thread-local object.
@@ -220,14 +222,15 @@ class StackedObjectProxy(object):
         error is emitted if they don't match.
         
         """
-        if not hasattr(self.____local__, 'objects'):
+        try:
+            popped = self.____local__.objects.pop()
+            if obj:
+                if popped is not obj:
+                    raise AssertionError(
+                        'The object popped (%s) is not the same as the object '
+                        'expected (%s)' % (popped, obj))
+        except AttributeError:
             raise AssertionError('No object has been registered for this thread')
-        popped = self.____local__.objects.pop()
-        if obj:
-            if popped is not obj:
-                raise AssertionError(
-                    'The object popped (%s) is not the same as the object '
-                    'expected (%s)' % (popped, obj))
 
     def _object_stack(self):
         """Returns all of the objects stacked in this container
