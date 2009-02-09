@@ -181,7 +181,10 @@ class StackedObjectProxy(object):
         provided will be used. Otherwise, a TypeError will be raised.
         
         """
-        objects = getattr(self.____local__, 'objects', None)
+        try:
+            objects = self.____local__.objects
+        except AttributeError:
+            objects = None
         if objects:
             return objects[-1]
         else:
@@ -224,11 +227,10 @@ class StackedObjectProxy(object):
         """
         try:
             popped = self.____local__.objects.pop()
-            if obj:
-                if popped is not obj:
-                    raise AssertionError(
-                        'The object popped (%s) is not the same as the object '
-                        'expected (%s)' % (popped, obj))
+            if obj and popped is not obj:
+                raise AssertionError(
+                    'The object popped (%s) is not the same as the object '
+                    'expected (%s)' % (popped, obj))
         except AttributeError:
             raise AssertionError('No object has been registered for this thread')
 
@@ -312,6 +314,26 @@ class Registry(object):
             del myreglist[stacked_id]
         stacked._push_object(obj)
         myreglist[stacked_id] = (stacked, obj)
+    
+    def multiregister(self, stacklist):
+        """Register a list of tuples
+        
+        Similar call semantics as register, except this registers
+        multiple objects at once.
+        
+        Example::
+            
+            registry.multiregister([(sop, obj), (anothersop, anotherobj)])
+        
+        """
+        myreglist = self.reglist[-1]
+        for stacked, obj in stacklist:
+            stacked_id = id(stacked)
+            if stacked_id in myreglist:
+                stacked._pop_object(myreglist[stacked_id][1])
+                del myreglist[stacked_id]
+            stacked._push_object(obj)
+            myreglist[stacked_id] = (stacked, obj)
     
     # Replace now does the same thing as register
     replace = register
