@@ -99,7 +99,7 @@ class Proxy(object):
         path_info = urllib.quote(environ['PATH_INFO'])
         if self.path:            
             request_path = path_info
-            if request_path[0] == '/':
+            if request_path and request_path[0] == '/':
                 request_path = request_path[1:]
                 
             path = urlparse.urljoin(self.path, request_path)
