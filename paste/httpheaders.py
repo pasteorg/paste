@@ -134,9 +134,9 @@ dashes to give CamelCase style names.
 .. [3] http://www.python.org/peps/pep-0333.html#the-start-response-callable
 
 """
+import mimetypes
 import urllib2
 import re
-from mimetypes import guess_type
 from rfc822 import formatdate, parsedate_tz, mktime_tz
 from time import time as now
 from httpexceptions import HTTPBadRequest
@@ -575,7 +575,7 @@ def normalize_headers(response_headers, strict=True):
         (key, val) = response_headers[idx]
         head = get_header(key, strict)
         if not head:
-            newhead = '-'.join([x.capitalize() for x in 
+            newhead = '-'.join([x.capitalize() for x in
                                 key.replace("_","-").split("-")])
             response_headers[idx] = (newhead, val)
             category[newhead] = 4
@@ -855,7 +855,7 @@ class _ContentDisposition(_SingleValueHeader):
         (result, filename) = self._compose(**kwargs)
         mimetype = CONTENT_TYPE(collection)
         if filename and (not mimetype or CONTENT_TYPE.UNKNOWN == mimetype):
-            mimetype, _ = guess_type(filename)
+            mimetype, _ = mimetypes.guess_type(filename)
             if mimetype and CONTENT_TYPE.UNKNOWN != mimetype:
                 CONTENT_TYPE.update(collection, mimetype)
         self.update(collection, *result)
