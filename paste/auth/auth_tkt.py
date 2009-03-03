@@ -209,7 +209,11 @@ class AuthTKTMiddleware(object):
         
     ``secure``:
         If the cookie should be set as 'secure' (only sent over SSL) and if
-        the login must be over SSL.
+        the login must be over SSL. (Defaults to False)
+        
+    ``httponly``:
+        If the cookie should be marked as HttpOnly, which means that it's
+        not accessible to JavaScript. (Defaults to False)
         
     ``include_ip``:
         If the cookie should include the user's IP address.  If so, then 
@@ -237,13 +241,19 @@ class AuthTKTMiddleware(object):
     """
 
     def __init__(self, app, secret, cookie_name='auth_tkt', secure=False,
-                 include_ip=True, logout_path=None):
+                 include_ip=True, logout_path=None, httponly=False,
+                 no_domain_cookie=True, current_domain_cookie=True,
+                 wildcard_cookie=True):
         self.app = app
         self.secret = secret
         self.cookie_name = cookie_name
         self.secure = secure
+        self.httponly = httponly
         self.include_ip = include_ip
         self.logout_path = logout_path
+        self.no_domain_cookie = no_domain_cookie
+        self.current_domain_cookie = current_domain_cookie
+        self.wildcard_cookie = wildcard_cookie
 
     def __call__(self, environ, start_response):
         cookies = request.get_cookies(environ)
@@ -260,8 +270,13 @@ class AuthTKTMiddleware(object):
                 remote_addr = '0.0.0.0'
             # @@: This should handle bad signatures better:
             # Also, timeouts should cause cookie refresh
-            timestamp, userid, tokens, user_data = parse_ticket(
-                self.secret, cookie_value, remote_addr)
+            try:
+                timestamp, userid, tokens, user_data = parse_ticket(
+                    self.secret, cookie_value, remote_addr)
+            except BadTicket:
+                # bad credentials, just ignore without logging the user
+                # in or anything
+                return self.app(environ, start_response)
             tokens = ','.join(tokens)
             environ['REMOTE_USER'] = userid
             if environ.get('REMOTE_USER_TOKENS'):
@@ -304,14 +319,26 @@ class AuthTKTMiddleware(object):
         # environment right now as well?
         cur_domain = environ.get('HTTP_HOST', environ.get('SERVER_NAME'))
         wild_domain = '.' + cur_domain
-        cookies = [
-            ('Set-Cookie', '%s=%s; Path=/' % (
-            self.cookie_name, ticket.cookie_value())),
-            ('Set-Cookie', '%s=%s; Path=/; Domain=%s' % (
-            self.cookie_name, ticket.cookie_value(), cur_domain)),
-            ('Set-Cookie', '%s=%s; Path=/; Domain=%s' % (
-            self.cookie_name, ticket.cookie_value(), wild_domain))
-            ]
+        
+        cookie_options = ""
+        if self.secure:
+            cookie_options += "; secure"
+        if self.httponly:
+            cookie_options += "; HttpOnly"
+
+        cookies = []
+        if self.no_domain_cookie:
+            cookies.append(('Set-Cookie', '%s=%s; Path=/%s' % (
+                self.cookie_name, ticket.cookie_value(), cookie_options)))
+        if self.current_domain_cookie:
+            cookies.append(('Set-Cookie', '%s=%s; Path=/; Domain=%s%s' % (
+                self.cookie_name, ticket.cookie_value(), cur_domain,
+                cookie_options)))
+        if self.wildcard_cookie:
+            cookies.append(('Set-Cookie', '%s=%s; Path=/; Domain=%s%s' % (
+                self.cookie_name, ticket.cookie_value(), wild_domain,
+                cookie_options)))
+        
         return cookies
     
     def logout_user_cookie(self, environ):
