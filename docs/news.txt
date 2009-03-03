@@ -18,6 +18,10 @@ svn trunk
 
 * Fix some problems with the ``wdg_validate`` middleware.
 
+* Improvements to :mod:`paste.auth.auth_tkt`: add httponly support,
+  don't always aggressively set cookies without the
+  ``wildcard_cookie`` option.
+
 1.7.2
 -----
 
