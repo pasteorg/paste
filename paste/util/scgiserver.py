@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 """
 SCGI-->WSGI application proxy, "SWAP".
 
