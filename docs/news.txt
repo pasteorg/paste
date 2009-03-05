@@ -20,7 +20,7 @@ svn trunk
 
 * Improvements to :mod:`paste.auth.auth_tkt`: add httponly support,
   don't always aggressively set cookies without the
-  ``wildcard_cookie`` option.
+  ``wildcard_cookie`` option.  Also on logout, make cookies expire.
 
 1.7.2
 -----
