@@ -90,9 +90,14 @@ class Proxy(object):
         if environ.get('CONTENT_TYPE'):
             headers['content-type'] = environ['CONTENT_TYPE']
         if environ.get('CONTENT_LENGTH'):
-            headers['content-length'] = environ['CONTENT_LENGTH'] 
-            length = int(environ['CONTENT_LENGTH'])
-            body = environ['wsgi.input'].read(length)
+            if environ['CONTENT_LENGTH'] == '-1':
+                # This is a special case, where the content length is basically undetermined
+                body = environ['wsgi.input'].read(-1)
+                headers['content-length'] = str(len(body))
+            else:
+                headers['content-length'] = environ['CONTENT_LENGTH'] 
+                length = int(environ['CONTENT_LENGTH'])
+                body = environ['wsgi.input'].read(length)
         else:
             body = ''
             
