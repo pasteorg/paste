@@ -216,6 +216,8 @@ class TransparentProxy(object):
         if environ.get('CONTENT_LENGTH'):
             length = int(environ['CONTENT_LENGTH'])
             body = environ['wsgi.input'].read(length)
+            if length == -1:
+                environ['CONTENT_LENGTH'] = str(len(body))
         elif 'CONTENT_LENGTH' not in environ:
             body = ''
             length = 0
