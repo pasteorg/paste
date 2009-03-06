@@ -22,6 +22,8 @@ svn trunk
   don't always aggressively set cookies without the
   ``wildcard_cookie`` option.  Also on logout, make cookies expire.
 
+* In :class:`paste.proxy.Proxy` handle Content-Length of -1.
+
 1.7.2
 -----
 
