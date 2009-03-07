@@ -273,18 +273,18 @@ class AuthTKTMiddleware(object):
             try:
                 timestamp, userid, tokens, user_data = parse_ticket(
                     self.secret, cookie_value, remote_addr)
+                tokens = ','.join(tokens)
+                environ['REMOTE_USER'] = userid
+                if environ.get('REMOTE_USER_TOKENS'):
+                    # We want to add tokens/roles to what's there:
+                    tokens = environ['REMOTE_USER_TOKENS'] + ',' + tokens
+                environ['REMOTE_USER_TOKENS'] = tokens
+                environ['REMOTE_USER_DATA'] = user_data
+                environ['AUTH_TYPE'] = 'cookie'
             except BadTicket:
                 # bad credentials, just ignore without logging the user
                 # in or anything
-                return self.app(environ, start_response)
-            tokens = ','.join(tokens)
-            environ['REMOTE_USER'] = userid
-            if environ.get('REMOTE_USER_TOKENS'):
-                # We want to add tokens/roles to what's there:
-                tokens = environ['REMOTE_USER_TOKENS'] + ',' + tokens
-            environ['REMOTE_USER_TOKENS'] = tokens
-            environ['REMOTE_USER_DATA'] = user_data
-            environ['AUTH_TYPE'] = 'cookie'
+                pass
         set_cookies = []
         def set_user(userid, tokens='', user_data=''):
             set_cookies.extend(self.set_user_cookie(
