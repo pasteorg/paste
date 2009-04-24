@@ -199,13 +199,15 @@ class HTTPException(Exception):
         args = {'explanation': escfunc(self.explanation),
                 'detail': escfunc(self.detail),
                 'comment': comment_escfunc(self.comment)}
-        if HTTPException.template == self.template:
-            return template % args
-        for (k, v) in environ.items():
-            args[k] = escfunc(v)
-        if self.headers:
-            for (k, v) in self.headers:
-                args[k.lower()] = escfunc(v)
+        if HTTPException.template != self.template:
+            for (k, v) in environ.items():
+                args[k] = escfunc(v)
+            if self.headers:
+                for (k, v) in self.headers:
+                    args[k.lower()] = escfunc(v)
+        for key, value in args.items():
+            if isinstance(value, unicode):
+                args[key] = value.encode('ascii', 'utf8')
         return template % args
 
     def plain(self, environ):
