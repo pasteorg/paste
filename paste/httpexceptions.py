@@ -207,7 +207,7 @@ class HTTPException(Exception):
                     args[k.lower()] = escfunc(v)
         for key, value in args.items():
             if isinstance(value, unicode):
-                args[key] = value.encode('ascii', 'utf8')
+                args[key] = value.encode('utf8', 'xmlcharrefreplace')
         return template % args
 
     def plain(self, environ):
