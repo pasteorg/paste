@@ -24,6 +24,8 @@ svn trunk
 
 * In :class:`paste.proxy.Proxy` handle Content-Length of -1.
 
+* In :mod:`paste.httpexceptions` avoid some unicode errors.
+
 1.7.2
 -----
 
