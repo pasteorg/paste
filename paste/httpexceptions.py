@@ -605,15 +605,6 @@ class HTTPExceptionHandler(object):
     """
     catches exceptions and turns them into proper HTTP responses
 
-    Attributes:
-
-       ``warning_level``
-           This attribute determines for what exceptions a stack
-           trace is kept for lower level reporting; by default, it
-           only keeps stack trace for 5xx, HTTPServerError exceptions.
-           To keep a stack trace for 4xx, HTTPClientError exceptions,
-           set this to 400.
-
     This middleware catches any exceptions (which are subclasses of
     ``HTTPException``) and turns them into proper HTTP responses.
     Note if the headers have already been sent, the stack trace is
@@ -627,6 +618,10 @@ class HTTPExceptionHandler(object):
     def __init__(self, application, warning_level=None):
         assert not warning_level or ( warning_level > 99 and
                                       warning_level < 600)
+        if warning_level is not None:
+            import warnings
+            warnings.warn('The warning_level parameter is not used or supported',
+                          DeprecationWarning, 2)
         self.warning_level = warning_level or 500
         self.application = application
 
