@@ -1,6 +1,6 @@
 import os
 import sys
-import py.test
+from nose.tools import assert_raises
 from paste.cgiapp import CGIApplication, CGIError
 from paste.fixture import *
 
@@ -25,7 +25,7 @@ if sys.platform != 'win32' and not sys.platform.startswith('java'):
 
     def test_error():
         app = TestApp(CGIApplication({}, script='error.cgi', path=[data_dir]))
-        py.test.raises(CGIError, "app.get('', status=500)")
+        assert_raises(CGIError, app.get, '', status=500)
 
     def test_stderr():
         app = TestApp(CGIApplication({}, script='stderr.cgi', path=[data_dir]))

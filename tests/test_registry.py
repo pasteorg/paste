@@ -1,7 +1,7 @@
 # (c) 2005 Ben Bangert
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
-import py.test
+from nose.tools import assert_raises
 
 from paste.fixture import *
 from paste.registry import *
@@ -104,7 +104,7 @@ def test_solo_registry():
 
 def test_registry_no_object_error():
     app = TestApp(simpleapp_withregistry)
-    py.test.raises(TypeError, "app.get('/')")
+    assert_raises(TypeError, app.get, '/')
 
 def test_with_default_object():
     app = TestApp(simpleapp_withregistry_default)
