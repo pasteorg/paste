@@ -2,11 +2,11 @@
 # (c) 2007 Ian Bicking and Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import cgi
+from nose.tools import assert_raises
 from StringIO import StringIO
 from paste.fixture import TestApp
 from paste.wsgiwrappers import WSGIRequest
 from paste.util.multidict import MultiDict, UnicodeMultiDict
-from py.test import raises
 
 def test_dict():
     d = MultiDict({'a': 1})
@@ -20,7 +20,7 @@ def test_dict():
     assert d.items() == [('a', 1), ('c', 3), ('b', 4)]
 
     d.add('b', 5)
-    raises(KeyError, 'd.getone("b")')
+    assert_raises(KeyError, d.getone, "b")
     assert d.getall('b') == [4, 5]
     assert d.items() == [('a', 1), ('c', 3), ('b', 4), ('b', 5)]
 
@@ -91,7 +91,7 @@ def _test_unicode_dict(decode_param_names=False):
     map(assert_unicode_item, d.items())
 
     d.add('b', '5 test')
-    raises(KeyError, 'd.getone("b")')
+    assert_raises(KeyError, d.getone, "b")
     assert d.getall('b') == [u'4 test', u'5 test']
     map(assert_unicode, d.getall('b'))
     assert d.items() == [('a', u'a test'), ('c', u'3 test'), ('b', u'4 test'),

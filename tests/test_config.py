@@ -1,6 +1,6 @@
 # (c) 2007 Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
-from py.test import raises
+from nose.tools import assert_raises
 from paste.config import CONFIG, ConfigMiddleware
 from paste.fixture import TestApp
 
@@ -56,8 +56,8 @@ def test_process_config(request_app=test_request_config):
     assert CONFIG['process_var'] == 'foo'
     CONFIG.pop_process_config()
     
-    raises(AttributeError, lambda: 'process_var' not in CONFIG)
-    raises(IndexError, CONFIG.pop_process_config)
+    assert_raises(AttributeError, lambda: 'process_var' not in CONFIG)
+    assert_raises(IndexError, CONFIG.pop_process_config)
 
 def test_process_config_multi():
     test_process_config(test_request_config_multi)

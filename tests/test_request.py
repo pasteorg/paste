@@ -4,7 +4,6 @@
 from paste.fixture import *
 from paste.request import *
 from paste.wsgiwrappers import WSGIRequest
-from py.test import raises
 
 def simpleapp(environ, start_response):
     status = '200 OK'

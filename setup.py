@@ -134,6 +134,8 @@ For the latest changes see the `news file
       package_data=finddata.find_package_data(),
       namespace_packages=['paste'],
       zip_safe=False,
+      test_suite='nose.collector',
+      tests_require=['nose>=0.11'],
       extras_require={
         'subprocess': [],
         'hotshot': [],
