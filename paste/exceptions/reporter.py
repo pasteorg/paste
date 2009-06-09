@@ -129,7 +129,6 @@ class FileReporter(Reporter):
     def report(self, exc_data):
         text = self.format_text(
             exc_data, show_hidden_frames=self.show_hidden_frames)
-        print text
         self.file.write(text + '\n' + '-'*60 + '\n')
 
 class WSGIAppReporter(Reporter):
