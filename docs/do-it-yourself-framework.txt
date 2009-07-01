@@ -269,7 +269,7 @@ request is a little slim.
             self.headers = HeaderDict(
                 {'content-type': 'text/html'})
 
-Now I'll each you a little trick.  We don't want to change the
+Now I'll teach you a little trick.  We don't want to change the
 signature of the methods.  But we can't put the request and response
 objects in normal global variables, because we want to be
 thread-friendly, and all threads see the same global variables (even
