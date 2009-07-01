@@ -104,7 +104,7 @@ class DataApp(object):
         return self.get(environ, start_response)
 
     def calculate_etag(self):
-        return str(self.last_modified) + '-' + str(self.content_length)
+        return '"%s-%s"' % (self.last_modified, self.content_length)
 
     def get(self, environ, start_response):
         headers = self.headers[:]

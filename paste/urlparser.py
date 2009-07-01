@@ -464,6 +464,8 @@ class StaticURLParser(object):
             mytime = os.stat(full).st_mtime
             if str(mytime) == if_none_match:
                 headers = []
+                ## FIXME: probably should be
+                ## ETAG.update(headers, '"%s"' % mytime)
                 ETAG.update(headers, mytime)
                 start_response('304 Not Modified', headers)
                 return [''] # empty body
