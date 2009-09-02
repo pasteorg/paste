@@ -26,6 +26,9 @@ svn trunk
 
 * In :mod:`paste.httpexceptions` avoid some unicode errors.
 
+* In :mod:`paste.httpserver` handle ``.read()`` from 100 Continue
+  properly (because of a typo it was doing a readline).
+
 1.7.2
 -----
 

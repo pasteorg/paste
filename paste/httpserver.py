@@ -72,7 +72,7 @@ class ContinueHook(object):
 
     def _ContinueFile_read(self, size=-1):
         self._ContinueFile_send()
-        return self._ContinueFile_rfile.readline(size)
+        return self._ContinueFile_rfile.read(size)
 
     def _ContinueFile_readline(self, size=-1):
         self._ContinueFile_send()
