@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+hg tip
+------
+
+* Removed directory name from 404 errors in
+  :class:`paste.urlparser.StaticURLParser`.
+
 1.7.3
 -----
 

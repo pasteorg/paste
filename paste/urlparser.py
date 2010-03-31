@@ -215,9 +215,7 @@ class URLParser(object):
         exc = httpexceptions.HTTPNotFound(
             'The resource at %s could not be found'
             % request.construct_url(environ),
-            comment='SCRIPT_NAME=%r; PATH_INFO=%r; looking in %r; debug: %s'
-            % (environ.get('SCRIPT_NAME'), environ.get('PATH_INFO'),
-               self.directory, debug_message or '(none)'))
+            comment=debug_message)
         return exc.wsgi_application(environ, start_response)
 
     def add_slash(self, environ, start_response):
@@ -638,4 +636,3 @@ def make_url_parser(global_conf, directory, base_python_name,
                      hide_extensions=hide_extensions,
                      ignore_extensions=ignore_extensions,
                      **constructor_conf)
-
