@@ -15,22 +15,17 @@ are always located on the Cheese Shop pages (listed below).
 * `Paste WebKit <http://cheeseshop.python.org/pypi/PasteWebKit>`_
 * `Wareweb <http://cheeseshop.python.org/pypi/Wareweb>`_
 
-All the packages are available in the Subversion repository rooted at
-http://svn.pythonpaste.org/Paste/
+All the packages are available in the Mercurial repositories rooted in
+http://bitbucket.org/ianb/
 
-* http://svn.pythonpaste.org/Paste/trunk
-* http://svn.pythonpaste.org/Paste/Script/trunk
-* http://svn.pythonpaste.org/Paste/Deploy/trunk
-* http://svn.pythonpaste.org/Paste/WebKit/trunk
-* http://svn.pythonpaste.org/Paste/Wareweb/trunk
+* http://bitbucket.org/ianb/paste
+* http://bitbucket.org/ianb/pastescript
+* http://bitbucket.org/ianb/pastedeploy
+* http://bitbucket.org/ianb/webob
 * ... and others
 
 Use::
 
-    svn co http://svn.pythonpaste.org/Paste/trunk Paste
+    hg clone http://bitbucket.org/ianb/paste
 
-to check out a working copy of Paste.  You can also use::
-
-    easy_install Paste==dev
-
-to install the trunk version of Paste (or the other packages).
+to check out a working copy of Paste.

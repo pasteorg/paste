@@ -1,13 +1,10 @@
 Repository
 ==========
 
-Paste is kept in a `Subversion <http://subversion.tigris.org/>`_
-repository at http://svn.pythonpaste.org/Paste
+Paste is kept in a Mercurial (hg) repository at
+http://bitbucket.org/ianb/paste
 
-If you are using a command-line Subversion client, you can check
+If you are using a command-line Mercurial client, you can check
 it out like::
 
-    svn co http://svn.pythonpaste.org/Paste/trunk Paste
-
-If you are on Windows you may want to use `TortoiseSVN
-<http://tortoisesvn.tigris.org/>`_.
+    hg clone http://bitbucket.org/ianb/paste
