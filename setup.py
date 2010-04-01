@@ -130,7 +130,7 @@ For the latest changes see the `news file
       author_email="ianb@colorstudy.com",
       url="http://pythonpaste.org",
       license="MIT",
-      packages=find_packages(exclude=['ez_setup', 'examples', 'packages']),
+      packages=find_packages(exclude=['ez_setup', 'examples', 'packages', 'tests']),
       package_data=finddata.find_package_data(),
       namespace_packages=['paste'],
       zip_safe=False,
@@ -166,7 +166,7 @@ For the latest changes see the `news file
       gzip = paste.gzipper:make_gzip_middleware
       httpexceptions = paste.httpexceptions:make_middleware
       lint = paste.lint:make_middleware
-      printdebug = paste.debug.prints:PrintDebugMiddleware 
+      printdebug = paste.debug.prints:PrintDebugMiddleware
       profile = paste.debug.profile:make_profile_middleware [hotshot]
       recursive = paste.recursive:make_recursive_middleware
       # This isn't good enough to deserve the name egg:Paste#session:
@@ -191,5 +191,3 @@ For the latest changes see the `news file
       http = paste.httpserver:server_runner
       """,
       )
-
-
