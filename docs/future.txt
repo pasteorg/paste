@@ -4,7 +4,7 @@ The Future Of Paste
 Introduction
 ------------
 
-Paste has been under development for a while, and has lots of code in it.  Too much code!  The code is largely decoupled except for some core functions shared by many parts of the code.  Those core functions are largely replaced in `WebOb <>`_, and replaced with better implementations.
+Paste has been under development for a while, and has lots of code in it.  Too much code!  The code is largely decoupled except for some core functions shared by many parts of the code.  Those core functions are largely replaced in `WebOb <http://pythonpaste.org/webob/>`_, and replaced with better implementations.
 
 The future of these pieces is to split them into independent packages, and refactor the internal Paste dependencies to rely instead on WebOb.
 
@@ -106,4 +106,3 @@ paste.debug.debugapp, paste.script.testapp:
 
 paste.progress:
   Not sure this works.
-

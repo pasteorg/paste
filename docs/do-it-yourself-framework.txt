@@ -149,6 +149,8 @@ In a typical Python object publisher you translate ``/`` to ``.``.  So
 ``/articles/view?id=5`` turns into ``root.articles.view(id=5)``.  We
 have to start with some root object, of course, which we'll pass in...
 
+::
+
     class ObjectPublisher(object):
 
         def __init__(self, root):
@@ -300,6 +302,9 @@ Lets's update that::
     import threading
     webinfo = threading.local()
 
+    class ObjectPublisher(object):
+        ...
+
         def __call__(self, environ, start_response):
             webinfo.request = Request(environ)
             webinfo.response = Response()
@@ -325,10 +330,10 @@ WSGI Middleware
 
 `Middleware
 <http://www.python.org/peps/pep-0333.html#middleware-components-that-play-both-sides>`_
-is where people get a little intimidated by WSGI and Paste.  
+is where people get a little intimidated by WSGI and Paste.
 
 What is middleware?  Middleware is software that serves as an
-intermediary.  
+intermediary.
 
 
 So lets
@@ -378,6 +383,24 @@ return the response body, but we're skimming bits.
 <http://pythonpaste.org/module-paste.wsgilib.html#intercept_output>`_
 is a somewhat more thorough implementation of this.
 
+.. note::
+
+   This, like a lot of parts of this (now fairly old) tutorial is
+   better, more thorough, and easier using `WebOb
+   <http://pythonpaste.org/webob/>`_.  This particular example looks
+   like::
+
+       from webob import Request
+
+       class Capitalizer(object):
+           def __init__(self, app):
+               self.app = app
+           def __call__(self, environ, start_response):
+               req = Request(environ)
+               resp = req.get_response(self.app)
+               resp.body = resp.body.upper()
+               return resp(environ, start_response)
+
 So here's some code that does something useful, authentication::
 
     class AuthMiddleware(object):
@@ -422,6 +445,43 @@ So here's some code that does something useful, authentication::
              </body>
             </html>"""]
 
+.. note::
+
+   Again, here's the same thing with WebOb::
+
+       from webob import Request, Response
+
+       class AuthMiddleware(object):
+           def __init__(self, app):
+               self.app = app
+           def __call__(self, environ, start_response):
+               req = Request(environ)
+               if not self.authorized(req.headers['authorization']):
+                   resp = self.auth_required(req)
+               else:
+                   resp = self.app
+               return resp(environ, start_response)
+           def authorized(self, header):
+               if not header:
+                   return False
+               auth_type, encoded = header.split(None, 1)
+               if not auth_type.lower() == 'basic':
+                   return False
+               username, password = encoded.decode('base64').split(':', 1)
+               return self.check_password(username, password)
+        def check_password(self, username, password):
+            return username == password
+        def auth_required(self, req):
+            return Response(status=401, headers={'WWW-Authenticate': 'Basic realm="this realm"'},
+                            body="""\
+            <html>
+             <head><title>Authentication Required</title></head>
+             <body>
+              <h1>Authentication Required</h1>
+              If you can't get in, then stay out.
+             </body>
+            </html>""")
+
 So, how do we use this?
 
 ::
@@ -463,22 +523,16 @@ Easy!  But let's make it *more* fancy...
 So go make an error now.  And hit the little +'s.  And type stuff in
 to the boxes.
 
-Configuration
-=============
+Conclusion
+==========
 
 Now that you've created your framework and application (I'm sure it's
-much nicer than the one I've given so far) you might find the manually
-plugging together of some of these pieces a little crude.  Well, if
-*you* don't, anyone else who uses your app and wants to install it in
-a different location or configure it differently won't be as happy.
+much nicer than the one I've given so far).  You might keep writing it
+(many people have so far), but even if you don't you should be able to
+recognize these components in other frameworks now, and you'll have a
+better understanding how they probably work under the covers.
 
-So, we want to separate the application setup from the application
-configuration.  
-
-What's Next?
-============
-
-Stay tuned, I'll be talking about configuration (using `Paste Deploy
-<http://pythonpaste.org/deploy/>`_) later, and I hope to give a short
-introduction to packaging and plugins as well.  When that happens I'll
-note it on `my blog <http://blog.ianbicking.org>`_.
+Also check out the version of this tutorial written `using WebOb
+<http://pythonpaste.org/webob/do-it-yourself.html>`_.  That tutorial
+includes things like **testing** and **pattern-matching dispatch**
+(instead of object publishing).
