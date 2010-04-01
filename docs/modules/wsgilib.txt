@@ -15,5 +15,4 @@ Module Contents
 .. autofunction:: raw_interactive
 .. autofunction:: interactive
 .. autofunction:: dump_environ
-.. autofunction:: capture_stdout
 .. autofunction:: intercept_output
