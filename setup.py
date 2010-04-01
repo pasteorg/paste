@@ -130,7 +130,7 @@ For the latest changes see the `news file
       author_email="ianb@colorstudy.com",
       url="http://pythonpaste.org",
       license="MIT",
-      packages=find_packages(exclude=['ez_setup', 'examples', 'packages', 'tests']),
+      packages=find_packages(exclude=['ez_setup', 'examples', 'packages', 'tests*']),
       package_data=finddata.find_package_data(),
       namespace_packages=['paste'],
       zip_safe=False,
