@@ -150,7 +150,7 @@ def get_debug_info(func):
             form['headers']['status'] = '500 Server Error'
             return '<html>There was an error: %s</html>' % html_quote(e)
     return debug_info_replacement
-            
+
 debug_counter = itertools.count(int(time.time()))
 def get_debug_count(environ):
     """
@@ -419,7 +419,7 @@ class DebugInfo(object):
     def eval_javascript(self):
         base_path = self.base_path + '/_debug'
         return (
-            '<script type="text/javascript" src="%s/mochikit/MochiKit.js">'
+            '<script type="text/javascript" src="%s/media/MochiKit.packed.js">'
             '</script>\n'
             '<script type="text/javascript" src="%s/media/debug.js">'
             '</script>\n'
@@ -435,7 +435,7 @@ class EvalHTMLFormatter(formatter.HTMLFormatter):
         super(EvalHTMLFormatter, self).__init__(**kw)
         self.base_path = base_path
         self.counter = counter
-    
+
     def format_source_line(self, filename, frame):
         line = formatter.HTMLFormatter.format_source_line(
             self, filename, frame)
@@ -508,7 +508,7 @@ def format_eval_html(exc_data, base_path, counter):
         """ % long_er
     else:
         full_traceback_html = ''
-    
+
     return """
     %s
     %s
@@ -549,7 +549,7 @@ def make_repost_button(environ):
 <input type="submit" value="Re-POST Page">
 </form>''' % (url, '\n'.join(fields))
 """
-    
+
 
 def input_form(tbid, debug_info):
     return '''
@@ -608,4 +608,3 @@ def make_eval_exception(app, global_conf, xmlhttp_key=None):
     if xmlhttp_key is None:
         xmlhttp_key = global_conf.get('xmlhttp_key', '_')
     return EvalException(app, xmlhttp_key=xmlhttp_key)
-
