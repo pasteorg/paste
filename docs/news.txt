@@ -3,11 +3,14 @@ News
 
 .. contents::
 
-hg tip
-------
+1.7.3.1
+-------
 
 * Removed directory name from 404 errors in
   :class:`paste.urlparser.StaticURLParser`.
+
+* Fixed packaging to include Javascript and images for
+  :mod:`paste.evalexception`
 
 1.7.3
 -----
