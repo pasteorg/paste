@@ -17,22 +17,22 @@ from paste.response import replace_header
 
 def forward(app, codes):
     """
-    Intercepts a response with a particular status code and returns the 
+    Intercepts a response with a particular status code and returns the
     content from a specified URL instead.
-    
+
     The arguments are:
-    
+
     ``app``
         The WSGI application or middleware chain.
 
     ``codes``
         A dictionary of integer status codes and the URL to be displayed
         if the response uses that code.
-        
-    For example, you might want to create a static file to display a 
+
+    For example, you might want to create a static file to display a
     "File Not Found" message at the URL ``/error404.html`` and then use
     ``forward`` middleware to catch all 404 status codes and display the page
-    you created. In this example ``app`` is your exisiting WSGI 
+    you created. In this example ``app`` is your exisiting WSGI
     applicaiton::
 
         from paste.errordocument import forward
@@ -43,7 +43,7 @@ def forward(app, codes):
         if not isinstance(code, int):
             raise TypeError('All status codes should be type int. '
                 '%s is not valid'%repr(code))
-                
+
     def error_codes_mapper(code, message, environ, global_conf, codes):
         if codes.has_key(code):
             return codes[code]
@@ -53,8 +53,8 @@ def forward(app, codes):
     #return _StatusBasedRedirect(app, error_codes_mapper, codes=codes)
     return RecursiveMiddleware(
         StatusBasedForward(
-            app, 
-            error_codes_mapper, 
+            app,
+            error_codes_mapper,
             codes=codes,
         )
     )
@@ -82,22 +82,22 @@ class StatusKeeper(object):
             environ['QUERY_STRING'] = ''
         #raise Exception(self.url, self.status)
         return self.app(environ, keep_status_start_response)
-        
+
 class StatusBasedForward(object):
     """
     Middleware that lets you test a response against a custom mapper object to
     programatically determine whether to internally forward to another URL and
     if so, which URL to forward to.
-    
+
     If you don't need the full power of this middleware you might choose to use
     the simpler ``forward`` middleware instead.
 
     The arguments are:
-    
+
     ``app``
         The WSGI application or middleware chain.
-        
-    ``mapper`` 
+
+    ``mapper``
         A callable that takes a status code as the
         first parameter, a message as the second, and accepts optional environ,
         global_conf and named argments afterwards. It should return a
@@ -107,22 +107,22 @@ class StatusBasedForward(object):
         Optional default configuration from your config file. If ``debug`` is
         set to ``true`` a message will be written to ``wsgi.errors`` on each
         internal forward stating the URL forwarded to.
-    
-    ``**params`` 
-        Optional, any other configuration and extra arguments you wish to 
+
+    ``**params``
+        Optional, any other configuration and extra arguments you wish to
         pass which will in turn be passed back to the custom mapper object.
 
     Here is an example where a ``404 File Not Found`` status response would be
-    redirected to the URL ``/error?code=404&message=File%20Not%20Found``. This 
-    could be useful for passing the status code and message into another 
+    redirected to the URL ``/error?code=404&message=File%20Not%20Found``. This
+    could be useful for passing the status code and message into another
     application to display an error document:
-    
+
     .. code-block:: python
-    
+
         from paste.errordocument import StatusBasedForward
         from paste.recursive import RecursiveMiddleware
         from urllib import urlencode
-        
+
         def error_mapper(code, message, environ, global_conf, kw)
             if code in [404, 500]:
                 params = urlencode({'message':message, 'code':code})
@@ -130,7 +130,7 @@ class StatusBasedForward(object):
                 return url
             else:
                 return None
-    
+
         app = RecursiveMiddleware(
             StatusBasedForward(app, mapper=error_mapper),
         )
@@ -153,7 +153,7 @@ class StatusBasedForward(object):
 
     def __call__(self, environ, start_response):
         url = []
-        
+
         def change_response(status, headers, exc_info=None):
             status_code = status.split(' ')
             try:
@@ -165,10 +165,10 @@ class StatusBasedForward(object):
                 )
             message = ' '.join(status_code[1:])
             new_url = self.mapper(
-                code, 
-                message, 
-                environ, 
-                self.global_conf, 
+                code,
+                message,
+                environ,
+                self.global_conf,
                 **self.params
             )
             if not (new_url == None or isinstance(new_url, str)):
@@ -196,8 +196,8 @@ class StatusBasedForward(object):
 
 def make_errordocument(app, global_conf, **kw):
     """
-    Paste Deploy entry point to create a error document wrapper. 
-    
+    Paste Deploy entry point to create a error document wrapper.
+
     Use like::
 
         [filter-app:main]
@@ -268,14 +268,14 @@ class _StatusBasedRedirect(object):
             <p>%(message)s</p>
             <hr>
             <p>
-                Additionally an error occurred trying to produce an 
+                Additionally an error occurred trying to produce an
                 error document.  A description of the error was logged
                 to <tt>wsgi.errors</tt>.
             </p>
             </body>
-            </html>                
+            </html>
         """
-        
+
     def __call__(self, environ, start_response):
         url = []
         code_message = []
@@ -285,17 +285,17 @@ class _StatusBasedRedirect(object):
                 parts = status.split(' ')
                 try:
                     code = int(parts[0])
-                except ValueError, TypeError:
+                except (ValueError, TypeError):
                     raise Exception(
                         '_StatusBasedRedirect middleware '
                         'received an invalid status code %s'%repr(parts[0])
                     )
                 message = ' '.join(parts[1:])
                 new_url = self.mapper(
-                    code, 
-                    message, 
-                    environ, 
-                    self.global_conf, 
+                    code,
+                    message,
+                    environ,
+                    self.global_conf,
                     self.kw
                 )
                 if not (new_url == None or isinstance(new_url, str)):
