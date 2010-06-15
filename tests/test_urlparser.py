@@ -106,6 +106,13 @@ def test_relative_path_in_static_parser():
     app = StaticURLParser(relative_path('find_file'))
     assert '..' not in app.root_directory
 
+def test_xss():
+    app = TestApp(StaticURLParser(relative_path('find_file')),
+                  extra_environ={'HTTP_ACCEPT': 'text/html'})
+    res = app.get("/-->%0D<script>alert('xss')</script>", status=404)
+    print res
+    assert 0
+
 def test_static_parser():
     app = StaticURLParser(path('find_file'))
     testapp = TestApp(app)

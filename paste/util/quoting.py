@@ -76,6 +76,13 @@ def no_quote(s):
     """
     return s
 
+_comment_quote_re = re.compile(r'\-\s*\>')
+def comment_quote(s):
+    """
+    Quote that makes sure text can't escape a comment
+    """
+    return _comment_quote_re.sub('-&gt', str(s))
+
 url_quote = urllib.quote
 url_unquote = urllib.unquote
 

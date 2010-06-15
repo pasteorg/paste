@@ -77,7 +77,7 @@ import types
 from paste.wsgilib import catch_errors_app
 from paste.response import has_header, header_value, replace_header
 from paste.request import resolve_relative_url
-from paste.util.quoting import strip_html, html_quote, no_quote
+from paste.util.quoting import strip_html, html_quote, no_quote, comment_quote
 
 SERVER_NAME = 'WSGI Server'
 TEMPLATE = """\
@@ -212,12 +212,12 @@ class HTTPException(Exception):
 
     def plain(self, environ):
         """ text/plain representation of the exception """
-        body = self.make_body(environ, strip_html(self.template), no_quote)
+        body = self.make_body(environ, strip_html(self.template), comment_quote)
         return ('%s %s\r\n%s\r\n' % (self.code, self.title, body))
 
     def html(self, environ):
         """ text/html representation of the exception """
-        body = self.make_body(environ, self.template, html_quote, no_quote)
+        body = self.make_body(environ, self.template, html_quote, comment_quote)
         return TEMPLATE % {
                    'title': self.title,
                    'code': self.code,
@@ -334,14 +334,14 @@ class _HTTPMove(HTTPRedirection):
 
     def relative_redirect(cls, dest_uri, environ, detail=None, headers=None, comment=None):
         """
-        Create a redirect object with the dest_uri, which may be relative, 
+        Create a redirect object with the dest_uri, which may be relative,
         considering it relative to the uri implied by the given environ.
         """
         location = resolve_relative_url(dest_uri, environ)
         headers = headers or []
         headers.append(('Location', location))
         return cls(detail=detail, headers=headers, comment=comment)
-    
+
     relative_redirect = classmethod(relative_redirect)
 
     def location(self):
@@ -658,4 +658,3 @@ def make_middleware(app, global_conf=None, warning_level=None):
     return HTTPExceptionHandler(app, warning_level=warning_level)
 
 __all__.extend(['HTTPExceptionHandler', 'get_exception'])
-

@@ -7,6 +7,7 @@ Map URL prefixes to WSGI applications.  See ``URLMap``
 from UserDict import DictMixin
 import re
 import os
+import cgi
 from paste import httpexceptions
 
 __all__ = ['URLMap', 'PathProxyURLMap']
@@ -77,12 +78,12 @@ class URLMap(DictMixin):
     dispatch to.  URLs are matched most-specific-first, i.e., longest
     URL first.  The ``SCRIPT_NAME`` and ``PATH_INFO`` environmental
     variables are adjusted to indicate the new context.
-    
+
     URLs can also include domains, like ``http://blah.com/foo``, or as
     tuples ``('blah.com', '/foo')``.  This will match domain names; without
     the ``http://domain`` or with a domain of ``None`` any domain will be
     matched (so long as no other explicit domain matches).  """
-    
+
     def __init__(self, not_found_app=None):
         self.applications = []
         if not not_found_app:
@@ -105,7 +106,7 @@ class URLMap(DictMixin):
         extra += '\nHTTP_HOST: %r' % environ.get('HTTP_HOST')
         app = httpexceptions.HTTPNotFound(
             environ['PATH_INFO'],
-            comment=extra).wsgi_application
+            comment=cgi.escape(extra)).wsgi_application
         return app(environ, start_response)
 
     def normalize_url(self, url, trim=True):
@@ -113,7 +114,7 @@ class URLMap(DictMixin):
             domain = url[0]
             url = self.normalize_url(url[1])[1]
             return domain, url
-        assert (not url or url.startswith('/') 
+        assert (not url or url.startswith('/')
                 or self.domain_url_re.search(url)), (
             "URL fragments must start with / or http:// (you gave %r)" % url)
         match = self.domain_url_re.search(url)
@@ -165,7 +166,7 @@ class URLMap(DictMixin):
             if app_url == dom_url:
                 return app
         raise KeyError(
-            "No application with the url %r (domain: %r; existing: %s)" 
+            "No application with the url %r (domain: %r; existing: %s)"
             % (url[1], url[0] or '*', self.applications))
 
     def __delitem__(self, url):
@@ -202,8 +203,8 @@ class URLMap(DictMixin):
                 return app(environ, start_response)
         environ['paste.urlmap_object'] = self
         return self.not_found_application(environ, start_response)
-    
-            
+
+
 class PathProxyURLMap(object):
 
     """
@@ -225,7 +226,7 @@ class PathProxyURLMap(object):
         self.base_paste_url = self.map.normalize_url(base_paste_url)
         self.base_path = base_path
         self.builder = builder
-        
+
     def __setitem__(self, url, app):
         if isinstance(app, (str, unicode)):
             app_fn = os.path.join(self.base_path, app)
@@ -233,7 +234,7 @@ class PathProxyURLMap(object):
         url = self.map.normalize_url(url)
         # @@: This means http://foo.com/bar will potentially
         # match foo.com, but /base_paste_url/bar, which is unintuitive
-        url = (url[0] or self.base_paste_url[0], 
+        url = (url[0] or self.base_paste_url[0],
                self.base_paste_url[1] + url[1])
         self.map[url] = app
 
@@ -247,5 +248,3 @@ class PathProxyURLMap(object):
         self.map.not_found_application = value
     not_found_application = property(not_found_application__get,
                                      not_found_application__set)
-        
-    
