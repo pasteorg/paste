@@ -39,4 +39,9 @@ def test_map():
     res.mustcontain('script_name="/f"')
     res.mustcontain('path_info="/z/y"')
     res.mustcontain('f-only')
-    
+
+def test_404():
+    mapper = URLMap({})
+    app = TestApp(mapper, extra_environ={'HTTP_ACCEPT': 'text/html'})
+    res = app.get("/-->%0D<script>alert('xss')</script>", status=404)
+    assert '--><script' not in res.body

@@ -3,6 +3,15 @@ News
 
 .. contents::
 
+1.7.4
+-----
+
+* Fix XSS bug (security issue) with not found handlers for
+  :class:`paste.urlparser.StaticURLParser` and
+  :class:`paste.urlmap.URLMap`.  If you ask for a path with
+  ``/--><script>...`` that will be inserted in the error page and can
+  execute Javascript.  Reported by Tim Wintle.
+
 1.7.3.1
 -------
 
