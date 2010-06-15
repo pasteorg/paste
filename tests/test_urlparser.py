@@ -110,8 +110,7 @@ def test_xss():
     app = TestApp(StaticURLParser(relative_path('find_file')),
                   extra_environ={'HTTP_ACCEPT': 'text/html'})
     res = app.get("/-->%0D<script>alert('xss')</script>", status=404)
-    print res
-    assert 0
+    assert '--><script>' not in res.body
 
 def test_static_parser():
     app = StaticURLParser(path('find_file'))
