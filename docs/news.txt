@@ -12,6 +12,8 @@ News
   ``/--><script>...`` that will be inserted in the error page and can
   execute Javascript.  Reported by Tim Wintle.
 
+* Replaced :func:`paste.util.mimeparse.desired_match`
+
 1.7.3.1
 -------
 
