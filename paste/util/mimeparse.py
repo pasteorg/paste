@@ -6,7 +6,7 @@ the HTTP specification [RFC 2616] for a complete explanation.
 
    http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1
 
-Based on mime_parse 0.1.2 by Joe Gregorio
+Based on mimeparse 0.1.2 by Joe Gregorio:
 
     http://code.google.com/p/mimeparse/
 
