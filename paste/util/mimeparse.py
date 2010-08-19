@@ -6,18 +6,20 @@ the HTTP specification [RFC 2616] for a complete explanation.
 
    http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1
 
+Based on mime_parse 0.1.2 by Joe Gregorio
+
+    http://code.google.com/p/mimeparse/
+
 Contents:
     - parse_mime_type():   Parses a mime-type into its component parts.
     - parse_media_range(): Media-ranges are mime-types with wild-cards and a 'q' quality parameter.
     - quality():           Determines the quality ('q') of a mime-type when compared against a list of media-ranges.
     - quality_parsed():    Just like quality() except the second parameter must be pre-parsed.
     - best_match():        Choose the mime-type with the highest quality ('q') from a list of candidates.
+    - desired_matches():   Filter against a list of desired mime-types in the order the server prefers.
+
 """
 
-__version__ = "0.1.2"
-__author__ = 'Joe Gregorio'
-__email__ = "joe@bitworking.org"
-__credits__ = ""
 
 def parse_mime_type(mime_type):
     """Carves up a mime-type and returns a tuple of the

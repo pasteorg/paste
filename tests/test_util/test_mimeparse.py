@@ -16,6 +16,16 @@ def test_parse_mime_type():
         'image', 'gif', {'level': '2', 'q': '0.4'})
     assert parse('application/xhtml;level=3;q=0.5') == (
         'application', 'xhtml', {'level': '3', 'q': '0.5'})
+    assert parse('application/xml') == ('application', 'xml', {})
+    assert parse('application/xml;q=1') == ('application', 'xml', {'q': '1'})
+    assert parse('application/xml ; q=1;b=other') == (
+        'application', 'xml', {'q': '1', 'b': 'other'})
+    assert parse('application/xml ; q=2;b=other') == (
+        'application', 'xml', {'q': '2', 'b': 'other'})
+    assert parse('application/xhtml;q=0.5') == (
+        'application', 'xhtml', {'q': '0.5'})
+    assert parse('application/xhtml;q=0.5;ver=1.2') == (
+        'application', 'xhtml', {'q': '0.5', 'ver': '1.2'})
 
 def test_parse_illformed_mime_type():
     parse = parse_mime_type
@@ -35,6 +45,10 @@ def test_parse_illformed_mime_type():
     assert parse('*;q=foobar') == ('*', '*', {'q': 'foobar'})
     assert parse('image/gif; level=2; q=2') == (
         'image', 'gif', {'level': '2', 'q': '2'})
+    assert parse('application/xml;q=') == ('application', 'xml', {})
+    assert parse('application/xml ;q=') == ('application', 'xml', {})
+    assert parse(' *; q =;') == ('*', '*', {})
+    assert parse(' *; q=.2') == ('*', '*', {'q': '.2'})
 
 def test_parse_media_range():
     parse = parse_media_range
@@ -60,6 +74,16 @@ def test_parse_media_range():
         'image', 'gif', {'level': '2', 'q': '0.5'})
     assert parse('image/gif; level=2; q=2') == (
         'image', 'gif', {'level': '2', 'q': '1'})
+    assert parse('application/xml') == ('application', 'xml', {'q': '1'})
+    assert parse('application/xml;q=1') == ('application', 'xml', {'q': '1'})
+    assert parse('application/xml;q=') == ('application', 'xml', {'q': '1'})
+    assert parse('application/xml ;q=') == ('application', 'xml', {'q': '1'})
+    assert parse('application/xml ; q=1;b=other') == (
+        'application', 'xml', {'q': '1', 'b': 'other'})
+    assert parse('application/xml ; q=2;b=other') == (
+        'application', 'xml', {'q': '1', 'b': 'other'})
+    assert parse(' *; q =;') == ('*', '*', {'q': '1'})
+    assert parse(' *; q=.2') == ('*', '*', {'q': '.2'})
 
 def test_fitness_and_quality_parsed():
     faq = fitness_and_quality_parsed
@@ -132,17 +156,29 @@ def test_quality_parsed():
 
 def test_quality():
     assert quality('text/html',
-        'text/*;q=0.3, text/html;q=0.7, text/html;level=1,'
-        ' text/html;level=2;q=0.4, */*;q=0.5') == 0.7
+        'text/*;q=0.3, text/html;q=0.75, text/html;level=1,'
+        ' text/html;level=2;q=0.4, */*;q=0.5') == 0.75
     assert quality('text/html;level=2',
         'text/*;q=0.3, text/html;q=0.7, text/html;level=1,'
         ' text/html;level=2;q=0.4, */*;q=0.5') == 0.4
     assert quality('text/plain',
-        'text/*;q=0.3, text/html;q=0.7, text/html;level=1,'
-        ' text/html;level=2;q=0.4, */*;q=0.5') == 0.3
+        'text/*;q=0.25, text/html;q=0.7, text/html;level=1,'
+        ' text/html;level=2;q=0.4, */*;q=0.5') == 0.25
     assert quality('plain/text',
         'text/*;q=0.3, text/html;q=0.7, text/html;level=1,'
         ' text/html;level=2;q=0.4, */*;q=0.5') == 0.5
+    assert quality('text/html;level=1',
+        'text/*;q=0.3, text/html;q=0.7, text/html;level=1,'
+        ' text/html;level=2;q=0.4, */*;q=0.5') == 1
+    assert quality('image/jpeg',
+        'text/*;q=0.3, text/html;q=0.7, text/html;level=1,'
+        ' text/html;level=2;q=0.4, */*;q=0.5') == 0.5
+    assert quality('text/html;level=2',
+        'text/*;q=0.3, text/html;q=0.7, text/html;level=1,'
+        ' text/html;level=2;q=0.375, */*;q=0.5') == 0.375
+    assert quality('text/html;level=3',
+        'text/*;q=0.3, text/html;q=0.75, text/html;level=1,'
+        ' text/html;level=2;q=0.4, */*;q=0.5') == 0.75
 
 def test_best_match():
     bm = best_match
@@ -159,6 +195,26 @@ def test_best_match():
         'text/*;q=0.1,*/xhtml; q=0.5') == 'text/html'
     assert bm(['application/xbel+xml', 'text/html', 'text/xhtml'],
         '*/html;q=0.1,*/xhtml; q=0.5') == 'text/xhtml'
+    assert bm(['application/xbel+xml', 'application/xml'],
+        'application/xbel+xml') == 'application/xbel+xml'
+    assert bm(['application/xbel+xml', 'application/xml'],
+        'application/xbel+xml; q=1') == 'application/xbel+xml'
+    assert bm(['application/xbel+xml', 'application/xml'],
+        'application/xml; q=1') == 'application/xml'
+    assert bm(['application/xbel+xml', 'application/xml'],
+        'application/*; q=1') == 'application/xbel+xml'
+    assert bm(['application/xbel+xml', 'application/xml'],
+        '*/*, application/xml') == 'application/xml'
+    assert bm(['application/xbel+xml', 'text/xml'],
+        'text/*;q=0.5,*/*; q=0.1') == 'text/xml'
+    assert bm(['application/xbel+xml', 'text/xml'],
+        'text/html,application/atom+xml; q=0.9') == ''
+    assert bm(['application/json', 'text/html'],
+        'application/json, text/javascript, */*') == 'application/json'
+    assert bm(['application/json', 'text/html'],
+        'application/json, text/html;q=0.9') == 'application/json'
+    assert bm(['image/*', 'application/xml'], 'image/png') == 'image/*'
+    assert bm(['image/*', 'application/xml'], 'image/*') == 'image/*'
 
 def test_illformed_best_match():
     bm = best_match
