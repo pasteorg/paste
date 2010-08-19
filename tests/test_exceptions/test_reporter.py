@@ -4,15 +4,19 @@ from paste.exceptions.reporter import *
 from paste.exceptions import collector
 
 def setup_file(fn, content=None):
-    fn = os.path.join(os.path.dirname(__file__), 'reporter_output', fn)
-    if os.path.exists(fn):
-        os.unlink(fn)
+    dir = os.path.join(os.path.dirname(__file__), 'reporter_output')
+    fn = os.path.join(dir, fn)
+    if os.path.exists(dir):
+        if os.path.exists(fn):
+            os.unlink(fn)
+    else:
+        os.mkdir(dir)
     if content is not None:
         f = open(fn, 'wb')
         f.write(content)
         f.close()
     return fn
-    
+
 def test_logger():
     fn = setup_file('test_logger.log')
     rep = LogReporter(
@@ -31,7 +35,7 @@ def test_logger():
     assert 'int' in content
     assert 'test_reporter.py' in content
     assert 'test_logger' in content
-    
+
     try:
         1 / 0
     except:
