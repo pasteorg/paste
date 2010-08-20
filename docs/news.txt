@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+tip
+---
+
+* Fixed problems with mimeparse code
+
+* Fixed some corner cases with CGI scripts
+
 1.7.4
 -----
 
