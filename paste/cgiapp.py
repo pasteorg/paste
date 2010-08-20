@@ -6,6 +6,7 @@ Application that runs a CGI script.
 """
 import os
 import subprocess
+import urllib
 try:
     import select
 except ImportError:
@@ -30,7 +31,7 @@ class CGIApplication(object):
     a path, then ``$PATH`` will be used.
     """
 
-    def __init__(self, 
+    def __init__(self,
                  global_conf,
                  script,
                  path=None,
@@ -67,8 +68,8 @@ class CGIApplication(object):
     def __call__(self, environ, start_response):
         if 'REQUEST_URI' not in environ:
             environ['REQUEST_URI'] = (
-                environ.get('SCRIPT_NAME', '')
-                + environ.get('PATH_INFO', ''))
+                urllib.quote(environ.get('SCRIPT_NAME', ''))
+                + urllib.quote(environ.get('PATH_INFO', '')))
         if self.include_os_environ:
             cgi_environ = os.environ.copy()
         else:
@@ -125,7 +126,7 @@ class CGIWriter(object):
             return
         self.buffer += data
         while '\n' in self.buffer:
-            if '\r\n' in self.buffer:
+            if '\r\n' in self.buffer and self.buffer.find('\r\n') < self.buffer.find('\n'):
                 line1, self.buffer = self.buffer.split('\r\n', 1)
             else:
                 line1, self.buffer = self.buffer.split('\n', 1)
@@ -146,6 +147,9 @@ class CGIWriter(object):
                 value = value.lstrip()
                 name = name.strip()
                 if name.lower() == 'status':
+                    if ' ' not in value:
+                        # WSGI requires this space, sometimes CGI scripts don't set it:
+                        value = '%s General' % value
                     self.status = value
                 else:
                     self.headers.append((name, value))
@@ -252,12 +256,12 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
     except OSError, e:
         if e.errno != 10:
             raise
-    
+
 def make_cgi_application(global_conf, script, path=None, include_os_environ=None,
                          query_string=None):
     """
     Paste Deploy interface for :class:`CGIApplication`
-    
+
     This object acts as a proxy to a CGI application.  You pass in the
     script path (``script``), an optional path to search for the
     script (if the name isn't absolute) (``path``).  If you don't give
