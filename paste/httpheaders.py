@@ -617,7 +617,7 @@ class _DateHeader(_SingleValueHeader):
         if value:
             try:
                 return mktime_tz(parsedate_tz(value))
-            except TypeError:
+            except (TypeError, OverflowError):
                 raise HTTPBadRequest((
                     "Received an ill-formed timestamp for %s: %s\r\n") %
                     (self.name, value))
