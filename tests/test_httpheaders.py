@@ -147,3 +147,13 @@ def test_normalize():
      ('Expires', 'Entity An-Expiration-Date'),
      ('Unknown-Header', 'Unknown Sorted Last')]
 
+def test_if_modified_since():
+    from paste.httpexceptions import HTTPBadRequest
+    date = 'Thu, 34 Jul 3119 29:34:18 GMT'
+    try:
+        x = IF_MODIFIED_SINCE.parse({'HTTP_IF_MODIFIED_SINCE': date,
+                                     'wsgi.version': (1, 0)})
+    except HTTPBadRequest:
+        pass
+    else:
+        assert 0
