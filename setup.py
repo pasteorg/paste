@@ -131,7 +131,8 @@ For the latest changes see the `news file
       url="http://pythonpaste.org",
       license="MIT",
       packages=find_packages(exclude=['ez_setup', 'examples', 'packages', 'tests*']),
-      package_data=finddata.find_package_data(),
+      package_data=finddata.find_package_data(
+          exclude_directories=finddata.standard_exclude_directories + ('tests',)),
       namespace_packages=['paste'],
       zip_safe=False,
       test_suite='nose.collector',
