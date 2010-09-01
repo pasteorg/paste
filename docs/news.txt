@@ -17,6 +17,9 @@ tip
 
 * Fixed some corner cases with CGI scripts
 
+* :mod:`paste.auth.auth_tkt` will URL-quote usernames, avoiding some
+  errors with usernames with ``!`` in them.
+
 1.7.4
 -----
 
