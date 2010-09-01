@@ -36,7 +36,7 @@ class middleware(object):
         response = GzipResponse(start_response, self.compress_level)
         app_iter = self.application(environ,
                                     response.gzip_start_response)
-        if app_iter:
+        if app_iter is not None:
             response.finish_response(app_iter)
 
         return response.write()
