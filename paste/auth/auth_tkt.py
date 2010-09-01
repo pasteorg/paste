@@ -44,6 +44,8 @@ except ImportError:
     from md5 import md5
 import Cookie
 from paste import request
+from urllib import quote as url_quote
+
 
 class AuthTicket(object):
 
@@ -102,7 +104,7 @@ class AuthTicket(object):
             self.user_data)
 
     def cookie_value(self):
-        v = '%s%08x%s!' % (self.digest(), int(self.time), self.userid)
+        v = '%s%08x%s!' % (self.digest(), int(self.time), url_quote(self.userid))
         if self.tokens:
             v += self.tokens + '!'
         v += self.user_data
@@ -144,13 +146,14 @@ def parse_ticket(secret, ticket, ip):
         userid, data = ticket[40:].split('!', 1)
     except ValueError:
         raise BadTicket('userid is not followed by !')
+    userid = url_unquote(userid)
     if '!' in data:
         tokens, user_data = data.split('!', 1)
     else:
         # @@: Is this the right order?
         tokens = ''
         user_data = data
-    
+
     expected = calculate_digest(ip, timestamp, secret,
                                 userid, tokens, user_data)
 
@@ -161,7 +164,7 @@ def parse_ticket(secret, ticket, ip):
     tokens = tokens.split(',')
 
     return (timestamp, userid, tokens, user_data)
-    
+
 def calculate_digest(ip, timestamp, secret, userid, tokens, user_data):
     secret = maybe_encode(secret)
     userid = maybe_encode(userid)
@@ -198,33 +201,33 @@ class AuthTKTMiddleware(object):
     you).
 
     Arguments:
-    
+
     ``secret``:
         A secret that should be shared by any instances of this application.
-        If this app is served from more than one machine, they should all 
+        If this app is served from more than one machine, they should all
         have the same secret.
-        
+
     ``cookie_name``:
         The name of the cookie to read and write from.  Default ``auth_tkt``.
-        
+
     ``secure``:
         If the cookie should be set as 'secure' (only sent over SSL) and if
         the login must be over SSL. (Defaults to False)
-        
+
     ``httponly``:
         If the cookie should be marked as HttpOnly, which means that it's
         not accessible to JavaScript. (Defaults to False)
-        
+
     ``include_ip``:
-        If the cookie should include the user's IP address.  If so, then 
+        If the cookie should include the user's IP address.  If so, then
         if they change IPs their cookie will be invalid.
-        
+
     ``logout_path``:
         The path under this middleware that should signify a logout.  The
         page will be shown as usual, but the user will also be logged out
         when they visit this page.
-        
-    If used with mod_auth_tkt, then these settings (except logout_path) should 
+
+    If used with mod_auth_tkt, then these settings (except logout_path) should
     match the analogous Apache configuration settings.
 
     This also adds two functions to the request:
@@ -319,7 +322,7 @@ class AuthTKTMiddleware(object):
         # environment right now as well?
         cur_domain = environ.get('HTTP_HOST', environ.get('SERVER_NAME'))
         wild_domain = '.' + cur_domain
-        
+
         cookie_options = ""
         if self.secure:
             cookie_options += "; secure"
@@ -338,9 +341,9 @@ class AuthTKTMiddleware(object):
             cookies.append(('Set-Cookie', '%s=%s; Path=/; Domain=%s%s' % (
                 self.cookie_name, ticket.cookie_value(), wild_domain,
                 cookie_options)))
-        
+
         return cookies
-    
+
     def logout_user_cookie(self, environ):
         cur_domain = environ.get('HTTP_HOST', environ.get('SERVER_NAME'))
         wild_domain = '.' + cur_domain
