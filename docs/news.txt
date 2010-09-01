@@ -6,6 +6,13 @@ News
 tip
 ---
 
+* Won't install ``tests/`` directory (also caused installation
+  problems on some Mac systems).
+
+* Fixed problem with gzip middleware and zero-length responses.
+
+* Use ``X-Forwarded-For`` header in :mod:`paste.translogger`
+
 * Fixed problems with mimeparse code
 
 * Fixed some corner cases with CGI scripts
