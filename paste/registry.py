@@ -24,15 +24,15 @@ WSGI application everything will work properly.
 Example:
 
 .. code-block:: python
-    
+
     #yourpackage/__init__.py
-    
+
     from paste.registry import RegistryManager, StackedObjectProxy
     myglobal = StackedObjectProxy()
-    
+
     #wsgi app stack
     app = RegistryManager(yourapp)
-    
+
     #inside your wsgi app
     class yourapp(object):
         def __call__(self, environ, start_response):
@@ -64,14 +64,14 @@ become more noticeable. In that circumstance, the problem can be avoided by
 getting at the actual object via the proxy with the ``_current_obj`` function:
 
 .. code-block:: python
-    
+
     #sessions.py
     Session = StackedObjectProxy()
     # ... initialization code, etc.
-    
+
     # somemodule.py
     import sessions
-    
+
     def somefunc():
         session = sessions.Session._current_obj()
         # ... tons of session access
@@ -99,22 +99,22 @@ class NoDefault(object): pass
 
 class StackedObjectProxy(object):
     """Track an object instance internally using a stack
-    
+
     The StackedObjectProxy proxies access to an object internally using a
     stacked thread-local. This makes it safe for complex WSGI environments
     where access to the object may be desired in multiple places without
     having to pass the actual object around.
-    
+
     New objects are added to the top of the stack with _push_object while
-    objects can be removed with _pop_object. 
-    
+    objects can be removed with _pop_object.
+
     """
     def __init__(self, default=NoDefault, name="Default"):
         """Create a new StackedObjectProxy
-        
+
         If a default is given, its used in every thread if no other object
         has been pushed on.
-        
+
         """
         self.__dict__['____name__'] = name
         self.__dict__['____local__'] = threadinglocal.local()
@@ -132,28 +132,28 @@ class StackedObjectProxy(object):
             pass
         dir_list.sort()
         return dir_list
-    
+
     def __getattr__(self, attr):
         return getattr(self._current_obj(), attr)
-    
+
     def __setattr__(self, attr, value):
         setattr(self._current_obj(), attr, value)
-    
+
     def __delattr__(self, name):
         delattr(self._current_obj(), name)
-    
+
     def __getitem__(self, key):
         return self._current_obj()[key]
-    
+
     def __setitem__(self, key, value):
         self._current_obj()[key] = value
-    
+
     def __delitem__(self, key):
         del self._current_obj()[key]
 
     def __call__(self, *args, **kw):
         return self._current_obj()(*args, **kw)
-    
+
     def __repr__(self):
         try:
             return repr(self._current_obj())
@@ -161,13 +161,13 @@ class StackedObjectProxy(object):
             return '<%s.%s object at 0x%x>' % (self.__class__.__module__,
                                                self.__class__.__name__,
                                                id(self))
-    
+
     def __iter__(self):
         return iter(self._current_obj())
-    
+
     def __len__(self):
         return len(self._current_obj())
-    
+
     def __contains__(self, key):
         return key in self._current_obj()
 
@@ -176,10 +176,10 @@ class StackedObjectProxy(object):
 
     def _current_obj(self):
         """Returns the current active object being proxied to
-        
+
         In the event that no object was pushed, the default object if
         provided will be used. Otherwise, a TypeError will be raised.
-        
+
         """
         try:
             objects = self.____local__.objects
@@ -198,9 +198,9 @@ class StackedObjectProxy(object):
 
     def _push_object(self, obj):
         """Make ``obj`` the active object for this thread-local.
-        
+
         This should be used like:
-        
+
         .. code-block:: python
 
             obj = yourobject()
@@ -210,20 +210,20 @@ class StackedObjectProxy(object):
                 ... do stuff ...
             finally:
                 module.glob._pop_object(conf)
-        
+
         """
         try:
             self.____local__.objects.append(obj)
         except AttributeError:
             self.____local__.objects = []
             self.____local__.objects.append(obj)
-    
+
     def _pop_object(self, obj=None):
         """Remove a thread-local object.
-        
+
         If ``obj`` is given, it is checked against the popped object and an
         error is emitted if they don't match.
-        
+
         """
         try:
             popped = self.____local__.objects.pop()
@@ -240,7 +240,11 @@ class StackedObjectProxy(object):
         (Might return [] if there are none)
         """
         try:
-            return self.____local__.objects[:]
+            try:
+                objs = self.____local__.objects
+            except AttributeError:
+                return []
+            return objs[:]
         except AssertionError:
             return []
 
@@ -273,38 +277,38 @@ class StackedObjectProxy(object):
 
 class Registry(object):
     """Track objects and stacked object proxies for removal
-    
+
     The Registry object is instantiated a single time for the request no
     matter how many times the RegistryManager is used in a WSGI stack. Each
     RegistryManager must call ``prepare`` before continuing the call to
     start a new context for object registering.
-    
+
     Each context is tracked with a dict inside a list. The last list
     element is the currently executing context. Each context dict is keyed
     by the id of the StackedObjectProxy instance being proxied, the value
     is a tuple of the StackedObjectProxy instance and the object being
     tracked.
-    
+
     """
     def __init__(self):
         """Create a new Registry object
-        
+
         ``prepare`` must still be called before this Registry object can be
         used to register objects.
-        
+
         """
         self.reglist = []
-    
+
     def prepare(self):
         """Used to create a new registry context
-        
+
         Anytime a new RegistryManager is called, ``prepare`` needs to be
         called on the existing Registry object. This sets up a new context
         for registering objects.
-        
+
         """
         self.reglist.append({})
-    
+
     def register(self, stacked, obj):
         """Register an object with a StackedObjectProxy"""
         myreglist = self.reglist[-1]
@@ -314,17 +318,17 @@ class Registry(object):
             del myreglist[stacked_id]
         stacked._push_object(obj)
         myreglist[stacked_id] = (stacked, obj)
-    
+
     def multiregister(self, stacklist):
         """Register a list of tuples
-        
+
         Similar call semantics as register, except this registers
         multiple objects at once.
-        
+
         Example::
-            
+
             registry.multiregister([(sop, obj), (anothersop, anotherobj)])
-        
+
         """
         myreglist = self.reglist[-1]
         for stacked, obj in stacklist:
@@ -334,43 +338,43 @@ class Registry(object):
                 del myreglist[stacked_id]
             stacked._push_object(obj)
             myreglist[stacked_id] = (stacked, obj)
-    
+
     # Replace now does the same thing as register
     replace = register
-    
+
     def cleanup(self):
         """Remove all objects from all StackedObjectProxy instances that
         were tracked at this Registry context"""
         for stacked, obj in self.reglist[-1].itervalues():
             stacked._pop_object(obj)
         self.reglist.pop()
-        
+
 class RegistryManager(object):
     """Creates and maintains a Registry context
-    
+
     RegistryManager creates a new registry context for the registration of
     StackedObjectProxy instances. Multiple RegistryManager's can be in a
     WSGI stack and will manage the context so that the StackedObjectProxies
     always proxy to the proper object.
-    
+
     The object being registered can be any object sub-class, list, or dict.
-    
+
     Registering objects is done inside a WSGI application under the
     RegistryManager instance, using the ``environ['paste.registry']``
     object which is a Registry instance.
-        
+
     """
     def __init__(self, application, streaming=False):
         self.application = application
         self.streaming = streaming
-        
+
     def __call__(self, environ, start_response):
         app_iter = None
         reg = environ.setdefault('paste.registry', Registry())
         reg.prepare()
         if self.streaming:
             return self.streaming_iter(reg, environ, start_response)
-        
+
         try:
             app_iter = self.application(environ, start_response)
         except Exception, e:
@@ -397,9 +401,9 @@ class RegistryManager(object):
             raise
         else:
             reg.cleanup()
-        
+
         return app_iter
-    
+
     def streaming_iter(self, reg, environ, start_response):
         try:
             for item in self.application(environ, start_response):
