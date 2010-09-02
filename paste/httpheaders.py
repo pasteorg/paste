@@ -41,7 +41,7 @@ a WSGI collection, for removing and setting header values.
 
     This method removes all entries of the corresponding header from
     the given collection (``environ`` or ``response_headers``), e.g.,
-    ``USER_AGENT.remove(environ)`` deletes the 'HTTP_USER_AGENT' entry
+    ``USER_AGENT.delete(environ)`` deletes the 'HTTP_USER_AGENT' entry
     from the ``environ``.
 
   ``update(collection, *args, **kwargs)``
@@ -459,7 +459,7 @@ class HTTPHeader(object):
         """
         value = self.__call__(*args, **kwargs)
         if not value:
-            self.remove(collection)
+            self.delete(collection)
             return
         if type(collection) == dict:
             collection[self._environ_name] = value
