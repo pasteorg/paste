@@ -183,7 +183,7 @@ class WSGIHandlerMixin:
         if endslash and path != '/':
             # Put the slash back...
             path += '/'
-        (server_name, server_port) = self.server.server_address
+        (server_name, server_port) = self.server.server_address[:2]
 
         rfile = self.rfile
         if 'HTTP/1.1' == self.protocol_version and \
@@ -1243,7 +1243,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         threadpool.  See paste.httpserver.ThreadPool for specific
         options (``threadpool_workers`` is a specific option that can
         also go here).
-    
+
     ``request_queue_size``
 
         The 'backlog' argument to socket.listen(); specifies the
@@ -1300,7 +1300,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
 
     if converters.asbool(start_loop):
         protocol = is_ssl and 'https' or 'http'
-        host, port = server.server_address
+        host, port = server.server_address[:2]
         if host == '0.0.0.0':
             print 'serving on 0.0.0.0:%s view at %s://127.0.0.1:%s' % \
                 (port, protocol, port)
@@ -1400,7 +1400,7 @@ server_runner.__doc__ = (serve.__doc__ or '') + """
 
         When threads are killed or the process restarted, this email
         address will be contacted (using an SMTP server on localhost).
-    
+
 """
 
 
@@ -1409,4 +1409,3 @@ if __name__ == '__main__':
     #serve(dump_environ, ssl_pem="test.pem")
     serve(dump_environ, server_version="Wombles/1.0",
           protocol_version="HTTP/1.1", port="8888")
-
