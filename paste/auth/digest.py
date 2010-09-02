@@ -36,6 +36,7 @@ try:
 except ImportError:
     from md5 import md5
 import time, random
+from urllib import quote as url_quote
 
 def digest_password(realm, username, password):
     """ construct the appropriate hashcode needed for HTTP digest """
@@ -90,7 +91,7 @@ class AuthDigestAuthenticator(object):
             the request returning authenticated user or error.
         """
         method = REQUEST_METHOD(environ)
-        fullpath = SCRIPT_NAME(environ) + PATH_INFO(environ)
+        fullpath = urllib.quote(SCRIPT_NAME(environ)) + urllib.quote(PATH_INFO(environ))
         authorization = AUTHORIZATION(environ)
         if not authorization:
             return self.build_authentication()
@@ -200,7 +201,7 @@ def make_digest(app, global_conf, realm, authfunc, **kw):
       use = egg:Paste#auth_digest
       realm=myrealm
       authfunc=somepackage.somemodule:somefunction
-      
+
     """
     from paste.util.import_string import eval_import
     import types
