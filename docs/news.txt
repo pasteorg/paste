@@ -20,6 +20,9 @@ tip
 * :mod:`paste.auth.auth_tkt` will URL-quote usernames, avoiding some
   errors with usernames with ``!`` in them.
 
+* Improve handling of errors in fetching error pages in
+  :mod:`paste.errordocument`.
+
 1.7.4
 -----
 
