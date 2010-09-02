@@ -29,16 +29,20 @@ import warnings
 __all__ = ['RecursiveMiddleware']
 __pudge_all__ =  ['RecursiveMiddleware', 'ForwardRequestException']
 
+class RecursionLoop(AssertionError):
+    # Subclasses AssertionError for legacy reasons
+    """Raised when a recursion enters into a loop"""
+
 class CheckForRecursionMiddleware(object):
     def __init__(self, app, env):
         self.app = app
         self.env = env
-        
+
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO','')
         if path_info in self.env.get(
             'paste.recursive.old_path_info', []):
-            raise AssertionError(
+            raise RecursionLoop(
                 "Forwarding loop detected; %r visited twice (internal "
                 "redirect path: %s)"
                 % (path_info, self.env['paste.recursive.old_path_info']))
@@ -63,12 +67,12 @@ class RecursiveMiddleware(object):
 
     def __call__(self, environ, start_response):
         environ['paste.recursive.forward'] = Forwarder(
-            self.application, 
-            environ, 
+            self.application,
+            environ,
             start_response)
         environ['paste.recursive.include'] = Includer(
-            self.application, 
-            environ, 
+            self.application,
+            environ,
             start_response)
         environ['paste.recursive.include_app_iter'] = IncluderAppIter(
             self.application,
@@ -86,26 +90,26 @@ class RecursiveMiddleware(object):
 class ForwardRequestException(Exception):
     """
     Used to signal that a request should be forwarded to a different location.
-    
+
     ``url``
-        The URL to forward to starting with a ``/`` and relative to 
-        ``RecursiveMiddleware``. URL fragments can also contain query strings 
+        The URL to forward to starting with a ``/`` and relative to
+        ``RecursiveMiddleware``. URL fragments can also contain query strings
         so ``/error?code=404`` would be a valid URL fragment.
-    
+
     ``environ``
-        An altertative WSGI environment dictionary to use for the forwarded 
+        An altertative WSGI environment dictionary to use for the forwarded
         request. If specified is used *instead* of the ``url_fragment``
-     
+
     ``factory``
-        If specifed ``factory`` is used instead of ``url`` or ``environ``. 
-        ``factory`` is a callable that takes a WSGI application object 
+        If specifed ``factory`` is used instead of ``url`` or ``environ``.
+        ``factory`` is a callable that takes a WSGI application object
         as the first argument and returns an initialised WSGI middleware
         which can alter the forwarded response.
 
     Basic usage (must have ``RecursiveMiddleware`` present) :
-    
+
     .. code-block:: python
-    
+
         from paste.recursive import ForwardRequestException
         def app(environ, start_response):
             if environ['PATH_INFO'] == '/hello':
@@ -116,34 +120,34 @@ class ForwardRequestException(Exception):
                 return ['Page not found']
             else:
                 raise ForwardRequestException('/error')
-                
+
         from paste.recursive import RecursiveMiddleware
         app = RecursiveMiddleware(app)
-        
-    If you ran this application and visited ``/hello`` you would get a 
-    ``Hello World!`` message. If you ran the application and visited 
+
+    If you ran this application and visited ``/hello`` you would get a
+    ``Hello World!`` message. If you ran the application and visited
     ``/not_found`` a ``ForwardRequestException`` would be raised and the caught
-    by the ``RecursiveMiddleware``. The ``RecursiveMiddleware`` would then 
-    return the headers and response from the ``/error`` URL but would display 
+    by the ``RecursiveMiddleware``. The ``RecursiveMiddleware`` would then
+    return the headers and response from the ``/error`` URL but would display
     a ``404 Not found`` status message.
-    
-    You could also specify an ``environ`` dictionary instead of a url. Using 
+
+    You could also specify an ``environ`` dictionary instead of a url. Using
     the same example as before:
-    
+
     .. code-block:: python
-    
+
         def app(environ, start_response):
             ... same as previous example ...
             else:
                 new_environ = environ.copy()
                 new_environ['PATH_INFO'] = '/error'
                 raise ForwardRequestException(environ=new_environ)
-                
+
     Finally, if you want complete control over every aspect of the forward you
-    can specify a middleware factory. For example to keep the old status code 
+    can specify a middleware factory. For example to keep the old status code
     but use the headers and resposne body from the forwarded response you might
     do this:
-    
+
     .. code-block:: python
 
         from paste.recursive import ForwardRequestException
@@ -166,10 +170,10 @@ class ForwardRequestException(Exception):
     """
 
     def __init__(
-        self, 
-        url=None, 
-        environ={}, 
-        factory=None, 
+        self,
+        url=None,
+        environ={},
+        factory=None,
         path_info=None):
         # Check no incompatible options have been chosen
         if factory and url:
@@ -195,16 +199,16 @@ class ForwardRequestException(Exception):
             else:
                 raise TypeError('You cannot use url and path_info in ForwardRequestException')
             self.path_info = path_info
-    
+
         # If the url can be treated as a path_info do that
-        if url and not '?' in str(url): 
+        if url and not '?' in str(url):
             self.path_info = url
-            
+
         # Base middleware
         class ForwardRequestExceptionMiddleware(object):
             def __init__(self, app):
                 self.app = app
-                            
+
         # Otherwise construct the appropriate middleware factory
         if hasattr(self, 'path_info'):
             p = self.path_info
@@ -285,7 +289,7 @@ class Forwarder(Recursive):
     It must not be called after and headers have been returned.
     It returns an iterator that must be returned back up the call
     stack, so it must be used like:
-    
+
     .. code-block:: python
 
         return environ['paste.recursive.forward'](path)
@@ -301,7 +305,7 @@ class Forwarder(Recursive):
             "ForwardRequestException",
             DeprecationWarning, 2)
         return self.application(environ, self.start_response)
-    
+
 
 class Includer(Recursive):
 
@@ -310,7 +314,7 @@ class Includer(Recursive):
     overwriting any values in the `extra_environ` dictionary.
     Returns an IncludeResponse object.
     """
-    
+
     def activate(self, environ):
         response = IncludedResponse()
         def start_response(status, headers, exc_info=None):
@@ -391,7 +395,7 @@ class IncludedAppIterResponse(object):
             "Tried to close twice")
         if hasattr(self.app_iter, 'close'):
             self.app_iter.close()
-            
+
     def write(self, s):
         self.accumulated.append
 

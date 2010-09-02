@@ -11,7 +11,7 @@ URL where the content can be displayed to the user as an error document.
 
 import warnings
 from urlparse import urlparse
-from paste.recursive import ForwardRequestException, RecursiveMiddleware
+from paste.recursive import ForwardRequestException, RecursiveMiddleware, RecursionLoop
 from paste.util import converters
 from paste.response import replace_header
 
@@ -81,7 +81,14 @@ class StatusKeeper(object):
         else:
             environ['QUERY_STRING'] = ''
         #raise Exception(self.url, self.status)
-        return self.app(environ, keep_status_start_response)
+        try:
+            return self.app(environ, keep_status_start_response)
+        except RecursionLoop, e:
+            environ['wsgi.errors'].write('Recursion error getting error page: %s\n' % e)
+            keep_status_start_response('500 Server Error', [('Content-type', 'text/plain')])
+            return ['Error: %s.  (Error page could not be fetched)'
+                    % self.status]
+
 
 class StatusBasedForward(object):
     """
