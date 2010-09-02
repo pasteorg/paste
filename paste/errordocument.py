@@ -10,6 +10,7 @@ URL where the content can be displayed to the user as an error document.
 """
 
 import warnings
+import sys
 from urlparse import urlparse
 from paste.recursive import ForwardRequestException, RecursiveMiddleware, RecursionLoop
 from paste.util import converters
@@ -85,7 +86,7 @@ class StatusKeeper(object):
             return self.app(environ, keep_status_start_response)
         except RecursionLoop, e:
             environ['wsgi.errors'].write('Recursion error getting error page: %s\n' % e)
-            keep_status_start_response('500 Server Error', [('Content-type', 'text/plain')])
+            keep_status_start_response('500 Server Error', [('Content-type', 'text/plain')], sys.exc_info())
             return ['Error: %s.  (Error page could not be fetched)'
                     % self.status]
 
@@ -160,6 +161,7 @@ class StatusBasedForward(object):
 
     def __call__(self, environ, start_response):
         url = []
+        writer = []
 
         def change_response(status, headers, exc_info=None):
             status_code = status.split(' ')
@@ -182,10 +184,12 @@ class StatusBasedForward(object):
                 raise TypeError(
                     'Expected the url to internally '
                     'redirect to in the StatusBasedForward mapper'
-                    'to be a string or None, not %s'%repr(new_url)
-                )
+                    'to be a string or None, not %r' % new_url)
             if new_url:
                 url.append([new_url, status, headers])
+                # We have to allow the app to write stuff, even though
+                # we'll ignore it:
+                return [].append
             else:
                 return start_response(status, headers, exc_info)
 
