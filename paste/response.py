@@ -45,9 +45,9 @@ class HeaderDict(dict):
 
     def setdefault(self, key, failobj=None):
         return dict.setdefault(self, self.normalize(key), failobj)
-        
-    def pop(self, key):
-        return dict.pop(self, self.normalize(key))
+
+    def pop(self, key, *args):
+        return dict.pop(self, self.normalize(key), *args)
 
     def update(self, other):
         for key in other:
@@ -82,7 +82,7 @@ class HeaderDict(dict):
         for name, value in seq:
             self.add(name, value)
         return self
-    
+
     fromlist = classmethod(fromlist)
 
 def has_header(headers, name):
@@ -196,7 +196,7 @@ def error_response(environ, error_code, message,
     Returns the status, headers, and body of an error response.
 
     Use like:
-    
+
     .. code-block:: python
 
         status, headers, body = wsgilib.error_response(
@@ -204,7 +204,7 @@ def error_response(environ, error_code, message,
             % (url, url))
         start_response(status, headers)
         return [body]
-    
+
     **Note:** Deprecated
     """
     if __warn:
