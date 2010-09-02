@@ -10,7 +10,7 @@ try:
     import subprocess
 except ImportError:
     from paste.util import subprocess24 as subprocess
-from paste import wsgilib
+from paste.response import header_value
 import re
 import cgi
 
@@ -59,7 +59,7 @@ class WDGValidateMiddleware(object):
                 app_iter.close()
         page = output.getvalue()
         status, headers = response
-        v = wsgilib.header_value(headers, 'content-type') or ''
+        v = header_value(headers, 'content-type') or ''
         if (not v.startswith('text/html')
             and not v.startswith('text/xhtml')
             and not v.startswith('application/xhtml')):
@@ -75,11 +75,11 @@ class WDGValidateMiddleware(object):
         if html_errors:
             page = self.add_error(page, html_errors)[0]
             headers.remove(
-                     ('Content-Length', 
-                      str(wsgilib.header_value(headers, 'content-length'))))
+                     ('Content-Length',
+                      str(header_value(headers, 'content-length'))))
             headers.append(('Content-Length', str(len(page))))
         return [page]
-    
+
     def call_wdg_validate(self, wdg_path, ops, page):
         if subprocess is None:
             raise ValueError(
@@ -94,7 +94,7 @@ class WDGValidateMiddleware(object):
         stdout = proc.communicate(page)[0]
         proc.wait()
         return stdout
-            
+
     def add_error(self, html_page, html_errors):
         add_text = ('<pre style="background-color: #ffd; color: #600; '
                     'border: 1px solid #000;">%s</pre>'
