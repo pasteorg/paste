@@ -339,8 +339,13 @@ class ArchiveStore(object):
             exc = HTTPNotFound("Path requested, '%s', is not a file." % path)
             return exc.wsgi_application(environ, start_response)
         content_type, content_encoding = mimetypes.guess_type(info.filename)
-        app = DataApp(None, content_type = content_type,
-                            content_encoding = content_encoding)
+        # 'None' is not a valid content-encoding, so don't set the header if
+        # mimetypes.guess_type returns None
+        if content_encoding is not None:
+            app = DataApp(None, content_type = content_type,
+                                content_encoding = content_encoding)
+        else:
+            app = DataApp(None, content_type = content_type)
         app.set_content(self.archive.read(path),
                 time.mktime(info.date_time + (0,0,0)))
         self.cache[path] = app
