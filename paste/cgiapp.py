@@ -5,6 +5,7 @@
 Application that runs a CGI script.
 """
 import os
+import sys
 import subprocess
 import urllib
 try:
@@ -94,7 +95,7 @@ class CGIApplication(object):
             cwd=os.path.dirname(self.script),
             )
         writer = CGIWriter(environ, start_response)
-        if select:
+        if select and sys.platform != 'win32':
             proc_communicate(
                 proc,
                 stdin=StdinReader.from_environ(environ),
@@ -104,7 +105,7 @@ class CGIApplication(object):
             stdout, stderr = proc.communicate(StdinReader.from_environ(environ).read())
             if stderr:
                 environ['wsgi.errors'].write(stderr)
-            writer(stdout)
+            writer.write(stdout)
         if not writer.headers_finished:
             start_response(writer.status, writer.headers)
         return []
