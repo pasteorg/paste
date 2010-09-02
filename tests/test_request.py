@@ -58,3 +58,5 @@ def test_bad_cookie():
     assert get_cookie_dict(env) == {}
     env['HTTP_COOKIE'] = '=foo'
     assert get_cookie_dict(env) == {}
+    env['HTTP_COOKIE'] = '?='
+    assert get_cookie_dict(env) == {}
