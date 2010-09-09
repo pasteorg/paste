@@ -1,0 +1,13 @@
+syntax: glob
+
+.project
+.pydevproject
+.settings
+*.pyc
+*.pyo
+*.log
+*.tmp
+*.egg-info
+dist/
+build/
+docs/_build
