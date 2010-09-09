@@ -91,7 +91,7 @@ class AuthDigestAuthenticator(object):
             the request returning authenticated user or error.
         """
         method = REQUEST_METHOD(environ)
-        fullpath = urllib.quote(SCRIPT_NAME(environ)) + urllib.quote(PATH_INFO(environ))
+        fullpath = url_quote(SCRIPT_NAME(environ)) + url_quote(PATH_INFO(environ))
         authorization = AUTHORIZATION(environ)
         if not authorization:
             return self.build_authentication()
