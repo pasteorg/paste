@@ -210,7 +210,7 @@ class TestApp(object):
     def _gen_request(self, method, url, params='', headers=None, extra_environ=None,
              status=None, upload_files=None, expect_errors=False):
         """
-        Do a generic request.  
+        Do a generic request.
         """
         if headers is None:
             headers = {}
@@ -293,7 +293,7 @@ class TestApp(object):
                                  extra_environ=extra_environ,status=status,
                                  upload_files=None, expect_errors=expect_errors)
 
-    
+
 
 
     def _set_headers(self, headers, environ):
@@ -646,7 +646,7 @@ class TestResponse(object):
             tag='a', href_attr='href',
             href_extract=None,
             content=description,
-            id=linkid, 
+            id=linkid,
             href_pattern=href,
             html_pattern=anchor,
             index=index, verbose=verbose)
@@ -1087,6 +1087,8 @@ class Form(object):
 
         Any extra keyword arguments are passed to the ``.get()`` or
         ``.post()`` method.
+
+        Returns a response object.
         """
         fields = self.submit_fields(name, index=index)
         return self.response.goto(self.action, method=self.method,
@@ -1246,10 +1248,10 @@ class Text(Field):
     """
     def __init__(self, form, tag, name, pos,
                  value='', id=None, **attrs):
-        #text fields default to empty string        
+        #text fields default to empty string
         Field.__init__(self, form, tag, name, pos,
                        value=value, id=id, **attrs)
-                        
+
 Field.classes['text'] = Text
 
 class Textarea(Text):
@@ -1270,7 +1272,7 @@ class Submit(Field):
     """
     Field representing ``<input type="submit">`` and ``<button>``
     """
-    
+
     settable = False
 
     def value__get(self):
@@ -1339,7 +1341,7 @@ class TestFileEnvironment(object):
         if script_path is None:
             if sys.platform == 'win32':
                 script_path = environ.get('PATH', '').split(';')
-            else:       
+            else:
                 script_path = environ.get('PATH', '').split(':')
         self.script_path = script_path
         if cwd is None:

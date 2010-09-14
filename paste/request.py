@@ -18,7 +18,7 @@ environment to solve common requirements.
 
 """
 import cgi
-from Cookie import SimpleCookie
+from Cookie import SimpleCookie, CookieError
 from StringIO import StringIO
 import urlparse
 import urllib
@@ -45,7 +45,10 @@ def get_cookies(environ):
         if check_header == header:
             return cookies
     cookies = SimpleCookie()
-    cookies.load(header)
+    try:
+        cookies.load(header)
+    except CookieError:
+        pass
     environ['paste.cookies'] = (cookies, header)
     return cookies
 
@@ -65,7 +68,10 @@ def get_cookie_dict(environ):
         if check_header == header:
             return cookies
     cookies = SimpleCookie()
-    cookies.load(header)
+    try:
+        cookies.load(header)
+    except CookieError:
+        pass
     result = {}
     for name in cookies:
         result[name] = cookies[name].value
