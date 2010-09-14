@@ -3,8 +3,8 @@ News
 
 .. contents::
 
-tip
----
+1.7.5
+-----
 
 * Won't install ``tests/`` directory (also caused installation
   problems on some Mac systems).
