@@ -45,3 +45,5 @@ def test_404():
     app = TestApp(mapper, extra_environ={'HTTP_ACCEPT': 'text/html'})
     res = app.get("/-->%0D<script>alert('xss')</script>", status=404)
     assert '--><script' not in res.body
+    res = app.get("/--%01><script>", status=404)
+    assert '--\x01><script>' not in res.body

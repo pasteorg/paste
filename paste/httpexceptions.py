@@ -212,7 +212,7 @@ class HTTPException(Exception):
 
     def plain(self, environ):
         """ text/plain representation of the exception """
-        body = self.make_body(environ, strip_html(self.template), comment_quote)
+        body = self.make_body(environ, strip_html(self.template), no_quote, comment_quote)
         return ('%s %s\r\n%s\r\n' % (self.code, self.title, body))
 
     def html(self, environ):
