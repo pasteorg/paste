@@ -30,7 +30,8 @@ tip
   :class:`paste.urlparser.StaticURLParser` and
   :class:`paste.urlmap.URLMap`.  If you ask for a path with
   ``/--><script>...`` that will be inserted in the error page and can
-  execute Javascript.  Reported by Tim Wintle.
+  execute Javascript.  Reported by Tim Wintle with further details
+  from Georg-Christian Pranschke.
 
 * Replaced :func:`paste.util.mimeparse.desired_match`
 

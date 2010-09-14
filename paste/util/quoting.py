@@ -77,11 +77,18 @@ def no_quote(s):
     return s
 
 _comment_quote_re = re.compile(r'\-\s*\>')
+# Everything but \r, \n, \t:
+_bad_chars_re = re.compile('[\x00-\x08\x0b-\x0c\x0e-\x1f]')
 def comment_quote(s):
     """
     Quote that makes sure text can't escape a comment
     """
-    return _comment_quote_re.sub('-&gt', str(s))
+    comment = str(s)
+    #comment = _bad_chars_re.sub('', comment)
+    #print 'in ', repr(str(s))
+    #print 'out', repr(comment)
+    comment = _comment_quote_re.sub('-&gt;', comment)
+    return comment
 
 url_quote = urllib.quote
 url_unquote = urllib.unquote
