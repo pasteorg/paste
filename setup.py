@@ -2,7 +2,7 @@
 # revision (set to True for real releases)
 RELEASE = False
 
-__version__ = '1.7.4'
+__version__ = '1.7.5'
 
 from setuptools import setup, find_packages
 import sys, os
