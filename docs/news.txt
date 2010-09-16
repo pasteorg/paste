@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+hg tip
+------
+
+* Fix bug introduced in :mod:`paste.auth.auth_tkt` (with ``url_unquote``)
+
 1.7.5
 -----
 
