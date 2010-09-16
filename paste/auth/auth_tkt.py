@@ -45,6 +45,7 @@ except ImportError:
 import Cookie
 from paste import request
 from urllib import quote as url_quote
+from urllib import unquote as url_unquote
 
 
 class AuthTicket(object):
@@ -118,6 +119,7 @@ class AuthTicket(object):
             c[self.cookie_name]['secure'] = 'true'
         return c
 
+
 class BadTicket(Exception):
     """
     Exception raised when a ticket can't be parsed.  If we get
@@ -128,6 +130,7 @@ class BadTicket(Exception):
     def __init__(self, msg, expected=None):
         self.expected = expected
         Exception.__init__(self, msg)
+
 
 def parse_ticket(secret, ticket, ip):
     """
@@ -165,6 +168,7 @@ def parse_ticket(secret, ticket, ip):
 
     return (timestamp, userid, tokens, user_data)
 
+
 def calculate_digest(ip, timestamp, secret, userid, tokens, user_data):
     secret = maybe_encode(secret)
     userid = maybe_encode(userid)
@@ -176,6 +180,7 @@ def calculate_digest(ip, timestamp, secret, userid, tokens, user_data):
     digest = md5(digest0 + secret).hexdigest()
     return digest
 
+
 def encode_ip_timestamp(ip, timestamp):
     ip_chars = ''.join(map(chr, map(int, ip.split('.'))))
     t = int(timestamp)
@@ -186,10 +191,12 @@ def encode_ip_timestamp(ip, timestamp):
     ts_chars = ''.join(map(chr, ts))
     return ip_chars + ts_chars
 
+
 def maybe_encode(s, encoding='utf8'):
     if isinstance(s, unicode):
         s = s.encode(encoding)
     return s
+
 
 class AuthTKTMiddleware(object):
 
@@ -260,7 +267,7 @@ class AuthTKTMiddleware(object):
 
     def __call__(self, environ, start_response):
         cookies = request.get_cookies(environ)
-        if cookies.has_key(self.cookie_name):
+        if self.cookie_name in cookies:
             cookie_value = cookies[self.cookie_name].value
         else:
             cookie_value = ''
@@ -289,18 +296,23 @@ class AuthTKTMiddleware(object):
                 # in or anything
                 pass
         set_cookies = []
+
         def set_user(userid, tokens='', user_data=''):
             set_cookies.extend(self.set_user_cookie(
                 environ, userid, tokens, user_data))
+
         def logout_user():
             set_cookies.extend(self.logout_user_cookie(environ))
+
         environ['paste.auth_tkt.set_user'] = set_user
         environ['paste.auth_tkt.logout_user'] = logout_user
         if self.logout_path and environ.get('PATH_INFO') == self.logout_path:
             logout_user()
+
         def cookie_setting_start_response(status, headers, exc_info=None):
             headers.extend(set_cookies)
             return start_response(status, headers, exc_info)
+
         return self.app(environ, cookie_setting_start_response)
 
     def set_user_cookie(self, environ, userid, tokens, user_data):
@@ -356,6 +368,7 @@ class AuthTKTMiddleware(object):
              (self.cookie_name, expires, wild_domain)),
             ]
         return cookies
+
 
 def make_auth_tkt_middleware(
     app,
