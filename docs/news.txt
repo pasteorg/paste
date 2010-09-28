@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+hg tip
+------
+
+* Fixed ``egg:Paste#cgi``
+
 1.7.5.1
 -------
 
