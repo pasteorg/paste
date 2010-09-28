@@ -272,5 +272,6 @@ def make_cgi_application(global_conf, script, path=None, include_os_environ=None
         path = global_conf.get('path') or global_conf.get('PATH')
     include_os_environ = converters.asbool(include_os_environ)
     return CGIApplication(
+        None,
         script, path=path, include_os_environ=include_os_environ,
         query_string=query_string)
