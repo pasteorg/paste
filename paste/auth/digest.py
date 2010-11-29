@@ -99,8 +99,8 @@ class AuthDigestAuthenticator(object):
         if 'digest' != authmeth.lower():
             return self.build_authentication()
         amap = {}
-        for itm in auth.split(", "):
-            (k,v) = [s.strip() for s in itm.split("=", 1)]
+        for itm in auth.split(","):
+            (k,v) = [s.strip() for s in itm.strip().split("=", 1)]
             amap[k] = v.replace('"', '')
         try:
             username = amap['username']
