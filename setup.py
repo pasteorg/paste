@@ -104,8 +104,7 @@ Other Tools
 * A class for generating and traversing URLs, and creating associated
   HTML code, in ``paste.url``
 
-The latest version is available in a `Subversion repository
-<http://svn.pythonpaste.org/Paste/trunk#egg=Paste-dev>`_.
+The official development repo is at https://bitbucket.org/ianb/paste.
 
 For the latest changes see the `news file
 <http://pythonpaste.org/news.html>`_.
