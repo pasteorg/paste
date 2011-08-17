@@ -186,16 +186,15 @@ class WSGIHandlerMixin:
         (server_name, server_port) = self.server.server_address[:2]
 
         rfile = self.rfile
-        if 'HTTP/1.1' == self.protocol_version and \
-                '100-continue' == self.headers.get('Expect','').lower():
-            rfile = ContinueHook(rfile, self.wfile.write)
+        # We can put in the protection to keep from over-reading the
+        # file
+        try:
+            content_length = int(self.headers.get('Content-Length', '0'))
+        except ValueError:
+            content_length = 0
+        if '100-continue' == self.headers.get('Expect','').lower():
+            rfile = LimitedLengthFile(ContinueHook(rfile, self.wfile.write), content_length)
         else:
-            # We can put in the protection to keep from over-reading the
-            # file
-            try:
-                content_length = int(self.headers.get('Content-Length', '0'))
-            except ValueError:
-                content_length = 0
             if not hasattr(self.connection, 'get_context'):
                 # @@: LimitedLengthFile is currently broken in connection
                 # with SSL (sporatic errors that are diffcult to trace, but
