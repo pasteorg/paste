@@ -8,6 +8,13 @@ hg tip
 
 * Fixed ``egg:Paste#cgi``
 
+* In ``paste.httpserver``: give a 100 Continue response even when the
+  server has been configured as an HTTP/1.0 server (clients may send
+  ``Expect: 100-Continue`` before they know the version), and wrap
+  100 Continue ``environ['wsgi.input']`` files with LimitedLengthFile
+  just like normal request bodies are wrapped, keeping WSGI
+  applications from over-reading from the socket.
+
 1.7.5.1
 -------
 
