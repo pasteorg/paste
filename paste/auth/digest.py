@@ -38,6 +38,34 @@ except ImportError:
 import time, random
 from urllib import quote as url_quote
 
+def _split_auth_string(auth_string):
+    """ split a digest auth string into individual key=value strings """
+    prev = None
+    for item in auth_string.split(","):
+        try:
+            if prev.count('"') == 1:
+                prev = "%s,%s" % (prev, item)
+                continue
+        except AttributeError:
+            if prev == None:
+                prev = item
+                continue
+            else:
+                raise StopIteration
+        yield prev.strip()
+        prev = item
+
+    yield prev.strip()
+    raise StopIteration
+
+def _auth_to_kv_pairs(auth_string):
+    """ split a digest auth string into key, value pairs """
+    for item in _split_auth_string(auth_string):
+        (k, v) = item.split("=", 1)
+        if v.startswith('"') and len(v) > 1 and v.endswith('"'):
+            v = v[1:-1]
+        yield (k, v)
+
 def digest_password(realm, username, password):
     """ construct the appropriate hashcode needed for HTTP digest """
     return md5("%s:%s:%s" % (username, realm, password)).hexdigest()
@@ -98,10 +126,7 @@ class AuthDigestAuthenticator(object):
         (authmeth, auth) = authorization.split(" ", 1)
         if 'digest' != authmeth.lower():
             return self.build_authentication()
-        amap = {}
-        for itm in auth.split(","):
-            (k,v) = [s.strip() for s in itm.strip().split("=", 1)]
-            amap[k] = v.replace('"', '')
+        amap = dict(_auth_to_kv_pairs(auth))
         try:
             username = amap['username']
             authpath = amap['uri']
