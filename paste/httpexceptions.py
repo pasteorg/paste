@@ -58,6 +58,7 @@ Exception
         * 415 - HTTPUnsupportedMediaType
         * 416 - HTTPRequestRangeNotSatisfiable
         * 417 - HTTPExpectationFailed
+        * 429 - HTTPTooManyRequests
       HTTPServerError
         * 500 - HTTPInternalServerError
         * 501 - HTTPNotImplemented
@@ -524,6 +525,11 @@ class HTTPExpectationFailed(HTTPClientError):
     code = 417
     title = 'Expectation Failed'
     explanation = ('Expectation failed.')
+
+class HTTPTooManyRequests(HTTPClientError):
+    code = 429
+    title = 'Too Many Requests'
+    explanation = ('The client has sent too many requests to the server.')
 
 #
 # 5xx Server Error
