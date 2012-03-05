@@ -39,15 +39,16 @@ non-Python code run under Apache.
 
 import time as time_mod
 try:
-    from hashlib import md5
+    import hashlib
 except ImportError:
-    from md5 import md5
+    # mimic hashlib (will work for md5, fail for secure hashes)
+    import md5 as hashlib
 import Cookie
 from paste import request
 from urllib import quote as url_quote
 from urllib import unquote as url_unquote
 
-DEFAULT_DIGEST = md5
+DEFAULT_DIGEST = hashlib.md5
 
 
 class AuthTicket(object):
@@ -58,7 +59,8 @@ class AuthTicket(object):
     can include tokens (a list of strings, representing role names),
     'user_data', which is arbitrary data available for your own use in
     later scripts.  Lastly, you can override the timestamp, cookie name,
-    whether to secure the cookie and the digest algorithm.
+    whether to secure the cookie and the digest algorithm (for details
+    look at ``AuthTKTMiddleware``).
 
     Once you provide all the arguments, use .cookie_value() to
     generate the appropriate authentication ticket.  .cookie()
@@ -100,7 +102,11 @@ class AuthTicket(object):
             self.time = time
         self.cookie_name = cookie_name
         self.secure = secure
-        self.digest_algo = digest_algo
+        if isinstance(digest_algo, str):
+            # correct specification of digest from hashlib or fail
+            self.digest_algo = getattr(hashlib, digest_algo)
+        else:
+            self.digest_algo = digest_algo
 
     def digest(self):
         return calculate_digest(
@@ -142,6 +148,9 @@ def parse_ticket(secret, ticket, ip, digest_algo=DEFAULT_DIGEST):
     If the ticket cannot be parsed, ``BadTicket`` will be raised with
     an explanation.
     """
+    if isinstance(digest_algo, str):
+        # correct specification of digest from hashlib or fail
+        digest_algo = getattr(hashlib, digest_algo)
     digest_hexa_size = digest_algo().digest_size * 2
     ticket = ticket.strip('"')
     digest = ticket[:digest_hexa_size]
@@ -174,6 +183,7 @@ def parse_ticket(secret, ticket, ip, digest_algo=DEFAULT_DIGEST):
     return (timestamp, userid, tokens, user_data)
 
 
+# @@: Digest object constructor compatible with named ones in hashlib only
 def calculate_digest(ip, timestamp, secret, userid, tokens, user_data,
                      digest_algo):
     secret = maybe_encode(secret)
@@ -241,8 +251,8 @@ class AuthTKTMiddleware(object):
         when they visit this page.
 
     ``digest_algo``:
-        Digest object constructor compatible with named constructors from
-        ``hashlib``.
+        Digest algorithm specified as a name of the algorithm provided by
+        ``hashlib`` or as a compatible digest object constructor.
         Defaults to ``md5``, as in mod_auth_tkt.  The others currently
         compatible with mod_auth_tkt are ``sha256`` and ``sha512``.
 
@@ -276,7 +286,11 @@ class AuthTKTMiddleware(object):
         self.no_domain_cookie = no_domain_cookie
         self.current_domain_cookie = current_domain_cookie
         self.wildcard_cookie = wildcard_cookie
-        self.digest_algo = digest_algo
+        if isinstance(digest_algo, str):
+            # correct specification of digest from hashlib or fail
+            self.digest_algo = getattr(hashlib, digest_algo)
+        else:
+            self.digest_algo = digest_algo
 
     def __call__(self, environ, start_response):
         cookies = request.get_cookies(environ)
