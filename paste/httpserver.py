@@ -176,7 +176,8 @@ class WSGIHandlerMixin:
         argument can be used to override any settings.
         """
 
-        (scheme, netloc, path, query, fragment) = urlparse.urlsplit(self.path)
+        dummy_url = 'http://dummy%s' % (self.path,)
+        (scheme, netloc, path, query, fragment) = urlparse.urlsplit(dummy_url)
         path = urllib.unquote(path)
         endslash = path.endswith('/')
         path = posixpath.normpath(path)
