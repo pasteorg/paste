@@ -15,6 +15,8 @@ hg tip
   just like normal request bodies are wrapped, keeping WSGI
   applications from over-reading from the socket.
 
+* Fixed parsing of paths beginning with multiple forward slashes.
+
 1.7.5.1
 -------
 
