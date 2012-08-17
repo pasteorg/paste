@@ -39,13 +39,16 @@ non-Python code run under Apache.
 
 import time as time_mod
 try:
-    from hashlib import md5
+    import hashlib
 except ImportError:
-    from md5 import md5
+    # mimic hashlib (will work for md5, fail for secure hashes)
+    import md5 as hashlib
 import Cookie
 from paste import request
 from urllib import quote as url_quote
 from urllib import unquote as url_unquote
+
+DEFAULT_DIGEST = hashlib.md5
 
 
 class AuthTicket(object):
@@ -55,8 +58,9 @@ class AuthTicket(object):
     the shared secret, the userid, and the IP address.  Optionally you
     can include tokens (a list of strings, representing role names),
     'user_data', which is arbitrary data available for your own use in
-    later scripts.  Lastly, you can override the cookie name and
-    timestamp.
+    later scripts.  Lastly, you can override the timestamp, cookie name,
+    whether to secure the cookie and the digest algorithm (for details
+    look at ``AuthTKTMiddleware``).
 
     Once you provide all the arguments, use .cookie_value() to
     generate the appropriate authentication ticket.  .cookie()
@@ -86,7 +90,7 @@ class AuthTicket(object):
 
     def __init__(self, secret, userid, ip, tokens=(), user_data='',
                  time=None, cookie_name='auth_tkt',
-                 secure=False):
+                 secure=False, digest_algo=DEFAULT_DIGEST):
         self.secret = secret
         self.userid = userid
         self.ip = ip
@@ -98,11 +102,16 @@ class AuthTicket(object):
             self.time = time
         self.cookie_name = cookie_name
         self.secure = secure
+        if isinstance(digest_algo, str):
+            # correct specification of digest from hashlib or fail
+            self.digest_algo = getattr(hashlib, digest_algo)
+        else:
+            self.digest_algo = digest_algo
 
     def digest(self):
         return calculate_digest(
             self.ip, self.time, self.secret, self.userid, self.tokens,
-            self.user_data)
+            self.user_data, self.digest_algo)
 
     def cookie_value(self):
         v = '%s%08x%s!' % (self.digest(), int(self.time), url_quote(self.userid))
@@ -132,21 +141,25 @@ class BadTicket(Exception):
         Exception.__init__(self, msg)
 
 
-def parse_ticket(secret, ticket, ip):
+def parse_ticket(secret, ticket, ip, digest_algo=DEFAULT_DIGEST):
     """
     Parse the ticket, returning (timestamp, userid, tokens, user_data).
 
     If the ticket cannot be parsed, ``BadTicket`` will be raised with
     an explanation.
     """
+    if isinstance(digest_algo, str):
+        # correct specification of digest from hashlib or fail
+        digest_algo = getattr(hashlib, digest_algo)
+    digest_hexa_size = digest_algo().digest_size * 2
     ticket = ticket.strip('"')
-    digest = ticket[:32]
+    digest = ticket[:digest_hexa_size]
     try:
-        timestamp = int(ticket[32:40], 16)
+        timestamp = int(ticket[digest_hexa_size:digest_hexa_size + 8], 16)
     except ValueError, e:
         raise BadTicket('Timestamp is not a hex integer: %s' % e)
     try:
-        userid, data = ticket[40:].split('!', 1)
+        userid, data = ticket[digest_hexa_size + 8:].split('!', 1)
     except ValueError:
         raise BadTicket('userid is not followed by !')
     userid = url_unquote(userid)
@@ -158,7 +171,8 @@ def parse_ticket(secret, ticket, ip):
         user_data = data
 
     expected = calculate_digest(ip, timestamp, secret,
-                                userid, tokens, user_data)
+                                userid, tokens, user_data,
+                                digest_algo)
 
     if expected != digest:
         raise BadTicket('Digest signature is not correct',
@@ -169,15 +183,17 @@ def parse_ticket(secret, ticket, ip):
     return (timestamp, userid, tokens, user_data)
 
 
-def calculate_digest(ip, timestamp, secret, userid, tokens, user_data):
+# @@: Digest object constructor compatible with named ones in hashlib only
+def calculate_digest(ip, timestamp, secret, userid, tokens, user_data,
+                     digest_algo):
     secret = maybe_encode(secret)
     userid = maybe_encode(userid)
     tokens = maybe_encode(tokens)
     user_data = maybe_encode(user_data)
-    digest0 = md5(
+    digest0 = digest_algo(
         encode_ip_timestamp(ip, timestamp) + secret + userid + '\0'
         + tokens + '\0' + user_data).hexdigest()
-    digest = md5(digest0 + secret).hexdigest()
+    digest = digest_algo(digest0 + secret).hexdigest()
     return digest
 
 
@@ -234,6 +250,12 @@ class AuthTKTMiddleware(object):
         page will be shown as usual, but the user will also be logged out
         when they visit this page.
 
+    ``digest_algo``:
+        Digest algorithm specified as a name of the algorithm provided by
+        ``hashlib`` or as a compatible digest object constructor.
+        Defaults to ``md5``, as in mod_auth_tkt.  The others currently
+        compatible with mod_auth_tkt are ``sha256`` and ``sha512``.
+
     If used with mod_auth_tkt, then these settings (except logout_path) should
     match the analogous Apache configuration settings.
 
@@ -253,7 +275,7 @@ class AuthTKTMiddleware(object):
     def __init__(self, app, secret, cookie_name='auth_tkt', secure=False,
                  include_ip=True, logout_path=None, httponly=False,
                  no_domain_cookie=True, current_domain_cookie=True,
-                 wildcard_cookie=True):
+                 wildcard_cookie=True, digest_algo=DEFAULT_DIGEST):
         self.app = app
         self.secret = secret
         self.cookie_name = cookie_name
@@ -264,6 +286,11 @@ class AuthTKTMiddleware(object):
         self.no_domain_cookie = no_domain_cookie
         self.current_domain_cookie = current_domain_cookie
         self.wildcard_cookie = wildcard_cookie
+        if isinstance(digest_algo, str):
+            # correct specification of digest from hashlib or fail
+            self.digest_algo = getattr(hashlib, digest_algo)
+        else:
+            self.digest_algo = digest_algo
 
     def __call__(self, environ, start_response):
         cookies = request.get_cookies(environ)
@@ -282,7 +309,7 @@ class AuthTKTMiddleware(object):
             # Also, timeouts should cause cookie refresh
             try:
                 timestamp, userid, tokens, user_data = parse_ticket(
-                    self.secret, cookie_value, remote_addr)
+                    self.secret, cookie_value, remote_addr, self.digest_algo)
                 tokens = ','.join(tokens)
                 environ['REMOTE_USER'] = userid
                 if environ.get('REMOTE_USER_TOKENS'):
