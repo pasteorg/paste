@@ -94,7 +94,9 @@ class AuthTicket(object):
         self.secret = secret
         self.userid = userid
         self.ip = ip
-        self.tokens = ','.join(tokens)
+        if not isinstance(tokens, basestring):
+            tokens = ','.join(tokens)
+        self.tokens = tokens
         self.user_data = user_data
         if time is None:
             self.time = time_mod.time()
