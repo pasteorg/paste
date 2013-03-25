@@ -158,10 +158,10 @@ class DataApp(object):
         CONTENT_RANGE.update(headers, first_byte=lower, last_byte=upper,
                             total_length = self.content_length)
         CONTENT_LENGTH.update(headers, content_length)
-        if content_length == self.content_length:
-            start_response('200 OK', headers)
-        else:
+        if range or content_length != self.content_length:
             start_response('206 Partial Content', headers)
+        else:
+            start_response('200 OK', headers)
         if self.content is not None:
             return [self.content[lower:upper+1]]
         return (lower, content_length)
