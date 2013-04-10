@@ -27,6 +27,7 @@ import os
 from itertools import count
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
+from StringIO import StringIO
 from paste.util import converters
 import logging
 try:
