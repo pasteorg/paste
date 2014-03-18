@@ -1,8 +1,8 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
-from email.MIMEText import MIMEText
-from email.MIMEMultipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import smtplib
 import time
 try:
