@@ -49,6 +49,7 @@ This module highly based on Robert Brewer's, here:
 http://projects.amor.org/misc/svn/modpython_gateway.py
 """
 
+import six
 import traceback
 
 try:
@@ -176,7 +177,7 @@ class Handler(object):
         if exc_info:
             try:
                 if self.started:
-                    raise exc_info[0], exc_info[1], exc_info[2]
+                    six.reraise(exc_info[0], exc_info[1], exc_info[2])
             finally:
                 exc_info = None
         

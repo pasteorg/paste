@@ -23,6 +23,7 @@ Raise ``ForwardRequestException(new_path_info)`` to do a forward
 (aborting the current request).
 """
 
+import six
 import warnings
 from six.moves import cStringIO as StringIO
 
@@ -319,7 +320,7 @@ class Includer(Recursive):
         response = IncludedResponse()
         def start_response(status, headers, exc_info=None):
             if exc_info:
-                raise exc_info[0], exc_info[1], exc_info[2]
+                six.reraise(exc_info[0], exc_info[1], exc_info[2])
             response.status = status
             response.headers = headers
             return response.write
@@ -373,7 +374,7 @@ class IncluderAppIter(Recursive):
         response = IncludedAppIterResponse()
         def start_response(status, headers, exc_info=None):
             if exc_info:
-                raise exc_info[0], exc_info[1], exc_info[2]
+                six.reraise(exc_info[0], exc_info[1], exc_info[2])
             response.status = status
             response.headers = headers
             return response.write

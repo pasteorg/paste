@@ -22,6 +22,7 @@ import traceback
 from six.moves.urllib.parse import unquote
 import socket, sys, threading, urlparse, Queue
 import posixpath
+import six
 import time
 import thread
 import os
@@ -155,7 +156,7 @@ class WSGIHandlerMixin:
         if exc_info:
             try:
                 if self.wsgi_headers_sent:
-                    raise exc_info[0], exc_info[1], exc_info[2]
+                    six.reraise(exc_info[0], exc_info[1], exc_info[2])
                 else:
                     # In this case, we're going to assume that the
                     # higher-level code is currently handling the

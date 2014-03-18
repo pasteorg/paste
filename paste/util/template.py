@@ -31,6 +31,7 @@ If there are syntax errors ``TemplateError`` will be raised.
 """
 
 import re
+import six
 import sys
 import cgi
 from six.moves.urllib.parse import quote
@@ -207,7 +208,7 @@ class Template(object):
             else:
                 arg0 = str(e)
             e.args = (self._add_line_info(arg0, pos),)
-            raise exc_info[0], e, exc_info[2]
+            six.reraise(exc_info[0], e, exc_info[2])
 
     def _exec(self, code, ns, pos):
         __traceback_hide__ = True
@@ -217,7 +218,7 @@ class Template(object):
             exc_info = sys.exc_info()
             e = exc_info[1]
             e.args = (self._add_line_info(e.args[0], pos),)
-            raise exc_info[0], e, exc_info[2]
+            six.reraise(exc_info[0], e, exc_info[2])
 
     def _repr(self, value, pos):
         __traceback_hide__ = True
@@ -235,7 +236,7 @@ class Template(object):
             exc_info = sys.exc_info()
             e = exc_info[1]
             e.args = (self._add_line_info(e.args[0], pos),)
-            raise exc_info[0], e, exc_info[2]
+            six.reraise(exc_info[0], e, exc_info[2])
         else:
             if self._unicode and isinstance(value, str):
                 if not self.decode_encoding:
