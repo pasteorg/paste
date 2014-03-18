@@ -105,7 +105,7 @@ class SessionFactory(object):
             return self.session.data()
         cookies = request.get_cookies(self.environ)
         session = None
-        if cookies.has_key(self.cookie_name):
+        if self.cookie_name in cookies:
             self.sid = cookies[self.cookie_name].value
             try:
                 session = self.session_class(self.sid, create=False,

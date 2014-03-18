@@ -258,7 +258,7 @@ class AuthCookieHandler(object):
             raise AssertionError("AuthCookie already installed!")
         scanlist = self.environ_class(self, self.scanlist)
         jar = get_cookies(environ)
-        if jar.has_key(self.cookie_name):
+        if self.cookie_name in jar:
             content = self.signer.auth(jar[self.cookie_name].value)
             if content:
                 for pair in content.split(";"):

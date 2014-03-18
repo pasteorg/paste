@@ -37,7 +37,7 @@ class RegistryUsingApp(object):
         self.raise_exc = raise_exc
     
     def __call__(self, environ, start_response):
-        if environ.has_key('paste.registry'):
+        if 'paste.registry' in environ:
             environ['paste.registry'].register(self.var, self.value)
         if self.raise_exc:
             raise self.raise_exc
@@ -52,7 +52,7 @@ class RegistryUsingIteratorApp(object):
         self.value = value
     
     def __call__(self, environ, start_response):
-        if environ.has_key('paste.registry'):
+        if 'paste.registry' in environ:
             environ['paste.registry'].register(self.var, self.value)
         status = '200 OK'
         response_headers = [('Content-type','text/plain')]
@@ -67,7 +67,7 @@ class RegistryMiddleMan(object):
         self.depth = depth
     
     def __call__(self, environ, start_response):
-        if environ.has_key('paste.registry'):
+        if 'paste.registry' in environ:
             environ['paste.registry'].register(self.var, self.value)
         app_response = ['\nInserted by middleware!\nInsertValue at depth \
             %s is %s' % (self.depth, str(regobj))]

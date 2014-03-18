@@ -339,7 +339,7 @@ def check_environ(environ):
             "Invalid CONTENT_LENGTH: %r" % environ['CONTENT_LENGTH'])
 
     if not environ.get('SCRIPT_NAME'):
-        assert environ.has_key('PATH_INFO'), (
+        assert 'PATH_INFO' in environ, (
             "One of SCRIPT_NAME or PATH_INFO are required (PATH_INFO "
             "should at least be '/' if SCRIPT_NAME is empty)")
     assert environ.get('SCRIPT_NAME') != '/', (
