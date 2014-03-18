@@ -750,11 +750,11 @@ def cli():
                             linenumbers=linenumbers, header=header, 
                             footer=footer, form=form)
             else:
-                raise PathError, 'File does not exists!'
+                raise PathError('File does not exists!')
         else:
             try:
                 if sys.stdin.isatty():
-                    raise InputError, 'Please check input!'
+                    raise InputError('Please check input!')
                 else:
                     if output in [None,"-","stdout"]:
                         str2stdout(sys.stdin.read(), colors=colorscheme,
@@ -780,7 +780,7 @@ def cli():
                         show=show, markup=markup, quiet=quiet, header=header,
                         footer=footer, linenumbers=linenumbers, form=form)
         else:
-            raise PathError, 'File does not exists!'
+            raise PathError('File does not exists!')
             Usage()
 
 ######################################################### Simple markup tests
@@ -1009,7 +1009,7 @@ def convert(source, outdir=None, colors=None,
             path2file(source, outdir, colors, show, markup, 
                      quiet, form, header, footer, linenumbers, count)
         else:
-            raise PathError, 'File does not exist!'
+            raise PathError('File does not exist!')
     # If we pass in a dir we need to walkdir for files.
     # Then we need to colorize them with path2file
     else:
@@ -1095,7 +1095,7 @@ def tagreplace(sourcestr, colors=lite, markup='xhtml',
                end = sourcestr[dataend+len(tagend):]
                sourcestr =  ''.join([start,data,end])
         else:
-            raise InputError,'Tag mismatch!\nCheck %s,%s tags'%tagstart,tagend
+            raise InputError('Tag mismatch!\nCheck %s,%s tags'%tagstart,tagend)
     if not dosheet:
         css = None
     return css, sourcestr

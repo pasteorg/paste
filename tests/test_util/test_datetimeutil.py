@@ -116,7 +116,7 @@ def test_date():
             normalize_date(val)
         except (TypeError,ValueError):
             return
-        raise "type error expected", val
+        raise ValueError("type error expected", val)
 
     assertError("2000-13-11")
     assertError("APR 99")
