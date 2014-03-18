@@ -9,6 +9,8 @@ for testing WSGI applications, and the `TestFileEnvironment
 effects of command-line scripts.
 """
 
+from __future__ import print_function
+
 import sys
 import random
 import mimetypes
@@ -687,7 +689,7 @@ class TestResponse(object):
 
         def printlog(s):
             if verbose:
-                print s
+                print(s)
 
         found_links = []
         total_links = 0
@@ -821,14 +823,14 @@ class TestResponse(object):
                 "The only keyword argument allowed is 'no'")
         for s in strings:
             if not s in self:
-                print >> sys.stderr, "Actual response (no %r):" % s
-                print >> sys.stderr, self
+                print("Actual response (no %r):" % s, file=sys.stderr)
+                print(self, file=sys.stderr)
                 raise IndexError(
                     "Body does not contain string %r" % s)
         for no_s in no:
             if no_s in self:
-                print >> sys.stderr, "Actual response (has %r)" % no_s
-                print >> sys.stderr, self
+                print("Actual response (has %r)" % no_s, file=sys.stderr)
+                print(self, file=sys.stderr)
                 raise IndexError(
                     "Body contains string %r" % s)
 
@@ -1409,8 +1411,8 @@ class TestFileEnvironment(object):
             files_before=files_before,
             files_after=files_after)
         if printresult:
-            print result
-            print '-'*40
+            print(result)
+            print('-'*40)
         if not expect_error:
             result.assert_no_error()
         if not expect_stderr:
@@ -1536,8 +1538,8 @@ class ProcResult(object):
     def assert_no_stderr(self):
         __tracebackhide__ = True
         if self.stderr:
-            print 'Error output:'
-            print self.stderr
+            print('Error output:')
+            print(self.stderr)
             raise AssertionError("stderr output not expected")
 
     def __str__(self):
@@ -1617,11 +1619,11 @@ class FoundFile(object):
 
     def mustcontain(self, s):
         __tracebackhide__ = True
-        bytes = self.bytes
-        if s not in bytes:
-            print 'Could not find %r in:' % s
-            print bytes
-            assert s in bytes
+        bytes_ = self.bytes
+        if s not in bytes_:
+            print('Could not find %r in:' % s)
+            print(bytes_)
+            assert s in bytes_
 
     def __repr__(self):
         return '<%s %s:%s>' % (

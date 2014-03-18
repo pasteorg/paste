@@ -44,7 +44,7 @@ def test_logger():
         assert 0
     rep.report(exc_data)
     content = open(fn).read()
-    print content
+    print(content)
     assert len(content.splitlines()) == 8
     assert 'ZeroDivisionError' in content
 

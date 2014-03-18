@@ -45,7 +45,7 @@ def yielder(args):
 
 def test_makes_exception():
     res = do_request(bad_app)
-    print res
+    print(res)
     assert 'bad_app() takes no arguments (2 given' in res
     assert 'iterator = application(environ, start_response_wrapper)' in res
     assert 'lint.py' in res
@@ -53,20 +53,20 @@ def test_makes_exception():
 
 def test_start_res():
     res = do_request(start_response_app)
-    print res
+    print(res)
     assert 'ValueError: hi' in res
     assert 'test_cgitb_catcher.py' in res
     assert 'line 26, in start_response_app' in res
 
 def test_after_start():
     res = do_request(after_start_response_app, 200)
-    print res
+    print(res)
     assert 'ValueError: error2' in res
     assert 'line 30' in res
 
 def test_iter_app():
     res = do_request(iter_app, 200)
-    print res
+    print(res)
     assert 'None raises error' in res
     assert 'yielder' in res
     

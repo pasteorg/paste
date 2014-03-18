@@ -58,7 +58,7 @@ def test_deep():
     assert 'index2' in res
     res = app.get('/sub')
     assert res.status == 301
-    print res
+    print(res)
     assert res.header('location') == 'http://localhost/sub/'
     assert 'http://localhost/sub/' in res
     res = app.get('/sub/')

@@ -109,7 +109,7 @@ def test_registry_no_object_error():
 def test_with_default_object():
     app = TestApp(simpleapp_withregistry_default)
     res = app.get('/')
-    print res
+    print(res)
     assert 'Hello world' in res
     assert "Value is {'hi': 'people'}" in res
 

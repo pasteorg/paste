@@ -89,4 +89,4 @@ def test_bad_error():
     app = forward(app, {404: '/404.html'})
     app = TestApp(app)
     resp = app.get('/test', expect_errors=True)
-    print resp
+    print(resp)
