@@ -136,6 +136,7 @@ dashes to give CamelCase style names.
 """
 import mimetypes
 import re
+import six
 from time import time as now
 try:
     # Python 3
@@ -171,7 +172,7 @@ REQUEST_METHOD = EnvironVariable("REQUEST_METHOD")
 SCRIPT_NAME    = EnvironVariable("SCRIPT_NAME")
 PATH_INFO      = EnvironVariable("PATH_INFO")
 
-for _name, _obj in six.iteritems(globals()):
+for _name, _obj in six.iteritems(dict(globals())):
     if isinstance(_obj, EnvironVariable):
         __all__.append(_name)
 
@@ -1099,6 +1100,6 @@ for head in _headers.values():
     __all__.append(headname)
 
 __pudge_all__ = __all__[:]
-for _name, _obj in six.iteritems(globals()):
+for _name, _obj in six.iteritems(dict(globals())):
     if isinstance(_obj, type) and issubclass(_obj, HTTPHeader):
         __pudge_all__.append(_name)
