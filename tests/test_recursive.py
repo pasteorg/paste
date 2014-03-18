@@ -1,4 +1,4 @@
-from test_errordocument import error_docs_app, test_error_docs_app, simple_app
+from .test_errordocument import error_docs_app, test_error_docs_app, simple_app
 from paste.fixture import *
 from paste.recursive import RecursiveMiddleware, ForwardRequestException
 

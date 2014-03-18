@@ -43,7 +43,7 @@ from paste import httpexceptions
 from paste import registry
 from paste import request
 from paste import response
-import evalcontext
+from paste.evalexception import evalcontext
 
 limit = 200
 

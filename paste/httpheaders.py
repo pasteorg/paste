@@ -137,7 +137,6 @@ dashes to give CamelCase style names.
 import mimetypes
 import re
 from time import time as now
-from httpexceptions import HTTPBadRequest
 try:
     # Python 3
     from email.utils import formatdate, parsedate_tz, mktime_tz
@@ -147,6 +146,7 @@ except ImportError:
     from rfc822 import formatdate, parsedate_tz, mktime_tz
     from urllib2 import AbstractDigestAuthHandler, parse_keqv_list, parse_http_list
 
+from .httpexceptions import HTTPBadRequest
 
 __all__ = ['get_header', 'list_headers', 'normalize_headers',
            'HTTPHeader', 'EnvironVariable' ]
