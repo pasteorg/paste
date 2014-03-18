@@ -13,6 +13,8 @@ try:
 except ImportError:
     from md5 import md5
 
+import six
+
 good_characters = "23456789abcdefghjkmnpqrtuvwxyz"
 
 base = len(good_characters)
@@ -21,7 +23,7 @@ def make_identifier(number):
     """
     Encodes a number as an identifier.
     """
-    if not isinstance(number, (int, long)):
+    if not isinstance(number, six.integer_types):
         raise ValueError(
             "You can only make identifiers out of integers (not %r)"
             % number)
