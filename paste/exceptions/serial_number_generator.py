@@ -61,9 +61,9 @@ def hash_identifier(s, length, pad=True, hasher=md5, prefix='',
         raise ValueError(
             "md5 cannot create hashes longer than 26 characters in "
             "length (you gave %s)" % length)
-    if isinstance(s, unicode):
+    if isinstance(s, six.text_type):
         s = s.encode('utf-8')
-    h = hasher(str(s))
+    h = hasher(six.binary_type(s))
     bin_hash = h.digest()
     modulo = base ** length
     number = 0
