@@ -36,7 +36,7 @@ def make_identifier(number):
         next = number % base
         result.append(good_characters[next])
         # Note, this depends on integer rounding of results:
-        number = number / base
+        number = number // base
     return ''.join(result)
 
 def hash_identifier(s, length, pad=True, hasher=md5, prefix='',
