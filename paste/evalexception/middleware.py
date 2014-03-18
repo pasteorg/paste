@@ -31,6 +31,7 @@ import sys
 import os
 import cgi
 import traceback
+import six
 from six.moves import cStringIO as StringIO
 import pprint
 import itertools
@@ -162,7 +163,7 @@ def get_debug_count(environ):
     if 'paste.evalexception.debug_count' in environ:
         return environ['paste.evalexception.debug_count']
     else:
-        environ['paste.evalexception.debug_count'] = next = debug_counter.next()
+        environ['paste.evalexception.debug_count'] = next = six.next(debug_counter)
         return next
 
 class EvalException(object):
