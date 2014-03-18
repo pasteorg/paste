@@ -23,7 +23,12 @@ session for each request, with no caching.  Also, sessions aren't
 expired.
 """
 
-from Cookie import SimpleCookie
+try:
+    # Python 3
+    from http.cookies import SimpleCookie
+except ImportError:
+    # Python 2
+    from Cookie import SimpleCookie
 import time
 import random
 import os

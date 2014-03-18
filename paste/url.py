@@ -4,7 +4,7 @@
 """
 This module implements a class for handling URLs.
 """
-import urllib
+from six.moves.urllib.parse import quote, unquote, urlencode
 import cgi
 from paste import request
 # Imported lazily from FormEncode:
@@ -20,9 +20,7 @@ def html_quote(v):
 def url_quote(v):
     if v is None:
         return ''
-    return urllib.quote(str(v))
-
-url_unquote = urllib.unquote
+    return quote(str(v))
 
 def js_repr(v):
     if v is None:
@@ -102,7 +100,7 @@ class URLResource(object):
     def __getitem__(self, item):
         if '=' in item:
             name, value = item.split('=', 1)
-            return self._add_vars({url_unquote(name): url_unquote(value)})
+            return self._add_vars({unquote(name): unquote(value)})
         return self._add_positional((item,))
 
     def attr(self, **kw):
@@ -202,7 +200,7 @@ class URLResource(object):
                 elif val is None:
                     continue
                 vars.append((name, val))
-            s += urllib.urlencode(vars, True)
+            s += urlencode(vars, True)
         return s
 
     href = property(href__get)

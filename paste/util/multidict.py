@@ -3,7 +3,13 @@
 import cgi
 import copy
 import sys
-from UserDict import DictMixin
+
+try:
+    # Python 3
+    from collections import MutableMapping as DictMixin
+except ImportError:
+    # Python 2
+    from UserDict import DictMixin
 
 class MultiDict(DictMixin):
 

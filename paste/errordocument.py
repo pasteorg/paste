@@ -11,7 +11,7 @@ URL where the content can be displayed to the user as an error document.
 
 import warnings
 import sys
-from urlparse import urlparse
+from six.moves.urllib import parse as urlparse
 from paste.recursive import ForwardRequestException, RecursiveMiddleware, RecursionLoop
 from paste.util import converters
 from paste.response import replace_header
@@ -342,7 +342,7 @@ class _StatusBasedRedirect(object):
                 new_environ = {}
                 for k, v in environ.items():
                     if k != 'QUERY_STRING':
-                        new_environ['QUERY_STRING'] = urlparse(url_)[4]
+                        new_environ['QUERY_STRING'] = urlparse.urlparse(url_)[4]
                     else:
                         new_environ[k] = v
                 class InvalidForward(Exception):

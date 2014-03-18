@@ -4,10 +4,16 @@
 Map URL prefixes to WSGI applications.  See ``URLMap``
 """
 
-from UserDict import DictMixin
 import re
 import os
 import cgi
+try:
+    # Python 3
+    from collections import MutableMapping as DictMixin
+except ImportError:
+    # Python 2
+    from UserDict import DictMixin
+
 from paste import httpexceptions
 
 __all__ = ['URLMap', 'PathProxyURLMap']

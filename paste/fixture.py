@@ -11,8 +11,6 @@ effects of command-line scripts.
 
 import sys
 import random
-import urllib
-import urlparse
 import mimetypes
 import time
 import cgi
@@ -20,16 +18,19 @@ import os
 import shutil
 import smtplib
 import shlex
-from Cookie import BaseCookie
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
 import re
+import subprocess
+from six.moves import cStringIO as StringIO
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib import parse as urlparse
 try:
-    import subprocess
+    # Python 3
+    from http.cookies import BaseCookie
+    from urllib.parse import splittype, splithost
 except ImportError:
-    from paste.util import subprocess24 as subprocess
+    # Python 2
+    from Cookie import BaseCookie
+    from urllib import splittype, splithost
 
 from paste import wsgilib
 from paste import lint
@@ -190,7 +191,7 @@ class TestApp(object):
         __tracebackhide__ = True
         if params:
             if not isinstance(params, (str, unicode)):
-                params = urllib.urlencode(params, doseq=True)
+                params = urlencode(params, doseq=True)
             if '?' in url:
                 url += '&'
             else:
@@ -219,10 +220,10 @@ class TestApp(object):
         environ = self._make_environ()
         # @@: Should this be all non-strings?
         if isinstance(params, (list, tuple, dict)):
-            params = urllib.urlencode(params)
+            params = urlencode(params)
         if hasattr(params, 'items'):
             # Some other multi-dict like format
-            params = urllib.urlencode(params.items())
+            params = urlencode(params.items())
         if upload_files:
             params = cgi.parse_qsl(params, keep_blank_values=True)
             content_type, params = self.encode_multipart(
@@ -597,8 +598,8 @@ class TestResponse(object):
             "You can only follow redirect responses (not %s)"
             % self.full_status)
         location = self.header('location')
-        type, rest = urllib.splittype(location)
-        host, path = urllib.splithost(rest)
+        type, rest = splittype(location)
+        host, path = splithost(rest)
         # @@: We should test that it's not a remote redirect
         return self.test_app.get(location, **kw)
 

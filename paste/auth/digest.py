@@ -36,7 +36,7 @@ try:
 except ImportError:
     from md5 import md5
 import time, random
-from urllib import quote as url_quote
+from six.moves.urllib.parse import quote as url_quote
 
 def _split_auth_string(auth_string):
     """ split a digest auth string into individual key=value strings """

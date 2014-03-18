@@ -2,8 +2,10 @@
 # (c) 2007 Ian Bicking and Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import cgi
+from six.moves import StringIO
+
 from nose.tools import assert_raises
-from StringIO import StringIO
+
 from paste.fixture import TestApp
 from paste.wsgiwrappers import WSGIRequest
 from paste.util.multidict import MultiDict, UnicodeMultiDict

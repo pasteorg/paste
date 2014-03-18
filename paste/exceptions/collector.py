@@ -23,10 +23,7 @@ supplements
 import sys
 import traceback
 import time
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from six.moves import cStringIO as StringIO
 import linecache
 from paste.exceptions import serial_number_generator
 import warnings

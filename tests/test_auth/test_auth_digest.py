@@ -57,7 +57,8 @@ def test_digest():
 #
 
 if os.environ.get("TEST_SOCKET",""):
-    import urllib2
+    from six.moves.urllib.error import HTTPError
+    from six.moves.urllib.request import build_opener, HTTPDigestAuthHandler
     from paste.debug.testserver import serve
     server = serve(application)
 
@@ -66,9 +67,9 @@ if os.environ.get("TEST_SOCKET",""):
         import socket
         socket.setdefaulttimeout(5)
         uri = ("http://%s:%s" % server.server_address) + path
-        auth = urllib2.HTTPDigestAuthHandler()
+        auth = HTTPDigestAuthHandler()
         auth.add_password(realm,uri,username,password)
-        opener = urllib2.build_opener(auth)
+        opener = build_opener(auth)
         result = opener.open(uri)
         return result.read()
 

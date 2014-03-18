@@ -2,12 +2,18 @@
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
+import os
+try:
+    # Python 3
+    from http.cookies import SimpleCookie
+except ImportError:
+    # Python 2
+    from Cookie import SimpleCookie
+
 from paste.auth import cookie
 from paste.wsgilib import raw_interactive, dump_environ
 from paste.response import header_value
 from paste.httpexceptions import *
-from Cookie import SimpleCookie
-import urllib2, os
         
 def build(application,setenv, *args, **kwargs):
     def setter(environ, start_response):
