@@ -406,7 +406,7 @@ def dump_environ(environ, start_response):
     variables out as a plain text response.
     """
     output = []
-    keys = environ.keys()
+    keys = list(environ.keys())
     keys.sort()
     for k in keys:
         v = str(environ[k]).replace("\n","\n    ")

@@ -30,8 +30,9 @@ timeValues = {
     'm': minute,
     's': second,
     }
-timeOrdered = timeValues.items()
-timeOrdered.sort(lambda a, b: -cmp(a[1], b[1]))
+timeOrdered = list(timeValues.items())
+timeOrdered.sort(key=lambda x: x[1], reverse=True)
+
     
 def interval_encode(seconds, include_sign=False):
     """Encodes a number of seconds (representing a time interval)
