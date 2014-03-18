@@ -131,7 +131,7 @@ class SWAP(scgi_server.SCGIHandler):
             input.close()
             output.close()
             conn.close()
-        except IOError, err:
+        except IOError as err:
             debug("IOError while closing connection ignored: %s" % err)
 
 

@@ -384,7 +384,7 @@ class RegistryManager(object):
             #print "STREAMING"
             return self.streaming_iter(app_iter, reg, environ)
 
-        except Exception, e:
+        except Exception as e:
             # Regardless of if the content is an iterable, generator, list
             # or tuple, we clean-up right now. If its an iterable/generator
             # care should be used to ensure the generator has its own ref
@@ -415,7 +415,7 @@ class RegistryManager(object):
         try:
             for item in app_iter:
                 yield item
-        except Exception, e:
+        except Exception as e:
             # Regardless of if the content is an iterable, generator, list
             # or tuple, we clean-up right now. If its an iterable/generator
             # care should be used to ensure the generator has its own ref

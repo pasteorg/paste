@@ -123,7 +123,7 @@ class DataApp(object):
                             head.delete(headers)
                         start_response('304 Not Modified', headers)
                         return ['']
-        except HTTPBadRequest, exce:
+        except HTTPBadRequest as exce:
             return exce.wsgi_application(environ, start_response)
 
         # If we get If-None-Match and If-Modified-Since, and
@@ -139,7 +139,7 @@ class DataApp(object):
                         head.delete(headers)
                     start_response('304 Not Modified', headers)
                     return [''] # empty body
-            except HTTPBadRequest, exce:
+            except HTTPBadRequest as exce:
                 return exce.wsgi_application(environ, start_response)
 
         (lower, upper) = (0, self.content_length - 1)
@@ -215,7 +215,7 @@ class FileApp(DataApp):
                 return exc(environ, start_response)
             try:
                 file = open(self.filename, 'rb')
-            except (IOError, OSError), e:
+            except (IOError, OSError) as e:
                 exc = HTTPForbidden(
                     'You are not permitted to view this file (%s)' % e)
                 return exc.wsgi_application(

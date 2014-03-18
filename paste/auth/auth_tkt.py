@@ -162,7 +162,7 @@ def parse_ticket(secret, ticket, ip, digest_algo=DEFAULT_DIGEST):
     digest = ticket[:digest_hexa_size]
     try:
         timestamp = int(ticket[digest_hexa_size:digest_hexa_size + 8], 16)
-    except ValueError, e:
+    except ValueError as e:
         raise BadTicket('Timestamp is not a hex integer: %s' % e)
     try:
         userid, data = ticket[digest_hexa_size + 8:].split('!', 1)

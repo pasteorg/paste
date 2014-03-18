@@ -1311,7 +1311,7 @@ class Parser(object):
         # Parse the source and write out the results.
         try:
             tokenize.tokenize(text.readline, self)
-        except tokenize.TokenError, ex:
+        except tokenize.TokenError as ex:
             msg = ex[0]
             line = ex[1][0]
             self.out.write("<h3>ERROR: %s</h3>%s\n"%

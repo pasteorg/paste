@@ -82,7 +82,7 @@ class RecursiveMiddleware(object):
         environ['paste.recursive.script_name'] = my_script_name
         try:
             return self.application(environ, start_response)
-        except ForwardRequestException, e:
+        except ForwardRequestException as e:
             middleware = CheckForRecursionMiddleware(
                 e.factory(self), environ)
             return middleware(environ, start_response)

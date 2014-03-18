@@ -368,7 +368,7 @@ def load_module_from_name(environ, filename, module_name, errors):
     if not os.path.exists(init_filename):
         try:
             f = open(init_filename, 'w')
-        except (OSError, IOError), e:
+        except (OSError, IOError) as e:
             errors.write(
                 'Cannot write __init__.py file into directory %s (%s)\n'
                 % (os.path.dirname(filename), e))
@@ -574,7 +574,7 @@ class PkgResourcesParser(StaticURLParser):
         # @@: I don't know what to do with the encoding.
         try:
             file = self.egg.get_resource_stream(self.manager, resource)
-        except (IOError, OSError), e:
+        except (IOError, OSError) as e:
             exc = httpexceptions.HTTPForbidden(
                 'You are not permitted to view this file (%s)' % e)
             return exc.wsgi_application(environ, start_response)

@@ -351,7 +351,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
                 if not headers_set:
                     raise AssertionError("Content sent w/o headers!")
                 output.append(s)
-        except TypeError, e:
+        except TypeError as e:
             # Typically "iteration over non-sequence", so we want
             # to give better debugging information...
             e.args = ((e.args[0] + ' iterable: %r' % app_iter),) + e.args[1:]

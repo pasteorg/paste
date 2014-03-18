@@ -37,7 +37,7 @@ def forward(app):
     assert 'Page not found' in res
     try:
         res = app.get('/recurse')
-    except AssertionError, e:
+    except AssertionError as e:
         if str(e).startswith('Forwarding loop detected'):
             pass
         else:
@@ -89,7 +89,7 @@ def test_ForwardRequest_factory():
     assert 'Page not found' in res
     try:
         res = app.get('/recurse')
-    except AssertionError, e:
+    except AssertionError as e:
         if str(e).startswith('Forwarding loop detected'):
             pass
         else:

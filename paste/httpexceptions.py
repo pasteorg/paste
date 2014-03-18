@@ -631,7 +631,7 @@ class HTTPExceptionHandler(object):
                            []).append(HTTPException)
         try:
             return self.application(environ, start_response)
-        except HTTPException, exc:
+        except HTTPException as exc:
             return exc(environ, start_response)
 
 def middleware(*args, **kw):
