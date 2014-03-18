@@ -96,6 +96,13 @@ class URLMap(DictMixin):
             not_found_app = self.not_found_app
         self.not_found_application = not_found_app
 
+    def __len__(self):
+        return len(self.applications)
+
+    def __iter__(self):
+        for app_url, app in self.applications:
+            yield app_url
+
     norm_url_re = re.compile('//+')
     domain_url_re = re.compile('^(http|https)://')
 
