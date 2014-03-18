@@ -3,6 +3,7 @@
 """
 Grant roles and logins based on IP address.
 """
+import six
 from paste.util import ip4
 
 class GrantIPMiddleware(object):
@@ -34,7 +35,7 @@ class GrantIPMiddleware(object):
         self.clobber_username = clobber_username
 
     def _convert_user_role(self, username, roles):
-        if roles and isinstance(roles, basestring):
+        if roles and isinstance(roles, six.string_types):
             roles = roles.split(',')
         return (username, roles)
         

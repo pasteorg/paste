@@ -32,7 +32,7 @@ class CgitbMiddleware(object):
             global_conf = {}
         if display is NoDefault:
             display = global_conf.get('debug')
-        if isinstance(display, basestring):
+        if isinstance(display, six.string_types):
             display = converters.asbool(display)
         self.display = display
         self.logdir = logdir

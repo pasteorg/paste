@@ -41,7 +41,7 @@ corresponding to a database session id) is stored in the cookie.
 
 """
 
-import hmac, base64, random, time, warnings
+import hmac, base64, random, six, time, warnings
 try:
     from hashlib import sha1
 except ImportError:
@@ -124,7 +124,7 @@ class AuthCookieSigner(object):
     """
     def __init__(self, secret = None, timeout = None, maxlen = None):
         self.timeout = timeout or 30
-        if isinstance(timeout, basestring):
+        if isinstance(timeout, six.string_types):
             raise ValueError(
                 "Timeout must be a number (minutes), not a string (%r)"
                 % timeout)
@@ -370,7 +370,7 @@ def make_auth_cookie(
             which is a typical browser maximum)
         
     """
-    if isinstance(scanlist, basestring):
+    if isinstance(scanlist, six.string_types):
         scanlist = scanlist.split()
     if secret is None and global_conf.get('secret'):
         secret = global_conf['secret']

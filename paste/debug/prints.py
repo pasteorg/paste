@@ -23,6 +23,7 @@ import cgi
 from paste.util import threadedprint
 from paste import wsgilib
 from paste import response
+import six
 import sys
 
 _threadedprint_installed = False
@@ -71,7 +72,7 @@ class PrintDebugMiddleware(object):
         # the entry point
         self.app = app
         self.force_content_type = force_content_type
-        if isinstance(print_wsgi_errors, basestring):
+        if isinstance(print_wsgi_errors, six.string_types):
             from paste.deploy.converters import asbool
             print_wsgi_errors = asbool(print_wsgi_errors)
         self.print_wsgi_errors = print_wsgi_errors
