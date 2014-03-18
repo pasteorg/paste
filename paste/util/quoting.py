@@ -2,6 +2,7 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
 import cgi
+import six
 import re
 from six.moves import html_entities
 from six.moves.urllib.parse import quote, unquote
@@ -31,10 +32,10 @@ def html_quote(v, encoding=None):
         return ''
     elif isinstance(v, str):
         return cgi.escape(v, 1)
-    elif isinstance(v, unicode):
+    elif isinstance(v, six.text_type):
         return cgi.escape(v.encode(encoding), 1)
     else:
-        return cgi.escape(unicode(v).encode(encoding), 1)
+        return cgi.escape(six.text_type(v).encode(encoding), 1)
 
 _unquote_re = re.compile(r'&([a-zA-Z]+);')
 def _entity_subber(match, name2c=html_entities.name2codepoint):

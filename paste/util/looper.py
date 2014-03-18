@@ -20,6 +20,9 @@ looper you can get a better sense of the context.  Use like::
 
 __all__ = ['looper']
 
+import six
+
+
 class looper(object):
     """
     Helper for looping (particularly in templates)
@@ -137,7 +140,7 @@ class loop_pos(object):
     def _compare_group(self, item, other, getter):
         if getter is None:
             return item != other
-        elif (isinstance(getter, basestring)
+        elif (isinstance(getter, (six.binary_type, six.text_type))
               and getter.startswith('.')):
             getter = getter[1:]
             if getter.endswith('()'):

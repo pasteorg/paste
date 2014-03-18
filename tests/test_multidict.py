@@ -2,6 +2,7 @@
 # (c) 2007 Ian Bicking and Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import cgi
+import six
 from six.moves import StringIO
 
 from nose.tools import assert_raises
@@ -63,13 +64,13 @@ def _test_unicode_dict(decode_param_names=False):
     d.errors = 'ignore'
 
     if decode_param_names:
-        key_str = unicode
+        key_str = six.text_type
         d.decode_keys = True
     else:
         key_str = str
 
     def assert_unicode(obj):
-        assert isinstance(obj, unicode)
+        assert isinstance(obj, six.text_type)
 
     def assert_key_str(obj):
         assert isinstance(obj, key_str)
@@ -77,7 +78,7 @@ def _test_unicode_dict(decode_param_names=False):
     def assert_unicode_item(obj):
         key, value = obj
         assert isinstance(key, key_str)
-        assert isinstance(value, unicode)
+        assert isinstance(value, six.text_type)
 
     assert d.items() == [('a', u'a test')]
     map(assert_key_str, d.keys())
@@ -104,9 +105,9 @@ def _test_unicode_dict(decode_param_names=False):
     assert d.items() == [('a', u'a test'), ('c', u'3 test')]
     map(assert_unicode_item, d.items())
     assert d.pop('xxx', u'5 test') == u'5 test'
-    assert isinstance(d.pop('xxx', u'5 test'), unicode)
+    assert isinstance(d.pop('xxx', u'5 test'), six.text_type)
     assert d.getone('a') == u'a test'
-    assert isinstance(d.getone('a'), unicode)
+    assert isinstance(d.getone('a'), six.text_type)
     assert d.popitem() == ('c', u'3 test')
     d['c'] = '3 test'
     assert_unicode_item(d.popitem())
@@ -120,8 +121,8 @@ def _test_unicode_dict(decode_param_names=False):
     assert isinstance(items[1][0], key_str)
     assert isinstance(items[1][1], list)
 
-    assert isinstance(d.setdefault('y', 'y test'), unicode)
-    assert isinstance(d['y'], unicode)
+    assert isinstance(d.setdefault('y', 'y test'), six.text_type)
+    assert isinstance(d['y'], six.text_type)
 
     assert d.mixed() == {u'a': u'a test', u'y': u'y test', u'z': item}
     assert d.dict_of_lists() == {u'a': [u'a test'], u'y': [u'y test'],
@@ -156,6 +157,6 @@ def _test_unicode_dict(decode_param_names=False):
     assert ufs.name == fs.name
     assert isinstance(ufs.name, key_str)
     assert ufs.filename == fs.filename
-    assert isinstance(ufs.filename, unicode)
+    assert isinstance(ufs.filename, six.text_type)
     assert isinstance(ufs.value, str)
     assert ufs.value == 'hello'

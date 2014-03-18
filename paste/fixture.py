@@ -21,6 +21,7 @@ import shutil
 import smtplib
 import shlex
 import re
+import six
 import subprocess
 from six.moves import cStringIO as StringIO
 from six.moves.urllib.parse import urlencode
@@ -128,7 +129,7 @@ class TestApp(object):
         ``post_request_hook`` is a function, similar to
         ``pre_request_hook``, to be called after requests are made.
         """
-        if isinstance(app, (str, unicode)):
+        if isinstance(app, (six.binary_type, six.text_type)):
             from paste.deploy import loadapp
             # @@: Should pick up relative_to from calling module's
             # __file__
@@ -192,7 +193,7 @@ class TestApp(object):
         # Hide from py.test:
         __tracebackhide__ = True
         if params:
-            if not isinstance(params, (str, unicode)):
+            if not isinstance(params, (six.binary_type, six.text_type)):
                 params = urlencode(params, doseq=True)
             if '?' in url:
                 url += '&'
@@ -794,9 +795,9 @@ class TestResponse(object):
         of the response.  Whitespace is normalized when searching
         for a string.
         """
-        if not isinstance(s, (str, unicode)):
+        if not isinstance(s, (six.binary_type, six.text_type)):
             s = str(s)
-        if isinstance(s, unicode):
+        if isinstance(s, six.text_type):
             ## FIXME: we don't know that this response uses utf8:
             s = s.encode('utf8')
         return (self.body.find(s) != -1
@@ -814,7 +815,7 @@ class TestResponse(object):
         if 'no' in kw:
             no = kw['no']
             del kw['no']
-            if isinstance(no, basestring):
+            if isinstance(no, (six.binary_type, six.text_type)):
                 no = [no]
         else:
             no = []
@@ -1687,7 +1688,7 @@ def _space_prefix(pref, full, sep=None, indent=None, include_sep=True):
 def _make_pattern(pat):
     if pat is None:
         return None
-    if isinstance(pat, (str, unicode)):
+    if isinstance(pat, (six.binary_type, six.text_type)):
         pat = re.compile(pat)
     if hasattr(pat, 'search'):
         return pat.search
@@ -1713,7 +1714,7 @@ def setup_module(module=None):
     if module is None:
         # The module we were called from must be the module...
         module = sys._getframe().f_back.f_globals['__name__']
-    if isinstance(module, (str, unicode)):
+    if isinstance(module, (six.binary_type, six.text_type)):
         module = sys.modules[module]
     if hasattr(module, 'reset_state'):
         module.reset_state()

@@ -5,6 +5,7 @@ WSGI applications that parse the URL and dispatch to on-disk resources
 """
 
 import os
+import six
 import sys
 import imp
 import mimetypes
@@ -525,7 +526,7 @@ class PkgResourcesParser(StaticURLParser):
     def __init__(self, egg_or_spec, resource_name, manager=None, root_resource=None):
         if pkg_resources is None:
             raise NotImplementedError("This class requires pkg_resources.")
-        if isinstance(egg_or_spec, (str, unicode)):
+        if isinstance(egg_or_spec, (six.binary_type, six.text_type)):
             self.egg = pkg_resources.get_distribution(egg_or_spec)
         else:
             self.egg = egg_or_spec
