@@ -112,7 +112,6 @@ Some of the things this checks:
 import re
 import six
 import sys
-from types import DictType, StringType, TupleType, ListType
 import warnings
 
 header_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9\-_]*$')
@@ -285,7 +284,7 @@ class IteratorWrapper(object):
             "Iterator garbage collected without being closed")
 
 def check_environ(environ):
-    assert type(environ) is DictType, (
+    assert isinstance(environ,dict), (
         "Environment is not of the right type: %r (environment: %r)"
         % (type(environ), environ))
     
@@ -312,11 +311,11 @@ def check_environ(environ):
         if '.' in key:
             # Extension, we don't care about its type
             continue
-        assert type(environ[key]) is StringType, (
+        assert isinstance(environ[key], str), (
             "Environmental variable %s is not a string: %r (value: %r)"
             % (key, type(environ[key]), environ[key]))
         
-    assert type(environ['wsgi.version']) is TupleType, (
+    assert isinstance(environ['wsgi.version'], tuple), (
         "wsgi.version should be a tuple (%r)" % environ['wsgi.version'])
     assert environ['wsgi.url_scheme'] in ('http', 'https'), (
         "wsgi.url_scheme unknown: %r" % environ['wsgi.url_scheme'])
@@ -362,7 +361,7 @@ def check_errors(wsgi_errors):
             % (wsgi_errors, attr))
 
 def check_status(status):
-    assert type(status) is StringType, (
+    assert isinstance(status, str), (
         "Status must be a string (not %r)" % status)
     # Implicitly check that we can turn it into an integer:
     status_code = status.split(None, 1)[0]
@@ -377,12 +376,12 @@ def check_status(status):
             % status, WSGIWarning)
 
 def check_headers(headers):
-    assert type(headers) is ListType, (
+    assert isinstance(headers,list), (
         "Headers (%r) must be of type list: %r"
         % (headers, type(headers)))
     header_names = {}
     for item in headers:
-        assert type(item) is TupleType, (
+        assert isinstance(item, tuple), (
             "Individual headers (%r) must be of type tuple: %r"
             % (item, type(item)))
         assert len(item) == 2
