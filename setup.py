@@ -142,6 +142,7 @@ For the latest changes see the `news file
         'Flup': ['flup'],
         'Paste': [],
         'openid': ['python-openid'],
+        'six': [],
         },
       entry_points="""
       [paste.app_factory]
