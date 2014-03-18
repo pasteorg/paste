@@ -57,7 +57,7 @@ class _Infinity(object):
     def __ne__(self,value):
         if not isinstance(value,(int,long,_Infinity)):
             return NotImplemented
-        return not isinstance(value,_Infinity) or self._neg <> value._neg
+        return not isinstance(value,_Infinity) or self._neg != value._neg
 
     def __repr__(self):
         return "None"
@@ -132,7 +132,7 @@ class IntSet(object):
             if isinstance(arg,(int,long)):
                 start, stop = arg, arg+1
             elif isinstance(arg,tuple):
-                if len(arg) <> 2:
+                if len(arg) != 2:
                     raise ValueError("Invalid tuple, must be (start,stop).")
 
                 # Process argument.

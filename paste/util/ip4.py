@@ -82,7 +82,7 @@ class IP4Range(intset.IntSet):
                     # Type 1, 2 or 3.
                     args[i] = self._parseAddrRange(argval)
             elif isinstance(argval,tuple):
-                if len(tuple) <> 2:
+                if len(tuple) != 2:
                     raise ValueError("Tuple is of invalid length.")
                 addr1, addr2 = argval
                 if isinstance(addr1,str):
@@ -142,7 +142,7 @@ class IP4Range(intset.IntSet):
                 while (mask&1):
                     mask >>= 1
                     masklen += 1
-                if remaining+masklen <> 32:
+                if remaining+masklen != 32:
                     raise ValueError("Mask isn't a proper host mask.")
         naddr1 = naddr & (((1<<masklen)-1)<<(32-masklen))
         naddr2 = naddr1 + (1<<(32-masklen)) - 1
