@@ -7,7 +7,7 @@ Application that runs a CGI script.
 import os
 import sys
 import subprocess
-import urllib
+from six.moves.urllib.parse import quote
 try:
     import select
 except ImportError:
@@ -69,8 +69,8 @@ class CGIApplication(object):
     def __call__(self, environ, start_response):
         if 'REQUEST_URI' not in environ:
             environ['REQUEST_URI'] = (
-                urllib.quote(environ.get('SCRIPT_NAME', ''))
-                + urllib.quote(environ.get('PATH_INFO', '')))
+                quote(environ.get('SCRIPT_NAME', ''))
+                + quote(environ.get('PATH_INFO', '')))
         if self.include_os_environ:
             cgi_environ = os.environ.copy()
         else:

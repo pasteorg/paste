@@ -1,5 +1,6 @@
 import cgi
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
+
 from paste.request import *
 from paste.util.multidict import MultiDict
 

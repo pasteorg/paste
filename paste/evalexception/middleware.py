@@ -28,7 +28,7 @@ import sys
 import os
 import cgi
 import traceback
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 import pprint
 import itertools
 import time

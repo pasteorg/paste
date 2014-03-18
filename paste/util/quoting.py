@@ -2,9 +2,10 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
 import cgi
-import htmlentitydefs
-import urllib
 import re
+from six.moves import html_entities
+from six.moves.urllib.parse import quote, unquote
+
 
 __all__ = ['html_quote', 'html_unquote', 'url_quote', 'url_unquote',
            'strip_html']
@@ -36,7 +37,7 @@ def html_quote(v, encoding=None):
         return cgi.escape(unicode(v).encode(encoding), 1)
 
 _unquote_re = re.compile(r'&([a-zA-Z]+);')
-def _entity_subber(match, name2c=htmlentitydefs.name2codepoint):
+def _entity_subber(match, name2c=html_entities.name2codepoint):
     code = name2c.get(match.group(1))
     if code:
         return unichr(code)
@@ -90,8 +91,8 @@ def comment_quote(s):
     comment = _comment_quote_re.sub('-&gt;', comment)
     return comment
 
-url_quote = urllib.quote
-url_unquote = urllib.unquote
+url_quote = quote
+url_unquote = unquote
 
 if __name__ == '__main__':
     import doctest

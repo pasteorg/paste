@@ -6,7 +6,7 @@ Middleware for logging requests, using Apache combined log format
 
 import logging
 import time
-import urllib
+from six.moves.urllib.parse import quote
 
 class TransLogger(object):
     """
@@ -50,7 +50,7 @@ class TransLogger(object):
 
     def __call__(self, environ, start_response):
         start = time.localtime()
-        req_uri = urllib.quote(environ.get('SCRIPT_NAME', '')
+        req_uri = quote(environ.get('SCRIPT_NAME', '')
                                + environ.get('PATH_INFO', ''))
         if environ.get('QUERY_STRING'):
             req_uri += '?'+environ['QUERY_STRING']

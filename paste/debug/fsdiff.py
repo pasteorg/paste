@@ -12,7 +12,17 @@ the file was.
 import os
 from fnmatch import fnmatch
 from datetime import datetime
-from paste.util.UserDict24 import IterableUserDict
+
+try:
+    # Python 3
+    import collections.UserDict as IterableUserDict
+except ImportError:
+    try:
+        # Python 2.5-2.7
+        from UserDict import IterableUserDict
+    except ImportError:
+        # Python <= 2.4
+        from paste.util.UserDict24 import IterableUserDict
 import operator
 import re
 

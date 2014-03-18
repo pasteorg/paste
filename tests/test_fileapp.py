@@ -1,10 +1,17 @@
 # (c) 2005 Ian Bicking, Clark C. Evans and contributors
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
+import string
+import time
+try:
+    # Python 3
+    from email.utils import parsedate_tz, mktime_tz
+except ImportError:
+    # Python 2
+    from rfc822 import parsedate_tz, mktime_tz
+
 from paste.fileapp import *
 from paste.fixture import *
-from rfc822 import parsedate_tz, mktime_tz
-import time, string
 
 def test_data():
     harness = TestApp(DataApp('mycontent'))

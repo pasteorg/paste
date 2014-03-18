@@ -195,10 +195,7 @@ import keyword
 import token
 import tokenize
 import traceback
-try :
-    import cStringIO as StringIO
-except:
-    import StringIO
+from six.moves import cStringIO as StringIO
 # Do not edit
 NAME = token.NAME
 NUMBER = token.NUMBER

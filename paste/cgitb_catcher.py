@@ -10,7 +10,8 @@ for more.
 """
 
 import cgitb
-from cStringIO import StringIO
+import six
+from six.moves import cStringIO as StringIO
 import sys
 
 from paste.util import converters

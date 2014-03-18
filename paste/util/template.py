@@ -33,7 +33,7 @@ If there are syntax errors ``TemplateError`` will be raised.
 import re
 import sys
 import cgi
-import urllib
+from six.moves.urllib.parse import quote
 from paste.util.looper import looper
 
 __all__ = ['TemplateError', 'Template', 'sub', 'HTMLTemplate',
@@ -335,7 +335,7 @@ def url(v):
             v = str(v)
     if isinstance(v, unicode):
         v = v.encode('utf8')
-    return urllib.quote(v)
+    return quote(v)
 
 def attr(**kw):
     kw = kw.items()

@@ -18,14 +18,21 @@ environment to solve common requirements.
 
 """
 import cgi
-from Cookie import SimpleCookie, CookieError
-from StringIO import StringIO
-import urlparse
-import urllib
+from six.moves import StringIO
+from six.moves.urllib import parse as urlparse
+from six.moves.urllib.parse import quote
+try:
+    # Python 3
+    from http.cookies import SimpleCookie, CookieError
+except ImportError: 
+    # Python 2
+    from Cookie import SimpleCookie, CookieError
+
 try:
     from UserDict import DictMixin
 except ImportError:
-    from paste.util.UserDict24 import DictMixin
+    from collections import MutableMapping as DictMixin
+
 from paste.util.multidict import MultiDict
 
 __all__ = ['get_cookies', 'get_cookie_dict', 'parse_querystring',
@@ -231,14 +238,14 @@ def construct_url(environ, with_query_string=True, with_path_info=True,
                 url += ':' + environ['SERVER_PORT']
 
     if script_name is None:
-        url += urllib.quote(environ.get('SCRIPT_NAME',''))
+        url += quote(environ.get('SCRIPT_NAME',''))
     else:
-        url += urllib.quote(script_name)
+        url += quote(script_name)
     if with_path_info:
         if path_info is None:
-            url += urllib.quote(environ.get('PATH_INFO',''))
+            url += quote(environ.get('PATH_INFO',''))
         else:
-            url += urllib.quote(path_info)
+            url += quote(path_info)
     if with_query_string:
         if querystring is None:
             if environ.get('QUERY_STRING'):

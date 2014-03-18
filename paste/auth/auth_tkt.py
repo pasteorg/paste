@@ -43,7 +43,11 @@ try:
 except ImportError:
     # mimic hashlib (will work for md5, fail for secure hashes)
     import md5 as hashlib
-import Cookie
+try:
+    from http.cookies import SimpleCookie
+except ImportError:
+    # Python 2
+    from Cookie import SimpleCookie
 from paste import request
 from urllib import quote as url_quote
 from urllib import unquote as url_unquote
@@ -123,7 +127,7 @@ class AuthTicket(object):
         return v
 
     def cookie(self):
-        c = Cookie.SimpleCookie()
+        c = SimpleCookie()
         c[self.cookie_name] = self.cookie_value().encode('base64').strip().replace('\n', '')
         c[self.cookie_name]['path'] = '/'
         if self.secure:

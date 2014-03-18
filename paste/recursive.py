@@ -23,8 +23,8 @@ Raise ``ForwardRequestException(new_path_info)`` to do a forward
 (aborting the current request).
 """
 
-from cStringIO import StringIO
 import warnings
+from six.moves import cStringIO as StringIO
 
 __all__ = ['RecursiveMiddleware']
 __pudge_all__ =  ['RecursiveMiddleware', 'ForwardRequestException']

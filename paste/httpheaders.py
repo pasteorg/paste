@@ -135,11 +135,18 @@ dashes to give CamelCase style names.
 
 """
 import mimetypes
-import urllib2
 import re
-from rfc822 import formatdate, parsedate_tz, mktime_tz
 from time import time as now
 from httpexceptions import HTTPBadRequest
+try:
+    # Python 3
+    from email.utils import formatdate, parsedate_tz, mktime_tz
+    from urllib.request import AbstractDigestAuthHandler, parse_keqv_list, parse_http_list
+except ImportError:
+    # Python 2
+    from rfc822 import formatdate, parsedate_tz, mktime_tz
+    from urllib2 import AbstractDigestAuthHandler, parse_keqv_list, parse_http_list
+
 
 __all__ = ['get_header', 'list_headers', 'normalize_headers',
            'HTTPHeader', 'EnvironVariable' ]
@@ -1007,10 +1014,10 @@ class _Authorization(_SingleValueHeader):
         path = path or "/"
         (_, realm) = challenge.split('realm="')
         (realm, _) = realm.split('"', 1)
-        auth = urllib2.AbstractDigestAuthHandler()
+        auth = AbstractDigestAuthHandler()
         auth.add_password(realm, path, username, password)
         (token, challenge) = challenge.split(' ', 1)
-        chal = urllib2.parse_keqv_list(urllib2.parse_http_list(challenge))
+        chal = parse_keqv_list(parse_http_list(challenge))
         class FakeRequest(object):
             def get_full_url(self):
                 return path
