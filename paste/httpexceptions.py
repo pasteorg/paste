@@ -588,7 +588,7 @@ class HTTPVersionNotSupported(HTTPServerError):
 __all__ = ['HTTPException', 'HTTPRedirection', 'HTTPError' ]
 
 _exceptions = {}
-for name, value in globals().items():
+for name, value in six.iteritems(globals()):
     if (isinstance(value, (type, types.ClassType)) and
         issubclass(value, HTTPException) and
         value.code):
