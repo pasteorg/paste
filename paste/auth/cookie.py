@@ -62,7 +62,7 @@ _encode = [('\\', '\\x5c'), ('"', '\\x22'),
 _decode = [(v, k) for (k, v) in _encode]
 _decode.reverse()
 def encode(s, sublist = _encode):
-    return reduce((lambda a, (b, c): a.replace(b, c)), sublist, str(s))
+    return six.moves.reduce((lambda a, b: a.replace(b[0], b[1])), sublist, str(s))
 decode = lambda s: encode(s, _decode)
 
 class CookieTooLarge(RuntimeError):

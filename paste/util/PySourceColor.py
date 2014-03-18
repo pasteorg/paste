@@ -1324,9 +1324,11 @@ class Parser(object):
         else:
             self._doSnippetEnd()
 
-    def __call__(self, toktype, toktext, (srow,scol), (erow,ecol), line):
+    def __call__(self, toktype, toktext, srow_col, erow_col, line):
         """Token handler. Order is important do not rearrange."""
         self.line = line
+        srow, scol = srow_col
+        erow, ecol = erow_col
         # Calculate new positions
         oldpos = self.pos
         newpos = self.lines[srow] + scol
