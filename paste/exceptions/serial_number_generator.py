@@ -56,7 +56,7 @@ def hash_identifier(s, length, pad=True, hasher=md5, prefix='',
         # Accept sha/md5 modules as well as callables
         hasher = hasher.new
     if length > 26 and hasher is md5:
-        raise ValueError, (
+        raise ValueError(
             "md5 cannot create hashes longer than 26 characters in "
             "length (you gave %s)" % length)
     if isinstance(s, unicode):
