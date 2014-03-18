@@ -4,6 +4,7 @@ from six.moves import cStringIO as StringIO
 import traceback
 import threading
 import pdb
+import six
 import sys
 
 exec_lock = threading.Lock()
@@ -34,7 +35,7 @@ class EvalContext(object):
             sys.stdout = out
             try:
                 code = compile(s, '<web>', "single", 0, 1)
-                exec code in self.namespace, self.globs
+                six.exec_(code, self.globs, self.namespace)
                 debugger.set_continue()
             except KeyboardInterrupt:
                 raise
