@@ -2,6 +2,7 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import cgi
 import copy
+import six
 import sys
 
 try:
@@ -25,15 +26,15 @@ class MultiDict(DictMixin):
                 "MultiDict can only be called with one positional argument")
         if args:
             if hasattr(args[0], 'iteritems'):
-                items = list(args[0].iteritems())
+                items = args[0].iteritems()
             elif hasattr(args[0], 'items'):
                 items = args[0].items()
             else:
-                items = list(args[0])
-            self._items = items
+                items = args[0]
+            self._items = list(items)
         else:
             self._items = []
-        self._items.extend(kw.iteritems())
+        self._items.extend(six.iteritems(kw))
 
     def __getitem__(self, key):
         for k, v in self._items:
@@ -295,7 +296,7 @@ class UnicodeMultiDict(DictMixin):
         request.
         """
         unicode_mixed = {}
-        for key, value in self.multi.mixed().iteritems():
+        for key, value in six.iteritems(self.multi.mixed()):
             if isinstance(value, list):
                 value = [self._decode_value(value) for value in value]
             else:
@@ -309,7 +310,7 @@ class UnicodeMultiDict(DictMixin):
         list of values.
         """
         unicode_dict = {}
-        for key, value in self.multi.dict_of_lists().iteritems():
+        for key, value in six.iteritems(self.multi.dict_of_lists()):
             value = [self._decode_value(value) for value in value]
             unicode_dict[self._decode_key(key)] = value
         return unicode_dict
@@ -360,10 +361,10 @@ class UnicodeMultiDict(DictMixin):
 
     def items(self):
         return [(self._decode_key(k), self._decode_value(v)) for \
-                    k, v in self.multi.iteritems()]
+                    k, v in six.iteritems(self.multi)]
 
     def iteritems(self):
-        for k, v in self.multi.iteritems():
+        for k, v in six.iteritems(self.multi):
             yield (self._decode_key(k), self._decode_value(v))
 
     def values(self):

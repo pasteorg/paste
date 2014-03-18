@@ -89,6 +89,7 @@ is provided solely in the extremely rare case that it is an issue so that a
 quick way to work around it is documented.
 
 """
+import six
 import sys
 import paste.util.threadinglocal as threadinglocal
 
@@ -345,7 +346,7 @@ class Registry(object):
     def cleanup(self):
         """Remove all objects from all StackedObjectProxy instances that
         were tracked at this Registry context"""
-        for stacked, obj in self.reglist[-1].itervalues():
+        for stacked, obj in six.itervalues(self.reglist[-1]):
             stacked._pop_object(obj)
         self.reglist.pop()
 
@@ -505,7 +506,7 @@ class StackedObjectRestorer(object):
         # their methods to act differently when a restoration context is active
         # in the current thread
         for reglist in registry.reglist:
-            for stacked, obj in reglist.itervalues():
+            for stacked, obj in six.itervalues(reglist):
                 self.enable_restoration(stacked)
 
     def get_saved_proxied_obj(self, stacked, request_id):
