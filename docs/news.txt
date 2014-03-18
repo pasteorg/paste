@@ -6,6 +6,12 @@ News
 hg tip
 ------
 
+* paste now requires the six module.
+
+* Drop support of Python 2.5 and older.
+
+* Experimental Python 3 support.
+
 * Fixed ``egg:Paste#cgi``
 
 * In ``paste.httpserver``: give a 100 Continue response even when the
