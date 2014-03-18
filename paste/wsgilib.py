@@ -13,6 +13,7 @@ from paste.response import HeaderDict, has_header, header_value, remove_header
 from paste.response import error_body_response, error_response, error_response_app
 
 from traceback import print_exception
+import six
 import sys
 from six.moves import cStringIO as StringIO
 from six.moves.urllib.parse import unquote, urlsplit
@@ -131,7 +132,7 @@ class chained_app_iters(object):
             except:
                 got_exc = sys.exc_info()
         if got_exc:
-            raise got_exc[0], got_exc[1], got_exc[2]
+            six.reraise(got_exc[0], got_exc[1], got_exc[2])
 
     def __del__(self):
         if not self._closed:
@@ -327,7 +328,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
             try:
                 if headers_sent:
                     # Re-raise original exception only if headers sent
-                    raise exc_info[0], exc_info[1], exc_info[2]
+                    six.reraise(exc_info[0], exc_info[1], exc_info[2])
             finally:
                 # avoid dangling circular reference
                 exc_info = None

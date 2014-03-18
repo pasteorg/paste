@@ -12,6 +12,7 @@ import hotshot
 import hotshot.stats
 import threading
 import cgi
+import six
 import time
 from cStringIO import StringIO
 from paste import response
@@ -200,7 +201,7 @@ class DecoratedProfile(object):
             f.close()
         if exc_info:
             # We captured an exception earlier, now we re-raise it
-            raise exc_info[0], exc_info[1], exc_info[2]
+            six.reraise(exc_info[0], exc_info[1], exc_info[2])
         return result
         
     def format_function(self, func, *args, **kw):

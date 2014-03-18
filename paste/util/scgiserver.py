@@ -25,6 +25,7 @@ Kudos to the WSGI folk for writing a nice PEP & the Quixote folk for
 writing a nice extensible SCGI server for Python!
 """
 
+import six
 import sys
 import time
 from scgi import scgi_server
@@ -90,7 +91,7 @@ class SWAP(scgi_server.SCGIHandler):
                 try:
                     if headers_sent:
                         # Re-raise original exception if headers sent
-                        raise exc_info[0], exc_info[1], exc_info[2]
+                        six.reraise(exc_info[0], exc_info[1], exc_info[2])
                 finally:
                     exc_info = None     # avoid dangling circular ref
             elif headers_set:
