@@ -74,7 +74,6 @@ References:
 """
 
 import six
-import types
 from paste.wsgilib import catch_errors_app
 from paste.response import has_header, header_value, replace_header
 from paste.request import resolve_relative_url
@@ -589,7 +588,7 @@ __all__ = ['HTTPException', 'HTTPRedirection', 'HTTPError' ]
 
 _exceptions = {}
 for name, value in six.iteritems(globals()):
-    if (isinstance(value, (type, types.ClassType)) and
+    if (isinstance(value, (type, six.class_types)) and
         issubclass(value, HTTPException) and
         value.code):
         _exceptions[value.code] = value
