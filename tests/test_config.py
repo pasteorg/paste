@@ -40,7 +40,7 @@ def test_request_config_multi():
     assert 'Variable is: test value' in res
     assert 'Variable is (in environ): test value' in res
     assert 'Nesting variable is: nesting value' in res
-    print res
+    print(res)
     assert 'Nesting variable is (in environ): nesting value' in res
 
 def test_process_config(request_app=test_request_config):

@@ -41,7 +41,7 @@ class SlowConsumer(object):
             remaining = int(total)
             while remaining > 0:
                 if self.progress:
-                    print "%s of %s remaining" % (remaining, total)
+                    print("%s of %s remaining" % (remaining, total))
                 if remaining > 4096:
                     chunk = environ['wsgi.input'].read(4096)
                 else:
@@ -59,7 +59,7 @@ class SlowConsumer(object):
                 '<input type="file" name="file">\n'
                 '<input type="submit" >\n'
                 '</form></body></html>\n')
-        print "bingles"
+        print("bingles")
         start_response("200 OK", [('Content-Type', 'text/html'),
                                   ('Content-Length', len(body))])
         return [body]

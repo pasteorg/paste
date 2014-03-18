@@ -24,6 +24,9 @@ can look for the header X-Debug-URL in your 500 responses if you want
 to see the full debuggable traceback.  Also, this URL is printed to
 ``wsgi.errors``, so you can open it up in another browser window.
 """
+
+from __future__ import print_function
+
 import sys
 import os
 import cgi

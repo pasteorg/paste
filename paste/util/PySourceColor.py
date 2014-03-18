@@ -664,7 +664,7 @@ def Usage():
       python PySourceColor.py -i- -o c:/pydoc.py.html -s < c:/Python22/my.py
  _____________________________________________________________________________
  """
-    print doc % (__version__)
+    print(doc % (__version__))
     sys.exit(1)
 
 ###################################################### Command line interface
@@ -1172,7 +1172,7 @@ def showpage(path):
 def _printinfo(message, quiet):
     """Helper to print messages"""
     if not quiet:
-        print message
+        print(message)
 
 def escape(text):
      """escape text for html. similar to cgi.escape"""

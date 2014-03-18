@@ -260,14 +260,14 @@ if __name__ == "__main__":
     # Little test script.
     x = IP4Range("172.22.162.250/24")
     y = IP4Range("172.22.162.250","172.22.163.250","172.22.163.253<->255")
-    print x
+    print(x)
     for val in x.itermasks():
-        print val
+        print(val)
     for val in y.itermasks():
-        print val
+        print(val)
     for val in (x|y).itermasks():
-        print val
+        print(val)
     for val in (x^y).iterranges():
-        print val
+        print(val)
     for val in x:
-        print val
+        print(val)

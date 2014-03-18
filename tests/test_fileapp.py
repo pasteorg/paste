@@ -106,7 +106,7 @@ def test_file():
         assert content == res.body
         assert content == app.content  # this is cashed
         lastmod = res.header('last-modified')
-        print "updating", tempfile
+        print("updating", tempfile)
         file = open(tempfile,"a+")
         file.write("0123456789")
         file.close()

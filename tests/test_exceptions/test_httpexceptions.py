@@ -72,10 +72,10 @@ def test_redapp():
     assert "text/html" == header_value(saved[0][1], 'content-type')
     assert "/bing/foo" == header_value(saved[0][1],'location')
     result = list(app({'HTTP_ACCEPT': 'text/plain'},saveit))
-    print result[0] == (
+    print(result[0] == (
         '302 Found\n'
         'This resource was found at /bing/foo;\n'
-        'you should be redirected automatically.\n')
+        'you should be redirected automatically.\n'))
     assert "text/plain; charset=utf8" == header_value(saved[1][1],'content-type')
     assert "/bing/foo" == header_value(saved[1][1],'location')
 
