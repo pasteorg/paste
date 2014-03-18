@@ -58,6 +58,7 @@ __all__ = ['AuthOpenIDHandler']
 import cgi
 import urlparse
 import re
+import six
 
 import paste.request
 from paste import httpexceptions
@@ -398,7 +399,7 @@ def make_open_id_middleware(
     from paste.deploy.converters import asbool
     from paste.util import import_string
     catch_401 = asbool(catch_401)
-    if url_to_username and isinstance(url_to_username, basestring):
+    if url_to_username and isinstance(url_to_username, six.string_types):
         url_to_username = import_string.eval_import(url_to_username)
     apply_auth_tkt = asbool(apply_auth_tkt)
     new_app = AuthOpenIDHandler(
