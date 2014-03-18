@@ -124,7 +124,7 @@ class Template(object):
     def _interpret_codes(self, codes, ns, out):
         __traceback_hide__ = True
         for item in codes:
-            if isinstance(item, basestring):
+            if isinstance(item, six.string_types):
                 out.append(item)
             else:
                 self._interpret_code(item, ns, out)
@@ -185,7 +185,7 @@ class Template(object):
         __traceback_hide__ = True
         # @@: if/else/else gets through
         for part in parts:
-            assert not isinstance(part, basestring)
+            assert not isinstance(part, six.string_types)
             name, pos = part[0], part[1]
             if name == 'else':
                 result = True
@@ -318,7 +318,7 @@ class html(object):
 def html_quote(value):
     if value is None:
         return ''
-    if not isinstance(value, basestring):
+    if not isinstance(value, six.string_types):
         if hasattr(value, '__unicode__'):
             value = unicode(value)
         else:
@@ -329,7 +329,7 @@ def html_quote(value):
     return value
 
 def url(v):
-    if not isinstance(v, basestring):
+    if not isinstance(v, six.string_types):
         if hasattr(v, '__unicode__'):
             v = unicode(v)
         else:
@@ -450,7 +450,7 @@ def trim_lex(tokens):
     """
     for i in range(len(tokens)):
         current = tokens[i]
-        if isinstance(tokens[i], basestring):
+        if isinstance(tokens[i], six.string_types):
             # we don't trim this
             continue
         item = current[0]
@@ -464,8 +464,8 @@ def trim_lex(tokens):
             next = ''
         else:
             next = tokens[i+1]
-        if (not isinstance(next, basestring)
-            or not isinstance(prev, basestring)):
+        if (not isinstance(next, six.string_types)
+            or not isinstance(prev, six.string_types)):
             continue
         if ((not prev or trail_whitespace_re.search(prev))
             and (not next or lead_whitespace_re.search(next))):
@@ -544,7 +544,7 @@ def parse(s, name=None):
     return result
 
 def parse_expr(tokens, name, context=()):
-    if isinstance(tokens[0], basestring):
+    if isinstance(tokens[0], six.string_types):
         return tokens[0], tokens[1:]
     expr, pos = tokens[0]
     expr = expr.strip()

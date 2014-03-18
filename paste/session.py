@@ -33,6 +33,7 @@ import time
 import random
 import os
 import datetime
+import six
 import threading
 import tempfile
 
@@ -184,7 +185,7 @@ class FileSession(object):
                  chmod=None,
                  expiration=2880, # in minutes: 48 hours
                  ):
-        if chmod and isinstance(chmod, basestring):
+        if chmod and isinstance(chmod, (six.binary_type, six.text_type)):
             chmod = int(chmod, 8)
         self.chmod = chmod
         if not sid:
