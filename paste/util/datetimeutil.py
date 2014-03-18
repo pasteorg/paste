@@ -76,7 +76,7 @@ def parse_timedelta(val):
     """
     if not val:
         return None
-    val = string.lower(val)
+    val = val.lower()
     if "." in val:
         val = float(val)
         return timedelta(hours=int(val), minutes=60*(val % 1.0))
@@ -84,9 +84,9 @@ def parse_timedelta(val):
     fMin  = ("m" in val or ":" in val)
     fFraction = "." in val
     for noise in "minu:teshour()":
-        val = string.replace(val, noise, ' ')
-    val = string.strip(val)
-    val = string.split(val)
+        val = val.replace(noise, ' ')
+    val = val.strip()
+    val = val.split()
     hr = 0.0
     mi = 0
     val.reverse()
@@ -121,12 +121,12 @@ def parse_time(val):
     if not val:
         return None
     hr = mi = 0
-    val = string.lower(val)
-    amflag = (-1 != string.find(val, 'a'))  # set if AM is found
-    pmflag = (-1 != string.find(val, 'p'))  # set if PM is found
+    val = val.lower()
+    amflag = (-1 != val.find('a'))  # set if AM is found
+    pmflag = (-1 != val.find('p'))  # set if PM is found
     for noise in ":amp.":
-        val = string.replace(val, noise, ' ')
-    val = string.split(val)
+        val = val.replace(noise, ' ')
+    val = val.split()
     if len(val) > 1:
         hr = int(val[0])
         mi = int(val[1])
@@ -198,7 +198,7 @@ _wkdy = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 def parse_date(val):
     if not(val):
         return None
-    val = string.lower(val)
+    val = val.lower()
     now = None
 
     # optimized check for YYYY-MM-DD
@@ -243,9 +243,9 @@ def parse_date(val):
     # ok, standard parsing
     yr = mo = dy = None
     for noise in ('/', '-', ',', '*'):
-        val = string.replace(val, noise, ' ')
+        val = val.replace(noise, ' ')
     for noise in _wkdy:
-        val = string.replace(val, noise, ' ')
+        val = val.replace(noise, ' ')
     out = []
     last = False
     ldig = False
@@ -260,7 +260,7 @@ def parse_date(val):
                 ldig = False
             last = True
         out.append(ch)
-    val = string.split("".join(out))
+    val = "".join(out).split()
     if 3 == len(val):
         a = _number(val[0])
         b = _number(val[1])
