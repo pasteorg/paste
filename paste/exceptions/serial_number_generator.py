@@ -68,7 +68,7 @@ def hash_identifier(s, length, pad=True, hasher=md5, prefix='',
     modulo = base ** length
     number = 0
     for c in list(bin_hash):
-        number = (number * 256 + ord(c)) % modulo
+        number = (number * 256 + six.byte2int([c])) % modulo
     ident = make_identifier(number)
     if pad:
         ident = good_characters[0]*(length-len(ident)) + ident
