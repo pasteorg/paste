@@ -47,7 +47,7 @@ def simple_import(s):
         try:
             module = import_module(name)
             parts = parts[1:]
-        except ImportError, e:
+        except ImportError as e:
             last_import_error = e
             break
     obj = module
@@ -79,7 +79,7 @@ def try_import_module(module_name):
     """
     try:
         return import_module(module_name)
-    except ImportError, e:
+    except ImportError as e:
         if not getattr(e, 'args', None):
             raise
         desc = e.args[0]

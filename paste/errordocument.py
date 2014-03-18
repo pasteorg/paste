@@ -84,7 +84,7 @@ class StatusKeeper(object):
         #raise Exception(self.url, self.status)
         try:
             return self.app(environ, keep_status_start_response)
-        except RecursionLoop, e:
+        except RecursionLoop as e:
             environ['wsgi.errors'].write('Recursion error getting error page: %s\n' % e)
             keep_status_start_response('500 Server Error', [('Content-type', 'text/plain')], sys.exc_info())
             return ['Error: %s.  (Error page could not be fetched)'
@@ -363,7 +363,7 @@ class _StatusBasedRedirect(object):
                 forward.start_response = eat_start_response
                 try:
                     app_iter = forward(url_, new_environ)
-                except InvalidForward, e:
+                except InvalidForward as e:
                     code, message = code_message[0]
                     environ['wsgi.errors'].write(
                         'Error occurred in '

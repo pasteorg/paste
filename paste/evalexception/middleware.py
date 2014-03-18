@@ -146,7 +146,7 @@ def get_debug_info(func):
                     % debugcount)
             debug_info = self.debug_infos[debugcount]
             return func(self, debug_info=debug_info, **form)
-        except ValueError, e:
+        except ValueError as e:
             form['headers']['status'] = '500 Server Error'
             return '<html>There was an error: %s</html>' % html_quote(e)
     return debug_info_replacement
@@ -457,8 +457,8 @@ def make_table(items):
         out = StringIO()
         try:
             pprint.pprint(value, out)
-        except Exception, e:
-            print >> out, 'Error: %s' % e
+        except Exception as e:
+            print('Error: %s' % e, file=out)
         value = html_quote(out.getvalue())
         if len(value) > 100:
             # @@: This can actually break the HTML :(

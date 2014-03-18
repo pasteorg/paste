@@ -82,7 +82,7 @@ if os.environ.get("TEST_SOCKET",""):
         try:
             authfetch('bing','wrong')
             assert False, "this should raise an exception"
-        except urllib2.HTTPError, e:
+        except HTTPError as e:
             assert e.code == 401
 
     def test_shutdown():

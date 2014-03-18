@@ -254,7 +254,7 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
 
     try:
         proc.wait()
-    except OSError, e:
+    except OSError as e:
         if e.errno != 10:
             raise
 
