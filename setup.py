@@ -18,7 +18,7 @@ These provide several pieces of "middleware" (or filters) that can be nested to 
 piece of middleware uses the WSGI (`PEP 333`_) interface, and should
 be compatible with other middleware based on those interfaces.
 
-.. _PEP 333: http://www.python.org/peps/pep-0333.html
+.. _PEP 333: http://www.python.org/dev/peps/pep-0333.html
 
 Includes these features...
 
@@ -81,7 +81,7 @@ Debugging Filters
   Zope/ZPT conventions) in ``paste.exceptions``
 
 * Catch errors presenting a `cgitb
-  <http://python.org/doc/current/lib/module-cgitb.html>`_-based
+  <http://docs.python.org/2/library/cgitb.html>`_-based
   output, in ``paste.cgitb_catcher``.
 
 * Profile each request and append profiling information to the HTML,
