@@ -447,7 +447,8 @@ class TestApp(object):
             raise AppError(
                 "Application had errors logged:\n%s" % res.errors)
 
-    def _make_response(self, (status, headers, body, errors), total_time):
+    def _make_response(self, resp, total_time):
+        status, headers, body, errors = resp
         return TestResponse(self, status, headers, body, errors,
                             total_time)
 
