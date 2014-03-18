@@ -269,6 +269,8 @@ class IteratorWrapper(object):
                 "The application returns and we started iterating over its body, but start_response has not yet been called")
             self.check_start_response = None
         return v
+
+    __next__ = next
         
     def close(self):
         self.closed = True

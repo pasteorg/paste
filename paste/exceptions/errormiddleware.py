@@ -243,6 +243,7 @@ class CatchingIter(object):
                                exc_info)
 
             return response
+    __next__ = next
 
     def close(self):
         # This should at least print something to stderr if the
