@@ -3,6 +3,7 @@
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 import os
+from six.moves import xrange
 try:
     # Python 3
     from http.cookies import SimpleCookie
@@ -43,6 +44,6 @@ def test_basic(key='key', val='bingles'):
     assert ("%s: %s" % (key,val.replace("\n","\n    "))) in content
 
 def test_roundtrip():
-    roundtrip = str('').join(map(chr,xrange(256)))
+    roundtrip = str('').join(map(chr, xrange(256)))
     test_basic(roundtrip,roundtrip)
 
