@@ -110,6 +110,7 @@ Some of the things this checks:
 """
 
 import re
+import six
 import sys
 from types import DictType, StringType, TupleType, ListType
 import warnings
@@ -262,7 +263,7 @@ class IteratorWrapper(object):
     def next(self):
         assert not self.closed, (
             "Iterator read after closed")
-        v = self.iterator.next()
+        v = six.next(self.iterator)
         if self.check_start_response is not None:
             assert self.check_start_response, (
                 "The application returns and we started iterating over its body, but start_response has not yet been called")
