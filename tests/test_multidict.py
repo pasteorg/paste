@@ -128,9 +128,9 @@ def _test_unicode_dict(decode_param_names=False):
     assert d.dict_of_lists() == {u'a': [u'a test'], u'y': [u'y test'],
                                  u'z': [item]}
     del d['z']
-    map(assert_unicode_item, d.mixed().iteritems())
+    map(assert_unicode_item, six.iteritems(d.mixed()))
     map(assert_unicode_item, [(k, v[0]) for \
-                                   k, v in d.dict_of_lists().iteritems()])
+                                   k, v in six.iteritems(d.dict_of_lists())])
 
     assert u'a' in d
     dcopy = d.copy()

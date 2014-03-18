@@ -171,7 +171,7 @@ REQUEST_METHOD = EnvironVariable("REQUEST_METHOD")
 SCRIPT_NAME    = EnvironVariable("SCRIPT_NAME")
 PATH_INFO      = EnvironVariable("PATH_INFO")
 
-for _name, _obj in globals().items():
+for _name, _obj in six.iteritems(globals()):
     if isinstance(_obj, EnvironVariable):
         __all__.append(_name)
 
@@ -740,7 +740,7 @@ class _CacheControl(_MultiValueHeader):
             result.append('max-age=%d' % max_age)
         if s_maxage is not None:
             result.append('s-maxage=%d' % s_maxage)
-        for (k, v) in extensions.items():
+        for (k, v) in six.iteritems(extensions):
             if k not in self.extensions:
                 raise AssertionError("unexpected extension used: '%s'" % k)
             result.append('%s="%s"' % (k.replace("_", "-"), v))
@@ -1099,6 +1099,6 @@ for head in _headers.values():
     __all__.append(headname)
 
 __pudge_all__ = __all__[:]
-for _name, _obj in globals().items():
+for _name, _obj in six.iteritems(globals()):
     if isinstance(_obj, type) and issubclass(_obj, HTTPHeader):
         __pudge_all__.append(_name)
