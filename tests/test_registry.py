@@ -180,7 +180,7 @@ def _test_restorer(stack, data):
     # Ensure all the StackedObjectProxies are empty after the RegistryUsingApp
     # raises an Exception
     for stacked, proxied_obj, test_cleanup in data:
-        only_key = proxied_obj.keys()[0]
+        only_key = list(proxied_obj.keys())[0]
         try:
             assert only_key not in stacked
             assert False
@@ -196,7 +196,7 @@ def _test_restorer(stack, data):
     try:
         for stacked, proxied_obj, test_cleanup in data:
             # Ensure our original data magically re-appears in this context
-            only_key, only_val = proxied_obj.items()[0]
+            only_key, only_val = list(proxied_obj.items())[0]
             assert only_key in stacked and stacked[only_key] == only_val
 
             # Ensure the Registry still works
