@@ -46,7 +46,7 @@ def forward(app, codes):
                 '%s is not valid'%repr(code))
 
     def error_codes_mapper(code, message, environ, global_conf, codes):
-        if codes.has_key(code):
+        if code in codes:
             return codes[code]
         else:
             return None

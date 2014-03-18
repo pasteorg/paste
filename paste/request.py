@@ -47,7 +47,7 @@ def get_cookies(environ):
 
     """
     header = environ.get('HTTP_COOKIE', '')
-    if environ.has_key('paste.cookies'):
+    if 'paste.cookies' in environ:
         cookies, check_header = environ['paste.cookies']
         if check_header == header:
             return cookies
@@ -70,7 +70,7 @@ def get_cookie_dict(environ):
     header = environ.get('HTTP_COOKIE')
     if not header:
         return {}
-    if environ.has_key('paste.cookies.dict'):
+    if 'paste.cookies.dict' in environ:
         cookies, check_header = environ['paste.cookies.dict']
         if check_header == header:
             return cookies

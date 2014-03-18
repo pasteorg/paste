@@ -281,10 +281,10 @@ class ExceptionCollector(object):
         data['tbid'] = id(tb)
 
         # Output a traceback supplement, if any.
-        if locals.has_key('__traceback_supplement__'):
+        if '__traceback_supplement__' in locals:
             # Use the supplement defined in the function.
             tbs = locals['__traceback_supplement__']
-        elif globals.has_key('__traceback_supplement__'):
+        elif '__traceback_supplement__' in globals:
             # Use the supplement defined in the module.
             # This is used by Scripts (Python).
             tbs = globals['__traceback_supplement__']
