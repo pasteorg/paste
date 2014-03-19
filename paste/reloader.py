@@ -40,6 +40,7 @@ Then every time the reloader polls files it will call
 ``watch_config_files`` and check all the filenames it returns.
 """
 
+from __future__ import print_function
 import os
 import sys
 import time
@@ -93,12 +94,13 @@ class Monitor(object):
             try:
                 filenames.extend(file_callback())
             except:
-                print >> sys.stderr, "Error calling paste.reloader callback %r:" % file_callback
+                print("Error calling paste.reloader callback %r:" % file_callback,
+                      file=sys.stderr)
                 traceback.print_exc()
         for module in sys.modules.values():
             try:
                 filename = module.__file__
-            except (AttributeError, ImportError), exc:
+            except (AttributeError, ImportError) as exc:
                 continue
             if filename is not None:
                 filenames.append(filename)
@@ -119,8 +121,7 @@ class Monitor(object):
             if not self.module_mtimes.has_key(filename):
                 self.module_mtimes[filename] = mtime
             elif self.module_mtimes[filename] < mtime:
-                print >> sys.stderr, (
-                    "%s changed; reloading..." % filename)
+                print("%s changed; reloading..." % filename, file=sys.stderr)
                 return False
         return True
 

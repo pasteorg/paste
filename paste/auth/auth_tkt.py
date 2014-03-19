@@ -75,10 +75,10 @@ class AuthTicket(object):
 
         token = auth_tkt.AuthTick('sharedsecret', 'username',
             os.environ['REMOTE_ADDR'], tokens=['admin'])
-        print 'Status: 200 OK'
-        print 'Content-type: text/html'
-        print token.cookie()
-        print
+        print('Status: 200 OK')
+        print('Content-type: text/html')
+        print(token.cookie())
+        print("")
         ... redirect HTML ...
 
     Webware usage::

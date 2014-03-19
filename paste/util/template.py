@@ -213,7 +213,7 @@ class Template(object):
     def _exec(self, code, ns, pos):
         __traceback_hide__ = True
         try:
-            exec code in ns
+            six.exec_(code, ns)
         except:
             exc_info = sys.exc_info()
             e = exc_info[1]
@@ -715,8 +715,8 @@ def fill_command(args=None):
         help="Put the environment in as top-level variables")
     options, args = parser.parse_args(args)
     if len(args) < 1:
-        print 'You must give a template filename'
-        print dir(parser)
+        print('You must give a template filename')
+        print(dir(parser))
         assert 0
     template_name = args[0]
     args = args[1:]
@@ -725,7 +725,7 @@ def fill_command(args=None):
         vars.update(os.environ)
     for value in args:
         if '=' not in value:
-            print 'Bad argument: %r' % value
+            print('Bad argument: %r' % value)
             sys.exit(2)
         name, value = value.split('=', 1)
         if name.startswith('py:'):

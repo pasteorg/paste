@@ -295,8 +295,8 @@ def path_info_pop(environ):
         >>> def call_it(script_name, path_info):
         ...     env = {'SCRIPT_NAME': script_name, 'PATH_INFO': path_info}
         ...     result = path_info_pop(env)
-        ...     print 'SCRIPT_NAME=%r; PATH_INFO=%r; returns=%r' % (
-        ...         env['SCRIPT_NAME'], env['PATH_INFO'], result)
+        ...     print('SCRIPT_NAME=%r; PATH_INFO=%r; returns=%r' % (
+        ...         env['SCRIPT_NAME'], env['PATH_INFO'], result))
         >>> call_it('/foo', '/bar')
         SCRIPT_NAME='/foo/bar'; PATH_INFO=''; returns='bar'
         >>> call_it('/foo/bar', '')

@@ -116,5 +116,5 @@ if '__main__' == __name__ and False:
     curr = conn.cursor()
     curr.execute("SELECT now(), %s" % conn.quote("B'n\\'gles"))
     (time, bing) = curr.fetchone()
-    print bing, time
+    print(bing, time)
 
