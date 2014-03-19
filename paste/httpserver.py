@@ -17,19 +17,20 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 # @@: add support for chunked encoding, this is not a 1.1 server
 #     till this is completed.
 
+from __future__ import print_function
 import atexit
 import traceback
-from six.moves.urllib.parse import unquote
-import socket, sys, threading, urlparse, Queue
+import socket, sys, threading
 import posixpath
 import six
 import time
-import thread
 import os
 from itertools import count
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from SocketServer import ThreadingMixIn
-from StringIO import StringIO
+from six.moves import _thread
+from six.moves import queue
+from six.moves.BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from six.moves.socketserver import ThreadingMixIn
+from six.moves.urllib.parse import unquote, urlsplit
 from paste.util import converters
 import logging
 try:
@@ -180,7 +181,7 @@ class WSGIHandlerMixin:
         """
 
         dummy_url = 'http://dummy%s' % (self.path,)
-        (scheme, netloc, path, query, fragment) = urlparse.urlsplit(dummy_url)
+        (scheme, netloc, path, query, fragment) = urlsplit(dummy_url)
         path = unquote(path)
         endslash = path.endswith('/')
         path = posixpath.normpath(path)
@@ -248,14 +249,14 @@ class WSGIHandlerMixin:
         if hasattr(self.server, 'thread_pool'):
             # Now that we know what the request was for, we should
             # tell the thread pool what its worker is working on
-            self.server.thread_pool.worker_tracker[thread.get_ident()][1] = self.wsgi_environ
+            self.server.thread_pool.worker_tracker[_thread.get_ident()][1] = self.wsgi_environ
             self.wsgi_environ['paste.httpserver.thread_pool'] = self.server.thread_pool
 
         for k, v in self.headers.items():
             key = 'HTTP_' + k.replace("-","_").upper()
             if key in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
                 continue
-            self.wsgi_environ[key] = ','.join(self.headers.getheaders(k))
+            self.wsgi_environ[key] = ','.join(self.headers.get(k))
 
         if hasattr(self.connection,'get_context'):
             self.wsgi_environ['wsgi.url_scheme'] = 'https'
@@ -297,7 +298,7 @@ class WSGIHandlerMixin:
                 if hasattr(result,'close'):
                     result.close()
                 result = None
-        except socket.error, exce:
+        except socket.error as exce:
             self.wsgi_connection_drop(exce, environ)
             return
         except:
@@ -443,7 +444,7 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
         # don't bother logging disconnects while handling a request
         try:
             BaseHTTPRequestHandler.handle(self)
-        except SocketErrors, exce:
+        except SocketErrors as exce:
             self.wsgi_connection_drop(exce)
 
     def address_string(self):
@@ -579,7 +580,7 @@ class ThreadPool(object):
         self.nworkers = nworkers
         self.max_requests = max_requests
         self.name = name
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
         self.workers = []
         self.daemon = daemon
         if logger is None:
@@ -738,7 +739,7 @@ class ThreadPool(object):
         return thread_id in threading._active
 
     def add_worker_thread(self, *args, **kwargs):
-        index = self._worker_count.next()
+        index = six.next(self._worker_count)
         worker = threading.Thread(target=self.worker_thread_callback,
                                   args=args, kwargs=kwargs,
                                   name=("worker %d" % index))
@@ -781,7 +782,7 @@ class ThreadPool(object):
                     import pprint
                     info_desc = pprint.pformat(info)
                 except:
-                    out = StringIO()
+                    out = six.StringIO()
                     traceback.print_exc(file=out)
                     info_desc = 'Error:\n%s' % out.getvalue()
                 self.notify_problem(
@@ -843,7 +844,7 @@ class ThreadPool(object):
                        ids="\n  ".join(map(str, found))),
                 subject="Process restart (too many zombie threads)")
             self.shutdown(10)
-            print 'Shutting down', threading.currentThread()
+            print('Shutting down', threading.currentThread())
             raise ServerExit(3)
 
     def worker_thread_callback(self, message=None):
@@ -852,7 +853,7 @@ class ThreadPool(object):
         callables.
         """
         thread_obj = threading.currentThread()
-        thread_id = thread_obj.thread_id = thread.get_ident()
+        thread_id = thread_obj.thread_id = _thread.get_ident()
         self.workers.append(thread_obj)
         self.idle_workers.append(thread_id)
         requests_processed = 0
@@ -884,8 +885,8 @@ class ThreadPool(object):
                         # removing all remnants of any exception, so
                         # we should log it now.  But ideally no
                         # exception should reach this level
-                        print >> sys.stderr, (
-                            'Unexpected exception in worker %r' % runnable)
+                        print('Unexpected exception in worker %r' % runnable,
+                              file=sys.stderr)
                         traceback.print_exc()
                     if thread_id in self.dying_threads:
                         # That last exception was intended to kill me
@@ -895,7 +896,8 @@ class ThreadPool(object):
                         del self.worker_tracker[thread_id]
                     except KeyError:
                         pass
-                    sys.exc_clear()
+                    if six.PY2:
+                        sys.exc_clear()
                 self.idle_workers.append(thread_id)
         finally:
             try:
@@ -951,7 +953,7 @@ class ThreadPool(object):
                         timed_out = True
                         worker.join(force_quit_timeout)
                     if worker.isAlive():
-                        print "Worker %s won't die" % worker
+                        print("Worker %s won't die" % worker)
                         need_force_quit = True
                 if need_force_quit:
                     import atexit
@@ -965,7 +967,7 @@ class ThreadPool(object):
                         if mod == 'threading':
                             atexit._exithandlers.remove(callback)
                     atexit._run_exitfuncs()
-                    print 'Forcefully exiting process'
+                    print('Forcefully exiting process')
                     os._exit(3)
                 else:
                     self.logger.info('All workers eventually killed')
@@ -1024,7 +1026,7 @@ class ThreadPool(object):
             if e.strip()]
         server.sendmail(from_address, error_emails, message)
         server.quit()
-        print 'email sent to', error_emails, message
+        print('email sent to', error_emails, message)
 
 class ThreadPoolMixIn(object):
     """
@@ -1305,10 +1307,10 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
         protocol = is_ssl and 'https' or 'http'
         host, port = server.server_address[:2]
         if host == '0.0.0.0':
-            print 'serving on 0.0.0.0:%s view at %s://127.0.0.1:%s' % \
-                (port, protocol, port)
+            print('serving on 0.0.0.0:%s view at %s://127.0.0.1:%s'
+                  % (port, protocol, port))
         else:
-            print "serving on %s://%s:%s" % (protocol, host, port)
+            print("serving on %s://%s:%s" % (protocol, host, port))
         try:
             server.serve_forever()
         except KeyboardInterrupt:
