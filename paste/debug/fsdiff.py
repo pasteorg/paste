@@ -263,8 +263,8 @@ class File(object):
         __tracebackhide__ = True
         bytes = self.bytes
         if s not in bytes:
-            print 'Could not find %r in:' % s
-            print bytes
+            print('Could not find %r in:' % s)
+            print(bytes)
             assert s in bytes
 
     def __repr__(self):

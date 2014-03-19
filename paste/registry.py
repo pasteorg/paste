@@ -378,11 +378,11 @@ class RegistryManager(object):
 
         try:
             app_iter = self.application(environ, start_response)
-            #print "REG ", type(app_iter)
+            #print("REG ", type(app_iter))
             if isinstance(app_iter, (list, tuple)):
-                #print "DIRECT"
+                #print("DIRECT")
                 return app_iter
-            #print "STREAMING"
+            #print("STREAMING")
             return self.streaming_iter(app_iter, reg, environ)
 
         except Exception as e:

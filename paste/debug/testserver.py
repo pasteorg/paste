@@ -47,7 +47,7 @@ class WSGIRegressionServer(WSGIServer):
             if now > self.expires and self.timeout:
                 # note regression test doesn't handle exceptions in
                 # threads very well; so we just print and exit
-                print "\nWARNING: WSGIRegressionServer timeout exceeded\n"
+                print("\nWARNING: WSGIRegressionServer timeout exceeded\n")
                 break
             if self.pending:
                 self.handle_request()
@@ -62,7 +62,7 @@ class WSGIRegressionServer(WSGIServer):
 
 def serve(application, host=None, port=None, handler=None):
     server = WSGIRegressionServer(application, host, port, handler)
-    print "serving on %s:%s" % server.server_address
+    print("serving on %s:%s" % server.server_address)
     server.serve_forever()
     return server
 

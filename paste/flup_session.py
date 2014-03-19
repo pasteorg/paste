@@ -81,7 +81,7 @@ class SessionMiddleware(object):
 
         try:
             app_iter = self.application(environ, cookie_start_response)
-        except httpexceptions.HTTPException, e:
+        except httpexceptions.HTTPException as e:
             headers = (e.headers or {}).items()
             service.addCookie(headers)
             e.headers = dict(headers)

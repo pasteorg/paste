@@ -832,7 +832,7 @@ def _test(show=0, quiet=0):
 @A @B(arghh) @C
 def LlamaSaysNi(arg='Ni!',arg2="RALPH"):
    """This docstring is deeply disturbed by all the llama references"""
-   print '%s The Wonder Llama says %s'% (arg2,arg)
+   print('%s The Wonder Llama says %s'% (arg2,arg))
 # So I was like duh!, and he was like ya know?!,
 # and so we were both like huh...wtf!? RTFM!! LOL!!;)
 @staticmethod## Double comments are KewL.

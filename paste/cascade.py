@@ -123,7 +123,7 @@ class Cascade(object):
                         list(v)
                         # then close:
                         v.close()
-            except self.catch_exceptions, e:
+            except self.catch_exceptions:
                 pass
         if copy_wsgi_input:
             environ['wsgi.input'].seek(0)

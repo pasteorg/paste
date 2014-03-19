@@ -5,6 +5,8 @@
 A module of many disparate routines.
 """
 
+from __future__ import print_function
+
 # functions which moved to paste.request and paste.response
 # Deprecated around 15 Dec 2005
 from paste.request import get_cookies, parse_querystring, parse_formvars
@@ -53,10 +55,9 @@ class add_close(object):
     def __del__(self):
         if not self._closed:
             # We can't raise an error or anything at this stage
-            print >> sys.stderr, (
-                "Error: app_iter.close() was not called when finishing "
+            print("Error: app_iter.close() was not called when finishing "
                 "WSGI request. finalization function %s not called"
-                % self.close_func)
+                  % self.close_func, file=sys.stderr)
 
 class add_start_close(object):
     """
@@ -92,10 +93,9 @@ class add_start_close(object):
     def __del__(self):
         if not self._closed:
             # We can't raise an error or anything at this stage
-            print >> sys.stderr, (
-                "Error: app_iter.close() was not called when finishing "
+            print("Error: app_iter.close() was not called when finishing "
                 "WSGI request. finalization function %s not called"
-                % self.close_func)
+                  % self.close_func, file=sys.stderr)
 
 class chained_app_iters(object):
 
@@ -137,10 +137,9 @@ class chained_app_iters(object):
     def __del__(self):
         if not self._closed:
             # We can't raise an error or anything at this stage
-            print >> sys.stderr, (
-                "Error: app_iter.close() was not called when finishing "
+            print("Error: app_iter.close() was not called when finishing "
                 "WSGI request. finalization function %s not called"
-                % self.close_func)
+                  % self.close_func, file=sys.stderr)
 
 class encode_unicode_app_iter(object):
     """

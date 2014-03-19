@@ -87,8 +87,8 @@ def comment_quote(s):
     """
     comment = str(s)
     #comment = _bad_chars_re.sub('', comment)
-    #print 'in ', repr(str(s))
-    #print 'out', repr(comment)
+    #print('in ', repr(str(s)))
+    #print('out', repr(comment))
     comment = _comment_quote_re.sub('-&gt;', comment)
     return comment
 

@@ -30,7 +30,7 @@ paste_parent = os.path.dirname(
 def run(command):
     data = run_raw(command)
     if data:
-        print data
+        print(data)
 
 def run_raw(command):
     """
@@ -56,7 +56,7 @@ def run_command(command, name, and_print=False):
     show_file('shell-command', name, description='shell transcript',
               data=data)
     if and_print and output:
-        print output
+        print(output)
 
 def _make_env():
     env = os.environ.copy()
@@ -88,7 +88,7 @@ def ls(dir=None, recurse=False, indent=0):
         full = os.path.join(dir, fn)
         if os.path.isdir(full):
             fn = fn + '/'
-        print ' '*indent + fn
+        print(' '*indent + fn)
         if os.path.isdir(full) and recurse:
             ls(dir=full, recurse=True, indent=indent+2)
 
@@ -158,13 +158,13 @@ def show(path_info, example_name):
         expected = f.read()
         f.close()
         if not html_matches(expected, result):
-            print 'Pages did not match.  Expected from %s:' % fn
-            print '-'*60
-            print expected
-            print '='*60
-            print 'Actual output:'
-            print '-'*60
-            print result
+            print('Pages did not match.  Expected from %s:' % fn)
+            print('-'*60)
+            print(expected)
+            print('='*60)
+            print('Actual output:')
+            print('-'*60)
+            print(result)
 
 def html_matches(pattern, text):
     regex = re.escape(pattern)
