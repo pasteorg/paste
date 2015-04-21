@@ -74,7 +74,10 @@ class CookieTooLarge(RuntimeError):
 _all_chars = ''.join([chr(x) for x in range(0, 255)])
 def new_secret():
     """ returns a 64 byte secret """
-    return ''.join(random.sample(_all_chars, 64))
+    secret = ''.join(random.sample(_all_chars, 64))
+    if six.PY3:
+        secret = secret.encode('utf8')
+    return secret
 
 class AuthCookieSigner(object):
     """
@@ -137,12 +140,16 @@ class AuthCookieSigner(object):
         need to be escaped and quoted).  The expiration of this
         cookie is handled server-side in the auth() function.
         """
+        timestamp = make_time(time.time() + 60*self.timeout)
+        if six.PY3:
+            content = content.encode('utf8')
+            timestamp = timestamp.encode('utf8')
         cookie = base64.encodestring(
             hmac.new(self.secret, content, sha1).digest() +
-            make_time(time.time() + 60*self.timeout) +
+            timestamp +
             content)
-        cookie = cookie.replace("/", "_").replace("=", "~")
-        cookie = cookie.replace('\n', '').replace('\r', '')
+        cookie = cookie.replace(b"/", b"_").replace(b"=", b"~")
+        cookie = cookie.replace(b'\n', b'').replace(b'\r', b'')
         if len(cookie) > self.maxlen:
             raise CookieTooLarge(content, cookie)
         return cookie
@@ -298,6 +305,8 @@ class AuthCookieHandler(object):
             if content:
                 content = ";".join(content)
                 content = self.signer.sign(content)
+                if six.PY3:
+                    content = content.decode('utf8')
                 cookie = '%s=%s; Path=/;' % (self.cookie_name, content)
                 if 'https' == environ['wsgi.url_scheme']:
                     cookie += ' secure;'

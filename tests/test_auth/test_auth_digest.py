@@ -8,12 +8,16 @@ from paste.response import header_value
 from paste.httpexceptions import *
 from paste.httpheaders import AUTHORIZATION, WWW_AUTHENTICATE, REMOTE_USER
 import os
+import six
 
 def application(environ, start_response):
     content = REMOTE_USER(environ)
     start_response("200 OK",(('Content-Type', 'text/plain'),
                              ('Content-Length', len(content))))
-    return content
+
+    if six.PY3:
+        content = content.encode('utf8')
+    return [content]
 
 realm = "tag:clarkevans.com,2005:testing"
 
@@ -46,7 +50,7 @@ def check(username, password, path="/"):
     assert False, "Unexpected Status: %s" % status
 
 def test_digest():
-    assert 'bing' == check("bing","gnib")
+    assert b'bing' == check("bing","gnib")
     assert check("bing","bad") is None
 
 #
