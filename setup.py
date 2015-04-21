@@ -1,8 +1,19 @@
 # Procedure to release a new version:
-# - run tests
+#
+# - run tests: run tox
 # - update version in setup.py (__version__)
 # - update changelog: docs/news.txt
 # - modify setup.py: set RELEASE to True
+#  - check that "python setup.py sdist" contains all files tracked by
+#    the SCM (Mercurial): update MANIFEST.in if needed
+#
+#  - hg ci
+#  - hg tag VERSION
+#  - hg push
+#  - python setup.py register sdist bdist_wheel upload
+#
+#  - increment version in setup.py (__version__)
+#  - hg ci && hg push
 
 # If true, then the svn revision won't be used to calculate the
 # revision (set to True for real releases)
