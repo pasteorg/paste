@@ -17,8 +17,8 @@ if sys.platform != 'win32' and not sys.platform.startswith('java'):
 
     def test_form():
         app = TestApp(CGIApplication({}, script='form.cgi', path=[data_dir]))
-        res = app.post('', params={'name': 'joe'},
-                       upload_files=[('up', 'file.txt', 'x'*10000)])
+        res = app.post('', params={'name': b'joe'},
+                       upload_files=[('up', 'file.txt', b'x'*10000)])
         assert 'file.txt' in res
         assert 'joe' in res
         assert 'x'*10000 in res
@@ -32,5 +32,5 @@ if sys.platform != 'win32' and not sys.platform.startswith('java'):
         res = app.get('', expect_errors=True)
         assert res.status == 500
         assert 'error' in res
-        assert 'some data' in res.errors
+        assert b'some data' in res.errors
 
