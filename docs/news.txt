@@ -23,6 +23,8 @@ hg tip
 
 * Fixed parsing of paths beginning with multiple forward slashes.
 
+* Add tox.ini to run tests with tox.
+
 1.7.5.1
 -------
 
