@@ -80,7 +80,7 @@ def interval_decode(s):
         s = s[1:]
     for match in allMatches(s, _timeRE):
         char = match.group(0)[-1].lower()
-        if not timeValues.has_key(char):
+        if char not in timeValues:
             # @@: should signal error
             continue
         time += int(match.group(0)[:-1]) * timeValues[char]
