@@ -19,7 +19,7 @@ def do_request(app, expect_status=500):
 def clear_middleware(app):
     """
     The fixture sets paste.throw_errors, which suppresses exactly what
-    we want to test in this case. This wrapper also strips exc_info 
+    we want to test in this case. This wrapper also strips exc_info
     on the *first* call to start_response (but not the second, or
     subsequent calls.
     """
@@ -34,7 +34,7 @@ def clear_middleware(app):
             del environ['paste.throw_errors']
         return app(environ, replacement)
     return clear_throw_errors
-    
+
 
 ############################################################
 ## Applications that raise exceptions
@@ -81,7 +81,7 @@ def test_makes_exception():
 
 def test_unicode_exception():
     res = do_request(unicode_bad_app)
-    
+
 
 def test_start_res():
     res = do_request(start_response_app)
@@ -101,7 +101,7 @@ def test_iter_app():
     #print res
     assert 'None raises error' in res
     assert 'yielder' in res
-    
-                      
 
-    
+
+
+

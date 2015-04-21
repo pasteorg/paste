@@ -9,4 +9,4 @@ def test_paste_website():
     app = TestApp(app)
     res = app.get('/')
     assert 'documentation' in res
-    
+

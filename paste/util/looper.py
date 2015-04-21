@@ -26,9 +26,9 @@ import six
 class looper(object):
     """
     Helper for looping (particularly in templates)
-    
+
     Use this like::
-    
+
         for loop, item in looper(seq):
             if loop.first:
                 ...
@@ -152,4 +152,4 @@ class loop_pos(object):
             return getter(item) != getter(other)
         else:
             return item[getter] != other[getter]
-    
+

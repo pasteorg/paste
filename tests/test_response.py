@@ -8,4 +8,4 @@ def test_replace_header():
     replace_header(h, 'Content-Type', 'text/html')
     assert ('content-type', 'text/html') in h
     assert ('content-type', 'text/plain') not in h
-    
+

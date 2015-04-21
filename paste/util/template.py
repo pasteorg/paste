@@ -251,7 +251,7 @@ class Template(object):
                         '(no default_encoding provided)' % value)
                 value = value.encode(self.default_encoding)
             return value
-        
+
 
     def _add_line_info(self, msg, pos):
         msg = "%s at line %s column %s" % (
@@ -479,7 +479,7 @@ def trim_lex(tokens):
                 next = next[m.end():]
                 tokens[i+1] = next
     return tokens
-        
+
 
 def find_position(string, index):
     """Given a string and index, return (line, column)"""
@@ -506,7 +506,7 @@ def parse(s, name=None):
         [('cond', (1, 3), ('if', (1, 3), 'x', ['a']), ('elif', (1, 12), 'y', ['b']), ('else', (1, 23), None, ['c']))]
 
     Some exceptions::
-        
+
         >>> parse('{{continue}}')
         Traceback (most recent call last):
             ...
@@ -627,7 +627,7 @@ def parse_one_cond(tokens, name, context):
             return part, tokens
         next, tokens = parse_expr(tokens, name, context)
         content.append(next)
-        
+
 def parse_for(tokens, name, context):
     first, pos = tokens[0]
     tokens = tokens[1:]
@@ -755,5 +755,5 @@ def fill_command(args=None):
 if __name__ == '__main__':
     from paste.util.template import fill_command
     fill_command()
-        
-    
+
+

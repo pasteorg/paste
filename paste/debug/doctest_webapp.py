@@ -214,7 +214,7 @@ def show_file(path, version, description=None, data=None):
         data = f.read()
         f.close()
     if ext == '.py':
-        html = ('<div class="source-code">%s</div>' 
+        html = ('<div class="source-code">%s</div>'
                 % PySourceColor.str2html(data, PySourceColor.dark))
     else:
         html = '<pre class="source-code">%s</pre>' % cgi.escape(data, 1)
@@ -241,7 +241,7 @@ def write_data(path, data):
     f = open(path, 'wb')
     f.write(data)
     f.close()
-    
+
 
 def change_file(path, changes):
     f = open(os.path.abspath(path), 'rb')
@@ -282,7 +282,7 @@ class LongFormDocTestParser(doctest.DocTestParser):
                          (?![ ]*>>>)  # Not a line starting with PS1
                          .*$\n?       # But any other line
                       )*))
-        | 
+        |
         (?: # This is for longer commands that are prefixed with a reST
             # comment like '.. run:' (two colons makes that a directive).
             # These commands cannot have any output.
@@ -331,7 +331,7 @@ class LongFormDocTestParser(doctest.DocTestParser):
         # Get the example's indentation level.
         runner = m.group('run') or ''
         indent = len(m.group('%sindent' % runner))
-        
+
         # Divide source into lines; check that they're properly
         # indented; and then strip their indentation & prompts.
         source_lines = m.group('%ssource' % runner).split('\n')

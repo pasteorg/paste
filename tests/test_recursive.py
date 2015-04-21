@@ -43,15 +43,15 @@ def forward(app):
         else:
             raise AssertionError('Failed to detect forwarding loop')
 
-def test_ForwardRequest_url():    
+def test_ForwardRequest_url():
     class TestForwardRequestMiddleware(Middleware):
         def __call__(self, environ, start_response):
             if environ['PATH_INFO'] != '/not_found':
                 return self.app(environ, start_response)
             raise ForwardRequestException(self.url)
     forward(TestForwardRequestMiddleware(error_docs_app))
-    
-def test_ForwardRequest_environ():    
+
+def test_ForwardRequest_environ():
     class TestForwardRequestMiddleware(Middleware):
         def __call__(self, environ, start_response):
             if environ['PATH_INFO'] != '/not_found':
@@ -59,11 +59,11 @@ def test_ForwardRequest_environ():
             environ['PATH_INFO'] = self.url
             raise ForwardRequestException(environ=environ)
     forward(TestForwardRequestMiddleware(error_docs_app))
-    
-def test_ForwardRequest_factory():    
-    
+
+def test_ForwardRequest_factory():
+
     from paste.errordocument import StatusKeeper
-            
+
     class TestForwardRequestMiddleware(Middleware):
         def __call__(self, environ, start_response):
             if environ['PATH_INFO'] != '/not_found':
@@ -96,7 +96,7 @@ def test_ForwardRequest_factory():
             raise AssertionError('Failed to detect forwarding loop')
 
 # Test Deprecated Code
-def test_ForwardRequestException(): 
+def test_ForwardRequestException():
     class TestForwardRequestExceptionMiddleware(Middleware):
         def __call__(self, environ, start_response):
             if environ['PATH_INFO'] != '/not_found':

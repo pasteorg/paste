@@ -35,7 +35,7 @@ class RegistryUsingApp(object):
         self.var = var
         self.value = value
         self.raise_exc = raise_exc
-    
+
     def __call__(self, environ, start_response):
         if 'paste.registry' in environ:
             environ['paste.registry'].register(self.var, self.value)
@@ -50,7 +50,7 @@ class RegistryUsingIteratorApp(object):
     def __init__(self, var, value):
         self.var = var
         self.value = value
-    
+
     def __call__(self, environ, start_response):
         if 'paste.registry' in environ:
             environ['paste.registry'].register(self.var, self.value)
@@ -65,7 +65,7 @@ class RegistryMiddleMan(object):
         self.var = var
         self.value = value
         self.depth = depth
-    
+
     def __call__(self, environ, start_response):
         if 'paste.registry' in environ:
             environ['paste.registry'].register(self.var, self.value)
@@ -85,7 +85,7 @@ class RegistryMiddleMan(object):
         app_response.extend(['\nAppended by middleware!\nAppendValue at \
             depth %s is %s' % (self.depth, str(regobj))])
         return app_response
-            
+
 
 def test_simple():
     app = TestApp(simpleapp)
@@ -150,7 +150,7 @@ def test_really_deep_registry():
     for depth in valuelist:
         assert "AppendValue at depth %s is {'%s': %s}" % \
             (depth, keylist[depth], depth) in res
-    
+
 def test_iterating_response():
     obj = {'hi':'people'}
     secondobj = {'bye':'friends'}

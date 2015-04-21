@@ -83,7 +83,7 @@ class CgitbMiddleware(object):
                           format=self.format)
         hook(*exc_info)
         return dummy_file.getvalue()
-        
+
 def make_cgitb_middleware(app, global_conf,
                           display=NoDefault,
                           logdir=None,
@@ -92,7 +92,7 @@ def make_cgitb_middleware(app, global_conf,
     """
     Wraps the application in the ``cgitb`` (standard library)
     error catcher.
-        
+
       display:
         If true (or debug is set in the global configuration)
         then the traceback will be displayed in the browser

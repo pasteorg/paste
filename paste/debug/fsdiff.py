@@ -298,7 +298,7 @@ class Dir(File):
             "Directory %r doesn't have content" % self)
 
     bytes = property(bytes__get)
-    
+
 
 def _space_prefix(pref, full, sep=None, indent=None, include_sep=True):
     """

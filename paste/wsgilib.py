@@ -289,7 +289,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
         'SCRIPT_NAME': '',           # may be empty if app is at the root
         'PATH_INFO': '',             # may be empty if at root of app
         'SERVER_NAME': 'localhost',  # always mandatory
-        'SERVER_PORT': '80',         # always mandatory 
+        'SERVER_PORT': '80',         # always mandatory
         'SERVER_PROTOCOL': 'HTTP/1.0',
         # mandatory wsgi variables
         'wsgi.version': (1, 0),
@@ -435,7 +435,7 @@ def capture_output(environ, start_response, application):
 
     Sends status and header, but *not* body.  Returns (status,
     headers, body).  Typically this is used like:
-    
+
     .. code-block:: python
 
         def dehtmlifying_middleware(application):
@@ -486,7 +486,7 @@ def intercept_output(environ, application, conditional=None,
     ``capture_output``)
 
     Typically this is used like:
-    
+
     .. code-block:: python
 
         def dehtmlifying_middleware(application):
@@ -508,7 +508,7 @@ def intercept_output(environ, application, conditional=None,
     ``start_response`` will be called and ``(None, None, app_iter)``
     will be returned.  You must detect that in your code and return
     the app_iter, like:
-    
+
     .. code-block:: python
 
         def dehtmlifying_middleware(application):
@@ -593,4 +593,4 @@ for _name in __all__:
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    
+

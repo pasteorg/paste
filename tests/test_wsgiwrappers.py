@@ -42,7 +42,7 @@ def test_wsgirequest_charset():
     # Tanaka, '田中'
     app = TestApp(AssertApp(assertfunc=valid_name(u'田中', encoding='UTF-8')))
     res = app.get('/?name=%E7%94%B0%E4%B8%AD')
-    
+
     # Nippon (Japan), '日本'
     app = TestApp(AssertApp(assertfunc=valid_name(u'日本', encoding='UTF-8',
                                                   post=True)))

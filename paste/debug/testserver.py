@@ -28,7 +28,7 @@ class WSGIRegressionServer(WSGIServer):
         self.pending = []
         self.timeout = self.defaulttimeout
         # this is a local connection, be quick
-        self.socket.settimeout(2) 
+        self.socket.settimeout(2)
     def serve_forever(self):
         from threading import Thread
         thread = Thread(target=self.serve_pending)
@@ -75,13 +75,13 @@ if __name__ == '__main__':
     def fetch(path):
         # tell the server to humor exactly one more request
         server.accept(1)
-        # not needed; but this is what you do if the server 
+        # not needed; but this is what you do if the server
         # may not respond in a resonable time period
         import socket
         socket.setdefaulttimeout(5)
         # build a uri, fetch and return
         return urlopen(baseuri + path).read()
-      
+
     assert "PATH_INFO: /foo" in fetch("/foo")
     assert "PATH_INFO: /womble" in fetch("/womble")
 
