@@ -15,6 +15,7 @@ from six.moves.urllib import parse as urlparse
 from paste.recursive import ForwardRequestException, RecursiveMiddleware, RecursionLoop
 from paste.util import converters
 from paste.response import replace_header
+import six
 
 def forward(app, codes):
     """
@@ -85,10 +86,16 @@ class StatusKeeper(object):
         try:
             return self.app(environ, keep_status_start_response)
         except RecursionLoop as e:
-            environ['wsgi.errors'].write('Recursion error getting error page: %s\n' % e)
+            line = 'Recursion error getting error page: %s\n' % e
+            if six.PY3:
+                line = line.encode('utf8')
+            environ['wsgi.errors'].write(line)
             keep_status_start_response('500 Server Error', [('Content-type', 'text/plain')], sys.exc_info())
-            return ['Error: %s.  (Error page could not be fetched)'
-                    % self.status]
+            body = ('Error: %s.  (Error page could not be fetched)'
+                    % self.status)
+            if six.PY3:
+                body = body.encode('utf8')
+            return [body]
 
 
 class StatusBasedForward(object):
