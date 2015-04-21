@@ -373,18 +373,11 @@ class RegistryManager(object):
         app_iter = None
         reg = environ.setdefault('paste.registry', Registry())
         reg.prepare()
-        #if self.streaming:
-        #    return self.streaming_iter(reg, environ, start_response)
+        if self.streaming:
+            return self.streaming_iter(reg, environ, start_response)
 
         try:
             app_iter = self.application(environ, start_response)
-            #print("REG ", type(app_iter))
-            if isinstance(app_iter, (list, tuple)):
-                #print("DIRECT")
-                return app_iter
-            #print("STREAMING")
-            return self.streaming_iter(app_iter, reg, environ)
-
         except Exception as e:
             # Regardless of if the content is an iterable, generator, list
             # or tuple, we clean-up right now. If its an iterable/generator
@@ -412,9 +405,9 @@ class RegistryManager(object):
 
         return app_iter
 
-    def streaming_iter(self, app_iter, reg, environ):
+    def streaming_iter(self, reg, environ, start_response):
         try:
-            for item in app_iter:
+            for item in self.application(environ, start_response):
                 yield item
         except Exception as e:
             # Regardless of if the content is an iterable, generator, list
