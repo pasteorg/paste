@@ -1,5 +1,6 @@
 from paste.session import SessionMiddleware
 from paste.fixture import TestApp
+import six
 
 info = []
 
@@ -12,9 +13,12 @@ def wsgi_app(environ, start_response):
         if pi == '/get2':
             sess = environ['paste.session.factory']()
         if 'info' in sess:
-            return [str(sess['info'])]
+            body = str(sess['info'])
+            if six.PY3:
+                body = body.encode('utf8')
+            return [body]
         else:
-            return ['no-info']
+            return [b'no-info']
     if pi in ('/put1', '/put2'):
         if pi == '/put1':
             sess = environ['paste.session.factory']()
@@ -23,30 +27,30 @@ def wsgi_app(environ, start_response):
         if pi == '/put2':
             sess = environ['paste.session.factory']()
             sess['info']  = info[0]
-        return ['foo']
+        return [b'foo']
 
 wsgi_app = SessionMiddleware(wsgi_app)
 
 def test_app1():
     app = TestApp(wsgi_app)
     res = app.get('/get1')
-    assert res.body == 'no-info'
+    assert res.body == b'no-info'
     res = app.get('/get2')
-    assert res.body == 'no-info'
+    assert res.body ==b'no-info'
     info[:] = ['test']
     res = app.get('/put1')
     res = app.get('/get1')
-    assert res.body == 'test'
+    assert res.body == b'test'
     res = app.get('/get2')
-    assert res.body == 'test'
+    assert res.body == b'test'
 
 def test_app2():
     app = TestApp(wsgi_app)
     info[:] = ['fluff']
     res = app.get('/put2')
     res = app.get('/get1')
-    assert res.body == 'fluff'
+    assert res.body == b'fluff'
     res = app.get('/get2')
-    assert res.body == 'fluff'
+    assert res.body == b'fluff'
 
 

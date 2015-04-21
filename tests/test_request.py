@@ -4,17 +4,21 @@
 from paste.fixture import *
 from paste.request import *
 from paste.wsgiwrappers import WSGIRequest
+import six
 
 def simpleapp(environ, start_response):
     status = '200 OK'
     response_headers = [('Content-type','text/plain')]
     start_response(status, response_headers)
     request = WSGIRequest(environ)
-    return [
+    body = [
         'Hello world!\n', 'The get is %s' % str(request.GET),
         ' and Val is %s\n' % request.GET.get('name'),
         'The languages are: %s\n' % request.languages,
         'The accepttypes is: %s\n' % request.match_accept(['text/html', 'application/xml'])]
+    if six.PY3:
+        body = [line.encode('utf8')  for line in body]
+    return body
 
 def test_gets():
     app = TestApp(simpleapp)
