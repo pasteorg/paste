@@ -185,20 +185,20 @@ class InputWrapper(object):
     def read(self, *args):
         assert len(args) <= 1
         v = self.input.read(*args)
-        assert type(v) is type("")
+        assert isinstance(v, six.binary_type)
         return v
 
     def readline(self, *args):
         v = self.input.readline(*args)
-        assert type(v) is type("")
+        assert isinstance(v, six.binary_type)
         return v
 
     def readlines(self, *args):
         assert len(args) <= 1
         lines = self.input.readlines(*args)
-        assert type(lines) is type([])
+        assert isinstance(lines, list)
         for line in lines:
-            assert type(line) is type("")
+            assert isinstance(line, six.binary_type)
         return lines
 
     def __iter__(self):
@@ -217,7 +217,7 @@ class ErrorWrapper(object):
         self.errors = wsgi_errors
 
     def write(self, s):
-        assert type(s) is type("")
+        assert isinstance(s, bytes)
         self.errors.write(s)
 
     def flush(self):
@@ -236,7 +236,7 @@ class WriteWrapper(object):
         self.writer = wsgi_writer
 
     def __call__(self, s):
-        assert type(s) is type("")
+        assert isinstance(s, six.binary_type)
         self.writer(s)
 
 class PartialIteratorWrapper(object):
