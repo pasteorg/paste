@@ -78,7 +78,7 @@ class Template(object):
 
     def __init__(self, content, name=None, namespace=None):
         self.content = content
-        self._unicode = isinstance(content, unicode)
+        self._unicode = isinstance(content, six.text_type)
         self.name = name
         self._parsed = parse(content, name=name)
         if namespace is None:
@@ -227,7 +227,7 @@ class Template(object):
                 return ''
             if self._unicode:
                 try:
-                    value = unicode(value)
+                    value = six.text_type(value)
                 except UnicodeDecodeError:
                     value = str(value)
             else:
@@ -238,13 +238,13 @@ class Template(object):
             e.args = (self._add_line_info(e.args[0], pos),)
             six.reraise(exc_info[0], e, exc_info[2])
         else:
-            if self._unicode and isinstance(value, str):
+            if self._unicode and isinstance(value, six.binary_type):
                 if not self.decode_encoding:
                     raise UnicodeDecodeError(
                         'Cannot decode str value %r into unicode '
                         '(no default_encoding provided)' % value)
                 value = value.decode(self.default_encoding)
-            elif not self._unicode and isinstance(value, unicode):
+            elif not self._unicode and isinstance(value, six.text_type):
                 if not self.decode_encoding:
                     raise UnicodeEncodeError(
                         'Cannot encode unicode value %r into str '
