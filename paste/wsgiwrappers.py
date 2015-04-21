@@ -14,6 +14,7 @@ try:
 except ImportError:
     # Python 2
     from Cookie import SimpleCookie
+import six
 
 from paste.request import EnvironHeaders, get_cookie_dict, \
     parse_dict_querystring, parse_formvars
@@ -303,7 +304,7 @@ class WSGIResponse(object):
         default=dict(content_type='text/html', charset='utf-8',
                      errors='strict', headers={'Cache-Control':'no-cache'})
         )
-    def __init__(self, content='', mimetype=None, code=200):
+    def __init__(self, content=b'', mimetype=None, code=200):
         self._iter = None
         self._is_str_iter = True
 
@@ -409,7 +410,7 @@ class WSGIResponse(object):
         self.cookies[key]['max-age'] = 0
 
     def _set_content(self, content):
-        if hasattr(content, '__iter__'):
+        if not isinstance(content, (six.binary_type, six.text_type)):
             self._iter = content
             if isinstance(content, list):
                 self._is_str_iter = True

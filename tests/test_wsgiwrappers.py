@@ -4,6 +4,7 @@
 import cgi
 from paste.fixture import TestApp
 from paste.wsgiwrappers import WSGIRequest, WSGIResponse
+import six
 
 class AssertApp(object):
     def __init__(self, assertfunc):
@@ -79,23 +80,23 @@ def test_wsgirequest_charset_fileupload():
         assert isinstance(fs, cgi.FieldStorage)
         assert isinstance(fs.filename, str)
         assert fs.filename == '寿司.txt'
-        assert fs.value == 'Sushi'
+        assert fs.value == b'Sushi'
 
         request.charset = 'UTF-8'
         assert len(request.POST) == 1
         assert isinstance(request.POST.keys()[0], str)
         fs = request.POST['thefile']
         assert isinstance(fs, cgi.FieldStorage)
-        assert isinstance(fs.filename, unicode)
+        assert isinstance(fs.filename, six.text_type)
         assert fs.filename == u'寿司.txt'
-        assert fs.value == 'Sushi'
+        assert fs.value == b'Sushi'
 
         request.charset = None
-        assert fs.value == 'Sushi'
+        assert fs.value == b'Sushi'
         return []
 
     app = TestApp(handle_fileupload)
-    res = app.post('/', upload_files=[('thefile', '寿司.txt', 'Sushi')])
+    res = app.post('/', upload_files=[('thefile', '寿司.txt', b'Sushi')])
 
 def test_wsgiresponse_charset():
     response = WSGIResponse(mimetype='text/html; charset=UTF-8')
@@ -106,7 +107,7 @@ def test_wsgiresponse_charset():
     response.write('test3')
     status, headers, content = response.wsgi_response()
     for data in content:
-        assert isinstance(data, str)
+        assert isinstance(data, six.binary_type)
 
     WSGIResponse.defaults._push_object(dict(content_type='text/html',
                                             charset='iso-8859-1'))
@@ -117,7 +118,7 @@ def test_wsgiresponse_charset():
         response.write('test3')
         status, headers, content = response.wsgi_response()
         for data in content:
-            assert isinstance(data, str)
+            assert isinstance(data, six.binary_type)
     finally:
         WSGIResponse.defaults._pop_object()
 
@@ -130,7 +131,7 @@ def test_wsgiresponse_charset():
         response.write(u'test1')
         status, headers, content = response.wsgi_response()
         for data in content:
-            assert isinstance(data, unicode)
+            assert isinstance(data, six.text_type)
     finally:
         WSGIResponse.defaults._pop_object()
 
@@ -141,6 +142,6 @@ def test_wsgiresponse_charset():
         response.write(u'test1')
         status, headers, content = response.wsgi_response()
         for data in content:
-            assert isinstance(data, unicode)
+            assert isinstance(data, six.text_type)
     finally:
         WSGIResponse.defaults._pop_object()
