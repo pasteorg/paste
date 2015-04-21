@@ -187,7 +187,7 @@ def test_range():
     content = LETTERS * 5
     if six.PY3:
         content = content.encode('utf8')
-    def build(range, status=200):
+    def build(range, status=206):
         app = DataApp(content)
         return TestApp(app).get("/",headers={'Range': range}, status=status)
     _excercize_range(build,content)
@@ -204,7 +204,7 @@ def test_file_range():
     with open(tempfile, "wb") as fp:
         fp.write(content)
     try:
-        def build(range, status=200):
+        def build(range, status=206):
             app = fileapp.FileApp(tempfile)
             return TestApp(app).get("/",headers={'Range': range},
                                         status=status)
