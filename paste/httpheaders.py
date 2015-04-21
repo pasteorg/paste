@@ -590,13 +590,10 @@ def normalize_headers(response_headers, strict=True):
             continue
         response_headers[idx] = (str(head), val)
         category[str(head)] = head.sort_order
-    def compare(a, b):
-        ac = category[a[0]]
-        bc = category[b[0]]
-        if ac == bc:
-            return cmp(a[0], b[0])
-        return cmp(ac, bc)
-    response_headers.sort(compare)
+    def key_func(item):
+        value = item[0]
+        return (category[value], value)
+    response_headers.sort(key=key_func)
 
 class _DateHeader(_SingleValueHeader):
     """
@@ -975,7 +972,7 @@ class _AcceptLanguage(_MultiValueHeader):
                 if lvalue == "q":
                     q = float(rvalue)
             qs.append((lang, q))
-        qs.sort(lambda a, b: -cmp(a[1], b[1]))
+        qs.sort(key=lambda query: query[1], reverse=True)
         return [lang for (lang, q) in qs]
 _AcceptLanguage('Accept-Language', 'request', 'RFC 2616, 14.4')
 
@@ -1020,13 +1017,28 @@ class _Authorization(_SingleValueHeader):
         (token, challenge) = challenge.split(' ', 1)
         chal = parse_keqv_list(parse_http_list(challenge))
         class FakeRequest(object):
-            def get_full_url(self):
-                return path
-            def has_data(self):
-                return False
+            if six.PY3:
+                @property
+                def full_url(self):
+                    return path
+
+                selector = full_url
+
+                @property
+                def data(self):
+                    return None
+            else:
+                def get_full_url(self):
+                    return path
+
+                get_selector = get_full_url
+
+                def has_data(self):
+                    return False
+
             def get_method(self):
                 return method or "GET"
-            get_selector = get_full_url
+
         retval = "Digest %s" % auth.get_authorization(FakeRequest(), chal)
         return (retval,)
 _Authorization('Authorization', 'request', 'RFC 2617')
