@@ -8,10 +8,7 @@
 These are functions for use when doctest-testing a document.
 """
 
-try:
-    import subprocess
-except ImportError:
-    from paste.util import subprocess24 as subprocess
+import subprocess
 import doctest
 import os
 import sys
