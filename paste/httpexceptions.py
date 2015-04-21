@@ -205,9 +205,10 @@ class HTTPException(Exception):
             if self.headers:
                 for (k, v) in self.headers:
                     args[k.lower()] = escfunc(v)
-        for key, value in args.items():
-            if isinstance(value, six.text_type):
-                args[key] = value.encode('utf8', 'xmlcharrefreplace')
+        if six.PY2:
+            for key, value in args.items():
+                if isinstance(value, six.text_type):
+                    args[key] = value.encode('utf8', 'xmlcharrefreplace')
         return template % args
 
     def plain(self, environ):
