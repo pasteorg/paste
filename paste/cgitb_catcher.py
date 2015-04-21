@@ -49,6 +49,8 @@ class CgitbMiddleware(object):
                            [('content-type', 'text/html')],
                            exc_info)
             response = self.exception_handler(exc_info, environ)
+            if six.PY3:
+                response = response.encode('utf8')
             return [response]
 
     def catching_iter(self, app_iter, environ):
@@ -72,6 +74,8 @@ class CgitbMiddleware(object):
                     response += (
                         '<hr noshade>Error in .close():<br>%s'
                         % close_response)
+            if six.PY3:
+                response = response.encode('utf8')
             yield response
 
     def exception_handler(self, exc_info, environ):
