@@ -81,7 +81,8 @@ class add_start_close(object):
         if self.first:
             self.start_func()
             self.first = False
-        return self.app_iter.next()
+        return next(self.app_iter)
+    __next__ = next
 
     def close(self):
         self._closed = True
@@ -157,10 +158,11 @@ class encode_unicode_app_iter(object):
         return self
 
     def next(self):
-        content = self.app_iter.next()
-        if isinstance(content, unicode):
+        content = next(self.app_iter)
+        if isinstance(content, six.text_type):
             content = content.encode(self.encoding, self.errors)
         return content
+    __next__ = next
 
     def close(self):
         if hasattr(self.app_iterable, 'close'):
@@ -282,7 +284,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     if raise_on_wsgi_error:
         errors = ErrorRaiser()
     else:
-        errors = StringIO()
+        errors = six.BytesIO()
     basic_environ = {
         # mandatory CGI variables
         'REQUEST_METHOD': 'GET',     # always mandatory
@@ -294,7 +296,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
         # mandatory wsgi variables
         'wsgi.version': (1, 0),
         'wsgi.url_scheme': 'http',
-        'wsgi.input': StringIO(''),
+        'wsgi.input': six.BytesIO(),
         'wsgi.errors': errors,
         'wsgi.multithread': False,
         'wsgi.multiprocess': False,
@@ -315,8 +317,8 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
         and 'HTTP_HOST' not in basic_environ):
         basic_environ['HTTP_HOST'] = basic_environ['SERVER_NAME']
     istream = basic_environ['wsgi.input']
-    if isinstance(istream, str):
-        basic_environ['wsgi.input'] = StringIO(istream)
+    if isinstance(istream, bytes):
+        basic_environ['wsgi.input'] = six.BytesIO(istream)
         basic_environ['CONTENT_LENGTH'] = len(istream)
     data = {}
     output = []
@@ -343,9 +345,9 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     try:
         try:
             for s in app_iter:
-                if not isinstance(s, str):
+                if not isinstance(s, six.binary_type):
                     raise ValueError(
-                        "The app_iter response can only contain str (not "
+                        "The app_iter response can only contain bytes (not "
                         "unicode); got: %r" % s)
                 headers_sent.append(True)
                 if not headers_set:
@@ -359,7 +361,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     finally:
         if hasattr(app_iter, 'close'):
             app_iter.close()
-    return (data['status'], data['headers'], ''.join(output),
+    return (data['status'], data['headers'], b''.join(output),
             errors.getvalue())
 
 class ErrorRaiser(object):
@@ -416,6 +418,8 @@ def dump_environ(environ, start_response):
         output.append(environ['wsgi.input'].read(int(content_length)))
         output.append("\n")
     output = "".join(output)
+    if six.PY3:
+        output = output.encode('utf8')
     headers = [('Content-Type', 'text/plain'),
                ('Content-Length', str(len(output)))]
     start_response("200 OK", headers)
