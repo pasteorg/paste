@@ -61,7 +61,7 @@ class MultiDict(DictMixin):
         """
         result = []
         for k, v in self._items:
-            if key == k:
+            if type(key) == type(k) and key == k:
                 result.append(v)
         return result
 
@@ -117,7 +117,7 @@ class MultiDict(DictMixin):
         items = self._items
         found = False
         for i in range(len(items)-1, -1, -1):
-            if items[i][0] == key:
+            if type(items[i][0]) == type(key) and items[i][0] == key:
                 del items[i]
                 found = True
         if not found:
@@ -125,7 +125,7 @@ class MultiDict(DictMixin):
 
     def __contains__(self, key):
         for k, v in self._items:
-            if k == key:
+            if type(k) == type(key) and k == key:
                 return True
         return False
 
@@ -149,7 +149,7 @@ class MultiDict(DictMixin):
             raise TypeError("pop expected at most 2 arguments, got "
                               + repr(1 + len(args)))
         for i in range(len(self._items)):
-            if self._items[i][0] == key:
+            if type(self._items[i][0]) == type(key) and self._items[i][0] == key:
                 v = self._items[i][1]
                 del self._items[i]
                 return v
@@ -233,6 +233,20 @@ class UnicodeMultiDict(DictMixin):
         self.encoding = encoding
         self.errors = errors
         self.decode_keys = decode_keys
+        if self.decode_keys:
+            items = self.multi._items
+            for index, item in enumerate(items):
+                key, value = item
+                key = self._encode_key(key)
+                items[index] = (key, value)
+
+    def _encode_key(self, key):
+        if self.decode_keys:
+            try:
+                key = key.encode(self.encoding, self.errors)
+            except AttributeError:
+                pass
+        return key
 
     def _decode_key(self, key):
         if self.decode_keys:
@@ -252,9 +266,10 @@ class UnicodeMultiDict(DictMixin):
         if isinstance(value, cgi.FieldStorage):
             # decode FieldStorage's field name and filename
             value = copy.copy(value)
-            if self.decode_keys:
+            if self.decode_keys and isinstance(value.name, six.binary_type):
                 value.name = value.name.decode(self.encoding, self.errors)
-            value.filename = value.filename.decode(self.encoding, self.errors)
+            if six.PY2:
+                value.filename = value.filename.decode(self.encoding, self.errors)
         else:
             try:
                 value = value.decode(self.encoding, self.errors)
@@ -263,21 +278,25 @@ class UnicodeMultiDict(DictMixin):
         return value
 
     def __getitem__(self, key):
+        key = self._encode_key(key)
         return self._decode_value(self.multi.__getitem__(key))
 
     def __setitem__(self, key, value):
+        key = self._encode_key(key)
         self.multi.__setitem__(key, value)
 
     def add(self, key, value):
         """
         Add the key and value, not overwriting any previous value.
         """
+        key = self._encode_key(key)
         self.multi.add(key, value)
 
     def getall(self, key):
         """
         Return a list of all values matching the key (may be an empty list)
         """
+        key = self._encode_key(key)
         return [self._decode_value(v) for v in self.multi.getall(key)]
 
     def getone(self, key):
@@ -285,6 +304,7 @@ class UnicodeMultiDict(DictMixin):
         Get one value matching the key, raising a KeyError if multiple
         values were found.
         """
+        key = self._encode_key(key)
         return self._decode_value(self.multi.getone(key))
 
     def mixed(self):
@@ -316,9 +336,11 @@ class UnicodeMultiDict(DictMixin):
         return unicode_dict
 
     def __delitem__(self, key):
+        key = self._encode_key(key)
         self.multi.__delitem__(key)
 
     def __contains__(self, key):
+        key = self._encode_key(key)
         return self.multi.__contains__(key)
 
     has_key = __contains__
@@ -327,12 +349,15 @@ class UnicodeMultiDict(DictMixin):
         self.multi.clear()
 
     def copy(self):
-        return UnicodeMultiDict(self.multi.copy(), self.encoding, self.errors)
+        return UnicodeMultiDict(self.multi.copy(), self.encoding, self.errors,
+                                decode_keys=self.decode_keys)
 
     def setdefault(self, key, default=None):
+        key = self._encode_key(key)
         return self._decode_value(self.multi.setdefault(key, default))
 
     def pop(self, key, *args):
+        key = self._encode_key(key)
         return self._decode_value(self.multi.pop(key, *args))
 
     def popitem(self):

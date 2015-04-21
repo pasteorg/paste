@@ -59,15 +59,17 @@ def test_unicode_dict():
     _test_unicode_dict(decode_param_names=True)
 
 def _test_unicode_dict(decode_param_names=False):
-    d = UnicodeMultiDict(MultiDict({'a': 'a test'}))
+    d = UnicodeMultiDict(MultiDict({b'a': 'a test'}))
     d.encoding = 'utf-8'
     d.errors = 'ignore'
 
     if decode_param_names:
         key_str = six.text_type
+        k = lambda key: key
         d.decode_keys = True
     else:
-        key_str = str
+        key_str = six.binary_type
+        k = lambda key: key.encode()
 
     def assert_unicode(obj):
         assert isinstance(obj, six.text_type)
@@ -80,67 +82,67 @@ def _test_unicode_dict(decode_param_names=False):
         assert isinstance(key, key_str)
         assert isinstance(value, six.text_type)
 
-    assert d.items() == [('a', u'a test')]
+    assert d.items() == [(k('a'), u'a test')]
     map(assert_key_str, d.keys())
     map(assert_unicode, d.values())
 
-    d['b'] = '2 test'
-    d['c'] = '3 test'
-    assert d.items() == [('a', u'a test'), ('b', u'2 test'), ('c', u'3 test')]
-    map(assert_unicode_item, d.items())
+    d[b'b'] = b'2 test'
+    d[b'c'] = b'3 test'
+    assert d.items() == [(k('a'), u'a test'), (k('b'), u'2 test'), (k('c'), u'3 test')]
+    list(map(assert_unicode_item, d.items()))
 
-    d['b'] = '4 test'
-    assert d.items() == [('a', u'a test'), ('c', u'3 test'), ('b', u'4 test')]
-    map(assert_unicode_item, d.items())
+    d[k('b')] = b'4 test'
+    assert d.items() == [(k('a'), u'a test'), (k('c'), u'3 test'), (k('b'), u'4 test')], d.items()
+    list(map(assert_unicode_item, d.items()))
 
-    d.add('b', '5 test')
-    assert_raises(KeyError, d.getone, "b")
-    assert d.getall('b') == [u'4 test', u'5 test']
+    d.add(k('b'), b'5 test')
+    assert_raises(KeyError, d.getone, k("b"))
+    assert d.getall(k('b')) == [u'4 test', u'5 test']
     map(assert_unicode, d.getall('b'))
-    assert d.items() == [('a', u'a test'), ('c', u'3 test'), ('b', u'4 test'),
-                         ('b', u'5 test')]
-    map(assert_unicode_item, d.items())
+    assert d.items() == [(k('a'), u'a test'), (k('c'), u'3 test'), (k('b'), u'4 test'),
+                         (k('b'), u'5 test')]
+    list(map(assert_unicode_item, d.items()))
 
-    del d['b']
-    assert d.items() == [('a', u'a test'), ('c', u'3 test')]
-    map(assert_unicode_item, d.items())
+    del d[k('b')]
+    assert d.items() == [(k('a'), u'a test'), (k('c'), u'3 test')]
+    list(map(assert_unicode_item, d.items()))
     assert d.pop('xxx', u'5 test') == u'5 test'
     assert isinstance(d.pop('xxx', u'5 test'), six.text_type)
-    assert d.getone('a') == u'a test'
-    assert isinstance(d.getone('a'), six.text_type)
-    assert d.popitem() == ('c', u'3 test')
-    d['c'] = '3 test'
+    assert d.getone(k('a')) == u'a test'
+    assert isinstance(d.getone(k('a')), six.text_type)
+    assert d.popitem() == (k('c'), u'3 test')
+    d[k('c')] = b'3 test'
     assert_unicode_item(d.popitem())
-    assert d.items() == [('a', u'a test')]
-    map(assert_unicode_item, d.items())
+    assert d.items() == [(k('a'), u'a test')]
+    list(map(assert_unicode_item, d.items()))
 
     item = []
-    assert d.setdefault('z', item) is item
+    assert d.setdefault(k('z'), item) is item
     items = d.items()
-    assert items == [('a', u'a test'), ('z', item)]
+    assert items == [(k('a'), u'a test'), (k('z'), item)]
     assert isinstance(items[1][0], key_str)
     assert isinstance(items[1][1], list)
 
-    assert isinstance(d.setdefault('y', 'y test'), six.text_type)
-    assert isinstance(d['y'], six.text_type)
+    assert isinstance(d.setdefault(k('y'), b'y test'), six.text_type)
+    assert isinstance(d[k('y')], six.text_type)
 
-    assert d.mixed() == {u'a': u'a test', u'y': u'y test', u'z': item}
-    assert d.dict_of_lists() == {u'a': [u'a test'], u'y': [u'y test'],
-                                 u'z': [item]}
-    del d['z']
-    map(assert_unicode_item, six.iteritems(d.mixed()))
-    map(assert_unicode_item, [(k, v[0]) for \
-                                   k, v in six.iteritems(d.dict_of_lists())])
+    assert d.mixed() == {k('a'): u'a test', k('y'): u'y test', k('z'): item}
+    assert d.dict_of_lists() == {k('a'): [u'a test'], k('y'): [u'y test'],
+                                 k('z'): [item]}
+    del d[k('z')]
+    list(map(assert_unicode_item, six.iteritems(d.mixed())))
+    list(map(assert_unicode_item, [(key, value[0]) for \
+                                   key, value in six.iteritems(d.dict_of_lists())]))
 
-    assert u'a' in d
+    assert k('a') in d
     dcopy = d.copy()
     assert dcopy is not d
     assert dcopy == d
-    d['x'] = 'x test'
+    d[k('x')] = 'x test'
     assert dcopy != d
 
     d[(1, None)] = (None, 1)
-    assert d.items() == [('a', u'a test'), ('y', u'y test'), ('x', u'x test'),
+    assert d.items() == [(k('a'), u'a test'), (k('y'), u'y test'), (k('x'), u'x test'),
                          ((1, None), (None, 1))]
     item = d.items()[-1]
     assert isinstance(item[0], tuple)
@@ -150,12 +152,12 @@ def _test_unicode_dict(decode_param_names=False):
     fs.name = 'thefile'
     fs.filename = 'hello.txt'
     fs.file = StringIO('hello')
-    d['f'] = fs
-    ufs = d['f']
+    d[k('f')] = fs
+    ufs = d[k('f')]
     assert isinstance(ufs, cgi.FieldStorage)
     assert ufs is not fs
     assert ufs.name == fs.name
-    assert isinstance(ufs.name, key_str)
+    assert isinstance(ufs.name, str if six.PY3 else key_str)
     assert ufs.filename == fs.filename
     assert isinstance(ufs.filename, six.text_type)
     assert isinstance(ufs.value, str)
