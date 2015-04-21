@@ -110,7 +110,7 @@ def test_xss():
     app = TestApp(StaticURLParser(relative_path('find_file')),
                   extra_environ={'HTTP_ACCEPT': 'text/html'})
     res = app.get("/-->%0D<script>alert('xss')</script>", status=404)
-    assert '--><script>' not in res.body
+    assert b'--><script>' not in res.body
 
 def test_static_parser():
     app = StaticURLParser(path('find_file'))
@@ -118,16 +118,16 @@ def test_static_parser():
     res = testapp.get('', status=301)
     res = testapp.get('/', status=404)
     res = testapp.get('/index.txt')
-    assert res.body.strip() == 'index1'
+    assert res.body.strip() == b'index1'
     res = testapp.get('/index.txt/foo', status=404)
     res = testapp.get('/test 3.html')
-    assert res.body.strip() == 'test 3'
+    assert res.body.strip() == b'test 3'
     res = testapp.get('/test%203.html')
-    assert res.body.strip() == 'test 3'
+    assert res.body.strip() == b'test 3'
     res = testapp.get('/dir with spaces/test 4.html')
-    assert res.body.strip() == 'test 4'
+    assert res.body.strip() == b'test 4'
     res = testapp.get('/dir%20with%20spaces/test%204.html')
-    assert res.body.strip() == 'test 4'
+    assert res.body.strip() == b'test 4'
     # Ensure only data under the app's root directory is accessible
     res = testapp.get('/../secured.txt', status=404)
     res = testapp.get('/dir with spaces/../../secured.txt', status=404)
