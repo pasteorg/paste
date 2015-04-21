@@ -153,7 +153,6 @@ def test_hide_after():
                 raise_error)
         except:
             result = format(f)
-            print(strip_html(result).encode('ascii', 'replace'))
             assert 'AABB' in result
             assert 'CCDD' not in result
             assert 'raise_error' in result
