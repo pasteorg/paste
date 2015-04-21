@@ -31,7 +31,7 @@ def after_start_response_app(environ, start_response):
 
 def iter_app(environ, start_response):
     start_response("200 OK", [('Content-type', 'text/plain')])
-    return yielder(['this', ' is ', ' a', None])
+    return yielder([b'this', b' is ', b' a', None])
 
 def yielder(args):
     for arg in args:
@@ -46,7 +46,10 @@ def yielder(args):
 def test_makes_exception():
     res = do_request(bad_app)
     print(res)
-    assert 'bad_app() takes no arguments (2 given' in res
+    if six.PY3:
+        assert 'bad_app() takes 0 positional arguments but 2 were given' in res
+    else:
+        assert 'bad_app() takes no arguments (2 given' in res
     assert 'iterator = application(environ, start_response_wrapper)' in res
     assert 'lint.py' in res
     assert 'cgitb_catcher.py' in res
