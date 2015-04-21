@@ -115,10 +115,10 @@ class ForwardRequestException(Exception):
         def app(environ, start_response):
             if environ['PATH_INFO'] == '/hello':
                 start_response("200 OK", [('Content-type', 'text/plain')])
-                return ['Hello World!']
+                return [b'Hello World!']
             elif environ['PATH_INFO'] == '/error':
                 start_response("404 Not Found", [('Content-type', 'text/plain')])
-                return ['Page not found']
+                return [b'Page not found']
             else:
                 raise ForwardRequestException('/error')
 
@@ -158,10 +158,10 @@ class ForwardRequestException(Exception):
         def app(environ, start_response):
             if environ['PATH_INFO'] == '/hello':
                 start_response("200 OK", [('Content-type', 'text/plain')])
-                return ['Hello World!']
+                return [b'Hello World!']
             elif environ['PATH_INFO'] == '/error':
                 start_response("404 Not Found", [('Content-type', 'text/plain')])
-                return ['Page not found']
+                return [b'Page not found']
             else:
                 def factory(app):
                     return StatusKeeper(app, status='404 Not Found', url='/error')
