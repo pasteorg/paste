@@ -2,11 +2,11 @@
 
 import cgi
 
-print 'Content-type: text/plain'
-print
+print('Content-type: text/plain')
+print('')
 
 form = cgi.FieldStorage()
 
-print 'Filename:', form['up'].filename
-print 'Name:', form['name'].value
-print 'Content:', form['up'].file.read()
+print('Filename: %s' % form['up'].filename)
+print('Name: %s' % form['name'].value)
+print('Content: %s' % form['up'].file.read())
