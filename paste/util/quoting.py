@@ -30,18 +30,24 @@ def html_quote(v, encoding=None):
     encoding = encoding or default_encoding
     if v is None:
         return ''
-    elif isinstance(v, str):
+    elif isinstance(v, six.binary_type):
         return cgi.escape(v, 1)
     elif isinstance(v, six.text_type):
-        return cgi.escape(v.encode(encoding), 1)
+        if six.PY3:
+            return cgi.escape(v, 1)
+        else:
+            return cgi.escape(v.encode(encoding), 1)
     else:
-        return cgi.escape(six.text_type(v).encode(encoding), 1)
+        if six.PY3:
+            return cgi.escape(six.text_type(v), 1)
+        else:
+            return cgi.escape(six.text_type(v).encode(encoding), 1)
 
 _unquote_re = re.compile(r'&([a-zA-Z]+);')
 def _entity_subber(match, name2c=html_entities.name2codepoint):
     code = name2c.get(match.group(1))
     if code:
-        return unichr(code)
+        return six.unichr(code)
     else:
         return match.group(0)
 
@@ -58,7 +64,7 @@ def html_unquote(s, encoding=None):
     >>> html_unquote('\xe1\x80\xa9')
     u'\u1029'
     """
-    if isinstance(s, str):
+    if isinstance(s, six.binary_type):
         if s == '':
             # workaround re.sub('', '', u'') returning '' < 2.5.2
             # instead of u'' >= 2.5.2
