@@ -148,7 +148,10 @@ class SessionFactory(object):
             r.append(os.times())
         if for_object is not None:
             r.append(id(for_object))
-        md5_hash = md5(str(r))
+        content = str(r)
+        if six.PY3:
+            content = content.encode('utf8')
+        md5_hash = md5(content)
         try:
             return md5_hash.hexdigest()
         except AttributeError:
