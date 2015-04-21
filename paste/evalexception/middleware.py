@@ -332,7 +332,10 @@ class EvalException(object):
                 start_response('500 Internal Server Error',
                                headers,
                                exc_info)
-            environ['wsgi.errors'].write('Debug at: %s\n' % view_uri)
+            msg = 'Debug at: %s\n' % view_uri
+            if six.PY3:
+                msg = msg.encode('utf8')
+            environ['wsgi.errors'].write(msg)
 
             exc_data = collector.collect_exception(*exc_info)
             debug_info = DebugInfo(count, exc_info, exc_data, base_path,
@@ -417,6 +420,8 @@ class DebugInfo(object):
             'repost_button': repost_button or '',
             'head_html': head_html,
             'body': html}
+        if six.PY3:
+            page = page.encode('utf8')
         return [page]
 
     def eval_javascript(self):
