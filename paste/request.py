@@ -18,7 +18,6 @@ environment to solve common requirements.
 
 """
 import cgi
-from six.moves import StringIO
 from six.moves.urllib import parse as urlparse
 from six.moves.urllib.parse import quote
 try:
@@ -32,6 +31,7 @@ try:
     from UserDict import DictMixin
 except ImportError:
     from collections import MutableMapping as DictMixin
+import six
 
 from paste.util.multidict import MultiDict
 
@@ -175,7 +175,7 @@ def parse_formvars(environ, include_get_vars=True):
     old_query_string = environ.get('QUERY_STRING','')
     environ['QUERY_STRING'] = ''
     if fake_out_cgi:
-        input = StringIO('')
+        input = six.BytesIO(b'')
         old_content_type = environ.get('CONTENT_TYPE')
         old_content_length = environ.get('CONTENT_LENGTH')
         environ['CONTENT_LENGTH'] = '0'
@@ -375,6 +375,9 @@ class EnvironHeaders(DictMixin):
             return key[5:].replace('_', '-').title()
         else:
             return None
+
+    def __len__(self):
+        return len(self.environ)
 
     def __getitem__(self, item):
         return self.environ[self._trans_name(item)]
