@@ -1,8 +1,14 @@
+# Procedure to release a new version:
+# - run tests
+# - update version in setup.py (__version__)
+# - update changelog: docs/news.txt
+# - modify setup.py: set RELEASE to True
+
 # If true, then the svn revision won't be used to calculate the
 # revision (set to True for real releases)
 RELEASE = False
 
-__version__ = '1.7.5.1'
+__version__ = '1.7.6'
 
 from setuptools import setup, find_packages
 import sys, os
