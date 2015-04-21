@@ -55,7 +55,6 @@ correctly.
 """
 from datetime import timedelta, time, date
 from time import localtime
-import string
 
 __all__ = ['parse_timedelta', 'normalize_timedelta',
            'parse_time', 'normalize_time',
@@ -63,7 +62,7 @@ __all__ = ['parse_timedelta', 'normalize_timedelta',
 
 def _number(val):
     try:
-        return string.atoi(val)
+        return int(val)
     except:
         return None
 
@@ -273,7 +272,7 @@ def parse_date(val):
             else:  # 1999 Jun 23
                 mo = _month(val[1])
                 dy = c
-        elif a > 0:
+        elif a is not None and a > 0:
             yr = c
             if len(val[2]) < 4:
                 raise TypeError("four digit year required")
@@ -292,19 +291,19 @@ def parse_date(val):
     elif 2 == len(val):
         a = _number(val[0])
         b = _number(val[1])
-        if a > 999:
+        if a is not None and a > 999:
             yr = a
             dy = 1
-            if b > 0: # 1999 6
+            if b is not None and b > 0: # 1999 6
                 mo = b
             else: # 1999 Jun
                 mo = _month(val[1])
-        elif a > 0:
-            if b > 999: # 6 1999
+        elif a is not None and a > 0:
+            if b is not None and b > 999: # 6 1999
                 mo = a
                 yr = b
                 dy = 1
-            elif b > 0: # 6 23
+            elif b is not None and b > 0: # 6 23
                 mo = a
                 dy = b
             else: # 23 Jun
@@ -331,7 +330,7 @@ def parse_date(val):
                 mo = _number(val[4:6])
                 dy = _number(val[6:])
             elif len(val) in (3,4):
-                if v > 1300: # 2004
+                if v is not None and v > 1300: # 2004
                     yr = v
                     mo = 1
                     dy = 1
