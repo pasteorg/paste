@@ -11,6 +11,7 @@ from six.moves import cStringIO as StringIO
 from paste.exceptions import formatter, collector, reporter
 from paste import wsgilib
 from paste import request
+import six
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
 
@@ -151,6 +152,8 @@ class ErrorMiddleware(object):
                                exc_info)
                 # @@: it would be nice to deal with bad content types here
                 response = self.exception_handler(exc_info, environ)
+                if six.PY3:
+                    response = response.encode('utf8')
                 return [response]
             finally:
                 # clean up locals...
@@ -242,6 +245,8 @@ class CatchingIter(object):
                                [('content-type', 'text/html')],
                                exc_info)
 
+            if six.PY3:
+                response = response.encode('utf8')
             return response
     __next__ = next
 
@@ -379,8 +384,11 @@ def handle_exception(exc_info, error_stream, html=True,
         else:
             reported = True
     else:
-        error_stream.write('Error - %s: %s\n' % (
-            exc_data.exception_type, exc_data.exception_value))
+        line = ('Error - %s: %s\n'
+                % (exc_data.exception_type, exc_data.exception_value))
+        if six.PY3:
+            line = line.encode('utf8')
+        error_stream.write(line)
     if html:
         if debug_mode and simple_html_error:
             return_error = formatter.format_html(
