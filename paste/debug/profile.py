@@ -100,7 +100,7 @@ def profile_decorator(**options):
 
     """
     Profile a single function call.
-    
+
     Used around a function, like::
 
         @profile_decorator(options...)
@@ -203,14 +203,14 @@ class DecoratedProfile(object):
             # We captured an exception earlier, now we re-raise it
             six.reraise(exc_info[0], exc_info[1], exc_info[2])
         return result
-        
+
     def format_function(self, func, *args, **kw):
         args = map(repr, args)
         args.extend(
             ['%s=%r' % (k, v) for k, v in kw.items()])
         return '%s(%s)' % (func.__name__, ', '.join(args))
-            
-            
+
+
 def make_profile_middleware(
     app, global_conf,
     log_filename='profile.log.tmp',

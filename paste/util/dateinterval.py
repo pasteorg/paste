@@ -7,7 +7,7 @@ years (leap years in particular).
 
 Accepts (y)ear, (b)month, (w)eek, (d)ay, (h)our, (m)inute, (s)econd.
 
-Exports only timeEncode and timeDecode functions.  
+Exports only timeEncode and timeDecode functions.
 """
 
 import re
@@ -33,7 +33,7 @@ timeValues = {
 timeOrdered = list(timeValues.items())
 timeOrdered.sort(key=lambda x: x[1], reverse=True)
 
-    
+
 def interval_encode(seconds, include_sign=False):
     """Encodes a number of seconds (representing a time interval)
     into a form like 1h2d3s.

@@ -114,7 +114,7 @@ class PrintCatcher(filemixin.FileMixin):
             self._default.read(*args)
         else:
             catchers[name].read(*args)
-        
+
 
     def _writedefault(self, name, v):
         self._default.write(v)

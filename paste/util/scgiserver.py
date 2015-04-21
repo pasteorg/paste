@@ -42,7 +42,7 @@ class SWAP(scgi_server.SCGIHandler):
     """
     app_obj = None
     prefix = None
-    
+
     def __init__(self, *args, **kwargs):
         assert self.app_obj, "must set app_obj"
         assert self.prefix is not None, "must set prefix"
@@ -85,7 +85,7 @@ class SWAP(scgi_server.SCGIHandler):
         chunks = []
         def write(data):
             chunks.append(data)
-        
+
         def start_response(status, response_headers, exc_info=None):
             if exc_info:
                 try:
@@ -106,7 +106,7 @@ class SWAP(scgi_server.SCGIHandler):
         try:
             for data in result:
                 chunks.append(data)
-                
+
             # Before the first output, send the stored headers
             if not headers_set:
                 # Error -- the app never called start_response
@@ -115,7 +115,7 @@ class SWAP(scgi_server.SCGIHandler):
                 chunks = ["XXX start_response never called"]
             else:
                 status, response_headers = headers_sent[:] = headers_set
-                
+
             output.write('Status: %s\r\n' % status)
             for header in response_headers:
                 output.write('%s: %s\r\n' % header)

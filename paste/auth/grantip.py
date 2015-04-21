@@ -38,7 +38,7 @@ class GrantIPMiddleware(object):
         if roles and isinstance(roles, six.string_types):
             roles = roles.split(',')
         return (username, roles)
-        
+
     def __call__(self, environ, start_response):
         addr = ip4.ip2int(environ['REMOTE_ADDR'], False)
         remove_user = False
@@ -74,8 +74,8 @@ class GrantIPMiddleware(object):
             if role in cur_roles:
                 cur_roles.remove(role)
         environ['REMOTE_USER_TOKENS'] = ','.join(cur_roles)
-        
-                
+
+
 def make_grantip(app, global_conf, clobber_username=False, **kw):
     """
     Grant roles or usernames based on IP addresses.
@@ -93,7 +93,7 @@ def make_grantip(app, global_conf, clobber_username=False, **kw):
       192.168.0.7 = joe
       # And one IP is should not be logged in:
       192.168.0.10 = __remove__:-editor
-      
+
     """
     from paste.deploy.converters import asbool
     clobber_username = asbool(clobber_username)
@@ -110,5 +110,5 @@ def make_grantip(app, global_conf, clobber_username=False, **kw):
             role = ''
         ip_map[key] = value
     return GrantIPMiddleware(app, ip_map, clobber_username)
-    
-    
+
+

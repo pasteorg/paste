@@ -15,7 +15,7 @@ from paste.auth import cookie
 from paste.wsgilib import raw_interactive, dump_environ
 from paste.response import header_value
 from paste.httpexceptions import *
-        
+
 def build(application,setenv, *args, **kwargs):
     def setter(environ, start_response):
         save = environ['paste.auth.cookie'].append

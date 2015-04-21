@@ -68,7 +68,7 @@ class SessionMiddleware(object):
         if cookie_name is NoDefault:
             cookie_name = global_conf.get('session_cookie', '_SID_')
         self.cookie_name = cookie_name
-        
+
     def __call__(self, environ, start_response):
         service = flup_session.SessionService(
             self.store, environ, cookieName=self.cookie_name,
@@ -92,7 +92,7 @@ class SessionMiddleware(object):
             raise
 
         return wsgilib.add_close(app_iter, service.close)
-            
+
 def make_session_middleware(app, global_conf,
                             session_type=NoDefault,
                             cookie_name=NoDefault,

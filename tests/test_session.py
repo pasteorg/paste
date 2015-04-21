@@ -26,7 +26,7 @@ def wsgi_app(environ, start_response):
         return ['foo']
 
 wsgi_app = SessionMiddleware(wsgi_app)
-    
+
 def test_app1():
     app = TestApp(wsgi_app)
     res = app.get('/get1')
@@ -48,5 +48,5 @@ def test_app2():
     assert res.body == 'fluff'
     res = app.get('/get2')
     assert res.body == 'fluff'
-    
-    
+
+

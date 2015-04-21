@@ -196,7 +196,7 @@ class TextFormatter(AbstractFormatter):
             '%s: %s' % (self.quote(etype), self.quote(evalue)))
     def format_traceback_info(self, info):
         return info
-        
+
     def format_combine(self, data_by_importance, lines, exc_info):
         lines[:0] = [value for n, value in data_by_importance['important']]
         lines.append(exc_info)
@@ -380,7 +380,7 @@ function switch_source(el, hide_type) {
 }
 
 </script>'''
-    
+
 
 error_css = """
 <style type="text/css">
@@ -464,7 +464,7 @@ def format_html(exc_data, include_hidden_frames=False, **ops):
     <textarea style="width: 100%%" rows=10 cols=60>%s</textarea>
     </div>
     """ % (short_er, long_er, cgi.escape(text_er))
-        
+
 def format_text(exc_data, **ops):
     return TextFormatter(**ops).format_collected_data(exc_data)
 

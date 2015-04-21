@@ -368,7 +368,7 @@ def make_auth_cookie(
 
             The maximum length of the cookie that is sent (default 4k,
             which is a typical browser maximum)
-        
+
     """
     if isinstance(scanlist, six.string_types):
         scanlist = scanlist.split()

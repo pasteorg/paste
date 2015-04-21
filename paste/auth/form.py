@@ -131,7 +131,7 @@ def make_form(app, global_conf, realm, authfunc, **kw):
       use = egg:Paste#auth_form
       realm=myrealm
       authfunc=somepackage.somemodule:somefunction
-      
+
     """
     from paste.util.import_string import eval_import
     import types

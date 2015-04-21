@@ -50,4 +50,4 @@ class FileMixin(object):
         for line in lines:
             self.write(line)
 
-    
+

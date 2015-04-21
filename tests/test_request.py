@@ -21,7 +21,7 @@ def test_gets():
     res = app.get('/')
     assert 'Hello' in res
     assert "get is MultiDict([])" in res
-    
+
     res = app.get('/?name=george')
     res.mustcontain("get is MultiDict([('name', 'george')])")
     res.mustcontain("Val is george")
@@ -30,7 +30,7 @@ def test_language_parsing():
     app = TestApp(simpleapp)
     res = app.get('/')
     assert "The languages are: ['en-us']" in res
-    
+
     res = app.get('/', headers={'Accept-Language':'da, en-gb;q=0.8, en;q=0.7'})
     assert "languages are: ['da', 'en-gb', 'en', 'en-us']" in res
 
@@ -41,10 +41,10 @@ def test_mime_parsing():
     app = TestApp(simpleapp)
     res = app.get('/', headers={'Accept':'text/html'})
     assert "accepttypes is: ['text/html']" in res
-    
+
     res = app.get('/', headers={'Accept':'application/xml'})
     assert "accepttypes is: ['application/xml']" in res
-    
+
     res = app.get('/', headers={'Accept':'application/xml,*/*'})
     assert "accepttypes is: ['text/html', 'application/xml']" in res
 

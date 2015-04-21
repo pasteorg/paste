@@ -55,7 +55,7 @@ def test_process_config(request_app=test_request_config):
     assert CONFIG[test_key] == 'bar'
     assert CONFIG['process_var'] == 'foo'
     CONFIG.pop_process_config()
-    
+
     assert_raises(AttributeError, lambda: 'process_var' not in CONFIG)
     assert_raises(IndexError, CONFIG.pop_process_config)
 

@@ -11,7 +11,7 @@ def do_request(app, expect_status=500):
     res = testapp.get('', status=expect_status,
                       expect_errors=True)
     return res
-    
+
 
 ############################################################
 ## Applications that raise exceptions
@@ -69,7 +69,7 @@ def test_iter_app():
     print(res)
     assert 'None raises error' in res
     assert 'yielder' in res
-    
-                      
 
-    
+
+
+
