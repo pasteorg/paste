@@ -10,6 +10,7 @@ from nose.tools import assert_raises
 from paste.httpexceptions import *
 from paste.wsgilib import raw_interactive
 from paste.response import header_value
+import six
 
 
 def test_HTTPMove():
@@ -30,8 +31,8 @@ def test_badapp():
         start_response("200 OK",[])
         raise HTTPBadRequest("Do not do this at home.")
     newapp = HTTPExceptionHandler(badapp)
-    assert 'Bad Request' in ''.join(newapp({'HTTP_ACCEPT': 'text/html'},
-                                           (lambda a, b, c=None: None)))
+    assert b'Bad Request' in b''.join(newapp({'HTTP_ACCEPT': 'text/html'},
+                                             (lambda a, b, c=None: None)))
 
 def test_unicode():
     """ verify unicode output """
@@ -40,10 +41,10 @@ def test_unicode():
         start_response("200 OK",[])
         raise HTTPBadRequest(tstr)
     newapp = HTTPExceptionHandler(badapp)
-    assert tstr.encode("utf-8") in ''.join(newapp({'HTTP_ACCEPT':
+    assert tstr.encode("utf-8") in b''.join(newapp({'HTTP_ACCEPT':
                                          'text/html'},
                                          (lambda a, b, c=None: None)))
-    assert tstr.encode("utf-8") in ''.join(newapp({'HTTP_ACCEPT':
+    assert tstr.encode("utf-8") in b''.join(newapp({'HTTP_ACCEPT':
                                          'text/plain'},
                                          (lambda a, b, c=None: None)))
 
@@ -67,15 +68,14 @@ def test_redapp():
         raise HTTPFound("/bing/foo")
     app = HTTPExceptionHandler(redapp)
     result = list(app({'HTTP_ACCEPT': 'text/html'},saveit))
-    assert '<a href="/bing/foo">' in result[0]
+    assert b'<a href="/bing/foo">' in result[0]
     assert "302 Found" == saved[0][0]
-    assert "text/html" == header_value(saved[0][1], 'content-type')
+    if six.PY3:
+        assert "text/html; charset=utf8" == header_value(saved[0][1], 'content-type')
+    else:
+        assert "text/html" == header_value(saved[0][1], 'content-type')
     assert "/bing/foo" == header_value(saved[0][1],'location')
     result = list(app({'HTTP_ACCEPT': 'text/plain'},saveit))
-    print(result[0] == (
-        '302 Found\n'
-        'This resource was found at /bing/foo;\n'
-        'you should be redirected automatically.\n'))
     assert "text/plain; charset=utf8" == header_value(saved[1][1],'content-type')
     assert "/bing/foo" == header_value(saved[1][1],'location')
 
