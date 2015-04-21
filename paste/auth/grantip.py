@@ -62,7 +62,7 @@ class GrantIPMiddleware(object):
     def _set_roles(self, environ, roles):
         cur_roles = environ.get('REMOTE_USER_TOKENS', '').split(',')
         # Get rid of empty roles:
-        cur_roles = filter(None, cur_roles)
+        cur_roles = list(filter(None, cur_roles))
         remove_roles = []
         for role in roles:
             if role.startswith('-'):
