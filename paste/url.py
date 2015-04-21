@@ -7,6 +7,8 @@ This module implements a class for handling URLs.
 from six.moves.urllib.parse import quote, unquote, urlencode
 import cgi
 from paste import request
+import six
+
 # Imported lazily from FormEncode:
 variabledecode = None
 
@@ -139,7 +141,7 @@ class URLResource(object):
 
     def var(self, **kw):
         kw = self.coerce_vars(kw)
-        new_vars = self.vars + kw.items()
+        new_vars = self.vars + list(kw.items())
         return self.__class__(self.url, vars=new_vars,
                               attrs=self.attrs,
                               params=self.original_params)
@@ -182,7 +184,10 @@ class URLResource(object):
                             params=u.original_params)
         return u
 
-    __div__ = addpath
+    if six.PY3:
+        __truediv__ = addpath
+    else:
+        __div__ = addpath
 
     def become(self, OtherClass):
         return OtherClass(self.url, vars=self.vars,
@@ -307,7 +312,7 @@ class URL(URLResource):
         return self.addpath(*args)
 
     def _html_attrs(self):
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         attrs.insert(0, ('href', self.href))
         if self.params.get('confirm'):
             attrs.append(('onclick', 'return confirm(%s)'
@@ -357,7 +362,7 @@ class Image(URLResource):
         return self.addpath(*args)
 
     def _html_attrs(self):
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         attrs.insert(0, ('src', self.href))
         return attrs
 
@@ -396,7 +401,7 @@ class Button(URLResource):
         return self.addpath(*args)
 
     def _html_attrs(self):
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         onclick = 'location.href=%s' % js_repr(self.href)
         if self.params.get('confirm'):
             onclick = 'if (confirm(%s)) {%s}' % (
@@ -449,7 +454,7 @@ class JSPopup(URLResource):
         return ', '.join(map(js_repr, args))
 
     def _html_attrs(self):
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         onclick = ('window.open(%s); return false'
                    % self._window_args())
         attrs.insert(0, ('target', self.params['target']))
