@@ -2,6 +2,7 @@
 #
 # - run tests: run tox
 # - update version in setup.py (__version__)
+# - update tag_build in setup.cfg
 # - update changelog: docs/news.txt
 # - modify setup.py: set RELEASE to True
 # - check that "python setup.py sdist" contains all files tracked by
