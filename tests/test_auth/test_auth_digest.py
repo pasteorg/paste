@@ -4,7 +4,6 @@
 
 from paste.auth.digest import *
 from paste.wsgilib import raw_interactive
-from paste.response import header_value
 from paste.httpexceptions import *
 from paste.httpheaders import AUTHORIZATION, WWW_AUTHENTICATE, REMOTE_USER
 import os

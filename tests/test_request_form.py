@@ -1,4 +1,3 @@
-import cgi
 import six
 
 from paste.request import *
@@ -25,7 +24,7 @@ def make_post(body):
 
 def test_parsevars():
     e = make_post(b'a=1&b=2&c=3&b=4')
-    cur_input = e['wsgi.input']
+    #cur_input = e['wsgi.input']
     d = parse_formvars(e)
     assert isinstance(d, MultiDict)
     assert d == MultiDict([('a', '1'), ('b', '2'), ('c', '3'), ('b', '4')])

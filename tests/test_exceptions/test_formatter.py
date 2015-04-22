@@ -1,10 +1,8 @@
 from paste.exceptions import formatter
 from paste.exceptions import collector
-from paste.util.quoting import strip_html
 import sys
 import os
 import difflib
-import re
 
 class Mock(object):
     def __init__(self, **kw):
