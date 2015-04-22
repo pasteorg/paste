@@ -45,7 +45,7 @@ function showSomewhere() {
   var sec, el;
   if (cowbellState == 'hidden') {
     el = document.getElementById('cowbell-ascending');
-    lastCowbellPosition = [parseInt(Math.random()*(window.innerWidth-200)), 
+    lastCowbellPosition = [parseInt(Math.random()*(window.innerWidth-200)),
                            parseInt(Math.random()*(window.innerHeight-200))];
     el.style.left = lastCowbellPosition[0] + 'px';
     el.style.top = lastCowbellPosition[1] + 'px';

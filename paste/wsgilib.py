@@ -81,7 +81,8 @@ class add_start_close(object):
         if self.first:
             self.start_func()
             self.first = False
-        return self.app_iter.next()
+        return next(self.app_iter)
+    __next__ = next
 
     def close(self):
         self._closed = True
@@ -157,10 +158,11 @@ class encode_unicode_app_iter(object):
         return self
 
     def next(self):
-        content = self.app_iter.next()
-        if isinstance(content, unicode):
+        content = next(self.app_iter)
+        if isinstance(content, six.text_type):
             content = content.encode(self.encoding, self.errors)
         return content
+    __next__ = next
 
     def close(self):
         if hasattr(self.app_iterable, 'close'):
@@ -282,19 +284,19 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     if raise_on_wsgi_error:
         errors = ErrorRaiser()
     else:
-        errors = StringIO()
+        errors = six.BytesIO()
     basic_environ = {
         # mandatory CGI variables
         'REQUEST_METHOD': 'GET',     # always mandatory
         'SCRIPT_NAME': '',           # may be empty if app is at the root
         'PATH_INFO': '',             # may be empty if at root of app
         'SERVER_NAME': 'localhost',  # always mandatory
-        'SERVER_PORT': '80',         # always mandatory 
+        'SERVER_PORT': '80',         # always mandatory
         'SERVER_PROTOCOL': 'HTTP/1.0',
         # mandatory wsgi variables
         'wsgi.version': (1, 0),
         'wsgi.url_scheme': 'http',
-        'wsgi.input': StringIO(''),
+        'wsgi.input': six.BytesIO(),
         'wsgi.errors': errors,
         'wsgi.multithread': False,
         'wsgi.multiprocess': False,
@@ -315,8 +317,8 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
         and 'HTTP_HOST' not in basic_environ):
         basic_environ['HTTP_HOST'] = basic_environ['SERVER_NAME']
     istream = basic_environ['wsgi.input']
-    if isinstance(istream, str):
-        basic_environ['wsgi.input'] = StringIO(istream)
+    if isinstance(istream, bytes):
+        basic_environ['wsgi.input'] = six.BytesIO(istream)
         basic_environ['CONTENT_LENGTH'] = len(istream)
     data = {}
     output = []
@@ -343,9 +345,9 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     try:
         try:
             for s in app_iter:
-                if not isinstance(s, str):
+                if not isinstance(s, six.binary_type):
                     raise ValueError(
-                        "The app_iter response can only contain str (not "
+                        "The app_iter response can only contain bytes (not "
                         "unicode); got: %r" % s)
                 headers_sent.append(True)
                 if not headers_set:
@@ -359,7 +361,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     finally:
         if hasattr(app_iter, 'close'):
             app_iter.close()
-    return (data['status'], data['headers'], ''.join(output),
+    return (data['status'], data['headers'], b''.join(output),
             errors.getvalue())
 
 class ErrorRaiser(object):
@@ -416,6 +418,8 @@ def dump_environ(environ, start_response):
         output.append(environ['wsgi.input'].read(int(content_length)))
         output.append("\n")
     output = "".join(output)
+    if six.PY3:
+        output = output.encode('utf8')
     headers = [('Content-Type', 'text/plain'),
                ('Content-Length', str(len(output)))]
     start_response("200 OK", headers)
@@ -435,7 +439,7 @@ def capture_output(environ, start_response, application):
 
     Sends status and header, but *not* body.  Returns (status,
     headers, body).  Typically this is used like:
-    
+
     .. code-block:: python
 
         def dehtmlifying_middleware(application):
@@ -486,7 +490,7 @@ def intercept_output(environ, application, conditional=None,
     ``capture_output``)
 
     Typically this is used like:
-    
+
     .. code-block:: python
 
         def dehtmlifying_middleware(application):
@@ -508,7 +512,7 @@ def intercept_output(environ, application, conditional=None,
     ``start_response`` will be called and ``(None, None, app_iter)``
     will be returned.  You must detect that in your code and return
     the app_iter, like:
-    
+
     .. code-block:: python
 
         def dehtmlifying_middleware(application):
@@ -593,4 +597,4 @@ for _name in __all__:
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    
+

@@ -1,5 +1,4 @@
-import cgi
-from six.moves import cStringIO as StringIO
+import six
 
 from paste.request import *
 from paste.util.multidict import MultiDict
@@ -19,13 +18,13 @@ def make_post(body):
         'CONTENT_TYPE': 'application/x-www-form-urlencoded',
         'CONTENT_LENGTH': str(len(body)),
         'REQUEST_METHOD': 'POST',
-        'wsgi.input': StringIO(body),
+        'wsgi.input': six.BytesIO(body),
         }
     return e
 
 def test_parsevars():
-    e = make_post('a=1&b=2&c=3&b=4')
-    cur_input = e['wsgi.input']
+    e = make_post(b'a=1&b=2&c=3&b=4')
+    #cur_input = e['wsgi.input']
     d = parse_formvars(e)
     assert isinstance(d, MultiDict)
     assert d == MultiDict([('a', '1'), ('b', '2'), ('c', '3'), ('b', '4')])

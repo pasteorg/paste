@@ -91,20 +91,20 @@ class AuthOpenIDHandler(object):
 
         ``app``
             Your WSGI app to call
-            
+
         ``data_store_path``
             Directory to store crypto data in for use with OpenID servers.
-            
+
         ``auth_prefix``
             Location for authentication process/verification
-            
+
         ``login_redirect``
             Location to load after successful process of login
-            
+
         ``catch_401``
             If true, then any 401 responses will turn into open ID login
             requirements.
-            
+
         ``url_to_username``
             A function called like ``url_to_username(environ, url)``, which should
             return a string username.  If not given, the URL will be the username.

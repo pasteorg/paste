@@ -114,7 +114,7 @@ class PrintCatcher(filemixin.FileMixin):
             self._default.read(*args)
         else:
             catchers[name].read(*args)
-        
+
 
     def _writedefault(self, name, v):
         self._default.write(v)
@@ -237,8 +237,8 @@ def install_stdin(**kw):
         register_stdin = _stdincatcher.register
         deregister_stdin = _stdincatcher.deregister
 
-def uninstall():
-    global _stdincatcher, _oldstin, register_stdin, deregister_stdin
+def uninstall_stdin():
+    global _stdincatcher, _oldstdin, register_stdin, deregister_stdin
     if _stdincatcher:
         sys.stdin = _oldstdin
         _stdincatcher = _oldstdin = None

@@ -8,7 +8,7 @@ Example httpd.conf section for a Paste app with an ini file::
         PythonHandler paste.modpython
         PythonOption paste.ini /some/location/your/pasteconfig.ini
     </Location>
-    
+
 Or if you want to load a WSGI application under /your/homedir in the module
 ``startup`` and the WSGI app is ``app``::
 
@@ -59,22 +59,22 @@ except:
 from paste.deploy import loadapp
 
 class InputWrapper(object):
-    
+
     def __init__(self, req):
         self.req = req
-    
+
     def close(self):
         pass
-    
+
     def read(self, size=-1):
         return self.req.read(size)
-    
+
     def readline(self, size=-1):
         return self.req.readline(size)
-    
+
     def readlines(self, hint=-1):
         return self.req.readlines(hint)
-    
+
     def __iter__(self):
         line = self.readline()
         while line:
@@ -85,16 +85,16 @@ class InputWrapper(object):
 
 
 class ErrorWrapper(object):
-    
+
     def __init__(self, req):
         self.req = req
-    
+
     def flush(self):
         pass
-    
+
     def write(self, msg):
         self.req.log_error(msg)
-    
+
     def writelines(self, seq):
         self.write(''.join(seq))
 
@@ -104,12 +104,12 @@ bad_value = ("You must provide a PythonOption '%s', either 'on' or 'off', "
 
 
 class Handler(object):
-    
+
     def __init__(self, req):
         self.started = False
-        
+
         options = req.get_options()
-        
+
         # Threading and forking
         try:
             q = apache.mpm_query
@@ -123,7 +123,7 @@ class Handler(object):
                 threaded = False
             else:
                 raise ValueError(bad_value % "multithread")
-            
+
             forked = options.get('multiprocess', '').lower()
             if forked == 'on':
                 forked = True
@@ -131,9 +131,9 @@ class Handler(object):
                 forked = False
             else:
                 raise ValueError(bad_value % "multiprocess")
-        
+
         env = self.environ = dict(apache.build_cgi_env(req))
-        
+
         if 'SCRIPT_NAME' in options:
             # Override SCRIPT_NAME and PATH_INFO if requested.
             env['SCRIPT_NAME'] = options['SCRIPT_NAME']
@@ -141,7 +141,7 @@ class Handler(object):
         else:
             env['SCRIPT_NAME'] = ''
             env['PATH_INFO'] = req.uri
-        
+
         env['wsgi.input'] = InputWrapper(req)
         env['wsgi.errors'] = ErrorWrapper(req)
         env['wsgi.version'] = (1, 0)
@@ -152,9 +152,9 @@ class Handler(object):
             env['wsgi.url_scheme'] = 'http'
         env['wsgi.multithread']  = threaded
         env['wsgi.multiprocess'] = forked
-        
+
         self.request = req
-    
+
     def run(self, application):
         try:
             result = application(self.environ, self.start_response)
@@ -172,7 +172,7 @@ class Handler(object):
                 data = "A server error occurred. Please contact the administrator."
                 self.request.set_content_length(len(data))
                 self.request.write(data)
-    
+
     def start_response(self, status, headers, exc_info=None):
         if exc_info:
             try:
@@ -180,9 +180,9 @@ class Handler(object):
                     six.reraise(exc_info[0], exc_info[1], exc_info[2])
             finally:
                 exc_info = None
-        
+
         self.request.status = int(status[:3])
-        
+
         for key, val in headers:
             if key.lower() == 'content-length':
                 self.request.set_content_length(int(val))
@@ -190,9 +190,9 @@ class Handler(object):
                 self.request.content_type = val
             else:
                 self.request.headers_out.add(key, val)
-        
+
         return self.write
-    
+
     def write(self, data):
         if not self.started:
             self.started = True
@@ -214,7 +214,7 @@ def handler(req):
             module = __import__(module_name, globals(), locals(), [''])
             startup = apache.resolve_object(module, object_str)
             startup(req)
-    
+
     # Register a cleanup function if requested.
     global cleanup
     if 'wsgi.cleanup' in options and not cleanup:
@@ -230,7 +230,7 @@ def handler(req):
                 apache.register_cleanup(cleaner)
             except AttributeError:
                 req.server.register_cleanup(req, cleaner)
-    
+
     # Import the wsgi 'application' callable and pass it to Handler.run
     global wsgiapps
     appini = options.get('paste.ini')
@@ -239,15 +239,15 @@ def handler(req):
         if appini not in wsgiapps:
             wsgiapps[appini] = loadapp("config:%s" % appini)
         app = wsgiapps[appini]
-    
+
     # Import the wsgi 'application' callable and pass it to Handler.run
     appwsgi = options.get('wsgi.application')
     if appwsgi and not appini:
         modname, objname = appwsgi.split('::', 1)
         module = __import__(modname, globals(), locals(), [''])
         app = getattr(module, objname)
-    
+
     Handler(req).run(app)
-    
+
     # status was set in Handler; always return apache.OK
     return apache.OK

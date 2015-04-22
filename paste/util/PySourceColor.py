@@ -26,7 +26,7 @@ PySourceColor: color Python source code
 Features:
 
  -Three types of markup:
-    html (default) 
+    html (default)
     css/html 4.01 strict
     xhtml 1.0 strict
 
@@ -50,7 +50,7 @@ Features:
     null
     mono
     lite (default)
-    dark 
+    dark
     dark2
     idle
     viewcvs
@@ -72,7 +72,7 @@ Features:
     Defaults to NAME if not defined.
 
  Style options
- 
+
  -ALL markups support these text styles:
          b = bold
          i = italic
@@ -152,7 +152,7 @@ Example usage::
    TRIPLEDOUBLEQUOTE_R:    ('tub','#000000','#FFFFFF'),
    TRIPLEDOUBLEQUOTE_U:    ('-', '#CCAABB','#FFFAFF'),
    LINENUMBER:             ('ib-','#ff66aa','#7733FF'),]
-   TEXT:                   ('','#546634',''), 
+   TEXT:                   ('','#546634',''),
    PAGEBACKGROUND:         '#FFFAAA',
      }
  if __name__ == '__main__':
@@ -168,11 +168,11 @@ __all__ = ['ERRORTOKEN','DECORATOR_NAME', 'DECORATOR', 'ARGS', 'EXTRASPACE',
        'NAME', 'NUMBER', 'OPERATOR', 'COMMENT', 'MATH_OPERATOR',
        'DOUBLECOMMENT', 'CLASS_NAME', 'DEF_NAME', 'KEYWORD', 'BRACKETS',
        'SINGLEQUOTE','SINGLEQUOTE_R','SINGLEQUOTE_U','DOUBLEQUOTE',
-       'DOUBLEQUOTE_R', 'DOUBLEQUOTE_U', 'TRIPLESINGLEQUOTE', 'TEXT', 
+       'DOUBLEQUOTE_R', 'DOUBLEQUOTE_U', 'TRIPLESINGLEQUOTE', 'TEXT',
        'TRIPLESINGLEQUOTE_R', 'TRIPLESINGLEQUOTE_U', 'TRIPLEDOUBLEQUOTE',
        'TRIPLEDOUBLEQUOTE_R', 'TRIPLEDOUBLEQUOTE_U', 'PAGEBACKGROUND',
        'LINENUMBER', 'CODESTART', 'CODEEND', 'PY', 'TOKEN_NAMES', 'CSSHOOK',
-       'null', 'mono', 'lite', 'dark','dark2', 'pythonwin','idle', 
+       'null', 'mono', 'lite', 'dark','dark2', 'pythonwin','idle',
        'viewcvs', 'Usage', 'cli', 'str2stdout', 'path2stdout', 'Parser',
        'str2file', 'str2html', 'str2css', 'str2markup', 'path2file',
        'path2html', 'convert', 'walkdir', 'defaultColors', 'showpage',
@@ -331,7 +331,7 @@ null = {# tokentype: ('tags border_color', 'textforecolor', 'textbackcolor')
         TRIPLEDOUBLEQUOTE:      ('','#000000',''),# """TRIPLEDOUBLEQUOTE"""
         TRIPLEDOUBLEQUOTE_R:    ('','#000000',''),# r"""TRIPLEDOUBLEQUOTE"""
         TRIPLEDOUBLEQUOTE_U:    ('','#000000',''),# u"""TRIPLEDOUBLEQUOTE"""
-        TEXT:                   ('','#000000',''),# non python text 
+        TEXT:                   ('','#000000',''),# non python text
         LINENUMBER:             ('>ti#555555','#000000',''),# Linenumbers
         PAGEBACKGROUND:         '#FFFFFF'# set the page background
         }
@@ -598,7 +598,7 @@ def Usage():
          Stdout can be used without stdin if you give a file as input.
      -c, --color
          Optional-> null, mono, dark, dark2, lite, idle, pythonwin, viewcvs
-             default: dark 
+             default: dark
      -s, --show
          Optional-> Show page after creation.
              default: no show
@@ -622,19 +622,19 @@ def Usage():
              ex. --header c:/tmp/header.txt
      -F, --footer
          Opional-> add a page footer to the bottom of the output
-         -F 
+         -F
              Builtin footer (hrule,name,date)
          --footer
              You must specify a filename.
              The footer file must be valid html
              and must handle its own font colors.
-             ex. --footer c:/tmp/footer.txt  
+             ex. --footer c:/tmp/footer.txt
      -l, --linenumbers
          Optional-> default is no linenumbers
              Adds line numbers to the start of each line in the code.
     --convertpage
          Given a webpage that has code embedded in tags it will
-             convert embedded code to colorized html. 
+             convert embedded code to colorized html.
              (see pageconvert for details)
  -----------------------------------------------------------------------------
   Option usage:
@@ -674,8 +674,8 @@ def cli():
     try:
         # try to get command line args
         opts, args = getopt.getopt(sys.argv[1:],
-              "hseqtplHFi:o:c:m:h:f:",["help", "show", "quiet", 
-              "test", "external", "linenumbers", "convertpage", "profile", 
+              "hseqtplHFi:o:c:m:h:f:",["help", "show", "quiet",
+              "test", "external", "linenumbers", "convertpage", "profile",
               "input=", "output=", "color=", "markup=","header=", "footer="])
     except getopt.GetoptError:
         # on error print help information and exit:
@@ -747,7 +747,7 @@ def cli():
         if input not in [None, "-", "stdin"]:
             if os.path.isfile(input) :
                 path2stdout(input, colors=colorscheme, markup=markup,
-                            linenumbers=linenumbers, header=header, 
+                            linenumbers=linenumbers, header=header,
                             footer=footer, form=form)
             else:
                 raise PathError('File does not exists!')
@@ -762,7 +762,7 @@ def cli():
                                    footer=footer, linenumbers=linenumbers,
                                    form=form)
                     else:
-                        str2file(sys.stdin.read(), outfile=output, show=show, 
+                        str2file(sys.stdin.read(), outfile=output, show=show,
                                 markup=markup, header=header, footer=footer,
                                 linenumbers=linenumbers, form=form)
             except:
@@ -772,11 +772,11 @@ def cli():
         if os.path.exists(input):
             if convertpage:
                 # if there was at least an input given we can proceed
-                pageconvert(input, out=output, colors=colorscheme, 
+                pageconvert(input, out=output, colors=colorscheme,
                             show=show, markup=markup,linenumbers=linenumbers)
             else:
                 # if there was at least an input given we can proceed
-                convert(source=input, outdir=output, colors=colorscheme, 
+                convert(source=input, outdir=output, colors=colorscheme,
                         show=show, markup=markup, quiet=quiet, header=header,
                         footer=footer, linenumbers=linenumbers, form=form)
         else:
@@ -802,7 +802,7 @@ def _test(show=0, quiet=0):
                   markup='css', quiet=quiet)
         path2file(fi, '/tmp/lite.html', lite, show=show, quiet=quiet)
         path2file(fi, '/tmp/lite_css.html', lite, show=show,
-                  markup='css', quiet=quiet, header='', footer='', 
+                  markup='css', quiet=quiet, header='', footer='',
                   linenumbers=1)
         path2file(fi, '/tmp/lite_xhtml.html', lite, show=show,
                   markup='xhtml', quiet=quiet)
@@ -813,12 +813,12 @@ def _test(show=0, quiet=0):
         path2file(fi, '/tmp/dark2_css.html', dark2, show=show,
                   markup='css', quiet=quiet)
         path2file(fi, '/tmp/dark2_xhtml.html', dark2, show=show,
-                  markup='xhtml', quiet=quiet, header='', footer='', 
+                  markup='xhtml', quiet=quiet, header='', footer='',
                   linenumbers=1, form='external')
         path2file(fi, '/tmp/idle.html', idle, show=show, quiet=quiet)
         path2file(fi, '/tmp/idle_css.html', idle, show=show,
                   markup='css', quiet=quiet)
-        path2file(fi, '/tmp/viewcvs.html', viewcvs, show=show, 
+        path2file(fi, '/tmp/viewcvs.html', viewcvs, show=show,
                   quiet=quiet, linenumbers=1)
         path2file(fi, '/tmp/viewcvs_css.html', viewcvs, show=show,
                   markup='css', linenumbers=1, quiet=quiet)
@@ -848,10 +848,10 @@ A Møøse once bit my sister...
    ## hold still while I get the anesthetizing hammer.
    m = {'three':'1','won':'2','too':'3'}
    o = r'fishy\fishy\fishy/fish\oh/where/is\my/little\..'
-   python = uR""" 
- No realli! She was Karving her initials øn the møøse with the sharpened end  
+   python = uR"""
+ No realli! She was Karving her initials øn the møøse with the sharpened end
  of an interspace tøøthbrush given her by Svenge - her brother-in-law -an Oslo
- dentist and star of many Norwegian møvies: "The Høt Hands of an Oslo         
+ dentist and star of many Norwegian møvies: "The Høt Hands of an Oslo
  Dentist", "Fillings of Passion", "The Huge Mølars of Horst Nordfink"..."""
    RU"""142 MEXICAN WHOOPING LLAMAS"""#<-Can you fit 142 llamas in a red box?
    n = u' HERMSGERVØRDENBRØTBØRDA ' + """ YUTTE """
@@ -900,11 +900,11 @@ def path2stdout(sourcepath, title='', colors=None, markup='html',
        colors=null,mono,lite,dark,dark2,idle,or pythonwin
     """
     sourcestring = open(sourcepath).read()
-    Parser(sourcestring, colors=colors, title=sourcepath, 
+    Parser(sourcestring, colors=colors, title=sourcepath,
            markup=markup, header=header, footer=footer,
            linenumbers=linenumbers).format(form)
 
-def str2html(sourcestring, colors=None, title='', 
+def str2html(sourcestring, colors=None, title='',
                markup='html', header=None, footer=None,
                linenumbers=0, form=None):
     """Converts a code(string) to colorized HTML. Returns an HTML string.
@@ -918,12 +918,12 @@ def str2html(sourcestring, colors=None, title='',
            linenumbers=linenumbers).format(form)
     stringIO.seek(0)
     return stringIO.read()
-  
+
 def str2css(sourcestring, colors=None, title='',
-              markup='css', header=None, footer=None,  
+              markup='css', header=None, footer=None,
               linenumbers=0, form=None):
     """Converts a code string to colorized CSS/HTML. Returns CSS/HTML string
-       
+
        If form != None then this will return (stylesheet_str, code_str)
        colors=null,mono,lite,dark,dark2,idle,or pythonwin
     """
@@ -942,20 +942,20 @@ def str2css(sourcestring, colors=None, title='',
         return None, stringIO.read()
 
 def str2markup(sourcestring, colors=None, title = '',
-               markup='xhtml', header=None, footer=None, 
+               markup='xhtml', header=None, footer=None,
               linenumbers=0, form=None):
     """ Convert code strings into ([stylesheet or None], colorized string) """
     if markup.lower() == 'html':
         return None, str2html(sourcestring, colors=colors, title=title,
-                   header=header, footer=footer, markup=markup, 
+                   header=header, footer=footer, markup=markup,
                    linenumbers=linenumbers, form=form)
     else:
         return str2css(sourcestring, colors=colors, title=title,
-                   header=header, footer=footer, markup=markup, 
+                   header=header, footer=footer, markup=markup,
                    linenumbers=linenumbers, form=form)
 
-def str2file(sourcestring, outfile, colors=None, title='', 
-               markup='html', header=None, footer=None, 
+def str2file(sourcestring, outfile, colors=None, title='',
+               markup='html', header=None, footer=None,
                linenumbers=0, show=0, dosheet=1, form=None):
     """Converts a code string to a file.
 
@@ -969,7 +969,7 @@ def str2file(sourcestring, outfile, colors=None, title='',
     f.writelines(html)
     f.close()
     #write css
-    if css != None and dosheet: 
+    if css != None and dosheet:
         dir = os.path.dirname(outfile)
         outcss = os.path.join(dir,'pystyle.css')
         f = open(outcss,'wt')
@@ -1006,7 +1006,7 @@ def convert(source, outdir=None, colors=None,
     if not os.path.isdir(source):
         if os.path.isfile(source):
             count+=1
-            path2file(source, outdir, colors, show, markup, 
+            path2file(source, outdir, colors, show, markup,
                      quiet, form, header, footer, linenumbers, count)
         else:
             raise PathError('File does not exist!')
@@ -1070,7 +1070,7 @@ def path2file(sourcePath, out=None, colors=None, show=0,
         showpage(htmlPath)
     return htmlPath
 
-def tagreplace(sourcestr, colors=lite, markup='xhtml', 
+def tagreplace(sourcestr, colors=lite, markup='xhtml',
                linenumbers=0, dosheet=1, tagstart='<PY>'.lower(),
                tagend='</PY>'.lower(), stylesheet='pystyle.css'):
     """This is a helper function for pageconvert. Returns css, page.
@@ -1089,7 +1089,7 @@ def tagreplace(sourcestr, colors=lite, markup='xhtml',
                dataend = sourcestr.find(tagend)
                data = sourcestr[datastart+len(tagstart):dataend]
                data = unescape(data)
-               css , data = str2markup(data, colors=colors, 
+               css , data = str2markup(data, colors=colors,
                          linenumbers=linenumbers, markup=markup, form='embed')
                start = sourcestr[:datastart]
                end = sourcestr[dataend+len(tagend):]
@@ -1099,7 +1099,7 @@ def tagreplace(sourcestr, colors=lite, markup='xhtml',
     if not dosheet:
         css = None
     return css, sourcestr
-    
+
 def pageconvert(path, out=None, colors=lite, markup='xhtml', linenumbers=0,
                   dosheet=1, tagstart='<PY>'.lower(), tagend='</PY>'.lower(),
                   stylesheet='pystyle', show=1, returnstr=0):
@@ -1110,7 +1110,7 @@ def pageconvert(path, out=None, colors=lite, markup='xhtml', linenumbers=0,
     if out == None:
         out = os.path.dirname(path)
     infile = open(path, 'r').read()
-    css,page  = tagreplace(sourcestr=infile,colors=colors, 
+    css,page  = tagreplace(sourcestr=infile,colors=colors,
                    markup=markup, linenumbers=linenumbers, dosheet=dosheet,
                    tagstart=tagstart, tagend=tagend, stylesheet=stylesheet)
     if not returnstr:
@@ -1276,10 +1276,10 @@ class Parser(object):
         newlines = []
         lines = self.raw.splitlines(0)
         for l in lines:
-             # span and div escape for customizing and embedding raw text 
+             # span and div escape for customizing and embedding raw text
              if (l.startswith('#$#')
                   or l.startswith('#%#')
-                  or l.startswith('#@#')):   
+                  or l.startswith('#@#')):
                 newlines.append(l)
              else:
                 # kludge for line spans in css,xhtml
@@ -1299,7 +1299,7 @@ class Parser(object):
         # Wrap text in a filelike object
         self.pos = 0
         text = StringIO.StringIO(self.raw)
-        
+
         # Markup start
         if self.addEnds:
             self._doPageStart()
@@ -1393,12 +1393,12 @@ class Parser(object):
                 # Brackets
                 if self.doBrackets and toktext in ['[',']','(',')','{','}']:
                     toktype = BRACKETS
-                # Math operators 
+                # Math operators
                 elif self.doMathOps and toktext in ['*=','**=','-=','+=','|=',
                                                       '%=','>>=','<<=','=','^=',
                                                       '/=', '+','-','**','*','/','%']:
                     toktype = MATH_OPERATOR
-                # Operator 
+                # Operator
                 else:
                     toktype = OPERATOR
                     # example how flags should work.
@@ -1415,14 +1415,14 @@ class Parser(object):
             # the class / def name and arguments can be identified
             if toktext in ['class', 'def']:
                 if toktext =='class' and \
-                         not line[:line.find('class')].endswith('.'): 
+                         not line[:line.find('class')].endswith('.'):
                     self.classFlag = self.argFlag = 1
                 elif toktext == 'def' and \
                          not line[:line.find('def')].endswith('.'):
                     self.defFlag = self.argFlag = 1
                 else:
                     # must have used a keyword as a name i.e. self.class
-                    toktype = ERRORTOKEN 
+                    toktype = ERRORTOKEN
 
         # Look for class, def, decorator name
         elif (self.classFlag or self.defFlag or self.decoratorFlag) \
@@ -1477,7 +1477,7 @@ class Parser(object):
             # test for invalid string declaration
             if self.lasttext.lower() == 'ru':
                 toktype = ERRORTOKEN
-           
+
         # Look for comments
         elif toktype == COMMENT:
             if toktext[:2] == "##":
@@ -1508,10 +1508,10 @@ class Parser(object):
                     if splitpoint != -1:
                         urlparts = url.split(',',1)
                         toktext = '%s<a href="%s">%s</a>%s'%(
-                                   before,urlparts[0],urlparts[1].lstrip(),after) 
+                                   before,urlparts[0],urlparts[1].lstrip(),after)
                     else:
-                        toktext = '%s<a href="%s">%s</a>%s'%(before,url,url,after) 
-                        
+                        toktext = '%s<a href="%s">%s</a>%s'%(before,url,url,after)
+
         # Seperate errors from decorators
         elif toktype == ERRORTOKEN:
             # Bug fix for < py2.4
@@ -1530,7 +1530,7 @@ class Parser(object):
                 if self.skip:
                     self.skip=0
                     return
-                else:           
+                else:
                     self.out.write(toktext)
                     return
             # trap decorators < py2.4
@@ -1565,7 +1565,7 @@ class Parser(object):
 
         # Last token text history
         self.lasttext = toktext
-        
+
         # escape all but the urls in the comments
         if toktype in (DOUBLECOMMENT, COMMENT):
             if toktext.find('<a href=') == -1:
@@ -1597,7 +1597,7 @@ class Parser(object):
 
     ######################################################## markup selectors
 
-    def _getFile(self, filepath): 
+    def _getFile(self, filepath):
         try:
             _file = open(filepath,'r')
             content = _file.read()
@@ -1712,7 +1712,7 @@ content="text/html;charset=iso-8859-1">\n')
 
     def _sendHTMLText(self, toktype, toktext):
         numberlinks = self.numberlinks
-        
+
         # If it is an error, set a red box around the bad tokens
         # older browsers should ignore it
         if toktype == ERRORTOKEN:
@@ -1722,11 +1722,11 @@ content="text/html;charset=iso-8859-1">\n')
         # Get styles
         starttag, endtag, color = self._getHTMLStyles(toktype, toktext)
         # This is a hack to 'fix' multi-line  strings.
-        # Multi-line strings are treated as only one token 
+        # Multi-line strings are treated as only one token
         # even though they can be several physical lines.
         # That makes it hard to spot the start of a line,
         # because at this level all we know about are tokens.
-        
+
         if toktext.count(self.LINENUMHOLDER):
             # rip apart the string and separate it by line.
             # count lines and change all linenum token to line numbers.
@@ -1735,7 +1735,7 @@ content="text/html;charset=iso-8859-1">\n')
             # then starting another font tag exactly like the first one.
             if toktype == LINENUMBER:
                 splittext = toktext.split(self.LINENUMHOLDER)
-            else:    
+            else:
                 splittext = toktext.split(self.LINENUMHOLDER+' ')
             store = []
             store.append(splittext.pop(0))
@@ -1810,7 +1810,7 @@ content="text/html;charset=iso-8859-1">\n')
             # get the border color if specified
             # the border color will be appended to
             # the list after we define a border
-            if '#' in tags:# border color 
+            if '#' in tags:# border color
                 start = tags.find('#')
                 end = start + 7
                 bordercolor = tags[start:end]
@@ -1819,7 +1819,7 @@ content="text/html;charset=iso-8859-1">\n')
             if 'b' in tags:# Bold
                 style.append('font-weight:bold;')
             else:
-                style.append('font-weight:normal;')    
+                style.append('font-weight:normal;')
             if 'i' in tags:# Italic
                 style.append('font-style:italic;')
             if 'u' in tags:# Underline
@@ -1848,7 +1848,7 @@ content="text/html;charset=iso-8859-1">\n')
                 border='dotted'
             elif '-' in tags:# dashed border
                 border='dashed'
-            elif 's' in tags:# solid border 
+            elif 's' in tags:# solid border
                 border='solid'
             # border type check
             seperate_sides=0
@@ -1870,11 +1870,11 @@ content="text/html;charset=iso-8859-1">\n')
                 if '^' in tags:# top border
                     style.append('border-top:%s %s;'%(border,size))
         else:
-            style.append('font-weight:normal;')# css inherited style fix    
+            style.append('font-weight:normal;')# css inherited style fix
         # we have to define our borders before we set colors
         if bordercolor:
             style.append('border-color:%s;'%bordercolor)
-        # text forecolor  
+        # text forecolor
         style.append('color:%s;'% forecolor)
         # text backcolor
         if backcolor:
@@ -1893,12 +1893,12 @@ content="text/html;charset=iso-8859-1">\n')
         for key in MARKUPDICT:
             styles.append('.%s { %s }\n'%self._getCSSStyle(key))
         # If you want to style the pre tag you must modify the color dict.
-        #  Example: 
-        #  lite[PY] = .py {border: solid thin #000000;background:#555555}\n''' 
+        #  Example:
+        #  lite[PY] = .py {border: solid thin #000000;background:#555555}\n'''
         styles.append(self.colors.get(PY, '.py { }\n'))
         # Extra css can be added here
         # add CSSHOOK to the color dict if you need it.
-        # Example: 
+        # Example:
         #lite[CSSHOOK] = """.mytag { border: solid thin #000000; } \n
         #                   .myothertag { font-weight:bold; )\n"""
         styles.append(self.colors.get(CSSHOOK,''))
@@ -1932,7 +1932,7 @@ href="pystyle.css" type="text/css">')
 
     def _sendCSSText(self, toktype, toktext):
         # This is a hack to 'fix' multi-line strings.
-        # Multi-line strings are treated as only one token 
+        # Multi-line strings are treated as only one token
         # even though they can be several physical lines.
         # That makes it hard to spot the start of a line,
         # because at this level all we know about are tokens.
@@ -1951,7 +1951,7 @@ href="pystyle.css" type="text/css">')
             lstartspan = '<span class="%s">'%(newmarkup)
             if toktype == LINENUMBER:
                 splittext = toktext.split(self.LINENUMHOLDER)
-            else:    
+            else:
                 splittext = toktext.split(self.LINENUMHOLDER+' ')
             store = []
             # we have already seen the first linenumber token
@@ -2001,7 +2001,7 @@ href="pystyle.css" type="text/css">')
             if toktype == TEXT and self.textFlag == 'DIV':
                 startspan = '<div class="%s">'%(markupclass)
                 endspan = '</div>'
-            elif toktype == TEXT and self.textFlag == 'RAW': 
+            elif toktype == TEXT and self.textFlag == 'RAW':
                 startspan,endspan = ('','')
             else:
                 startspan = '<span class="%s">'%(markupclass)
@@ -2039,7 +2039,7 @@ href="pystyle.css" type="text/css">')
 
     def _doXHTMLStart(self):
         # XHTML is really just XML + HTML 4.01.
-        # We only need to change the page headers, 
+        # We only need to change the page headers,
         # and a few tags to get valid XHTML.
         # Start of xhtml page
         self.out.write('<?xml version="1.0"?>\n \

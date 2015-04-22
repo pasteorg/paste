@@ -11,6 +11,7 @@ from six.moves import cStringIO as StringIO
 from paste.exceptions import formatter, collector, reporter
 from paste import wsgilib
 from paste import request
+import six
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
 
@@ -23,7 +24,7 @@ class ErrorMiddleware(object):
 
     """
     Error handling middleware
-    
+
     Usage::
 
         error_catching_wsgi_app = ErrorMiddleware(wsgi_app)
@@ -34,14 +35,14 @@ class ErrorMiddleware(object):
           If true, then tracebacks will be shown in the browser.
 
       ``error_email``:
-          an email address (or list of addresses) to send exception 
+          an email address (or list of addresses) to send exception
           reports to
 
       ``error_log``:
           a filename to append tracebacks to
 
       ``show_exceptions_in_wsgi_errors``:
-          If true, then errors will be printed to ``wsgi.errors`` 
+          If true, then errors will be printed to ``wsgi.errors``
           (frequently a server error log, or stderr).
 
       ``from_address``, ``smtp_server``, ``error_subject_prefix``, ``smtp_username``, ``smtp_password``, ``smtp_use_tls``:
@@ -57,7 +58,7 @@ class ErrorMiddleware(object):
           HTML page.
 
     Environment Configuration:
-    
+
       ``paste.throw_errors``:
           If this setting in the request environment is true, then this
           middleware is disabled. This can be useful in a testing situation
@@ -65,10 +66,10 @@ class ErrorMiddleware(object):
 
       ``paste.expected_exceptions``:
           When this middleware encounters an exception listed in this
-          environment variable and when the ``start_response`` has not 
+          environment variable and when the ``start_response`` has not
           yet occurred, the exception will be re-raised instead of being
-          caught.  This should generally be set by middleware that may 
-          (but probably shouldn't be) installed above this middleware, 
+          caught.  This should generally be set by middleware that may
+          (but probably shouldn't be) installed above this middleware,
           and wants to get certain exceptions.  Exceptions raised after
           ``start_response`` have been called are always caught since
           by definition they are no longer expected.
@@ -123,7 +124,7 @@ class ErrorMiddleware(object):
         if xmlhttp_key is None:
             xmlhttp_key = global_conf.get('xmlhttp_key', '_')
         self.xmlhttp_key = xmlhttp_key
-            
+
     def __call__(self, environ, start_response):
         """
         The WSGI application interface.
@@ -151,6 +152,8 @@ class ErrorMiddleware(object):
                                exc_info)
                 # @@: it would be nice to deal with bad content types here
                 response = self.exception_handler(exc_info, environ)
+                if six.PY3:
+                    response = response.encode('utf8')
                 return [response]
             finally:
                 # clean up locals...
@@ -165,7 +168,7 @@ class ErrorMiddleware(object):
     def exception_handler(self, exc_info, environ):
         simple_html_error = False
         if self.xmlhttp_key:
-            get_vars = wsgilib.parse_querystring(environ)
+            get_vars = request.parse_querystring(environ)
             if dict(get_vars).get(self.xmlhttp_key):
                 simple_html_error = True
         return handle_exception(
@@ -242,6 +245,8 @@ class CatchingIter(object):
                                [('content-type', 'text/html')],
                                exc_info)
 
+            if six.PY3:
+                response = response.encode('utf8')
             return response
     __next__ = next
 
@@ -313,7 +318,7 @@ class Supplement(object):
         (1, 0, 1): 'CGI',
         (1, 1, 1): 'Multi thread/process CGI (?)',
         }
-    
+
 def handle_exception(exc_info, error_stream, html=True,
                      debug_mode=False,
                      error_email=None,
@@ -321,8 +326,8 @@ def handle_exception(exc_info, error_stream, html=True,
                      show_exceptions_in_wsgi_errors=False,
                      error_email_from='errors@localhost',
                      smtp_server='localhost',
-                     smtp_username=None, 
-                     smtp_password=None, 
+                     smtp_username=None,
+                     smtp_password=None,
                      smtp_use_tls=False,
                      error_subject_prefix='',
                      error_message=None,
@@ -379,8 +384,11 @@ def handle_exception(exc_info, error_stream, html=True,
         else:
             reported = True
     else:
-        error_stream.write('Error - %s: %s\n' % (
-            exc_data.exception_type, exc_data.exception_value))
+        line = ('Error - %s: %s\n'
+                % (exc_data.exception_type, exc_data.exception_value))
+        if six.PY3:
+            line = line.encode('utf8')
+        error_stream.write(line)
     if html:
         if debug_mode and simple_html_error:
             return_error = formatter.format_html(

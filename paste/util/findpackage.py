@@ -23,4 +23,4 @@ def find_package(dir):
             raise ValueError(
                 "%s is not under any path found in sys.path" % orig_dir)
         last_dir = dir
-    
+

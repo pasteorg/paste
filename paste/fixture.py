@@ -211,7 +211,7 @@ class TestApp(object):
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
 
-    def _gen_request(self, method, url, params='', headers=None, extra_environ=None,
+    def _gen_request(self, method, url, params=b'', headers=None, extra_environ=None,
              status=None, upload_files=None, expect_errors=False):
         """
         Do a generic request.
@@ -227,6 +227,8 @@ class TestApp(object):
         if hasattr(params, 'items'):
             # Some other multi-dict like format
             params = urlencode(params.items())
+            if six.PY3:
+                params = params.encode('utf8')
         if upload_files:
             params = cgi.parse_qsl(params, keep_blank_values=True)
             content_type, params = self.encode_multipart(
@@ -240,13 +242,13 @@ class TestApp(object):
             environ['QUERY_STRING'] = ''
         environ['CONTENT_LENGTH'] = str(len(params))
         environ['REQUEST_METHOD'] = method
-        environ['wsgi.input'] = StringIO(params)
+        environ['wsgi.input'] = six.BytesIO(params)
         self._set_headers(headers, environ)
         environ.update(extra_environ)
         req = TestRequest(url, environ, expect_errors)
         return self.do_request(req, status=status)
 
-    def post(self, url, params='', headers=None, extra_environ=None,
+    def post(self, url, params=b'', headers=None, extra_environ=None,
              status=None, upload_files=None, expect_errors=False):
         """
         Do a POST request.  Very like the ``.get()`` method.
@@ -265,7 +267,7 @@ class TestApp(object):
                                  upload_files=upload_files,
                                  expect_errors=expect_errors)
 
-    def put(self, url, params='', headers=None, extra_environ=None,
+    def put(self, url, params=b'', headers=None, extra_environ=None,
              status=None, upload_files=None, expect_errors=False):
         """
         Do a PUT request.  Very like the ``.get()`` method.
@@ -284,7 +286,7 @@ class TestApp(object):
                                  upload_files=upload_files,
                                  expect_errors=expect_errors)
 
-    def delete(self, url, params='', headers=None, extra_environ=None,
+    def delete(self, url, params=b'', headers=None, extra_environ=None,
                status=None, expect_errors=False):
         """
         Do a DELETE request.  Very like the ``.get()`` method.
@@ -322,26 +324,41 @@ class TestApp(object):
         typical POST body, returning the (content_type, body).
         """
         boundary = '----------a_BoUnDaRy%s$' % random.random()
+        content_type = 'multipart/form-data; boundary=%s' % boundary
+        if six.PY3:
+            boundary = boundary.encode('ascii')
+
         lines = []
         for key, value in params:
-            lines.append('--'+boundary)
-            lines.append('Content-Disposition: form-data; name="%s"' % key)
-            lines.append('')
-            lines.append(value)
+            lines.append(b'--'+boundary)
+            line = 'Content-Disposition: form-data; name="%s"' % key
+            if six.PY3:
+                line = line.encode('utf8')
+            lines.append(line)
+            lines.append(b'')
+            line = value
+            if six.PY3 and isinstance(line, six.text_type):
+                line = line.encode('utf8')
+            lines.append(line)
         for file_info in files:
             key, filename, value = self._get_file_info(file_info)
-            lines.append('--'+boundary)
-            lines.append('Content-Disposition: form-data; name="%s"; filename="%s"'
+            lines.append(b'--'+boundary)
+            line = ('Content-Disposition: form-data; name="%s"; filename="%s"'
                          % (key, filename))
+            if six.PY3:
+                line = line.encode('utf8')
+            lines.append(line)
             fcontent = mimetypes.guess_type(filename)[0]
-            lines.append('Content-Type: %s' %
-                         fcontent or 'application/octet-stream')
-            lines.append('')
+            line = ('Content-Type: %s'
+                    % (fcontent or 'application/octet-stream'))
+            if six.PY3:
+                line = line.encode('utf8')
+            lines.append(line)
+            lines.append(b'')
             lines.append(value)
-        lines.append('--' + boundary + '--')
-        lines.append('')
-        body = '\r\n'.join(lines)
-        content_type = 'multipart/form-data; boundary=%s' % boundary
+        lines.append(b'--' + boundary + b'--')
+        lines.append(b'')
+        body = b'\r\n'.join(lines)
         return content_type, body
 
     def _get_file_info(self, file_info):
@@ -437,10 +454,13 @@ class TestApp(object):
         if status is None:
             if res.status >= 200 and res.status < 400:
                 return
+            body = res.body
+            if six.PY3:
+                body = body.decode('utf8', 'xmlcharrefreplace')
             raise AppError(
                 "Bad response: %s (not 200 OK or 3xx redirect for %s)\n%s"
                 % (res.full_status, res.request.url,
-                   res.body))
+                   body))
         if status != res.status:
             raise AppError(
                 "Bad response: %s (not %s)" % (res.full_status, status))
@@ -776,12 +796,12 @@ class TestResponse(object):
             method = self.test_app.post
         return method(href, **args)
 
-    _normal_body_regex = re.compile(r'[ \n\r\t]+')
+    _normal_body_regex = re.compile(br'[ \n\r\t]+')
 
     def normal_body__get(self):
         if self._normal_body is None:
             self._normal_body = self._normal_body_regex.sub(
-                ' ', self.body)
+                b' ', self.body)
         return self._normal_body
 
     normal_body = property(normal_body__get,
@@ -836,11 +856,17 @@ class TestResponse(object):
                     "Body contains string %r" % s)
 
     def __repr__(self):
-        return '<Response %s %r>' % (self.full_status, self.body[:20])
+        body = self.body
+        if six.PY3:
+            body = body.decode('utf8', 'xmlcharrefreplace')
+        body = body[:20]
+        return '<Response %s %r>' % (self.full_status, body)
 
     def __str__(self):
-        simple_body = '\n'.join([l for l in self.body.splitlines()
+        simple_body = b'\n'.join([l for l in self.body.splitlines()
                                  if l.strip()])
+        if six.PY3:
+            simple_body = simple_body.decode('utf8', 'xmlcharrefreplace')
         return 'Response: %s\n%s\n%s' % (
             self.status,
             '\n'.join(['%s: %s' % (n, v) for n, v in self.headers]),

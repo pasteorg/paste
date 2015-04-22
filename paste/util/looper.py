@@ -7,7 +7,7 @@ These can be awkward to manage in a normal Python loop, but using the
 looper you can get a better sense of the context.  Use like::
 
     >>> for loop, item in looper(['a', 'b', 'c']):
-    ...     print(loop.number, item)
+    ...     print("%s %s" % (loop.number, item))
     ...     if not loop.last:
     ...         print('---')
     1 a
@@ -26,9 +26,9 @@ import six
 class looper(object):
     """
     Helper for looping (particularly in templates)
-    
+
     Use this like::
-    
+
         for loop, item in looper(seq):
             if loop.first:
                 ...
@@ -59,6 +59,7 @@ class looper_iter(object):
         result = loop_pos(self.seq, self.pos), self.seq[self.pos]
         self.pos += 1
         return result
+    __next__ = next
 
 class loop_pos(object):
 
@@ -68,7 +69,7 @@ class loop_pos(object):
 
     def __repr__(self):
         return '<loop pos=%r at %r>' % (
-            self.seq[pos], pos)
+            self.seq[self.pos], self.pos)
 
     def index(self):
         return self.pos
@@ -152,4 +153,4 @@ class loop_pos(object):
             return getter(item) != getter(other)
         else:
             return item[getter] != other[getter]
-    
+

@@ -132,7 +132,7 @@ class PrintDebugMiddleware(object):
     _body_re = re.compile(r'<body[^>]*>', re.I)
     _explicit_re = re.compile(r'<pre\s*[^>]*id="paste-debug-prints".*?>',
                               re.I+re.S)
-    
+
     def add_log(self, html, log):
         if not log:
             return html

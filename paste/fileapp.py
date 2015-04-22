@@ -122,7 +122,7 @@ class DataApp(object):
                         for head in list_headers(entity=True):
                             head.delete(headers)
                         start_response('304 Not Modified', headers)
-                        return ['']
+                        return [b'']
         except HTTPBadRequest as exce:
             return exce.wsgi_application(environ, start_response)
 
@@ -133,12 +133,13 @@ class DataApp(object):
         if not client_etags:
             try:
                 client_clock = IF_MODIFIED_SINCE.parse(environ)
-                if client_clock >= int(self.last_modified):
+                if (client_clock is not None
+                    and client_clock >= int(self.last_modified)):
                     # horribly inefficient, n^2 performance, yuck!
                     for head in list_headers(entity=True):
                         head.delete(headers)
                     start_response('304 Not Modified', headers)
-                    return [''] # empty body
+                    return [b''] # empty body
             except HTTPBadRequest as exce:
                 return exce.wsgi_application(environ, start_response)
 
@@ -224,11 +225,11 @@ class FileApp(DataApp):
         if isinstance(retval, list):
             # cached content, exception, or not-modified
             if is_head:
-                return ['']
+                return [b'']
             return retval
         (lower, content_length) = retval
         if is_head:
-            return ['']
+            return [b'']
         file.seek(lower)
         file_wrapper = environ.get('wsgi.file_wrapper', None)
         if file_wrapper:
@@ -256,6 +257,7 @@ class _FileIter(object):
         if not data:
             raise StopIteration
         return data
+    __next__ = next
 
     def close(self):
         self.file.close()

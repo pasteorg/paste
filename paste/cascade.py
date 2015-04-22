@@ -15,7 +15,7 @@ __all__ = ['Cascade']
 def make_cascade(loader, global_conf, catch='404', **local_conf):
     """
     Entry point for Paste Deploy configuration
-    
+
     Expects configuration like::
 
         [composit:cascade]
@@ -39,7 +39,7 @@ def make_cascade(loader, global_conf, catch='404', **local_conf):
     apps.sort()
     apps = [app for name, app in apps]
     return Cascade(apps, catch=catch)
-    
+
 class Cascade(object):
 
     """
@@ -70,7 +70,7 @@ class Cascade(object):
             self.catch_codes[code] = exc
             self.catch_exceptions.append(exc)
         self.catch_exceptions = tuple(self.catch_exceptions)
-                
+
     def __call__(self, environ, start_response):
         """
         WSGI application interface

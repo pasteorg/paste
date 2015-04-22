@@ -17,12 +17,8 @@ try:
     # Python 3
     import collections.UserDict as IterableUserDict
 except ImportError:
-    try:
-        # Python 2.5-2.7
-        from UserDict import IterableUserDict
-    except ImportError:
-        # Python <= 2.4
-        from paste.util.UserDict24 import IterableUserDict
+    # Python 2.5-2.7
+    from UserDict import IterableUserDict
 import operator
 import re
 
@@ -129,13 +125,6 @@ class Snapshot(IterableUserDict):
         for pat in self.ignore_wildcards:
             if fnmatch(fn, pat):
                 return True
-        return False
-
-    def _ignore_file(self, fn):
-        if fn in self.ignore_paths:
-            return True
-        if self.ignore_hidden and os.path.basename(fn).startswith('.'):
-            return True
         return False
 
     def _find_traverse(self, path, result):
@@ -298,7 +287,7 @@ class Dir(File):
             "Directory %r doesn't have content" % self)
 
     bytes = property(bytes__get)
-    
+
 
 def _space_prefix(pref, full, sep=None, indent=None, include_sep=True):
     """

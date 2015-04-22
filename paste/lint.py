@@ -133,7 +133,7 @@ def middleware(application, global_conf=None):
     will be printed to stderr -- there's no way to throw an exception
     at that point).
     """
-    
+
     def lint_app(*args, **kw):
         assert len(args) == 2, "Two arguments required"
         assert not kw, "No keyword arguments allowed"
@@ -185,22 +185,22 @@ class InputWrapper(object):
     def read(self, *args):
         assert len(args) <= 1
         v = self.input.read(*args)
-        assert type(v) is type("")
+        assert isinstance(v, six.binary_type)
         return v
 
     def readline(self, *args):
         v = self.input.readline(*args)
-        assert type(v) is type("")
+        assert isinstance(v, six.binary_type)
         return v
 
     def readlines(self, *args):
         assert len(args) <= 1
         lines = self.input.readlines(*args)
-        assert type(lines) is type([])
+        assert isinstance(lines, list)
         for line in lines:
-            assert type(line) is type("")
+            assert isinstance(line, six.binary_type)
         return lines
-    
+
     def __iter__(self):
         while 1:
             line = self.readline()
@@ -217,7 +217,7 @@ class ErrorWrapper(object):
         self.errors = wsgi_errors
 
     def write(self, s):
-        assert type(s) is type("")
+        assert isinstance(s, bytes)
         self.errors.write(s)
 
     def flush(self):
@@ -236,7 +236,7 @@ class WriteWrapper(object):
         self.writer = wsgi_writer
 
     def __call__(self, s):
-        assert type(s) is type("")
+        assert isinstance(s, six.binary_type)
         self.writer(s)
 
 class PartialIteratorWrapper(object):
@@ -270,7 +270,7 @@ class IteratorWrapper(object):
         return v
 
     __next__ = next
-        
+
     def close(self):
         self.closed = True
         if hasattr(self.original_iterator, 'close'):
@@ -287,7 +287,7 @@ def check_environ(environ):
     assert isinstance(environ,dict), (
         "Environment is not of the right type: %r (environment: %r)"
         % (type(environ), environ))
-    
+
     for key in ['REQUEST_METHOD', 'SERVER_NAME', 'SERVER_PORT',
                 'wsgi.version', 'wsgi.input', 'wsgi.errors',
                 'wsgi.multithread', 'wsgi.multiprocess',
@@ -314,7 +314,7 @@ def check_environ(environ):
         assert isinstance(environ[key], str), (
             "Environmental variable %s is not a string: %r (value: %r)"
             % (key, type(environ[key]), environ[key]))
-        
+
     assert isinstance(environ['wsgi.version'], tuple), (
         "wsgi.version should be a tuple (%r)" % environ['wsgi.version'])
     assert environ['wsgi.url_scheme'] in ('http', 'https'), (

@@ -108,14 +108,14 @@ def make_basic(app, global_conf, realm, authfunc, **kw):
       use = egg:Paste#auth_basic
       realm=myrealm
       authfunc=somepackage.somemodule:somefunction
-      
+
     """
     from paste.util.import_string import eval_import
     import types
     authfunc = eval_import(authfunc)
     assert isinstance(authfunc, types.FunctionType), "authfunc must resolve to a function"
     return AuthBasicHandler(app, realm, authfunc)
-    
+
 
 if "__main__" == __name__:
     import doctest

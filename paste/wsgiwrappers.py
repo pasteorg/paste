@@ -14,6 +14,7 @@ try:
 except ImportError:
     # Python 2
     from Cookie import SimpleCookie
+import six
 
 from paste.request import EnvironHeaders, get_cookie_dict, \
     parse_dict_querystring, parse_formvars
@@ -84,18 +85,18 @@ class WSGIRequest(object):
     The class variable ``defaults`` specifies default values for
     ``charset``, ``errors``, and ``langauge``. These can be overridden for the
     current request via the registry.
-        
+
     The ``language`` default value is considered the fallback during i18n
     translations to ensure in odd cases that mixed languages don't occur should
     the ``language`` file contain the string but not another language in the
     accepted languages list. The ``language`` value only applies when getting
     a list of accepted languages from the HTTP Accept header.
-    
+
     This behavior is duplicated from Aquarium, and may seem strange but is
-    very useful. Normally, everything in the code is in "en-us".  However, 
+    very useful. Normally, everything in the code is in "en-us".  However,
     the "en-us" translation catalog is usually empty.  If the user requests
     ``["en-us", "zh-cn"]`` and a translation isn't found for a string in
-    "en-us", you don't want gettext to fallback to "zh-cn".  You want it to 
+    "en-us", you don't want gettext to fallback to "zh-cn".  You want it to
     just use the string itself.  Hence, if a string isn't found in the
     ``language`` catalog, the string in the source code will be used.
 
@@ -112,7 +113,7 @@ class WSGIRequest(object):
         self.environ = environ
         # This isn't "state" really, since the object is derivative:
         self.headers = EnvironHeaders(environ)
-        
+
         defaults = self.defaults._current_obj()
         self.charset = defaults.get('charset')
         if self.charset:
@@ -124,7 +125,7 @@ class WSGIRequest(object):
         self.errors = defaults.get('errors', 'strict')
         self.decode_param_names = defaults.get('decode_param_names', False)
         self._languages = None
-    
+
     body = environ_getter('wsgi.input')
     scheme = environ_getter('wsgi.url_scheme')
     method = environ_getter('REQUEST_METHOD')
@@ -143,12 +144,12 @@ class WSGIRequest(object):
         else:
             return {}
     urlvars = property(urlvars, doc=urlvars.__doc__)
-    
+
     def is_xhr(self):
         """Returns a boolean if X-Requested-With is present and a XMLHttpRequest"""
         return self.environ.get('HTTP_X_REQUESTED_WITH', '') == 'XMLHttpRequest'
     is_xhr = property(is_xhr, doc=is_xhr.__doc__)
-    
+
     def host(self):
         """Host name provided in HTTP_HOST, with fall-back to SERVER_NAME"""
         return self.environ.get('HTTP_HOST', self.environ.get('SERVER_NAME'))
@@ -156,7 +157,7 @@ class WSGIRequest(object):
 
     def languages(self):
         """Return a list of preferred languages, most preferred first.
-        
+
         The list may be empty.
         """
         if self._languages is not None:
@@ -173,7 +174,7 @@ class WSGIRequest(object):
         self._languages = langs
         return self._languages
     languages = property(languages, doc=languages.__doc__)
-    
+
     def _GET(self):
         return parse_dict_querystring(self.environ)
 
@@ -253,7 +254,7 @@ class WSGIRequest(object):
         """Dictionary of cookies keyed by cookie name.
 
         Just a plain dictionary, may be empty but not None.
-        
+
         """
         return get_cookie_dict(self.environ)
     cookies = property(cookies, doc=cookies.__doc__)
@@ -270,7 +271,7 @@ class WSGIRequest(object):
     def match_accept(self, mimetypes):
         """Return a list of specified mime-types that the browser's HTTP Accept
         header allows in the order provided."""
-        return desired_matches(mimetypes, 
+        return desired_matches(mimetypes,
                                self.environ.get('HTTP_ACCEPT', '*/*'))
 
     def __repr__(self):
@@ -300,10 +301,10 @@ class WSGIResponse(object):
 
     """
     defaults = StackedObjectProxy(
-        default=dict(content_type='text/html', charset='utf-8', 
+        default=dict(content_type='text/html', charset='utf-8',
                      errors='strict', headers={'Cache-Control':'no-cache'})
         )
-    def __init__(self, content='', mimetype=None, code=200):
+    def __init__(self, content=b'', mimetype=None, code=200):
         self._iter = None
         self._is_str_iter = True
 
@@ -335,14 +336,14 @@ class WSGIResponse(object):
         return '\n'.join(['%s: %s' % (key, value)
             for key, value in self.headers.headeritems()]) \
             + '\n\n' + content
-    
+
     def __call__(self, environ, start_response):
         """Convenience call to return output and set status information
-        
+
         Conforms to the WSGI interface for calling purposes only.
-        
+
         Example usage:
-        
+
         .. code-block:: python
 
             def wsgi_app(environ, start_response):
@@ -350,7 +351,7 @@ class WSGIResponse(object):
                 response.write("Hello world")
                 response.headers['Content-Type'] = 'latin1'
                 return response(environ, start_response)
-        
+
         """
         status_text = STATUS_CODE_TEXT[self.status_code]
         status = '%s %s' % (self.status_code, status_text)
@@ -364,7 +365,7 @@ class WSGIResponse(object):
         elif is_file:
             return iter(lambda: self.content.read(), '')
         return self.get_content()
-    
+
     def determine_charset(self):
         """
         Determine the encoding as specified by the Content-Type's charset
@@ -373,7 +374,7 @@ class WSGIResponse(object):
         charset_match = _CHARSET_RE.search(self.headers.get('Content-Type', ''))
         if charset_match:
             return charset_match.group(1)
-    
+
     def has_header(self, header):
         """
         Case-insensitive check for a header
@@ -409,7 +410,7 @@ class WSGIResponse(object):
         self.cookies[key]['max-age'] = 0
 
     def _set_content(self, content):
-        if hasattr(content, '__iter__'):
+        if not isinstance(content, (six.binary_type, six.text_type)):
             self._iter = content
             if isinstance(content, list):
                 self._is_str_iter = True
@@ -434,7 +435,7 @@ class WSGIResponse(object):
             return encode_unicode_app_iter(self.content, charset, self.errors)
         else:
             return self.content
-    
+
     def wsgi_response(self):
         """
         Return this WSGIResponse as a tuple of WSGI formatted data, including:
@@ -446,12 +447,12 @@ class WSGIResponse(object):
         for c in self.cookies.values():
             response_headers.append(('Set-Cookie', c.output(header='')))
         return status, response_headers, self.get_content()
-    
+
     # The remaining methods partially implement the file-like object interface.
     # See http://docs.python.org/lib/bltin-file-objects.html
     def write(self, content):
         if not self._is_str_iter:
-            raise IOError("This %s instance's content is not writable: (content " 
+            raise IOError("This %s instance's content is not writable: (content "
                 'is an iterator)' % self.__class__.__name__)
         self.content.append(content)
 

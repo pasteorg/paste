@@ -123,7 +123,7 @@ page_template = HTMLTemplate('''
         }
         return false
       ">&#9656; Show environ</a>
-   
+
    <div id="environ-{{thread.thread_id}}" style="display: none">
     {{if thread.environ:}}
     <table class="environ">
@@ -221,7 +221,7 @@ class WatchThreads(object):
             thread.uri_short = shorten(thread.uri)
             thread.environ = worker_environ
             thread.traceback = traceback_thread(thread_id)
-            
+
         page = page_template.substitute(
             title="Thread Pool Worker Tracker",
             nworkers=nworkers,
@@ -255,7 +255,7 @@ class WatchThreads(object):
         exc = httpexceptions.HTTPFound(
             headers=[('Location', script_name+'?kill=%s' % thread_id)])
         return exc(environ, start_response)
-        
+
 def traceback_thread(thread_id):
     """
     Returns a plain-text traceback of the given thread, or None if it
@@ -296,7 +296,7 @@ def format_environ(environ):
                 key=cgi.escape(str(key)),
                 value='Error in <code>repr()</code>: %s' % e))
     return ''.join(environ_rows)
-    
+
 def format_time(time_length):
     if time_length >= 60*60:
         # More than an hour
