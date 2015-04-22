@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+development version
+-------------------
+
+* Fix paste.util.html_quote(unicode): don't encode the string to escape it
+
 2.0
 ---
 
