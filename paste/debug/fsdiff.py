@@ -127,13 +127,6 @@ class Snapshot(IterableUserDict):
                 return True
         return False
 
-    def _ignore_file(self, fn):
-        if fn in self.ignore_paths:
-            return True
-        if self.ignore_hidden and os.path.basename(fn).startswith('.'):
-            return True
-        return False
-
     def _find_traverse(self, path, result):
         full = os.path.join(self.base_path, path)
         if os.path.isdir(full):
