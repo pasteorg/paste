@@ -168,7 +168,7 @@ class ErrorMiddleware(object):
     def exception_handler(self, exc_info, environ):
         simple_html_error = False
         if self.xmlhttp_key:
-            get_vars = wsgilib.parse_querystring(environ)
+            get_vars = request.parse_querystring(environ)
             if dict(get_vars).get(self.xmlhttp_key):
                 simple_html_error = True
         return handle_exception(
