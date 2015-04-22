@@ -1,8 +1,10 @@
 # (c) 2005 Ian Bicking, Clark C. Evans and contributors
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
-import string
 import time
+import random
+import os
+import tempfile
 try:
     # Python 3
     from email.utils import parsedate_tz, mktime_tz
@@ -11,6 +13,7 @@ except ImportError:
     from rfc822 import parsedate_tz, mktime_tz
 import six
 
+from paste import fileapp
 from paste.fileapp import *
 from paste.fixture import *
 
@@ -96,7 +99,6 @@ def test_modified():
     assert 400 == res.status and b"check your system clock" in res.body
 
 def test_file():
-    import random, string, os
     tempfile = "test_fileapp.%s.txt" % (random.random())
     content = LETTERS * 20
     if six.PY3:
@@ -104,7 +106,6 @@ def test_file():
     with open(tempfile, "wb") as fp:
         fp.write(content)
     try:
-        from paste import fileapp
         app = fileapp.FileApp(tempfile)
         res = TestApp(app).get("/")
         assert len(content) == int(res.header('content-length'))
@@ -132,12 +133,9 @@ def test_file():
         assert res.body.startswith(content) and res.body.endswith(b'XYZ')
         assert not app.content # we are no longer cached
     finally:
-        import os
         os.unlink(tempfile)
 
 def test_dir():
-    import os
-    import tempfile
     tmpdir = tempfile.mkdtemp()
     try:
         tmpfile = os.path.join(tmpdir, 'file')
@@ -147,7 +145,6 @@ def test_dir():
         fp.close()
         os.mkdir(tmpsubdir)
         try:
-            from paste import fileapp
             app = fileapp.DirectoryApp(tmpdir)
             for path in ['/', '', '//', '/..', '/.', '/../..']:
                 assert TestApp(app).get(path, status=403).status == 403, ValueError(path)
@@ -194,8 +191,6 @@ def test_range():
     build('bytes=0-%d' % (len(content)+1), 416)
 
 def test_file_range():
-    from paste import fileapp
-    import random, string, os
     tempfile = "test_fileapp.%s.txt" % (random.random())
     content = LETTERS * (1+(fileapp.CACHE_SIZE // len(LETTERS)))
     if six.PY3:
@@ -213,11 +208,9 @@ def test_file_range():
             fileapp.BLOCK_SIZE = size
             _excercize_range(build,content)
     finally:
-        import os
         os.unlink(tempfile)
 
 def test_file_cache():
-    from paste import fileapp
     filename = os.path.join(os.path.dirname(__file__),
                             'urlparser_data', 'secured.txt')
     app = TestApp(fileapp.FileApp(filename))
@@ -238,7 +231,6 @@ def test_file_cache():
                   status=400)
 
 def test_methods():
-    from paste import fileapp
     filename = os.path.join(os.path.dirname(__file__),
                             'urlparser_data', 'secured.txt')
     app = TestApp(fileapp.FileApp(filename))
