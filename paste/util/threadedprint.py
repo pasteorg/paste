@@ -237,8 +237,8 @@ def install_stdin(**kw):
         register_stdin = _stdincatcher.register
         deregister_stdin = _stdincatcher.deregister
 
-def uninstall():
-    global _stdincatcher, _oldstin, register_stdin, deregister_stdin
+def uninstall_stdin():
+    global _stdincatcher, _oldstdin, register_stdin, deregister_stdin
     if _stdincatcher:
         sys.stdin = _oldstdin
         _stdincatcher = _oldstdin = None
