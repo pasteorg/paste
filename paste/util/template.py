@@ -264,7 +264,6 @@ def sub(content, **kw):
     name = kw.get('__name')
     tmpl = Template(content, name=name)
     return tmpl.substitute(kw)
-    return result
 
 def paste_script_template_renderer(content, vars, filename=None):
     tmpl = Template(content, name=filename)
@@ -370,7 +369,6 @@ def sub_html(content, **kw):
     name = kw.get('__name')
     tmpl = HTMLTemplate(content, name=name)
     return tmpl.substitute(kw)
-    return result
 
 
 ############################################################

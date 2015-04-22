@@ -135,7 +135,6 @@ dashes to give CamelCase style names.
 
 """
 import mimetypes
-import re
 import six
 from time import time as now
 try:

@@ -81,7 +81,6 @@ def parse_timedelta(val):
         return timedelta(hours=int(val), minutes=60*(val % 1.0))
     fHour = ("h" in val or ":" in val)
     fMin  = ("m" in val or ":" in val)
-    fFraction = "." in val
     for noise in "minu:teshour()":
         val = val.replace(noise, ' ')
     val = val.strip()

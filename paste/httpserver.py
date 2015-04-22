@@ -395,7 +395,7 @@ else:
             return (conn, info)
 
     def _auto_ssl_context():
-        import OpenSSL, time, random
+        import OpenSSL, random
         pkey = OpenSSL.crypto.PKey()
         pkey.generate_key(OpenSSL.crypto.TYPE_RSA, 768)
 
@@ -945,7 +945,6 @@ class ThreadPool(object):
                     self.kill_worker(worker.thread_id)
                 self.logger.info('Workers killed forcefully')
             if force_quit_timeout:
-                hung = []
                 timed_out = False
                 need_force_quit = bool(zombies)
                 for workers in self.workers:

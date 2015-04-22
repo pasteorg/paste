@@ -90,7 +90,6 @@ quick way to work around it is documented.
 
 """
 import six
-import sys
 import paste.util.threadinglocal as threadinglocal
 
 __all__ = ['StackedObjectProxy', 'RegistryManager', 'StackedObjectRestorer',
