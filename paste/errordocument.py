@@ -168,7 +168,6 @@ class StatusBasedForward(object):
 
     def __call__(self, environ, start_response):
         url = []
-        writer = []
 
         def change_response(status, headers, exc_info=None):
             status_code = status.split(' ')
@@ -370,7 +369,7 @@ class _StatusBasedRedirect(object):
                 forward.start_response = eat_start_response
                 try:
                     app_iter = forward(url_, new_environ)
-                except InvalidForward as e:
+                except InvalidForward:
                     code, message = code_message[0]
                     environ['wsgi.errors'].write(
                         'Error occurred in '
