@@ -69,7 +69,7 @@ class loop_pos(object):
 
     def __repr__(self):
         return '<loop pos=%r at %r>' % (
-            self.seq[pos], pos)
+            self.seq[self.pos], self.pos)
 
     def index(self):
         return self.pos
