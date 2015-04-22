@@ -8,7 +8,6 @@ Regression Test Suite
 """
 from nose.tools import assert_raises
 from paste.httpexceptions import *
-from paste.wsgilib import raw_interactive
 from paste.response import header_value
 import six
 

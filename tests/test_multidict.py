@@ -7,8 +7,6 @@ from six.moves import StringIO
 
 from nose.tools import assert_raises
 
-from paste.fixture import TestApp
-from paste.wsgiwrappers import WSGIRequest
 from paste.util.multidict import MultiDict, UnicodeMultiDict
 
 def test_dict():
