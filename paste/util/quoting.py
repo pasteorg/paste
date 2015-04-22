@@ -17,15 +17,6 @@ def html_quote(v, encoding=None):
     r"""
     Quote the value (turned to a string) as HTML.  This quotes <, >,
     and quotes:
-
-    >>> html_quote(1)
-    '1'
-    >>> html_quote(None)
-    ''
-    >>> html_quote('<hey!>')
-    '&lt;hey!&gt;'
-    >>> html_quote(u'\u1029')
-    '\xe1\x80\xa9'
     """
     encoding = encoding or default_encoding
     if v is None:
@@ -33,10 +24,7 @@ def html_quote(v, encoding=None):
     elif isinstance(v, six.binary_type):
         return cgi.escape(v, 1)
     elif isinstance(v, six.text_type):
-        if six.PY3:
-            return cgi.escape(v, 1)
-        else:
-            return cgi.escape(v.encode(encoding), 1)
+        return cgi.escape(v, 1)
     else:
         if six.PY3:
             return cgi.escape(six.text_type(v), 1)
@@ -55,20 +43,8 @@ def html_unquote(s, encoding=None):
     r"""
     Decode the value.
 
-    >>> html_unquote('&lt;hey&nbsp;you&gt;')
-    u'<hey\xa0you>'
-    >>> html_unquote('')
-    u''
-    >>> html_unquote('&blahblah;')
-    u'&blahblah;'
-    >>> html_unquote('\xe1\x80\xa9')
-    u'\u1029'
     """
     if isinstance(s, six.binary_type):
-        if s == '':
-            # workaround re.sub('', '', u'') returning '' < 2.5.2
-            # instead of u'' >= 2.5.2
-            return u''
         s = s.decode(encoding or default_encoding)
     return _unquote_re.sub(_entity_subber, s)
 
