@@ -21,7 +21,7 @@
 # revision (set to True for real releases)
 RELEASE = True
 
-__version__ = '2.0'
+__version__ = '2.0.1'
 
 from setuptools import setup, find_packages
 import sys, os
