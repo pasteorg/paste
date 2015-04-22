@@ -12,6 +12,7 @@ try:
     import select
 except ImportError:
     select = None
+import six
 
 from paste.util import converters
 
@@ -119,18 +120,18 @@ class CGIWriter(object):
         self.headers = []
         self.headers_finished = False
         self.writer = None
-        self.buffer = ''
+        self.buffer = b''
 
     def write(self, data):
         if self.headers_finished:
             self.writer(data)
             return
         self.buffer += data
-        while '\n' in self.buffer:
-            if '\r\n' in self.buffer and self.buffer.find('\r\n') < self.buffer.find('\n'):
-                line1, self.buffer = self.buffer.split('\r\n', 1)
+        while b'\n' in self.buffer:
+            if b'\r\n' in self.buffer and self.buffer.find(b'\r\n') < self.buffer.find(b'\n'):
+                line1, self.buffer = self.buffer.split(b'\r\n', 1)
             else:
-                line1, self.buffer = self.buffer.split('\n', 1)
+                line1, self.buffer = self.buffer.split(b'\n', 1)
             if not line1:
                 self.headers_finished = True
                 self.writer = self.start_response(
@@ -140,13 +141,16 @@ class CGIWriter(object):
                 del self.headers
                 del self.status
                 break
-            elif ':' not in line1:
+            elif b':' not in line1:
                 raise CGIError(
                     "Bad header line: %r" % line1)
             else:
-                name, value = line1.split(':', 1)
+                name, value = line1.split(b':', 1)
                 value = value.lstrip()
                 name = name.strip()
+                if six.PY3:
+                    name = name.decode('utf8')
+                    value = value.decode('utf8')
                 if name.lower() == 'status':
                     if ' ' not in value:
                         # WSGI requires this space, sometimes CGI scripts don't set it:
@@ -161,6 +165,7 @@ class StdinReader(object):
         self.stdin = stdin
         self.content_length = content_length
 
+    @classmethod
     def from_environ(cls, environ):
         length = environ.get('CONTENT_LENGTH')
         if length:
@@ -169,11 +174,9 @@ class StdinReader(object):
             length = 0
         return cls(environ['wsgi.input'], length)
 
-    from_environ = classmethod(from_environ)
-
     def read(self, size=None):
         if not self.content_length:
-            return ''
+            return b''
         if size is None:
             text = self.stdin.read(self.content_length)
         else:
@@ -193,7 +196,7 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
     """
     read_set = []
     write_set = []
-    input_buffer = ''
+    input_buffer = b''
     trans_nl = proc.universal_newlines and hasattr(open, 'newlines')
 
     if proc.stdin:
@@ -222,7 +225,7 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
             # When select has indicated that the file is writable,
             # we can write up to PIPE_BUF bytes without risk
             # blocking.  POSIX defines PIPE_BUF >= 512
-            next, input_buffer = input_buffer, ''
+            next, input_buffer = input_buffer, b''
             next_len = 512-len(next)
             if next_len:
                 next += stdin.read(next_len)
@@ -236,7 +239,7 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
 
         if proc.stdout in rlist:
             data = os.read(proc.stdout.fileno(), 1024)
-            if data == "":
+            if data == b"":
                 proc.stdout.close()
                 read_set.remove(proc.stdout)
             if trans_nl:
@@ -245,7 +248,7 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
 
         if proc.stderr in rlist:
             data = os.read(proc.stderr.fileno(), 1024)
-            if data == "":
+            if data == b"":
                 proc.stderr.close()
                 read_set.remove(proc.stderr)
             if trans_nl:

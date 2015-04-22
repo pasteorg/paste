@@ -26,7 +26,7 @@ or is run from this .bat file (if you use Windows)::
     if %errorlevel% == 3 goto repeat
 
 or run a monitoring process in Python (``paster serve --reload`` does
-this).  
+this).
 
 Use the ``watch_file(filename)`` function to cause a reload/restart for
 other other non-Python files (e.g., configuration files).  If you have
@@ -100,7 +100,7 @@ class Monitor(object):
         for module in sys.modules.values():
             try:
                 filename = module.__file__
-            except (AttributeError, ImportError) as exc:
+            except (AttributeError, ImportError):
                 continue
             if filename is not None:
                 filenames.append(filename)

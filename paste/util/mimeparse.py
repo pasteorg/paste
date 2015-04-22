@@ -132,7 +132,7 @@ def best_match(supported, header):
     """
     if not supported:
         return ''
-    parsed_header = map(parse_media_range, header.split(','))
+    parsed_header = list(map(parse_media_range, header.split(',')))
     best_type = max([
             (fitness_and_quality_parsed(mime_type, parsed_header), -n)
             for n, mime_type in enumerate(supported)])
@@ -154,7 +154,7 @@ def desired_matches(desired, header):
     >>> desired_matches(['text/html', 'application/xml'], 'application/xml,application/json')
     ['application/xml']
     """
-    parsed_ranges = map(parse_media_range, header.split(','))
+    parsed_ranges = list(map(parse_media_range, header.split(',')))
     return [mimetype for mimetype in desired
         if quality_parsed(mimetype, parsed_ranges)]
 

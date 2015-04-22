@@ -78,7 +78,7 @@ class Template(object):
 
     def __init__(self, content, name=None, namespace=None):
         self.content = content
-        self._unicode = isinstance(content, unicode)
+        self._unicode = isinstance(content, six.text_type)
         self.name = name
         self._parsed = parse(content, name=name)
         if namespace is None:
@@ -227,7 +227,7 @@ class Template(object):
                 return ''
             if self._unicode:
                 try:
-                    value = unicode(value)
+                    value = six.text_type(value)
                 except UnicodeDecodeError:
                     value = str(value)
             else:
@@ -238,20 +238,20 @@ class Template(object):
             e.args = (self._add_line_info(e.args[0], pos),)
             six.reraise(exc_info[0], e, exc_info[2])
         else:
-            if self._unicode and isinstance(value, str):
+            if self._unicode and isinstance(value, six.binary_type):
                 if not self.decode_encoding:
                     raise UnicodeDecodeError(
                         'Cannot decode str value %r into unicode '
                         '(no default_encoding provided)' % value)
                 value = value.decode(self.default_encoding)
-            elif not self._unicode and isinstance(value, unicode):
+            elif not self._unicode and isinstance(value, six.text_type):
                 if not self.decode_encoding:
                     raise UnicodeEncodeError(
                         'Cannot encode unicode value %r into str '
                         '(no default_encoding provided)' % value)
                 value = value.encode(self.default_encoding)
             return value
-        
+
 
     def _add_line_info(self, msg, pos):
         msg = "%s at line %s column %s" % (
@@ -264,7 +264,6 @@ def sub(content, **kw):
     name = kw.get('__name')
     tmpl = Template(content, name=name)
     return tmpl.substitute(kw)
-    return result
 
 def paste_script_template_renderer(content, vars, filename=None):
     tmpl = Template(content, name=filename)
@@ -370,7 +369,6 @@ def sub_html(content, **kw):
     name = kw.get('__name')
     tmpl = HTMLTemplate(content, name=name)
     return tmpl.substitute(kw)
-    return result
 
 
 ############################################################
@@ -479,7 +477,7 @@ def trim_lex(tokens):
                 next = next[m.end():]
                 tokens[i+1] = next
     return tokens
-        
+
 
 def find_position(string, index):
     """Given a string and index, return (line, column)"""
@@ -506,7 +504,7 @@ def parse(s, name=None):
         [('cond', (1, 3), ('if', (1, 3), 'x', ['a']), ('elif', (1, 12), 'y', ['b']), ('else', (1, 23), None, ['c']))]
 
     Some exceptions::
-        
+
         >>> parse('{{continue}}')
         Traceback (most recent call last):
             ...
@@ -627,7 +625,7 @@ def parse_one_cond(tokens, name, context):
             return part, tokens
         next, tokens = parse_expr(tokens, name, context)
         content.append(next)
-        
+
 def parse_for(tokens, name, context):
     first, pos = tokens[0]
     tokens = tokens[1:]
@@ -755,5 +753,5 @@ def fill_command(args=None):
 if __name__ == '__main__':
     from paste.util.template import fill_command
     fill_command()
-        
-    
+
+

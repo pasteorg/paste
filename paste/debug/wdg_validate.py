@@ -6,10 +6,7 @@ Middleware that tests the validity of all generated HTML using the
 """
 
 from cStringIO import StringIO
-try:
-    import subprocess
-except ImportError:
-    from paste.util import subprocess24 as subprocess
+import subprocess
 from paste.response import header_value
 import re
 import cgi

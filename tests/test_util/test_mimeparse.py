@@ -2,8 +2,6 @@
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-from time import localtime
-from datetime import date
 from paste.util.mimeparse import *
 
 def test_parse_mime_type():

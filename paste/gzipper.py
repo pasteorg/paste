@@ -13,8 +13,7 @@ Gzip-encodes the response.
 import gzip
 from paste.response import header_value, remove_header
 from paste.httpheaders import CONTENT_LENGTH
-
-from six.moves import cStringIO as StringIO
+import six
 
 class GzipOutput(object):
     pass
@@ -43,7 +42,7 @@ class GzipResponse(object):
     def __init__(self, start_response, compress_level):
         self.start_response = start_response
         self.compress_level = compress_level
-        self.buffer = StringIO()
+        self.buffer = six.BytesIO()
         self.compressible = False
         self.content_length = None
 

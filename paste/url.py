@@ -7,6 +7,8 @@ This module implements a class for handling URLs.
 from six.moves.urllib.parse import quote, unquote, urlencode
 import cgi
 from paste import request
+import six
+
 # Imported lazily from FormEncode:
 variabledecode = None
 
@@ -136,10 +138,10 @@ class URLResource(object):
             vars = variabledecode.variable_encode(vars)
         return vars
 
-    
+
     def var(self, **kw):
         kw = self.coerce_vars(kw)
-        new_vars = self.vars + kw.items()
+        new_vars = self.vars + list(kw.items())
         return self.__class__(self.url, vars=new_vars,
                               attrs=self.attrs,
                               params=self.original_params)
@@ -181,14 +183,17 @@ class URLResource(object):
                             attrs=u.attrs,
                             params=u.original_params)
         return u
-            
-    __div__ = addpath
+
+    if six.PY3:
+        __truediv__ = addpath
+    else:
+        __div__ = addpath
 
     def become(self, OtherClass):
         return OtherClass(self.url, vars=self.vars,
                           attrs=self.attrs,
                           params=self.original_params)
-    
+
     def href__get(self):
         s = self.url
         if self.vars:
@@ -217,7 +222,7 @@ class URLResource(object):
                 ', '.join(['%s=%r' % (n, v)
                            for n, v in self.attrs.items()]))
         return base + '>'
-    
+
     def html__get(self):
         if not self.params.get('tag'):
             raise ValueError(
@@ -250,7 +255,7 @@ class URLResource(object):
         for an empty tag (like ``<img />``)
         """
         raise NotImplementedError
-    
+
     def _add_vars(self, vars):
         raise NotImplementedError
 
@@ -307,7 +312,7 @@ class URL(URLResource):
         return self.addpath(*args)
 
     def _html_attrs(self):
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         attrs.insert(0, ('href', self.href))
         if self.params.get('confirm'):
             attrs.append(('onclick', 'return confirm(%s)'
@@ -328,7 +333,7 @@ class URL(URLResource):
         return self.become(JSPopup)
 
     js_popup = property(js_popup__get)
-            
+
 class Image(URLResource):
 
     r"""
@@ -341,7 +346,7 @@ class Image(URLResource):
     >>> i.href
     '/images/foo.png'
     """
-    
+
     default_params = {'tag': 'img'}
 
     def __str__(self):
@@ -357,7 +362,7 @@ class Image(URLResource):
         return self.addpath(*args)
 
     def _html_attrs(self):
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         attrs.insert(0, ('src', self.href))
         return attrs
 
@@ -396,7 +401,7 @@ class Button(URLResource):
         return self.addpath(*args)
 
     def _html_attrs(self):
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         onclick = 'location.href=%s' % js_repr(self.href)
         if self.params.get('confirm'):
             onclick = 'if (confirm(%s)) {%s}' % (
@@ -449,7 +454,7 @@ class JSPopup(URLResource):
         return ', '.join(map(js_repr, args))
 
     def _html_attrs(self):
-        attrs = self.attrs.items()
+        attrs = list(self.attrs.items())
         onclick = ('window.open(%s); return false'
                    % self._window_args())
         attrs.insert(0, ('target', self.params['target']))
@@ -470,4 +475,4 @@ class JSPopup(URLResource):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    
+

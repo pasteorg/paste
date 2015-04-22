@@ -92,7 +92,7 @@ class ExceptionCollector(object):
 
     The actually interpretation of these values is largely up to the
     reporters and formatters.
-    
+
     ``collect_exception(*sys.exc_info())`` will return an object with
     several attributes:
 
@@ -113,7 +113,7 @@ class ExceptionCollector(object):
         can refer to the exception later. (@@: should it include a
         portion that allows identification of the specific instance
         of the exception as well?)
-        
+
     The list of frames goes innermost first.  Each frame has these
     attributes; some values may be None if they could not be
     determined.
@@ -140,7 +140,7 @@ class ExceptionCollector(object):
         the value of any ``__traceback_hide__`` variable
     ``traceback_log``:
         the value of any ``__traceback_log__`` variable
-    
+
 
     ``__traceback_supplement__`` is thrown away, but a fixed
     set of attributes are captured; each of these attributes is
@@ -189,7 +189,7 @@ class ExceptionCollector(object):
     hide frames that are part of the 'framework' or underlying system.
     There are a variety of rules about special values for this
     variables that formatters should be aware of.
-    
+
     TODO:
 
     More attributes in __traceback_supplement__?  Maybe an attribute
@@ -503,7 +503,7 @@ class ExceptionFrame(Bunch):
         for lineno in range(self.lineno-context, self.lineno+context+1):
             lines.append(linecache.getline(self.filename, lineno))
         return ''.join(lines)
-        
+
 if hasattr(sys, 'tracebacklimit'):
     limit = min(limit, sys.tracebacklimit)
 
@@ -512,7 +512,7 @@ col = ExceptionCollector()
 def collect_exception(t, v, tb, limit=None):
     """
     Collection an exception from ``sys.exc_info()``.
-    
+
     Use like::
 
       try:

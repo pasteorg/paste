@@ -19,8 +19,9 @@ __date__ = "2006-01-20"
 # Imports
 # -------
 
-import intset
+from paste.util import intset
 import socket
+import six
 
 
 # IP4Range class
@@ -87,14 +88,14 @@ class IP4Range(intset.IntSet):
                 addr1, addr2 = argval
                 if isinstance(addr1,str):
                     addr1 = self._parseAddrRange(addr1)[0]
-                elif not isinstance(addr1,(int,long)):
+                elif not isinstance(addr1, six.integer_types):
                     raise TypeError("Invalid argument.")
                 if isinstance(addr2,str):
                     addr2 = self._parseAddrRange(addr2)[1]
-                elif not isinstance(addr2,(int,long)):
+                elif not isinstance(addr2, six.integer_types):
                     raise TypeError("Invalid argument.")
                 args[i] = (addr1,addr2)
-            elif not isinstance(argval,(int,long)):
+            elif not isinstance(argval, six.integer_types):
                 raise TypeError("Invalid argument.")
 
         # Initialize the integer set.
@@ -231,7 +232,7 @@ class IP4Range(intset.IntSet):
         return "%s(%s)" % (self.__class__.__name__,",".join(rv))
 
 def _parseAddr(addr,lookup=True):
-    if lookup and addr.translate(IP4Range._UNITYTRANS, IP4Range._IPREMOVE):
+    if lookup and any(ch not in IP4Range._IPREMOVE for ch in addr):
         try:
             addr = socket.gethostbyname(addr)
         except socket.error:

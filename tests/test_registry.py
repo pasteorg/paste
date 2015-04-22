@@ -15,19 +15,25 @@ def simpleapp(environ, start_response):
     status = '200 OK'
     response_headers = [('Content-type','text/plain')]
     start_response(status, response_headers)
-    return ['Hello world!\n']
+    return [b'Hello world!\n']
 
 def simpleapp_withregistry(environ, start_response):
     status = '200 OK'
     response_headers = [('Content-type','text/plain')]
     start_response(status, response_headers)
-    return ['Hello world!Value is %s\n' % regobj.keys()]
+    body = 'Hello world!Value is %s\n' % regobj.keys()
+    if six.PY3:
+        body = body.encode('utf8')
+    return [body]
 
 def simpleapp_withregistry_default(environ, start_response):
     status = '200 OK'
     response_headers = [('Content-type','text/plain')]
     start_response(status, response_headers)
-    return ['Hello world!Value is %s\n' % secondobj]
+    body = 'Hello world!Value is %s\n' % secondobj
+    if six.PY3:
+        body = body.encode('utf8')
+    return [body]
 
 
 class RegistryUsingApp(object):
@@ -35,7 +41,7 @@ class RegistryUsingApp(object):
         self.var = var
         self.value = value
         self.raise_exc = raise_exc
-    
+
     def __call__(self, environ, start_response):
         if 'paste.registry' in environ:
             environ['paste.registry'].register(self.var, self.value)
@@ -44,20 +50,26 @@ class RegistryUsingApp(object):
         status = '200 OK'
         response_headers = [('Content-type','text/plain')]
         start_response(status, response_headers)
-        return ['Hello world!\nThe variable is %s' % str(regobj)]
+        body = 'Hello world!\nThe variable is %s' % str(regobj)
+        if six.PY3:
+            body = body.encode('utf8')
+        return [body]
 
 class RegistryUsingIteratorApp(object):
     def __init__(self, var, value):
         self.var = var
         self.value = value
-    
+
     def __call__(self, environ, start_response):
         if 'paste.registry' in environ:
             environ['paste.registry'].register(self.var, self.value)
         status = '200 OK'
         response_headers = [('Content-type','text/plain')]
         start_response(status, response_headers)
-        return iter(['Hello world!\nThe variable is %s' % str(regobj)])
+        body = 'Hello world!\nThe variable is %s' % str(regobj)
+        if six.PY3:
+            body = body.encode('utf8')
+        return iter([body])
 
 class RegistryMiddleMan(object):
     def __init__(self, app, var, value, depth):
@@ -65,12 +77,15 @@ class RegistryMiddleMan(object):
         self.var = var
         self.value = value
         self.depth = depth
-    
+
     def __call__(self, environ, start_response):
         if 'paste.registry' in environ:
             environ['paste.registry'].register(self.var, self.value)
-        app_response = ['\nInserted by middleware!\nInsertValue at depth \
-            %s is %s' % (self.depth, str(regobj))]
+        line = ('\nInserted by middleware!\nInsertValue at depth %s is %s'
+                % (self.depth, str(regobj)))
+        if six.PY3:
+            line = line.encode('utf8')
+        app_response = [line]
         app_iter = None
         app_iter = self.app(environ, start_response)
         if type(app_iter) in (list, tuple):
@@ -82,10 +97,13 @@ class RegistryMiddleMan(object):
             if hasattr(app_iter, 'close'):
                 app_iter.close()
             app_response.extend(response)
-        app_response.extend(['\nAppended by middleware!\nAppendValue at \
-            depth %s is %s' % (self.depth, str(regobj))])
+        line = ('\nAppended by middleware!\nAppendValue at \
+                depth %s is %s' % (self.depth, str(regobj)))
+        if six.PY3:
+            line = line.encode('utf8')
+        app_response.append(line)
         return app_response
-            
+
 
 def test_simple():
     app = TestApp(simpleapp)
@@ -150,7 +168,7 @@ def test_really_deep_registry():
     for depth in valuelist:
         assert "AppendValue at depth %s is {'%s': %s}" % \
             (depth, keylist[depth], depth) in res
-    
+
 def test_iterating_response():
     obj = {'hi':'people'}
     secondobj = {'bye':'friends'}

@@ -11,3 +11,4 @@ syntax: glob
 dist/
 build/
 docs/_build
+.tox

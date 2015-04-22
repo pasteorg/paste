@@ -1,10 +1,8 @@
 from paste.exceptions import formatter
 from paste.exceptions import collector
-from paste.util.quoting import strip_html
 import sys
 import os
 import difflib
-import re
 
 class Mock(object):
     def __init__(self, **kw):
@@ -153,7 +151,6 @@ def test_hide_after():
                 raise_error)
         except:
             result = format(f)
-            print(strip_html(result).encode('ascii', 'replace'))
             assert 'AABB' in result
             assert 'CCDD' not in result
             assert 'raise_error' in result

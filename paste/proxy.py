@@ -21,12 +21,12 @@ TODO:
 * Rewriting body?  (Probably not on this one -- that can be done with
   a different middleware that wraps this middleware)
 
-* Example::  
-    
+* Example::
+
     use = egg:Paste#proxy
     address = http://server3:8680/exist/rest/db/orgs/sch/config/
     allowed_request_methods = GET
-  
+
 """
 
 from six.moves import http_client as httplib
@@ -38,7 +38,7 @@ from paste.util.converters import aslist
 
 # Remove these headers from response (specify lower case header
 # names):
-filtered_headers = (     
+filtered_headers = (
     'transfer-encoding',
     'connection',
     'keep-alive',
@@ -60,12 +60,12 @@ class Proxy(object):
         self.path = self.parsed[2]
         self.allowed_request_methods = [
             x.lower() for x in allowed_request_methods if x]
-        
+
         self.suppress_http_headers = [
             x.lower() for x in suppress_http_headers if x]
 
     def __call__(self, environ, start_response):
-        if (self.allowed_request_methods and 
+        if (self.allowed_request_methods and
             environ['REQUEST_METHOD'].lower() not in self.allowed_request_methods):
             return httpexceptions.HTTPBadRequest("Disallowed")(environ, start_response)
 
@@ -95,30 +95,30 @@ class Proxy(object):
                 body = environ['wsgi.input'].read(-1)
                 headers['content-length'] = str(len(body))
             else:
-                headers['content-length'] = environ['CONTENT_LENGTH'] 
+                headers['content-length'] = environ['CONTENT_LENGTH']
                 length = int(environ['CONTENT_LENGTH'])
                 body = environ['wsgi.input'].read(length)
         else:
             body = ''
-            
+
         path_info = quote(environ['PATH_INFO'])
-        if self.path:            
+        if self.path:
             request_path = path_info
             if request_path and request_path[0] == '/':
                 request_path = request_path[1:]
-                
+
             path = urlparse.urljoin(self.path, request_path)
         else:
             path = path_info
         if environ.get('QUERY_STRING'):
             path += '?' + environ['QUERY_STRING']
-            
+
         conn.request(environ['REQUEST_METHOD'],
                      path,
                      body, headers)
         res = conn.getresponse()
         headers_out = parse_headers(res.msg)
-        
+
         status = '%s %s' % (res.status, res.reason)
         start_response(status, headers_out)
         # @@: Default?
@@ -134,13 +134,13 @@ def make_proxy(global_conf, address, allowed_request_methods="",
                suppress_http_headers=""):
     """
     Make a WSGI application that proxies to another address:
-    
+
     ``address``
         the full URL ending with a trailing ``/``
-        
+
     ``allowed_request_methods``:
         a space seperated list of request methods (e.g., ``GET POST``)
-        
+
     ``suppress_http_headers``
         a space seperated list of http headers (lower case, without
         the leading ``http_``) that should not be passed on to target
@@ -224,7 +224,7 @@ class TransparentProxy(object):
         else:
             body = ''
             length = 0
-        
+
         path = (environ.get('SCRIPT_NAME', '')
                 + environ.get('PATH_INFO', ''))
         path = quote(path)
@@ -234,7 +234,7 @@ class TransparentProxy(object):
                      path, body, headers)
         res = conn.getresponse()
         headers_out = parse_headers(res.msg)
-                
+
         status = '%s %s' % (res.status, res.reason)
         start_response(status, headers_out)
         # @@: Default?
@@ -250,27 +250,27 @@ def parse_headers(message):
     """
     Turn a Message object into a list of WSGI-style headers.
     """
-    headers_out = []        
+    headers_out = []
     for full_header in message.headers:
-        if not full_header:            
+        if not full_header:
             # Shouldn't happen, but we'll just ignore
-            continue                     
+            continue
         if full_header[0].isspace():
             # Continuation line, add to the last header
-            if not headers_out:                        
+            if not headers_out:
                 raise ValueError(
                     "First header starts with a space (%r)" % full_header)
-            last_header, last_value = headers_out.pop()                   
+            last_header, last_value = headers_out.pop()
             value = last_value + ' ' + full_header.strip()
-            headers_out.append((last_header, value))      
-            continue                                
-        try:        
+            headers_out.append((last_header, value))
+            continue
+        try:
             header, value = full_header.split(':', 1)
-        except:                                      
+        except:
             raise ValueError("Invalid header: %r" % full_header)
-        value = value.strip()                                   
+        value = value.strip()
         if header.lower() not in filtered_headers:
-            headers_out.append((header, value))   
+            headers_out.append((header, value))
     return headers_out
 
 def make_transparent_proxy(
