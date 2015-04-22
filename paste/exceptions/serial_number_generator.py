@@ -63,7 +63,11 @@ def hash_identifier(s, length, pad=True, hasher=md5, prefix='',
             "length (you gave %s)" % length)
     if isinstance(s, six.text_type):
         s = s.encode('utf-8')
-    h = hasher(six.binary_type(s))
+    elif not isinstance(s, six.binary_type):
+        s = str(s)
+        if six.PY3:
+            s = s.encode('utf-8')
+    h = hasher(s)
     bin_hash = h.digest()
     modulo = base ** length
     number = 0
