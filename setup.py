@@ -62,6 +62,7 @@ setup(name="Paste",
       namespace_packages=['paste'],
       zip_safe=False,
       test_suite='nose.collector',
+      install_requires=['six'],
       tests_require=['nose>=0.11'],
       extras_require={
         'subprocess': [],
@@ -69,7 +70,6 @@ setup(name="Paste",
         'Flup': ['flup'],
         'Paste': [],
         'openid': ['python-openid'],
-        'six': [],
         },
       entry_points="""
       [paste.app_factory]
