@@ -24,7 +24,10 @@ def html_quote(v, encoding=None):
     elif isinstance(v, six.binary_type):
         return cgi.escape(v, 1)
     elif isinstance(v, six.text_type):
-        return cgi.escape(v, 1)
+        if six.PY3:
+            return cgi.escape(v, 1)
+        else:
+            return cgi.escape(v.encode(encoding), 1)
     else:
         if six.PY3:
             return cgi.escape(six.text_type(v), 1)

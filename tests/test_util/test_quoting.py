@@ -20,5 +20,9 @@ class TestQuoting(unittest.TestCase):
                          '')
         self.assertEqual(quoting.html_quote('<hey!>'),
                          '&lt;hey!&gt;')
-        self.assertEqual(quoting.html_quote(u'<\u1029>'),
-                         u'&lt;\u1029&gt;')
+        if six.PY3:
+            self.assertEqual(quoting.html_quote(u'<\u1029>'),
+                             u'&lt;\u1029&gt;')
+        else:
+            self.assertEqual(quoting.html_quote(u'<\u1029>'),
+                             '&lt;\xe1\x80\xa9&gt;')

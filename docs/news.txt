@@ -9,9 +9,6 @@ development version
 * Fix setup.py for six dependency: move the six dependency from extras_require
   to install_requires.
 
-* On Python 2, paste.util.quoting.html_quote(unicode) now returns unicode,
-  instead of bytes.
-
 * Port paste.proxy to Python 3.
 
 * Fix paste.exceptions.serial_number_generator.hash_identifier() on Python 3.
