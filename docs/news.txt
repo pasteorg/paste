@@ -6,7 +6,21 @@ News
 development version
 -------------------
 
-* Fix paste.util.html_quote(unicode): don't encode the string to escape it
+* Fix setup.py for six dependency: move the six dependency from extras_require
+  to install_requires.
+
+* On Python 2, paste.util.quoting.html_quote(unicode) now returns unicode,
+  instead of bytes.
+
+* Port paste.proxy to Python 3.
+
+* Fix paste.exceptions.serial_number_generator.hash_identifier() on Python 3.
+
+* Fix paste.util.threadedprint.uninstall(). Rename duplicated uninstall()
+  function to uninstall_stdin() and fix typo in variable name (_oldstin =>
+  _oldstdin).
+
+* Add README.rst file.
 
 2.0
 ---
