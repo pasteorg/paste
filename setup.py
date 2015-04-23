@@ -63,6 +63,7 @@ setup(name="Paste",
       zip_safe=False,
       test_suite='nose.collector',
       tests_require=['nose>=0.11'],
+      install_requires=['six'],
       extras_require={
         'subprocess': [],
         'hotshot': [],
