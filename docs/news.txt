@@ -3,8 +3,8 @@ News
 
 .. contents::
 
-development version
--------------------
+2.0.1
+-----
 
 * Fix setup.py for six dependency: move the six dependency from extras_require
   to install_requires.
