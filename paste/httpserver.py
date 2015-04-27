@@ -256,7 +256,7 @@ class WSGIHandlerMixin:
             key = 'HTTP_' + k.replace("-","_").upper()
             if key in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
                 continue
-            self.wsgi_environ[key] = ','.join(self.headers.get(k))
+            self.wsgi_environ[key] = ','.join(self.headers.getheaders(k))
 
         if hasattr(self.connection,'get_context'):
             self.wsgi_environ['wsgi.url_scheme'] = 'https'
