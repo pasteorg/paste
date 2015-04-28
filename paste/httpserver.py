@@ -42,6 +42,14 @@ except ImportError:
 __all__ = ['WSGIHandlerMixin', 'WSGIServer', 'WSGIHandler', 'serve']
 __version__ = "0.5"
 
+
+def get_headers(headers, k):
+    if hasattr(headers, 'getheaders'):  # Python 2
+        return headers.getheaders(k)
+    if hasattr(headers, 'get_all'):  # Python 3
+        return headers.get_all(k)
+
+
 class ContinueHook(object):
     """
     When a client request includes a 'Expect: 100-continue' header, then
@@ -256,7 +264,7 @@ class WSGIHandlerMixin:
             key = 'HTTP_' + k.replace("-","_").upper()
             if key in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
                 continue
-            self.wsgi_environ[key] = ','.join(self.headers.getheaders(k))
+            self.wsgi_environ[key] = ','.join(get_headers(self.headers, k))
 
         if hasattr(self.connection,'get_context'):
             self.wsgi_environ['wsgi.url_scheme'] = 'https'
