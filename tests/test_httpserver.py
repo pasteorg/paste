@@ -1,4 +1,4 @@
-import mimetools
+import email
 
 from paste.httpserver import WSGIHandler
 from six.moves import StringIO
@@ -22,7 +22,7 @@ def test_environ():
     wsgi_handler.command = 'GET'
     wsgi_handler.path = '/path'
     wsgi_handler.request_version = 'HTTP/1.0'
-    wsgi_handler.headers = mimetools.Message(StringIO('Host: mywebsite'))
+    wsgi_handler.headers = email.message_from_string('Host: mywebsite')
 
     wsgi_handler.wsgi_setup()
 
