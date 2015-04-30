@@ -1413,7 +1413,7 @@ class TestFileEnvironment(object):
         cwd = _popget(kw, 'cwd', self.cwd)
         stdin = _popget(kw, 'stdin', None)
         printresult = _popget(kw, 'printresult', True)
-        args = map(str, args)
+        args = list(map(str, args))
         assert not kw, (
             "Arguments not expected: %s" % ', '.join(kw.keys()))
         if ' ' in script:
