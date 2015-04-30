@@ -43,11 +43,16 @@ __all__ = ['WSGIHandlerMixin', 'WSGIServer', 'WSGIHandler', 'serve']
 __version__ = "0.5"
 
 
-def get_headers(headers, k):
+def _get_headers(headers, k):
+    """
+    Private function for abstracting differences in getting HTTP request
+    headers on Python 2 vs. Python 3
+    """
+
     if hasattr(headers, 'get_all'):
-        return headers.get_all(k)     # Python 3
+        return headers.get_all(k)     # Python 3 - email.message.Message
     else:
-        return headers.getheaders(k)  # Python 2
+        return headers.getheaders(k)  # Python 2 - mimetools.Message
 
 
 class ContinueHook(object):
@@ -264,7 +269,7 @@ class WSGIHandlerMixin:
             key = 'HTTP_' + k.replace("-","_").upper()
             if key in ('HTTP_CONTENT_TYPE','HTTP_CONTENT_LENGTH'):
                 continue
-            self.wsgi_environ[key] = ','.join(get_headers(self.headers, k))
+            self.wsgi_environ[key] = ','.join(_get_headers(self.headers, k))
 
         if hasattr(self.connection,'get_context'):
             self.wsgi_environ['wsgi.url_scheme'] = 'https'
