@@ -15,7 +15,6 @@ import sys
 import random
 import mimetypes
 import time
-import cgi
 import os
 import shutil
 import smtplib
@@ -230,7 +229,7 @@ class TestApp(object):
             if six.PY3:
                 params = params.encode('utf8')
         if upload_files:
-            params = cgi.parse_qsl(params, keep_blank_values=True)
+            params = urlparse.parse_qsl(params, keep_blank_values=True)
             content_type, params = self.encode_multipart(
                 params, upload_files)
             environ['CONTENT_TYPE'] = content_type

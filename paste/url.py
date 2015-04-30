@@ -4,7 +4,7 @@
 """
 This module implements a class for handling URLs.
 """
-from six.moves.urllib.parse import quote, unquote, urlencode
+from six.moves.urllib.parse import parse_qsl, quote, unquote, urlencode
 import cgi
 from paste import request
 import six
@@ -83,7 +83,7 @@ class URLResource(object):
             if querystring is None:
                 vars = request.parse_querystring(environ)
             else:
-                vars = cgi.parse_qsl(
+                vars = parse_qsl(
                     querystring,
                     keep_blank_values=True,
                     strict_parsing=False)

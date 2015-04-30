@@ -19,7 +19,7 @@ environment to solve common requirements.
 """
 import cgi
 from six.moves.urllib import parse as urlparse
-from six.moves.urllib.parse import quote
+from six.moves.urllib.parse import quote, parse_qsl
 try:
     # Python 3
     from http.cookies import SimpleCookie, CookieError
@@ -103,8 +103,8 @@ def parse_querystring(environ):
         parsed, check_source = environ['paste.parsed_querystring']
         if check_source == source:
             return parsed
-    parsed = cgi.parse_qsl(source, keep_blank_values=True,
-                           strict_parsing=False)
+    parsed = parse_qsl(source, keep_blank_values=True,
+                       strict_parsing=False)
     environ['paste.parsed_querystring'] = (parsed, source)
     return parsed
 
@@ -134,8 +134,8 @@ def parse_dict_querystring(environ):
         parsed, check_source = environ['paste.parsed_dict_querystring']
         if check_source == source:
             return parsed
-    parsed = cgi.parse_qsl(source, keep_blank_values=True,
-                           strict_parsing=False)
+    parsed = parse_qsl(source, keep_blank_values=True,
+                       strict_parsing=False)
     multi = MultiDict(parsed)
     environ['paste.parsed_dict_querystring'] = (multi, source)
     return multi
