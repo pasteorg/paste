@@ -44,10 +44,10 @@ __version__ = "0.5"
 
 
 def get_headers(headers, k):
-    if hasattr(headers, 'getheaders'):  # Python 2
-        return headers.getheaders(k)
-    if hasattr(headers, 'get_all'):  # Python 3
-        return headers.get_all(k)
+    if hasattr(headers, 'get_all'):
+        return headers.get_all(k)     # Python 3
+    else:
+        return headers.getheaders(k)  # Python 2
 
 
 class ContinueHook(object):
