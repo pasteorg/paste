@@ -3,6 +3,27 @@ News
 
 .. contents::
 
+2.0.2
+-----
+
+* #22: Fix improper commas in request headers in wsgi_environ (https://bitbucket.org/ianb/paste/pull-request/22/fix-improper-commas-in-request-headers-in)
+  Fixes issue #4 ("WSGI environ totally borked") (https://bitbucket.org/ianb/paste/issue/4/wsgi-environ-totally-borked)
+
+* #24: test_wsgirequest_charset: Use UTF-8 instead of iso-8859-1 (https://bitbucket.org/ianb/paste/pull-request/24/test_wsgirequest_charset-use-utf-8-instead)
+  Fixes issue #7 ("Python 3 test failure") (https://bitbucket.org/ianb/paste/issue/7/python-3-test-failure)
+
+* #23: Replace cgi.parse_qsl w/ six.moves.urllib.parse.parse_qsl (https://bitbucket.org/ianb/paste/pull-request/23/replace-cgiparse_qsl-w)
+  Fixes issue #8 ("cgi.parse_qsl is pending deprecation") (https://bitbucket.org/ianb/paste/issue/8/cgiparse_qsl-is-pending-deprecation)
+
+* #20: Escape CGI environment variables in HTTP 404 responses (https://bitbucket.org/ianb/paste/pull-request/20/escape-cgi-environment-variables-in-http)
+
+* #6: Add HTTP exception for new code 429 "Too Many Requests" (https://bitbucket.org/ianb/paste/pull-request/6/add-http-exception-for-new-code-429-too)
+
+* #25: replace ``has_key`` method to ``in`` operator #9 (https://bitbucket.org/ianb/paste/pull-request/25/replace-has_key-method-to-in-operator-9)
+  Fixes #9 ("used methods removed from py3") (https://bitbucket.org/ianb/paste/issue/9/used-methods-removed-from-py3)
+
+* #5: Invalid error message when the socket is already in use (https://bitbucket.org/ianb/paste/issue/5/invalid-error-message-when-the-socket-is)
+
 2.0.1
 -----
 
