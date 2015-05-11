@@ -118,7 +118,7 @@ class Monitor(object):
             elif filename.endswith('$py.class') and \
                     os.path.exists(filename[:-9] + '.py'):
                 mtime = max(os.stat(filename[:-9] + '.py').st_mtime, mtime)
-            if not self.module_mtimes.has_key(filename):
+            if filename not in self.module_mtimes:
                 self.module_mtimes[filename] = mtime
             elif self.module_mtimes[filename] < mtime:
                 print("%s changed; reloading..." % filename, file=sys.stderr)
