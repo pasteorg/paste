@@ -114,9 +114,9 @@ class URLMap(DictMixin):
                 ',\n  '.join(map(repr, matches)))
         else:
             extra = ''
-        extra += '\nSCRIPT_NAME: %r' % environ.get('SCRIPT_NAME')
-        extra += '\nPATH_INFO: %r' % environ.get('PATH_INFO')
-        extra += '\nHTTP_HOST: %r' % environ.get('HTTP_HOST')
+        extra += '\nSCRIPT_NAME: %r' % cgi.escape(environ.get('SCRIPT_NAME'))
+        extra += '\nPATH_INFO: %r' % cgi.escape(environ.get('PATH_INFO'))
+        extra += '\nHTTP_HOST: %r' % cgi.escape(environ.get('HTTP_HOST'))
         app = httpexceptions.HTTPNotFound(
             environ['PATH_INFO'],
             comment=cgi.escape(extra)).wsgi_application
