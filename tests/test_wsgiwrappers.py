@@ -36,9 +36,8 @@ def valid_name(name, encoding=no_encoding, post=False):
 
 def test_wsgirequest_charset():
     # Jose, 'José'
-    app = TestApp(AssertApp(assertfunc=valid_name(u'José',
-                                                  encoding='iso-8859-1')))
-    res = app.get('/?name=Jos%E9')
+    app = TestApp(AssertApp(assertfunc=valid_name(u'José', encoding='UTF-8')))
+    res = app.get('/?name=Jos%C3%A9')
 
     # Tanaka, '田中'
     app = TestApp(AssertApp(assertfunc=valid_name(u'田中', encoding='UTF-8')))
