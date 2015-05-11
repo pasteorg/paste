@@ -1104,7 +1104,8 @@ class ThreadPoolMixIn(object):
                     # propogate, just keep handling
                     pass
         finally:
-            self.thread_pool.shutdown()
+            if hasattr(self, 'thread_pool'):
+                self.thread_pool.shutdown()
 
     def server_activate(self):
         """
@@ -1119,7 +1120,8 @@ class ThreadPoolMixIn(object):
         """
         self.running = False
         self.socket.close()
-        self.thread_pool.shutdown(60)
+        if hasattr(self, 'thread_pool'):
+            self.thread_pool.shutdown(60)
 
 class WSGIServerBase(SecureHTTPServer):
     def __init__(self, wsgi_application, server_address,
