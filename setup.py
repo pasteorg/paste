@@ -57,7 +57,7 @@ setup(name="Paste",
       namespace_packages=['paste'],
       zip_safe=False,
       test_suite='nose.collector',
-      install_requires=['six'],
+      install_requires=['six>=1.4.0'],
       tests_require=['nose>=0.11'],
       extras_require={
         'subprocess': [],
