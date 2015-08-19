@@ -13,7 +13,7 @@ class AssertApp(object):
     def __call__(self, environ, start_response):
         start_response('200 OK', [('Content-type','text/plain')])
         self.assertfunc(environ)
-        return ['Passed']
+        return [b'Passed']
 
 no_encoding = object()
 def valid_name(name, encoding=no_encoding, post=False):
