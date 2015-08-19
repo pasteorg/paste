@@ -140,7 +140,7 @@ def parse_dict_querystring(environ):
     environ['paste.parsed_dict_querystring'] = (multi, source)
     return multi
 
-def parse_formvars(environ, include_get_vars=True):
+def parse_formvars(environ, include_get_vars=True, encoding=None, errors=None):
     """Parses the request, returning a MultiDict of form variables.
 
     If ``include_get_vars`` is true then GET (query string) variables
@@ -182,9 +182,16 @@ def parse_formvars(environ, include_get_vars=True):
         environ['CONTENT_TYPE'] = ''
     else:
         input = environ['wsgi.input']
+    kwparms = {}
+    if six.PY3:
+        if encoding:
+            kwparms['encoding'] = encoding
+        if errors:
+            kwparms['errors'] = errors
     fs = cgi.FieldStorage(fp=input,
                           environ=environ,
-                          keep_blank_values=1)
+                          keep_blank_values=1,
+                          **kwparms)
     environ['QUERY_STRING'] = old_query_string
     if fake_out_cgi:
         environ['CONTENT_TYPE'] = old_content_type
