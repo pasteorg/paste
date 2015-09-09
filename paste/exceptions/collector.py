@@ -266,7 +266,7 @@ class ExceptionCollector(object):
         name = co.co_name
         globals = f.f_globals
         locals = f.f_locals
-        if not hasattr(locals, 'has_key'):
+        if not hasattr(locals, 'keys'):
             # Something weird about this frame; it's not a real dict
             warnings.warn(
                 "Frame %s has an invalid locals(): %r" % (
