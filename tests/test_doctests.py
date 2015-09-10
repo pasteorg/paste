@@ -1,3 +1,4 @@
+import six
 import doctest
 from paste.util.import_string import simple_import
 import os
@@ -25,7 +26,9 @@ modules = [
     'paste.request',
     ]
 
-options = doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE
+options = doctest.ELLIPSIS | doctest.REPORT_ONLY_FIRST_FAILURE
+if six.PY3:
+    options |= doctest.IGNORE_EXCEPTION_DETAIL
 
 def test_doctests():
     for filename in filenames:
