@@ -338,8 +338,7 @@ def url(v):
     return quote(v)
 
 def attr(**kw):
-    kw = kw.items()
-    kw.sort()
+    kw = sorted(kw.items())
     parts = []
     for name, value in kw:
         if value is None:
