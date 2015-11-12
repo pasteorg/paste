@@ -318,22 +318,22 @@ def html_quote(value):
     if value is None:
         return ''
     if not isinstance(value, six.string_types):
-        if hasattr(value, '__unicode__'):
+        if six.PY2 and hasattr(value, '__unicode__'):
             value = unicode(value)
         else:
             value = str(value)
     value = cgi.escape(value, 1)
-    if isinstance(value, unicode):
+    if six.PY2 and isinstance(value, unicode):
         value = value.encode('ascii', 'xmlcharrefreplace')
     return value
 
 def url(v):
     if not isinstance(v, six.string_types):
-        if hasattr(v, '__unicode__'):
+        if six.PY2 and hasattr(v, '__unicode__'):
             v = unicode(v)
         else:
             v = str(v)
-    if isinstance(v, unicode):
+    if six.PY2 and isinstance(v, unicode):
         v = v.encode('utf8')
     return quote(v)
 
