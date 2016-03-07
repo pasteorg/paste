@@ -226,8 +226,8 @@ class TestApp(object):
         if hasattr(params, 'items'):
             # Some other multi-dict like format
             params = urlencode(params.items())
-            if six.PY3:
-                params = params.encode('utf8')
+        if six.PY3 and isinstance(params, six.text_type):
+            params = params.encode('utf8')
         if upload_files:
             params = urlparse.parse_qsl(params, keep_blank_values=True)
             content_type, params = self.encode_multipart(

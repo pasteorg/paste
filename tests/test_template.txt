@@ -97,8 +97,8 @@ in Python, but it's more useful in templates generally)::
     ...     elif item == 'orange':
     ...         assert loop.last
     ...     if loop.first_group(lambda i: i[0].upper()):
-    ...         print '%s:' % item[0].upper()
-    ...     print loop.number, item
+    ...         print('%s:' % item[0].upper())
+    ...     print("%s %s" % (loop.number, item))
     A:
     1 apple
     2 asparagus

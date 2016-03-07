@@ -217,7 +217,7 @@ class TextFormatter(AbstractFormatter):
         elif isinstance(value, dict):
             lines = ['\n', title, '-'*len(title)]
             items = value.items()
-            items.sort()
+            items = sorted(items)
             for n, v in items:
                 try:
                     v = repr(v)
@@ -303,7 +303,7 @@ class HTMLFormatter(TextFormatter):
     def zebra_table(self, title, rows, table_class="variables"):
         if isinstance(rows, dict):
             rows = rows.items()
-            rows.sort()
+            rows = sorted(rows)
         table = ['<table class="%s">' % table_class,
                  '<tr class="header"><th colspan="2">%s</th></tr>'
                  % self.quote(title)]

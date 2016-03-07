@@ -199,7 +199,8 @@ class WSGIRequest(object):
     GET = property(GET, doc=GET.__doc__)
 
     def _POST(self):
-        return parse_formvars(self.environ, include_get_vars=False)
+        return parse_formvars(self.environ, include_get_vars=False,
+                              encoding=self.charset, errors=self.errors)
 
     def POST(self):
         """Dictionary-like object representing the POST body.
