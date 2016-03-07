@@ -46,6 +46,10 @@ class add_close(object):
     def next(self):
         return self.app_iter.next()
 
+    # Python 3 uses __next__ instead of next
+    def __next__(self):
+        return bytes(next(self.app_iter), encoding='ascii')
+
     def close(self):
         self._closed = True
         if hasattr(self.app_iterable, 'close'):
