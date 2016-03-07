@@ -71,15 +71,18 @@ class GzipResponse(object):
         return [s]
 
     def finish_response(self, app_iter):
-        if self.compressible:
-            output = gzip.GzipFile(mode='wb', compresslevel=self.compress_level,
-                fileobj=self.buffer)
-        else:
-            output = self.buffer
+        output = None
+
         try:
             for s in app_iter:
+                if not output:
+                    if self.compressible:
+                        output = gzip.GzipFile(mode='wb', compresslevel=self.compress_level,
+                            fileobj=self.buffer)
+                    else:
+                        output = self.buffer
                 output.write(s)
-            if self.compressible:
+            if output and self.compressible:
                 output.close()
         finally:
             if hasattr(app_iter, 'close'):
