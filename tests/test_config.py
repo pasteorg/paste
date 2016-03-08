@@ -1,9 +1,11 @@
 # (c) 2007 Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
-from nose.tools import assert_raises
+
+import pytest
+import six
+
 from paste.config import CONFIG, ConfigMiddleware
 from paste.fixture import TestApp
-import six
 
 test_key = 'test key'
 
@@ -76,8 +78,8 @@ def test_process_config(request_app=test_request_config):
         assert CONFIG['process_var'] == 'foo'
         CONFIG.pop_process_config()
 
-        assert_raises(AttributeError, lambda: 'process_var' not in CONFIG)
-        assert_raises(IndexError, CONFIG.pop_process_config)
+        pytest.raises(AttributeError, lambda: 'process_var' not in CONFIG)
+        pytest.raises(IndexError, CONFIG.pop_process_config)
     finally:
         reset_config()
 
