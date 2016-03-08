@@ -32,6 +32,7 @@ def test_add_close_bytes():
 
     assert lst == [b'a', b'b', b'c']
     assert close_func_called
+    assert obj._closed
 
 
 def test_add_close_unicode():
@@ -48,3 +49,4 @@ def test_add_close_unicode():
 
     assert lst == ['a', 'b', 'c']
     assert close_func_called
+    assert obj._closed
