@@ -2,10 +2,10 @@
 # (c) 2007 Ian Bicking and Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import cgi
+
+import pytest
 import six
 from six.moves import StringIO
-
-from nose.tools import assert_raises
 
 from paste.util.multidict import MultiDict, UnicodeMultiDict
 
@@ -21,7 +21,7 @@ def test_dict():
     assert d.items() == [('a', 1), ('c', 3), ('b', 4)]
 
     d.add('b', 5)
-    assert_raises(KeyError, d.getone, "b")
+    pytest.raises(KeyError, d.getone, "b")
     assert d.getall('b') == [4, 5]
     assert d.items() == [('a', 1), ('c', 3), ('b', 4), ('b', 5)]
 
@@ -94,7 +94,7 @@ def _test_unicode_dict(decode_param_names=False):
     list(map(assert_unicode_item, d.items()))
 
     d.add(k('b'), b'5 test')
-    assert_raises(KeyError, d.getone, k("b"))
+    pytest.raises(KeyError, d.getone, k("b"))
     assert d.getall(k('b')) == [u'4 test', u'5 test']
     map(assert_unicode, d.getall('b'))
     assert d.items() == [(k('a'), u'a test'), (k('c'), u'3 test'), (k('b'), u'4 test'),
