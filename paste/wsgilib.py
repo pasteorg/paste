@@ -44,7 +44,7 @@ class add_close(object):
         return self
 
     def next(self):
-        return self.app_iter.next()
+        return self.__next__()
 
     # Python 3 uses __next__ instead of next
     def __next__(self):
