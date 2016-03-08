@@ -47,8 +47,8 @@ class add_close(object):
         return self.app_iter.next()
 
     # Python 3 uses __next__ instead of next
-    # def __next__(self):
-    #     return bytes(next(self.app_iter), encoding='ascii')
+    def __next__(self):
+        return next(self.app_iter)
 
     def close(self):
         self._closed = True
