@@ -3,6 +3,34 @@ News
 
 .. contents::
 
+2.0.3
+-----
+
+* #26: Change six requirement to >=1.4.0
+  from [Linus Heckemann](https://bitbucket.org/sphalerite/)
+  https://bitbucket.org/ianb/paste/pull-requests/26/change-six-requirement-to-140/diff
+
+* #28: Py3k fixes
+  from [Nils Philippsen](https://bitbucket.org/nilsph/)
+  https://bitbucket.org/ianb/paste/pull-requests/28/py3k-fixes/diff
+
+* #29: paste.wsgilib.add_close: Add __next__ method to support using `add_close` objects as iterators on Python 3.
+  fixes https://bitbucket.org/ianb/pastedeploy/issues/18/py3-test_config_middleware-failed
+  from [Marc Abramowitz](https://bitbucket.org/msabramo/)
+  https://bitbucket.org/ianb/paste/pull-requests/29/pastewsgilibadd_close-add-__next__-method/diff
+
+* #30: tox.ini: Add py35 to envlist
+  from [Marc Abramowitz](https://bitbucket.org/msabramo/)
+  https://bitbucket.org/ianb/paste/pull-requests/30/toxini-add-py35-to-envlist/diff
+
+* #31: Enable testing with pypy
+  from [Marc Abramowitz](https://bitbucket.org/msabramo/)
+  https://bitbucket.org/ianb/paste/pull-requests/31/enable-testing-with-pypy/diff
+
+* #33: tox.ini: Measure test coveraage
+  from [Marc Abramowitz](https://bitbucket.org/msabramo/)
+  https://bitbucket.org/ianb/paste/pull-requests/33/toxini-measure-test-coverage/diff
+
 2.0.2
 -----
 
