@@ -16,7 +16,7 @@
 # - increment version in setup.py (__version__)
 # - hg ci && hg push
 
-__version__ = '2.0.2'
+__version__ = '2.0.3'
 
 from setuptools import setup, find_packages
 import sys, os
