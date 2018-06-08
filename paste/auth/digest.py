@@ -57,7 +57,7 @@ def _split_auth_string(auth_string):
         prev = item
 
     yield prev.strip()
-    raise StopIteration
+    return
 
 def _auth_to_kv_pairs(auth_string):
     """ split a digest auth string into key, value pairs """
