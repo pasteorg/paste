@@ -1,3 +1,8 @@
+
+*Paste is in maintenance mode and recently moved from bitbucket to github.
+Patches are accepted to keep it on life support, but for the most part, please
+consider using other options.*
+
 Paste provides several pieces of "middleware" (or filters) that can be nested
 to build web applications.  Each piece of middleware uses the WSGI (`PEP 333`_)
 interface, and should be compatible with other middleware based on those
@@ -5,19 +10,14 @@ interfaces.
 
 .. _PEP 333: http://www.python.org/dev/peps/pep-0333.html
 
-* `Paste project at Bitbucket (source code, bug tracker)
-  <https://bitbucket.org/ianb/paste/>`_
+* `Paste project at GitHub (source code, bug tracker)
+  <https://github.com/cdent/paste/>`_
 * `Paste on the Python Cheeseshop (PyPI)
   <https://pypi.python.org/pypi/Paste>`_
-* `Paste documentation
-  <http://pythonpaste.org/>`_
 
 See also:
 
-* `PasteDeploy <http://pythonpaste.org/deploy/>`_
-* `PasteScript <http://pythonpaste.org/script/>`_
-* `WebTest <http://webtest.pythonpaste.org/>`_
-* `WebOb <http://docs.webob.org/>`_
+* `WebOb <https://docs.pylonsproject.org/projects/webob>`_
 
 Includes these features...
 
@@ -103,7 +103,4 @@ Other Tools
 * A class for generating and traversing URLs, and creating associated
   HTML code, in ``paste.url``
 
-The official development repo is at https://bitbucket.org/ianb/paste.
-
-For the latest changes see the `news file
-<http://pythonpaste.org/news.html>`_.
+The official development repo is at https://github.com/cdent/paste.

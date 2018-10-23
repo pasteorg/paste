@@ -7,6 +7,8 @@
 #   the SCM (Mercurial): update MANIFEST.in if needed
 # - update changelog: docs/news.txt
 #
+# TODO(cdent): Update for github.
+#
 # - hg ci
 # - hg tag VERSION
 # - hg push
@@ -49,7 +51,7 @@ setup(name="Paste",
       keywords='web application server wsgi',
       author="Ian Bicking",
       author_email="ianb@colorstudy.com",
-      url="http://pythonpaste.org",
+      url="https://pypi.org/project/Paste/",
       license="MIT",
       packages=find_packages(exclude=['ez_setup', 'examples', 'packages', 'tests*']),
       package_data=finddata.find_package_data(
