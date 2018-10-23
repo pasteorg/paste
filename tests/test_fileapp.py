@@ -95,7 +95,7 @@ def test_modified():
     assert 400 == res.status and b"ill-formed timestamp" in res.body
     res = harness.get("/",status=400,
             headers={'if-modified-since':
-                'Thu, 22 Dec 2030 01:01:01 GMT'})
+                'Thu, 22 Dec 3030 01:01:01 GMT'})
     assert 400 == res.status and b"check your system clock" in res.body
 
 def test_file():
