@@ -513,6 +513,7 @@ class LimitedLengthFile(object):
         if self.length - self._consumed <= 0:
             raise StopIteration
         return self.readline()
+    __next__ = next
 
     ## Optional methods ##
 

@@ -55,7 +55,7 @@ class CgitbMiddleware(object):
 
     def catching_iter(self, app_iter, environ):
         if not app_iter:
-            raise StopIteration
+            return
         error_on_close = False
         try:
             for v in app_iter:
