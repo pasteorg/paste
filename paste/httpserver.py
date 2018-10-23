@@ -734,7 +734,11 @@ class ThreadPool(object):
             raise RuntimeError(
                 "Cannot kill worker; killthread/ctypes not available")
         thread_obj = threading._active.get(thread_id)
-        killthread.async_raise(thread_id, SystemExit)
+        try:
+            killthread.async_raise(thread_id, SystemExit)
+        except ValueError:
+            # invalid thread id -- the thread has died in the mean time
+            pass
         try:
             del self.worker_tracker[thread_id]
         except KeyError:
