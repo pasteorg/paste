@@ -6,16 +6,18 @@ WSGI Exception Middleware
 
 Regression Test Suite
 """
-from nose.tools import assert_raises
+
+import pytest
+import six
+
 from paste.httpexceptions import *
 from paste.response import header_value
-import six
 
 
 def test_HTTPMove():
     """ make sure that location is a mandatory attribute of Redirects """
-    assert_raises(AssertionError, HTTPFound)
-    assert_raises(AssertionError, HTTPTemporaryRedirect,
+    pytest.raises(AssertionError, HTTPFound)
+    pytest.raises(AssertionError, HTTPTemporaryRedirect,
                    headers=[('l0cation','/bing')])
     assert isinstance(HTTPMovedPermanently("This is a message",
                           headers=[('Location','/bing')])
