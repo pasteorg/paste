@@ -126,6 +126,7 @@ class chained_app_iters(object):
             except StopIteration:
                 self.chained.pop(0)
                 return self.next()
+    __next__ = next
 
     def close(self):
         self._closed = True
@@ -216,6 +217,7 @@ class _wrap_app_iter(object):
         except:
             self.error_callback(sys.exc_info())
             raise
+    __next__ = next
 
 def catch_errors_app(application, environ, start_response, error_callback_app,
                      ok_callback=None, catch=Exception):
@@ -278,6 +280,7 @@ class _wrap_app_iter_app(object):
                 self.close = new_app_iterable.close
             self.next = app_iter.next
             return self.next()
+    __next__ = next
 
 def raw_interactive(application, path='', raise_on_wsgi_error=False,
                     **environ):
