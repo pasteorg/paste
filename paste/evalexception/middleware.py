@@ -29,7 +29,7 @@ from __future__ import print_function
 
 import sys
 import os
-import cgi
+import html
 import traceback
 import six
 from six.moves import cStringIO as StringIO
@@ -54,7 +54,7 @@ def html_quote(v):
     """
     if v is None:
         return ''
-    return cgi.escape(str(v), 1)
+    return html.escape(str(v), 1)
 
 def preserve_whitespace(v, quote=True):
     """
@@ -527,7 +527,7 @@ def format_eval_html(exc_data, base_path, counter):
     <div id="text_version" class="hidden-data">
     <textarea style="width: 100%%" rows=10 cols=60>%s</textarea>
     </div>
-    """ % (short_er, full_traceback_html, cgi.escape(text_er))
+    """ % (short_er, full_traceback_html, html.escape(text_er))
 
 def make_repost_button(environ):
     url = request.construct_url(environ)

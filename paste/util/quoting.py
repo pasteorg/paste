@@ -1,7 +1,7 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
-import cgi
+import html
 import six
 import re
 from six.moves import html_entities
@@ -22,17 +22,17 @@ def html_quote(v, encoding=None):
     if v is None:
         return ''
     elif isinstance(v, six.binary_type):
-        return cgi.escape(v, 1)
+        return html.escape(v, 1)
     elif isinstance(v, six.text_type):
         if six.PY3:
-            return cgi.escape(v, 1)
+            return html.escape(v, 1)
         else:
-            return cgi.escape(v.encode(encoding), 1)
+            return html.escape(v.encode(encoding), 1)
     else:
         if six.PY3:
-            return cgi.escape(six.text_type(v), 1)
+            return html.escape(six.text_type(v), 1)
         else:
-            return cgi.escape(six.text_type(v).encode(encoding), 1)
+            return html.escape(six.text_type(v).encode(encoding), 1)
 
 _unquote_re = re.compile(r'&([a-zA-Z]+);')
 def _entity_subber(match, name2c=html_entities.name2codepoint):

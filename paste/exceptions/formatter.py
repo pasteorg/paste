@@ -7,13 +7,13 @@ Formatters for the exception data that comes from ExceptionCollector.
 # @@: TODO:
 # Use this: http://www.zope.org/Members/tino/VisualTraceback/VisualTracebackNews
 
-import cgi
+import html
 import six
 import re
 from paste.util import PySourceColor
 
 def html_quote(s):
-    return cgi.escape(str(s), True)
+    return html.escape(str(s), True)
 
 class AbstractFormatter(object):
 
@@ -463,7 +463,7 @@ def format_html(exc_data, include_hidden_frames=False, **ops):
     <div id="text_version" class="hidden-data">
     <textarea style="width: 100%%" rows=10 cols=60>%s</textarea>
     </div>
-    """ % (short_er, long_er, cgi.escape(text_er))
+    """ % (short_er, long_er, html.escape(text_er))
 
 def format_text(exc_data, **ops):
     return TextFormatter(**ops).format_collected_data(exc_data)

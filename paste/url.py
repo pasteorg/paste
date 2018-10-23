@@ -5,7 +5,7 @@
 This module implements a class for handling URLs.
 """
 from six.moves.urllib.parse import parse_qsl, quote, unquote, urlencode
-import cgi
+import html
 from paste import request
 import six
 
@@ -17,7 +17,7 @@ __all__ = ["URL", "Image"]
 def html_quote(v):
     if v is None:
         return ''
-    return cgi.escape(str(v), 1)
+    return html.escape(str(v), 1)
 
 def url_quote(v):
     if v is None:
@@ -274,7 +274,7 @@ class URL(URLResource):
     >>> u['//foo'].param(content='view').html
     '<a href="http://localhost/view/foo">view</a>'
     >>> u.param(confirm='Really?', content='goto').html
-    '<a href="http://localhost/view" onclick="return confirm(\'Really?\')">goto</a>'
+    '<a href="http://localhost/view" onclick="return confirm(&#x27;Really?&#x27;)">goto</a>'
     >>> u(title='See "it"', content='goto').html
     '<a href="http://localhost/view?title=See+%22it%22">goto</a>'
     >>> u('another', var='fuggetaboutit', content='goto').html
@@ -373,7 +373,7 @@ class Button(URLResource):
     >>> u = u / 'delete'
     >>> b = u.button['confirm=Sure?'](id=5, content='del')
     >>> str(b)
-    '<button onclick="if (confirm(\'Sure?\')) {location.href=\'/delete?id=5\'}; return false">del</button>'
+    '<button onclick="if (confirm(&#x27;Sure?&#x27;)) {location.href=&#x27;/delete?id=5&#x27;}; return false">del</button>'
     """
 
     default_params = {'tag': 'button'}
@@ -417,7 +417,7 @@ class JSPopup(URLResource):
     >>> u = u / 'view'
     >>> j = u.js_popup(content='view')
     >>> j.html
-    '<a href="/view" onclick="window.open(\'/view\', \'_blank\'); return false" target="_blank">view</a>'
+    '<a href="/view" onclick="window.open(&#x27;/view&#x27;, &#x27;_blank&#x27;); return false" target="_blank">view</a>'
     """
 
     default_params = {'tag': 'a', 'target': '_blank'}

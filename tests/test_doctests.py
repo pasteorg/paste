@@ -4,7 +4,7 @@ from paste.util.import_string import simple_import
 import os
 
 filenames = [
-    'tests/test_template.txt',
+    'tests/template.txt',
     ]
 
 modules = [

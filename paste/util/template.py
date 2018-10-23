@@ -33,7 +33,7 @@ If there are syntax errors ``TemplateError`` will be raised.
 import re
 import six
 import sys
-import cgi
+from html import escape
 from six.moves.urllib.parse import quote
 from paste.util.looper import looper
 
@@ -322,7 +322,7 @@ def html_quote(value):
             value = unicode(value)
         else:
             value = str(value)
-    value = cgi.escape(value, 1)
+    value = escape(value, 1)
     if six.PY2 and isinstance(value, unicode):
         value = value.encode('ascii', 'xmlcharrefreplace')
     return value
