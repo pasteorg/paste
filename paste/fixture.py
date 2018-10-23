@@ -852,7 +852,7 @@ class TestResponse(object):
                 print("Actual response (has %r)" % no_s, file=sys.stderr)
                 print(self, file=sys.stderr)
                 raise IndexError(
-                    "Body contains string %r" % s)
+                    "Body contains string %r" % no_s)
 
     def __repr__(self):
         body = self.body
