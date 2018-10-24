@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+3.0.0
+-----
+
+* Fixes for use with Python 3.7, mostly to do with ``StopIteration``.
+
+* Moving to https://github.com/cdent/paste to keep things maintained.
+
 2.0.3
 -----
 

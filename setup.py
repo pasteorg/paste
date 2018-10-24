@@ -7,18 +7,12 @@
 #   the SCM (Mercurial): update MANIFEST.in if needed
 # - update changelog: docs/news.txt
 #
-# TODO(cdent): Update for github.
-#
-# - hg ci
-# - hg tag VERSION
-# - hg push
-# - python2 setup.py register sdist bdist_wheel upload
-# - python3 setup.py bdist_wheel upload
-#
-# - increment version in setup.py (__version__)
-# - hg ci && hg push
+# - git commit
+# - git tag -s VERSION
+# - git push
+# - python setup.py sdist bdist_wheel upload --sign
 
-__version__ = '2.0.3'
+__version__ = '3.0.0'
 
 from setuptools import setup, find_packages
 import sys, os
