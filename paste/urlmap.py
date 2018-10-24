@@ -6,7 +6,7 @@ Map URL prefixes to WSGI applications.  See ``URLMap``
 
 import re
 import os
-import html
+from paste.util import html
 try:
     # Python 3
     from collections import MutableMapping as DictMixin

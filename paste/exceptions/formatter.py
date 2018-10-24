@@ -7,9 +7,9 @@ Formatters for the exception data that comes from ExceptionCollector.
 # @@: TODO:
 # Use this: http://www.zope.org/Members/tino/VisualTraceback/VisualTracebackNews
 
-import html
 import six
 import re
+from paste.util import html
 from paste.util import PySourceColor
 
 def html_quote(s):

@@ -5,9 +5,9 @@
 This module implements a class for handling URLs.
 """
 from six.moves.urllib.parse import parse_qsl, quote, unquote, urlencode
-import html
 from paste import request
 import six
+from paste.util import html
 
 # Imported lazily from FormEncode:
 variabledecode = None

@@ -29,7 +29,6 @@ from __future__ import print_function
 
 import sys
 import os
-import html
 import traceback
 import six
 from six.moves import cStringIO as StringIO
@@ -45,6 +44,7 @@ from paste import registry
 from paste import request
 from paste import response
 from paste.evalexception import evalcontext
+from paste.util import html
 
 limit = 200
 
