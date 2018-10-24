@@ -14,6 +14,8 @@ interfaces.
   <https://github.com/cdent/paste/>`_
 * `Paste on the Python Cheeseshop (PyPI)
   <https://pypi.python.org/pypi/Paste>`_
+* `Paste on Read the Docs
+  <https://pythonpaste.readthedocs.io>`_
 
 See also:
 
