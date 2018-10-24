@@ -16,17 +16,16 @@ are always located on the Cheese Shop pages (listed below).
 * `Wareweb <http://pypi.python.org/pypi/Wareweb>`_ (deprecated, use `Pylons
   <https://pypi.python.org/pypi/Pylons>`_ instead)
 
-All the packages are available in the Mercurial repositories rooted in
+All the packages are available in some repositories, many rooted in
 http://bitbucket.org/ianb/
 
-* http://bitbucket.org/ianb/paste
+* https://github.com/cdent/paste
 * http://bitbucket.org/ianb/pastescript
 * http://bitbucket.org/ianb/pastedeploy
 * https://github.com/Pylons/webob
 * ... and others
 
-Use::
-
-    hg clone http://bitbucket.org/ianb/paste
-
-to check out a working copy of Paste.
+..note:: Several of these repositories and projects are fairly stale and
+         insufficiently maintained. Work is in progress to get them on
+         life support, but it is unlikely they will ever be active projects
+         again. WebOb is still actively maintained.

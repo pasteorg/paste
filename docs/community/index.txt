@@ -1,6 +1,10 @@
 Community
 =========
 
+**Much of the Paste community has moved on to other things. These
+links are left for reference, but do not expect to find much activity
+there.**
+
 Much of the communication goes on in the `mailing lists
 <mailing-list.html>`_; see that page for information on the lists.
 
