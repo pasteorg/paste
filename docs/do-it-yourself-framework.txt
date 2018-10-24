@@ -387,7 +387,7 @@ is a somewhat more thorough implementation of this.
 
    This, like a lot of parts of this (now fairly old) tutorial is
    better, more thorough, and easier using `WebOb
-   <http://pythonpaste.org/webob/>`_.  This particular example looks
+   <https://webob.org/>`_.  This particular example looks
    like::
 
        from webob import Request
