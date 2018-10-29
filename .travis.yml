@@ -7,14 +7,22 @@ script:
 matrix:
     include:
         - python: 2.7
-          env: TOXENV=py27
+          env: TOXENV=py27-coverage
         - python: 3.5
-          env: TOXENV=py35
+          env: TOXENV=py35-coverage
         - python: 3.6
-          env: TOXENV=py36
+          env: TOXENV=py36-coverage
         - python: 3.7
-          env: TOXENV=py37
+          env: TOXENV=py37-coverage
           dist: xenial
           sudo: true
         - python: pypy
-          env: TOXENV=pypy
+          env: TOXENV=pypy-coverage
+
+after_success:
+  - |
+    flags=${TOXENV%-coverage}
+    if [[ "$flags" != "$TOXENV" ]]; then
+      .tox/$TOXENV/bin/coverage xml
+      bash <(curl -s https://codecov.io/bash) -Z -X gcov -X search -X xcode -X fix -X coveragepy -f coverage.xml -F "$flags"
+    fi

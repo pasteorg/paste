@@ -1,0 +1,9 @@
+[run]
+branch = 1
+source = paste,tests/
+parallel = 1
+
+[paths]
+source = src/
+  .tox/*/lib/python*/site-packages/
+  .tox\*\Lib\site-packages\
