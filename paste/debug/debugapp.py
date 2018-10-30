@@ -54,14 +54,14 @@ class SlowConsumer(object):
                     time.sleep(self.delay)
             body = "<html><body>%d bytes</body></html>" % size
         else:
-            body = ('<html><body>\n'
-                '<form method="post" enctype="multipart/form-data">\n'
-                '<input type="file" name="file">\n'
-                '<input type="submit" >\n'
-                '</form></body></html>\n')
+            body = (b'<html><body>\n'
+                    b'<form method="post" enctype="multipart/form-data">\n'
+                    b'<input type="file" name="file">\n'
+                    b'<input type="submit" >\n'
+                    b'</form></body></html>\n')
         print("bingles")
         start_response("200 OK", [('Content-Type', 'text/html'),
-                                  ('Content-Length', len(body))])
+                                  ('Content-Length', str(len(body)))])
         return [body]
 
 def make_test_app(global_conf):

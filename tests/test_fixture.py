@@ -1,5 +1,6 @@
-from paste.debug.debugapp import SimpleApplication
+from paste.debug.debugapp import SimpleApplication, SlowConsumer
 from paste.fixture import TestApp
+
 
 def test_fixture():
     app = TestApp(SimpleApplication())
@@ -26,3 +27,11 @@ def test_fixture():
     assert ('one=first' in hc)
     assert ('two=second' in hc)
     assert ('three=' in hc)
+
+
+def test_fixture_form():
+    app = TestApp(SlowConsumer())
+    res = app.get('/')
+    form = res.forms[0]
+    assert 'file' in form.fields
+    assert form.action == ''
