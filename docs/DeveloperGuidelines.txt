@@ -52,15 +52,15 @@ is going to bite your head off for committing something.
   the work here.  Paste Script contains several wrappers for external
   projects (servers in particular).
 
-* Tests are good.  We use py.test_, because it is simple.  I want to
+* Tests are good.  We use pytest_, because it is simple.  I want to
   use doctests too, but the infrastructure isn't really there now --
   but please feel free to use those too.  ``unittest`` is kind of
-  annoying, and py.test is both more powerful and easier to write for.
+  annoying, and pytest is both more powerful and easier to write for.
   Tests should go in the ``tests/`` directory.  ``paste.fixture``
   contains some convenience functions for testing WSGI applications
   and middleware.  Pay particular attention to ``TestApp``.
-  
-.. _py.test: http://codespeak.net/py/current/doc/test.html
+
+.. _pytest: https://docs.pytest.org/en/latest/
 
 * If you move something around that someone may be using, keep their
   imports working and introduce a warning, like::

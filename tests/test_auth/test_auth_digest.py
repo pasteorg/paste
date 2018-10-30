@@ -56,10 +56,10 @@ def test_digest():
 # The following code uses sockets to test the functionality,
 # to enable use:
 #
-# $ TEST_SOCKET py.test
-#
+# $ TEST_SOCKET=1 pytest
 
-if os.environ.get("TEST_SOCKET",""):
+
+if os.environ.get("TEST_SOCKET", ""):
     from six.moves.urllib.error import HTTPError
     from six.moves.urllib.request import build_opener, HTTPDigestAuthHandler
     from paste.debug.testserver import serve

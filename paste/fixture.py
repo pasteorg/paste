@@ -190,8 +190,7 @@ class TestApp(object):
         """
         if extra_environ is None:
             extra_environ = {}
-        # Hide from py.test:
-        __tracebackhide__ = True
+        __tracebackhide__ = True  # Hide from pytest:
         if params:
             if not isinstance(params, (six.binary_type, six.text_type)):
                 params = urlencode(params, doseq=True)
@@ -1722,9 +1721,10 @@ def _make_pattern(pat):
     assert 0, (
         "Cannot make callable pattern object out of %r" % pat)
 
+
 def setup_module(module=None):
     """
-    This is used by py.test if it is in the module, so you can
+    This is used by pytest if it is in the module, so you can
     import this directly.
 
     Use like::
