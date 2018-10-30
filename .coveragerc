@@ -1,9 +1,5 @@
 [run]
 branch = 1
-source = paste,tests/
+# NOTE: cannot use package easily, without chdir (https://github.com/nedbat/coveragepy/issues/268).
+source = paste/,tests/
 parallel = 1
-
-[paths]
-source = src/
-  .tox/*/lib/python*/site-packages/
-  .tox\*\Lib\site-packages\
