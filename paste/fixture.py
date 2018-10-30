@@ -557,7 +557,10 @@ class TestResponse(object):
         forms = self._forms_indexed = {}
         form_texts = []
         started = None
-        for match in self._tag_re.finditer(self.body):
+        body = self.body
+        if not six.PY2:
+            body = body.decode('utf8', 'xmlcharrefreplace')
+        for match in self._tag_re.finditer(body):
             end = match.group(1) == '/'
             tag = match.group(2).lower()
             if tag != 'form':
@@ -961,8 +964,11 @@ class Form(object):
         in_select = None
         in_textarea = None
         fields = {}
-        for match in self._tag_re.finditer(self.text):
-            end = match.group(1) == '/'
+        text = self.text
+        if not six.PY2:
+            text = text.decode('utf8', 'xmlcharrefreplace')
+        for match in self._tag_re.finditer(text):
+            end = match.group(1) == b'/'
             tag = match.group(2).lower()
             if tag not in ('input', 'select', 'option', 'textarea',
                            'button'):
@@ -1020,7 +1026,10 @@ class Form(object):
 
     def _parse_action(self):
         self.action = None
-        for match in self._tag_re.finditer(self.text):
+        text = self.text
+        if not six.PY2:
+            text = text.decode('utf8', 'xmlcharrefreplace')
+        for match in self._tag_re.finditer(text):
             end = match.group(1) == '/'
             tag = match.group(2).lower()
             if tag != 'form':
