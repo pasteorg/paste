@@ -978,7 +978,7 @@ In paste.httpserver
     ``wdg_validate`` and ``doctest_webapp``
 
   - a ``testserver`` module suitable to test HTTP socket
-    connections via ``py.test``
+    connections via ``pytest``
 
 * Re-factored `paste.wsgilib <module-paste.wsgilib.html>`_ into
   several other modules:

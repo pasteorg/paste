@@ -90,13 +90,14 @@ class Dummy_smtplib(object):
             "SMTP connection not quit")
         self.__class__.existing = None
 
+
 class AppError(Exception):
     pass
 
+
 class TestApp(object):
 
-    # for py.test
-    disabled = True
+    __test__ = False  # Ignore with pytest test collection.
 
     def __init__(self, app, namespace=None, relative_to=None,
                  extra_environ=None, pre_request_hook=None,
@@ -189,8 +190,7 @@ class TestApp(object):
         """
         if extra_environ is None:
             extra_environ = {}
-        # Hide from py.test:
-        __tracebackhide__ = True
+        __tracebackhide__ = True  # Hide from pytest:
         if params:
             if not isinstance(params, (six.binary_type, six.text_type)):
                 params = urlencode(params, doseq=True)
@@ -494,10 +494,10 @@ class CaptureStdout(object):
     def getvalue(self):
         return self.captured.getvalue()
 
+
 class TestResponse(object):
 
-    # for py.test
-    disabled = True
+    __test__ = False  # Ignore with pytest test collection.
 
     """
     Instances of this class are return by `TestApp
@@ -884,10 +884,10 @@ class TestResponse(object):
         url = 'file:' + fn.replace(os.sep, '/')
         webbrowser.open_new(url)
 
+
 class TestRequest(object):
 
-    # for py.test
-    disabled = True
+    __test__ = False  # Ignore with pytest test collection.
 
     """
     Instances of this class are created by `TestApp
@@ -1331,8 +1331,7 @@ class TestFileEnvironment(object):
     scripts will be run.
     """
 
-    # for py.test
-    disabled = True
+    __test__ = False  # Ignore with pytest test collection.
 
     def __init__(self, base_path, template_path=None,
                  script_path=None,
@@ -1722,9 +1721,10 @@ def _make_pattern(pat):
     assert 0, (
         "Cannot make callable pattern object out of %r" % pat)
 
+
 def setup_module(module=None):
     """
-    This is used by py.test if it is in the module, so you can
+    This is used by pytest if it is in the module, so you can
     import this directly.
 
     Use like::
