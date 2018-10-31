@@ -35,3 +35,12 @@ def test_fixture_form():
     form = res.forms[0]
     assert 'file' in form.fields
     assert form.action == ''
+
+
+def test_fixture_form_end():
+    def response(environ, start_response):
+        body = b"<html><body><form>sm\xc3\xb6rebr\xc3\xb6</form></body></html>"
+        start_response("200 OK", [('Content-Type', 'text/html'),
+                                  ('Content-Length', str(len(body)))])
+        return [body]
+    TestApp(response).get('/')

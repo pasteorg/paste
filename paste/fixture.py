@@ -568,14 +568,14 @@ class TestResponse(object):
             if end:
                 assert started, (
                     "</form> unexpected at %s" % match.start())
-                form_texts.append(self.body[started:match.end()])
+                form_texts.append(body[started:match.end()])
                 started = None
             else:
                 assert not started, (
                     "Nested form tags at %s" % match.start())
                 started = match.start()
         assert not started, (
-            "Danging form: %r" % self.body[started:])
+            "Dangling form: %r" % body[started:])
         for i, text in enumerate(form_texts):
             form = Form(self, text)
             forms[i] = form
@@ -965,8 +965,6 @@ class Form(object):
         in_textarea = None
         fields = {}
         text = self.text
-        if not six.PY2:
-            text = text.decode('utf8', 'xmlcharrefreplace')
         for match in self._tag_re.finditer(text):
             end = match.group(1) == b'/'
             tag = match.group(2).lower()
@@ -1027,8 +1025,6 @@ class Form(object):
     def _parse_action(self):
         self.action = None
         text = self.text
-        if not six.PY2:
-            text = text.decode('utf8', 'xmlcharrefreplace')
         for match in self._tag_re.finditer(text):
             end = match.group(1) == '/'
             tag = match.group(2).lower()
