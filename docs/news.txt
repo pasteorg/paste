@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.0.2
+-----
+
+* Encoding fixes in ``paste.fixture``.
+
 3.0.1
 -----
 
