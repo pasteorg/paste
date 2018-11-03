@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.0.3
+-----
+
+* Ensure pytest requirements set properly.
+
 3.0.2
 -----
 
