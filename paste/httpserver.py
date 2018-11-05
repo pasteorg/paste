@@ -1355,7 +1355,7 @@ def server_runner(wsgi_app, global_conf, **kwargs):
         if name in kwargs:
             kwargs[name] = asbool(kwargs[name])
     threadpool_options = {}
-    for name, value in kwargs.items():
+    for name, value in list(kwargs.items()):
         if name.startswith('threadpool_') and name != 'threadpool_workers':
             threadpool_options[name[len('threadpool_'):]] = value
             del kwargs[name]
