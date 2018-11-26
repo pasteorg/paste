@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.0.4
+-----
+
+* Python 3 fix for deleting items from a dict.
+
 3.0.3
 -----
 
