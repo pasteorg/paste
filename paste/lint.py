@@ -217,7 +217,6 @@ class ErrorWrapper(object):
         self.errors = wsgi_errors
 
     def write(self, s):
-        assert isinstance(s, bytes)
         self.errors.write(s)
 
     def flush(self):
