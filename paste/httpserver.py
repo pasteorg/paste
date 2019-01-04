@@ -361,7 +361,7 @@ else:
         Provides SSL server functionality on top of the BaseHTTPServer
         by overriding _private_ members of Python's standard
         distribution. The interface for this instance only changes by
-        adding a an optional ssl_context attribute to the constructor:
+        adding an optional ssl_context attribute to the constructor:
 
               cntx = SSL.Context(SSL.SSLv23_METHOD)
               cntx.use_privatekey_file("host.pem")
@@ -379,20 +379,7 @@ else:
                                         self.socket_type)
             self.ssl_context = ssl_context
             if ssl_context:
-                class SSLConnection(SSL.Connection):
-                    def settimeout(self, *args):
-                        self._lock.acquire()
-                        try:
-                            return self._ssl_conn.settimeout(*args)
-                        finally:
-                            self._lock.release()
-                    def gettimeout(self):
-                        self._lock.acquire()
-                        try:
-                            return self._ssl_conn.gettimeout()
-                        finally:
-                            self._lock.release()
-                self.socket = SSLConnection(ssl_context, self.socket)
+                self.socket = SSL.Connection(ssl_context, self.socket)
             self.server_bind()
             if request_queue_size:
                 self.socket.listen(request_queue_size)
