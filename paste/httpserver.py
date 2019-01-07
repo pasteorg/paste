@@ -331,7 +331,7 @@ class WSGIHandlerMixin:
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/442473
 #
 try:
-    from OpenSSL import SSL
+    from OpenSSL import SSL, tsafe
     SocketErrors = (socket.error, SSL.ZeroReturnError, SSL.SysCallError)
 except ImportError:
     # Do not require pyOpenSSL to be installed, but disable SSL
@@ -379,7 +379,7 @@ else:
                                         self.socket_type)
             self.ssl_context = ssl_context
             if ssl_context:
-                class SSLConnection(SSL.Connection):
+                class TSafeConnection(tsafe.Connection):
                     def settimeout(self, *args):
                         self._lock.acquire()
                         try:
@@ -392,7 +392,7 @@ else:
                             return self._ssl_conn.gettimeout()
                         finally:
                             self._lock.release()
-                self.socket = SSLConnection(ssl_context, self.socket)
+                self.socket = TSafeConnection(ssl_context, self.socket)
             self.server_bind()
             if request_queue_size:
                 self.socket.listen(request_queue_size)
