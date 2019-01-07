@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+3.0.6
+-----
+
+* Revert the changes in the 3.0.5, which introduced unexpected errors in
+  ``paste/httpserver.py`` when using SSL.
+
 3.0.5
 -----
 
