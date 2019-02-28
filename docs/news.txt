@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.0.7
+-----
+
+* Send bytestrings when writing chunks from ``paste/httpserver.py``.
+
 3.0.6
 -----
 
