@@ -306,7 +306,7 @@ class WSGIHandlerMixin:
                 for chunk in result:
                     self.wsgi_write_chunk(chunk)
                 if not self.wsgi_headers_sent:
-                    self.wsgi_write_chunk('')
+                    self.wsgi_write_chunk(b'')
             finally:
                 if hasattr(result,'close'):
                     result.close()
@@ -321,7 +321,7 @@ class WSGIHandlerMixin:
                     '500 Internal Server Error',
                     [('Content-type', 'text/plain'),
                      ('Content-length', str(len(error_msg)))])
-                self.wsgi_write_chunk("Internal Server Error\n")
+                self.wsgi_write_chunk(b"Internal Server Error\n")
             raise
 
 #
