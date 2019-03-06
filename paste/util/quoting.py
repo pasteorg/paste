@@ -23,7 +23,10 @@ def html_quote(v, encoding=None):
     if v is None:
         return ''
     elif isinstance(v, six.binary_type):
-        return html.escape(v, 1)
+        if six.PY3:
+            return html.escape(v.decode(encoding), 1).encode(encoding)
+        else:
+            return html.escape(v, 1)
     elif isinstance(v, six.text_type):
         if six.PY3:
             return html.escape(v, 1)
