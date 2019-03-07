@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.0.8
+-----
+
+* Fix quoting of bytestrings (#23, via jelmer).
+
 3.0.7
 -----
 
