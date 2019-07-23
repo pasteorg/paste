@@ -360,11 +360,11 @@ class WSGIResponse(object):
         for c in self.cookies.values():
             response_headers.append(('Set-Cookie', c.output(header='')))
         start_response(status, response_headers)
-        is_file = isinstance(self.content, file)
+        is_file = hasattr(self.content, 'read')
         if 'wsgi.file_wrapper' in environ and is_file:
             return environ['wsgi.file_wrapper'](self.content)
         elif is_file:
-            return iter(lambda: self.content.read(), '')
+            return iter(lambda: self.content.read(), b'')
         return self.get_content()
 
     def determine_charset(self):

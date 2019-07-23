@@ -2,6 +2,7 @@
 # (c) 2007 Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import cgi
+import io
 from paste.fixture import TestApp
 from paste.wsgiwrappers import WSGIRequest, WSGIResponse
 import six
@@ -144,3 +145,19 @@ def test_wsgiresponse_charset():
             assert isinstance(data, six.text_type)
     finally:
         WSGIResponse.defaults._pop_object()
+
+def test_call_wsgiresponse():
+    resp = WSGIResponse(b'some content', 'application/octet-stream')
+    def sp(status, response_headers):
+        assert status == '200 OK'
+        assert sorted(response_headers) == [
+            ('cache-control', 'no-cache'),
+            ('content-type', 'application/octet-stream'),
+        ]
+    assert resp({}, sp) == [b'some content']
+    f = io.BytesIO(b'some content')
+    resp = WSGIResponse(f, 'application/octet-stream')
+    assert list(resp({}, sp)) == [b'some content']
+    f = io.BytesIO()
+    resp = WSGIResponse(f, 'application/octet-stream')
+    assert resp({'wsgi.file_wrapper': lambda x: x}, sp) is f
