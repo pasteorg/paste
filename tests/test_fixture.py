@@ -1,5 +1,8 @@
+import cgi
+
 from paste.debug.debugapp import SimpleApplication, SlowConsumer
 from paste.fixture import TestApp
+from paste.wsgiwrappers import WSGIRequest
 
 
 def test_fixture():
@@ -44,3 +47,28 @@ def test_fixture_form_end():
                                   ('Content-Length', str(len(body)))])
         return [body]
     TestApp(response).get('/')
+
+def test_params_and_upload_files():
+    class PostApp(object):
+        def __call__(self, environ, start_response):
+            start_response("204 No content", [])
+            self.request = WSGIRequest(environ)
+            return [b'']
+    post_app = PostApp()
+    app = TestApp(post_app)
+    app.post(
+        '/',
+        params={'param1': 'a', 'param2': 'b'},
+        upload_files=[
+            ('file1', 'myfile.txt', b'data1'),
+            ('file2', b'yourfile.txt', b'data2'),
+        ],
+    )
+    params = post_app.request.params
+    assert len(params) == 4
+    assert params['param1'] == 'a'
+    assert params['param2'] == 'b'
+    assert params['file1'].value == b'data1'
+    assert params['file1'].filename == 'myfile.txt'
+    assert params['file2'].value == b'data2'
+    assert params['file2'].filename == 'yourfile.txt'
