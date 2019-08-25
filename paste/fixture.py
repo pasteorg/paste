@@ -330,28 +330,20 @@ class TestApp(object):
         lines = []
         for key, value in params:
             lines.append(b'--'+boundary)
-            line = 'Content-Disposition: form-data; name="%s"' % key
-            if six.PY3:
-                line = line.encode('utf8')
+            line = b'Content-Disposition: form-data; name="%s"' % six.ensure_binary(key)
             lines.append(line)
             lines.append(b'')
-            line = value
-            if six.PY3 and isinstance(line, six.text_type):
-                line = line.encode('utf8')
+            line = six.ensure_binary(value)
             lines.append(line)
         for file_info in files:
             key, filename, value = self._get_file_info(file_info)
             lines.append(b'--'+boundary)
-            line = ('Content-Disposition: form-data; name="%s"; filename="%s"'
-                         % (key, filename))
-            if six.PY3:
-                line = line.encode('utf8')
+            line = (b'Content-Disposition: form-data; name="%s"; filename="%s"'
+                         % (six.ensure_binary(key), six.ensure_binary(filename)))
             lines.append(line)
-            fcontent = mimetypes.guess_type(filename)[0]
-            line = ('Content-Type: %s'
-                    % (fcontent or 'application/octet-stream'))
-            if six.PY3:
-                line = line.encode('utf8')
+            fcontent = mimetypes.guess_type(six.ensure_str(filename, 'ascii', 'ignore'))[0]
+            line = (b'Content-Type: %s'
+                    % (fcontent.encode('ascii') if fcontent else b'application/octet-stream'))
             lines.append(line)
             lines.append(b'')
             lines.append(value)

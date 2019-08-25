@@ -96,7 +96,7 @@ def test_wsgirequest_charset_fileupload():
         return []
 
     app = TestApp(handle_fileupload)
-    res = app.post('/', upload_files=[('thefile', '寿司.txt', b'Sushi')])
+    res = app.post('/', upload_files=[('thefile', u'寿司.txt'.encode('utf-8'), b'Sushi')])
 
 def test_wsgiresponse_charset():
     response = WSGIResponse(mimetype='text/html; charset=UTF-8')
