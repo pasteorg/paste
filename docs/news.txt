@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.1.1
+-----
+
+* TestApp.encode_multipart handles bytes filenames and params.
+
 3.1.0
 -----
 
