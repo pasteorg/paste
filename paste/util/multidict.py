@@ -265,11 +265,13 @@ class UnicodeMultiDict(DictMixin):
         """
         if isinstance(value, cgi.FieldStorage):
             # decode FieldStorage's field name and filename
-            value = copy.copy(value)
-            if self.decode_keys and isinstance(value.name, six.binary_type):
-                value.name = value.name.decode(self.encoding, self.errors)
-            if six.PY2:
-                value.filename = value.filename.decode(self.encoding, self.errors)
+            decode_name = self.decode_keys and isinstance(value.name, six.binary_type)
+            if six.PY2 or decode_name:
+                value = copy.copy(value)
+                if decode_name:
+                    value.name = value.name.decode(self.encoding, self.errors)
+                if six.PY2:
+                    value.filename = value.filename.decode(self.encoding, self.errors)
         else:
             try:
                 value = value.decode(self.encoding, self.errors)

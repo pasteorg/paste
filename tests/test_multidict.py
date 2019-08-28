@@ -2,10 +2,11 @@
 # (c) 2007 Ian Bicking and Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import cgi
+import gc
+import io
 
 import pytest
 import six
-from six.moves import StringIO
 
 from paste.util.multidict import MultiDict, UnicodeMultiDict
 
@@ -149,14 +150,16 @@ def _test_unicode_dict(decode_param_names=False):
     fs = cgi.FieldStorage()
     fs.name = 'thefile'
     fs.filename = 'hello.txt'
-    fs.file = StringIO('hello')
+    fs.file = io.BytesIO(b'hello')
     d[k('f')] = fs
     ufs = d[k('f')]
     assert isinstance(ufs, cgi.FieldStorage)
-    assert ufs is not fs
     assert ufs.name == fs.name
     assert isinstance(ufs.name, str if six.PY3 else key_str)
     assert ufs.filename == fs.filename
     assert isinstance(ufs.filename, six.text_type)
-    assert isinstance(ufs.value, str)
-    assert ufs.value == 'hello'
+    assert isinstance(ufs.value, bytes)
+    assert ufs.value == b'hello'
+    ufs = None
+    gc.collect()
+    assert not fs.file.closed
