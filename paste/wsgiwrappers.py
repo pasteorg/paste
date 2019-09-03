@@ -5,6 +5,7 @@
 The WSGIRequest and WSGIResponse objects are light wrappers to make it easier
 to deal with an incoming request and sending a response.
 """
+import codecs
 import re
 import warnings
 from pprint import pformat
@@ -121,7 +122,12 @@ class WSGIRequest(object):
             # case, attempt to use the charset specified by the browser
             browser_charset = self.determine_browser_charset()
             if browser_charset:
-                self.charset = browser_charset
+                try:
+                    codecs.lookup(browser_charset)
+                except LookupError:
+                    pass
+                else:
+                    self.charset = browser_charset
         self.errors = defaults.get('errors', 'strict')
         self.decode_param_names = defaults.get('decode_param_names', False)
         self._languages = None

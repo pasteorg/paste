@@ -69,6 +69,12 @@ def test_wsgirequest_charset():
                                                   encoding='shiftjis')))
     res = app.post('/', params=dict(name=u'日本'.encode('shiftjis')))
 
+    # An invalid encoding falls back to the default.
+    app = TestApp(AssertApp(assertfunc=valid_name(u'日本', encoding='UTF-8',
+                                                  post=True)))
+    res = app.post('/', params=dict(name=u'日本'.encode('utf-8')),
+                   headers={'content-type': content_type % 'garbage-encoding'})
+
 def test_wsgirequest_charset_fileupload():
     def handle_fileupload(environ, start_response):
         start_response('200 OK', [('Content-type','text/plain')])
