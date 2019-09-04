@@ -1,6 +1,7 @@
 import email
+import io
 
-from paste.httpserver import WSGIHandler
+from paste.httpserver import LimitedLengthFile, WSGIHandler
 from six.moves import StringIO
 
 
@@ -43,3 +44,10 @@ def test_environ_with_multiple_values():
     wsgi_handler.wsgi_setup()
 
     assert wsgi_handler.wsgi_environ['HTTP_HOST'] == 'host1,host2'
+
+
+def test_limited_length_file():
+    backing = io.BytesIO(b'0123456789')
+    f = LimitedLengthFile(backing, 9)
+    assert f.read() == b'012345678'
+    assert f.read() == b''

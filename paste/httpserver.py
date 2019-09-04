@@ -487,7 +487,7 @@ class LimitedLengthFile(object):
             length = min(length, left)
         # next two lines are hnecessary only if read(0) blocks
         if not left:
-            return ''
+            return b''
         data = self.file.read(length)
         self._consumed += len(data)
         return data
