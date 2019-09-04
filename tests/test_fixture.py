@@ -72,3 +72,10 @@ def test_params_and_upload_files():
     assert params['file1'].filename == 'myfile.txt'
     assert params['file2'].value == b'data2'
     assert params['file2'].filename == 'yourfile.txt'
+
+def test_unicode_path():
+    app = TestApp(SimpleApplication())
+    app.get(u"/?")
+    app.post(u"/?")
+    app.put(u"/?")
+    app.delete(u"/?")

@@ -235,6 +235,7 @@ class TestApp(object):
             environ['CONTENT_TYPE'] = content_type
         elif params:
             environ.setdefault('CONTENT_TYPE', 'application/x-www-form-urlencoded')
+        url = str(url)
         if '?' in url:
             url, environ['QUERY_STRING'] = url.split('?', 1)
         else:
