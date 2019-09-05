@@ -3,6 +3,16 @@ News
 
 .. contents::
 
+3.2.0
+-----
+
+* Ensure unicode URLs work in TestApp.
+* Make LimitedLengthFile file return empty bytes.
+* Protect against accidental close in FieldStorage.
+
+Thanks to benjaminp for many recent contributions.
+
+
 3.1.1
 -----
 
