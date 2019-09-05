@@ -161,51 +161,40 @@ def parse_formvars(environ, include_get_vars=True, encoding=None, errors=None):
             return parsed
     # @@: Shouldn't bother FieldStorage parsing during GET/HEAD and
     # fake_out_cgi requests
-    type = environ.get('CONTENT_TYPE', '').lower()
-    if ';' in type:
-        type = type.split(';', 1)[0]
-    fake_out_cgi = type not in ('', 'application/x-www-form-urlencoded',
+    formvars = MultiDict()
+    ct = environ.get('CONTENT_TYPE', '').partition(';')[0].lower()
+    use_cgi = ct in ('', 'application/x-www-form-urlencoded',
                                 'multipart/form-data')
     # FieldStorage assumes a default CONTENT_LENGTH of -1, but a
     # default of 0 is better:
     if not environ.get('CONTENT_LENGTH'):
         environ['CONTENT_LENGTH'] = '0'
-    # Prevent FieldStorage from parsing QUERY_STRING during GET/HEAD
-    # requests
-    old_query_string = environ.get('QUERY_STRING','')
-    environ['QUERY_STRING'] = ''
-    if fake_out_cgi:
-        input = six.BytesIO(b'')
-        old_content_type = environ.get('CONTENT_TYPE')
-        old_content_length = environ.get('CONTENT_LENGTH')
-        environ['CONTENT_LENGTH'] = '0'
-        environ['CONTENT_TYPE'] = ''
-    else:
-        input = environ['wsgi.input']
-    kwparms = {}
-    if six.PY3:
-        if encoding:
-            kwparms['encoding'] = encoding
-        if errors:
-            kwparms['errors'] = errors
-    fs = cgi.FieldStorage(fp=input,
-                          environ=environ,
-                          keep_blank_values=1,
-                          **kwparms)
-    environ['QUERY_STRING'] = old_query_string
-    if fake_out_cgi:
-        environ['CONTENT_TYPE'] = old_content_type
-        environ['CONTENT_LENGTH'] = old_content_length
-    formvars = MultiDict()
-    if isinstance(fs.value, list):
-        for name in fs.keys():
-            values = fs[name]
-            if not isinstance(values, list):
-                values = [values]
-            for value in values:
-                if not value.filename:
-                    value = value.value
-                formvars.add(name, value)
+    if use_cgi:
+        # Prevent FieldStorage from parsing QUERY_STRING during GET/HEAD
+        # requests
+        old_query_string = environ.get('QUERY_STRING','')
+        environ['QUERY_STRING'] = ''
+        inp = environ['wsgi.input']
+        kwparms = {}
+        if six.PY3:
+            if encoding:
+                kwparms['encoding'] = encoding
+            if errors:
+                kwparms['errors'] = errors
+        fs = cgi.FieldStorage(fp=inp,
+                              environ=environ,
+                              keep_blank_values=True,
+                              **kwparms)
+        environ['QUERY_STRING'] = old_query_string
+        if isinstance(fs.value, list):
+            for name in fs.keys():
+                values = fs[name]
+                if not isinstance(values, list):
+                    values = [values]
+                for value in values:
+                    if not value.filename:
+                        value = value.value
+                    formvars.add(name, value)
     environ['paste.parsed_formvars'] = (formvars, source)
     if include_get_vars:
         formvars.update(parse_querystring(environ))
