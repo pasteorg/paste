@@ -1,5 +1,8 @@
 import email
 import io
+import socket
+
+import six
 
 from paste.httpserver import LimitedLengthFile, WSGIHandler
 from six.moves import StringIO
@@ -49,5 +52,23 @@ def test_environ_with_multiple_values():
 def test_limited_length_file():
     backing = io.BytesIO(b'0123456789')
     f = LimitedLengthFile(backing, 9)
+    assert f.tell() == 0
     assert f.read() == b'012345678'
+    assert f.tell() == 9
     assert f.read() == b''
+
+def test_limited_length_file_tell_on_socket():
+    backing_read, backing_write = socket.socketpair()
+    if six.PY2:
+        # On Python 2, socketpair() returns an internal socket type rather than
+        # the public one.
+        backing_read = socket.socket(_sock=backing_read)
+    f = LimitedLengthFile(backing_read.makefile('rb'), 10)
+    backing_write.send(b'0123456789')
+    backing_write.close()
+    assert f.tell() == 0
+    assert f.read(1) == b'0'
+    assert f.tell() == 1
+    assert f.read() == b'123456789'
+    assert f.tell() == 10
+    backing_read.close()
