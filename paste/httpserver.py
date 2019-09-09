@@ -20,6 +20,7 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 from __future__ import print_function
 import atexit
 import traceback
+import io
 import socket, sys, threading
 import posixpath
 import six
@@ -523,9 +524,11 @@ class LimitedLengthFile(object):
 
     def tell(self):
         if hasattr(self.file, 'tell'):
-            return self.file.tell()
-        else:
-            return self._consumed
+            try:
+                return self.file.tell()
+            except io.UnsupportedOperation:
+                pass
+        return self._consumed
 
 class ThreadPool(object):
     """
