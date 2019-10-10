@@ -1077,8 +1077,7 @@ class ThreadPoolMixIn(object):
              lambda: self.process_request_in_thread(request, client_address))
 
     def handle_error(self, request, client_address):
-        exc_class, exc, tb = sys.exc_info()
-        if exc_class is ServerExit:
+        if sys.exc_info()[0] is ServerExit:
             # This is actually a request to stop the server
             raise
         return super(ThreadPoolMixIn, self).handle_error(request, client_address)
@@ -1092,11 +1091,10 @@ class ThreadPoolMixIn(object):
         try:
             self.finish_request(request, client_address)
             self.close_request(request)
-        except:
+        except BaseException as e:
             self.handle_error(request, client_address)
             self.close_request(request)
-            exc = sys.exc_info()[1]
-            if isinstance(exc, (MemoryError, KeyboardInterrupt)):
+            if isinstance(e, (MemoryError, KeyboardInterrupt)):
                 raise
 
     def serve_forever(self):
