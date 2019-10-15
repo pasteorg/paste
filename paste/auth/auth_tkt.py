@@ -49,8 +49,12 @@ except ImportError:
     # Python 2
     from Cookie import SimpleCookie
 from paste import request
-from urllib import quote as url_quote
-from urllib import unquote as url_unquote
+try:
+    from urllib import quote as url_quote # Python 2.X
+    from urllib import unquote as url_unquote
+except ImportError:
+    from urllib.parse import quote as url_quote  # Python 3+
+    from urllib.parse import unquote as url_unquote
 
 DEFAULT_DIGEST = hashlib.md5
 
