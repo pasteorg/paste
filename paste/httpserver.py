@@ -82,7 +82,7 @@ class ContinueHook(object):
                 setattr(self, attr, getattr(self, '_ContinueFile_' + attr))
 
     def _ContinueFile_send(self):
-        self._ContinueFile_write("HTTP/1.1 100 Continue\r\n\r\n")
+        self._ContinueFile_write("HTTP/1.1 100 Continue\r\n\r\n".encode('utf-8'))
         rfile = self._ContinueFile_rfile
         for attr in ('read', 'readline', 'readlines'):
             if hasattr(rfile, attr):
