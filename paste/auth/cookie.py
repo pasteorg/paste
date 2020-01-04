@@ -144,7 +144,7 @@ class AuthCookieSigner(object):
         if six.PY3:
             content = content.encode('utf8')
             timestamp = timestamp.encode('utf8')
-        cookie = base64.encodestring(
+        cookie = base64.encodebytes(
             hmac.new(self.secret, content, sha1).digest() +
             timestamp +
             content)
