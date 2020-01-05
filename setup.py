@@ -12,7 +12,7 @@
 # - git push
 # - python setup.py sdist bdist_wheel upload --sign
 
-__version__ = '3.2.3'
+__version__ = '3.2.4'
 
 from setuptools import setup, find_packages
 import sys, os

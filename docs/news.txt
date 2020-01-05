@@ -3,6 +3,15 @@ News
 
 .. contents::
 
+3.2.4
+-----
+
+* Use is_alive instead of isAlive for Python 3.9 compatibility.
+* Use encodebytes instead of deprecated encodestring.
+* Fix Python 2 and 3 compatibility for base64.
+
+Thanks to tirkarthi for these fixes.
+
 3.2.3
 -----
 
