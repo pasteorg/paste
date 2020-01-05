@@ -952,7 +952,7 @@ class ThreadPool(object):
         hung_workers = []
         for worker in self.workers:
             worker.join(0.5)
-            if worker.isAlive():
+            if worker.is_alive():
                 hung_workers.append(worker)
         zombies = []
         for thread_id in self.dying_threads:
@@ -969,10 +969,10 @@ class ThreadPool(object):
                 timed_out = False
                 need_force_quit = bool(zombies)
                 for worker in self.workers:
-                    if not timed_out and worker.isAlive():
+                    if not timed_out and worker.is_alive():
                         timed_out = True
                         worker.join(force_quit_timeout)
-                    if worker.isAlive():
+                    if worker.is_alive():
                         print("Worker %s won't die" % worker)
                         need_force_quit = True
                 if need_force_quit:
