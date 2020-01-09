@@ -125,7 +125,7 @@ class StackedObjectProxy(object):
         """Return a list of the StackedObjectProxy's and proxied
         object's (if one exists) names.
         """
-        dir_list = dir(self.__class__) + self.__dict__.keys()
+        dir_list = dir(self.__class__) + list(self.__dict__.keys())
         try:
             dir_list.extend(dir(self._current_obj()))
         except TypeError:
@@ -164,6 +164,9 @@ class StackedObjectProxy(object):
 
     def __iter__(self):
         return iter(self._current_obj())
+
+    def __bool__(self):
+        return bool(self._current_obj())
 
     def __len__(self):
         return len(self._current_obj())
