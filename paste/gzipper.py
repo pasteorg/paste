@@ -25,9 +25,12 @@ class middleware(object):
         self.compress_level = int(compress_level)
 
     def __call__(self, environ, start_response):
-        if 'gzip' not in environ.get('HTTP_ACCEPT_ENCODING', ''):
+        if 'gzip' not in environ.get('HTTP_ACCEPT_ENCODING', '') \
+           or environ['REQUEST_METHOD'] == 'HEAD':
             # nothing for us to do, so this middleware will
-            # be a no-op:
+            # be a no-op (there's no body expected in the HEAD case,
+            # and if we open a GzipFile we would produce an erroneous
+            # 20-byte header and trailer):
             return self.application(environ, start_response)
         response = GzipResponse(start_response, self.compress_level)
         app_iter = self.application(environ,
