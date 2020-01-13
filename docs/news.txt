@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+3.2.6
+-----
+
+* Correctly handle HEAD requests (to send empty body) when gzip
+  encoding requested.
+
 3.2.4
 -----
 
