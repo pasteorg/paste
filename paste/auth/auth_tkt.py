@@ -36,7 +36,7 @@ it's primary benefit is compatibility with mod_auth_tkt, which in turn
 makes it possible to use the same authentication process with
 non-Python code run under Apache.
 """
-
+import six
 import time as time_mod
 try:
     import hashlib
@@ -49,6 +49,7 @@ except ImportError:
     # Python 2
     from Cookie import SimpleCookie
 from paste import request
+
 try:
     from urllib import quote as url_quote # Python 2.X
     from urllib import unquote as url_unquote
@@ -102,7 +103,7 @@ class AuthTicket(object):
         self.secret = secret
         self.userid = userid
         self.ip = ip
-        if not isinstance(tokens, basestring):
+        if not isinstance(tokens, six.string_types):
             tokens = ','.join(tokens)
         self.tokens = tokens
         self.user_data = user_data
@@ -112,7 +113,7 @@ class AuthTicket(object):
             self.time = time
         self.cookie_name = cookie_name
         self.secure = secure
-        if isinstance(digest_algo, str):
+        if isinstance(digest_algo, six.binary_type):
             # correct specification of digest from hashlib or fail
             self.digest_algo = getattr(hashlib, digest_algo)
         else:
@@ -124,15 +125,20 @@ class AuthTicket(object):
             self.user_data, self.digest_algo)
 
     def cookie_value(self):
-        v = '%s%08x%s!' % (self.digest(), int(self.time), url_quote(self.userid))
+        v = b'%s%08x%s!' % (self.digest(), int(self.time), maybe_encode(url_quote(self.userid)))
         if self.tokens:
-            v += self.tokens + '!'
-        v += self.user_data
+            v += maybe_encode(self.tokens) + b'!'
+        v += maybe_encode(self.user_data)
         return v
 
     def cookie(self):
         c = SimpleCookie()
-        c[self.cookie_name] = self.cookie_value().encode('base64').strip().replace('\n', '')
+        if six.PY3:
+            import base64
+            cookie_value = base64.b64encode(self.cookie_value())
+        else:
+            cookie_value = self.cookie_value().encode('base64').strip().replace('\n', '')
+        c[self.cookie_name] = cookie_value
         c[self.cookie_name]['path'] = '/'
         if self.secure:
             c[self.cookie_name]['secure'] = 'true'
@@ -158,7 +164,7 @@ def parse_ticket(secret, ticket, ip, digest_algo=DEFAULT_DIGEST):
     If the ticket cannot be parsed, ``BadTicket`` will be raised with
     an explanation.
     """
-    if isinstance(digest_algo, str):
+    if isinstance(digest_algo, six.binary_type):
         # correct specification of digest from hashlib or fail
         digest_algo = getattr(hashlib, digest_algo)
     digest_hexa_size = digest_algo().digest_size * 2
@@ -200,26 +206,26 @@ def calculate_digest(ip, timestamp, secret, userid, tokens, user_data,
     userid = maybe_encode(userid)
     tokens = maybe_encode(tokens)
     user_data = maybe_encode(user_data)
-    digest0 = digest_algo(
-        encode_ip_timestamp(ip, timestamp) + secret + userid + '\0'
-        + tokens + '\0' + user_data).hexdigest()
+    digest0 = maybe_encode(digest_algo(
+        encode_ip_timestamp(ip, timestamp) + secret + userid + b'\0'
+        + tokens + b'\0' + user_data).hexdigest())
     digest = digest_algo(digest0 + secret).hexdigest()
-    return digest
+    return maybe_encode(digest)
 
 
 def encode_ip_timestamp(ip, timestamp):
-    ip_chars = ''.join(map(chr, map(int, ip.split('.'))))
+    ip_chars = b''.join(map(six.int2byte, map(int, ip.split('.'))))
     t = int(timestamp)
     ts = ((t & 0xff000000) >> 24,
           (t & 0xff0000) >> 16,
           (t & 0xff00) >> 8,
           t & 0xff)
-    ts_chars = ''.join(map(chr, ts))
-    return ip_chars + ts_chars
+    ts_chars = b''.join(map(six.int2byte, ts))
+    return (ip_chars + ts_chars)
 
 
 def maybe_encode(s, encoding='utf8'):
-    if isinstance(s, unicode):
+    if isinstance(s, six.text_type):
         s = s.encode(encoding)
     return s
 
@@ -353,7 +359,7 @@ class AuthTKTMiddleware(object):
         return self.app(environ, cookie_setting_start_response)
 
     def set_user_cookie(self, environ, userid, tokens, user_data):
-        if not isinstance(tokens, basestring):
+        if not isinstance(tokens, six.string_types):
             tokens = ','.join(tokens)
         if self.include_ip:
             remote_addr = environ['REMOTE_ADDR']
@@ -419,7 +425,7 @@ def make_auth_tkt_middleware(
     Creates the `AuthTKTMiddleware
     <class-paste.auth.auth_tkt.AuthTKTMiddleware.html>`_.
 
-    ``secret`` is requird, but can be set globally or locally.
+    ``secret`` is required, but can be set globally or locally.
     """
     from paste.deploy.converters import asbool
     secure = asbool(secure)
