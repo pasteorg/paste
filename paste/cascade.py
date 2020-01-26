@@ -8,7 +8,7 @@ return ``404 Not Found``.
 from paste import httpexceptions
 from paste.util import converters
 import tempfile
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 
 __all__ = ['Cascade']
 
