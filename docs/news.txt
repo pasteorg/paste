@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.2.7
+-----
+
+* Python 3 updates for use of StringIO and auth_tkt.py.
+
 3.2.6
 -----
 
