@@ -12,7 +12,7 @@
 # - git push
 # - python setup.py sdist bdist_wheel upload --sign
 
-__version__ = '3.2.6'
+__version__ = '3.2.7'
 
 from setuptools import setup, find_packages
 import sys, os
@@ -52,9 +52,7 @@ setup(name="Paste",
           exclude_directories=finddata.standard_exclude_directories + ('tests',)),
       namespace_packages=['paste'],
       zip_safe=False,
-      setup_requires=['pytest-runner'],
       install_requires=['six>=1.4.0'],
-      tests_require=['pytest'],
       extras_require={
         'subprocess': [],
         'hotshot': [],
