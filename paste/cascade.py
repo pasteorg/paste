@@ -8,8 +8,6 @@ return ``404 Not Found``.
 from paste import httpexceptions
 from paste.util import converters
 import tempfile
-import six
-from six.moves import cStringIO as StringIO
 from six import BytesIO
 
 __all__ = ['Cascade']
@@ -106,10 +104,8 @@ class Cascade(object):
                         copy_len -= len(chunk)
                 f.seek(0)
             else:
-                if six.PY3:
-                    f = BytesIO(environ['wsgi.input'].read(length))
-                else:
-                    f = StringIO(environ['wsgi.input'].read(length))
+                f = BytesIO(environ['wsgi.input'].read(length))
+
 
             environ['wsgi.input'] = f
         else:
