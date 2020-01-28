@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+3.3.0
+-----
+
+* Use six.BytesIO when reading wsgi.input.
+* Remove use of pytest-runner.
+
 3.2.7
 -----
 
