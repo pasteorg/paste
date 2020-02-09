@@ -4,7 +4,7 @@ import socket
 
 import six
 
-from paste.httpserver import LimitedLengthFile, WSGIHandler
+from paste.httpserver import LimitedLengthFile, WSGIHandler, serve
 from six.moves import StringIO
 
 
@@ -72,3 +72,58 @@ def test_limited_length_file_tell_on_socket():
     assert f.read() == b'123456789'
     assert f.tell() == 10
     backing_read.close()
+
+
+def test_address_family_v4():
+    #ipv4
+    app = None
+    host = '127.0.0.1'
+    port = '9090'
+    
+    svr = serve(app, host=host, port=port, start_loop=False, use_threadpool=False)
+
+    af = svr.address_family
+    addr = svr.server_address
+    p = svr.server_port
+    
+    svr.server_close()
+
+    assert (af == socket.AF_INET)
+    assert (addr[0] == '127.0.0.1')
+    assert (str(p) == port)
+
+
+def test_address_family_v4_host_and_port():
+    #ipv4
+    app = None
+    host = '127.0.0.1:9091'
+    
+    svr = serve(app, host=host, start_loop=False, use_threadpool=False)
+    
+    af = svr.address_family
+    addr = svr.server_address
+    p = svr.server_port
+    
+    svr.server_close()
+    
+    assert (af == socket.AF_INET)
+    assert (addr[0] == '127.0.0.1')
+    assert (str(p) == '9091')
+
+def test_address_family_v6():
+    #ipv6
+    app = None
+    host = '[::1]'
+    port = '9090'
+    
+    svr = serve(app, host=host, port=port, start_loop=False, use_threadpool=False)
+    
+    af = svr.address_family
+    addr = svr.server_address
+    p = svr.server_port
+    #print(dir(svr))
+    svr.server_close()
+    
+    assert (af == socket.AF_INET6)
+    assert (addr[0] == '::1')
+    assert (str(p) == port)
