@@ -1289,12 +1289,38 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
                 ssl_context.use_certificate_chain_file(ssl_pem)
 
     host = host or '127.0.0.1'
+    is_ipv6 = False
+    if host.count(':') > 1  or '[' in host :
+        is_ipv6 = True
+
     if port is None:
-        if ':' in host:
+
+        if ':' in host and is_ipv6 is False:
             host, port = host.split(':', 1)
+        elif is_ipv6 and ']' in host:
+
+            idx = host.find(']')
+            if (idx < (len(host) - 1)) and (host[(idx+1)] == ':'):
+                # check if the next position is ':', if so, split and grab the port
+
+                host, port = host.rsplit(':', 1)
+                host = host.strip('[').strip(']')
+
+            else :
+
+                port = 8080
         else:
+
             port = 8080
+    #strip '[' and ']' in host
+    host = host.strip('[').strip(']')
     server_address = (host, int(port))
+
+    if is_ipv6:
+        # set address family
+        HTTPServer.address_family = socket.AF_INET6
+    else:
+        HTTPServer.address_family = socket.AF_INET
 
     if not handler:
         handler = WSGIHandler
