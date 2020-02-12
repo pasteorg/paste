@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+3.4.0
+-----
+
+* Allow binding IPv6 address when starting a server.
+
+Thanks to Lekinho for this patch.
+
 3.3.0
 -----
 
