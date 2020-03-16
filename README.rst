@@ -8,7 +8,7 @@ to build web applications.  Each piece of middleware uses the WSGI (`PEP 333`_)
 interface, and should be compatible with other middleware based on those
 interfaces.
 
-.. _PEP 333: http://www.python.org/dev/peps/pep-0333.html
+.. _PEP 333: http://www.python.org/dev/peps/pep-0333/
 
 * `Paste project at GitHub (source code, bug tracker)
   <https://github.com/cdent/paste/>`_
