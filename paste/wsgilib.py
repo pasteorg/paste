@@ -119,10 +119,10 @@ class chained_app_iters(object):
 
     def next(self):
         if len(self.chained) == 1:
-            return self.chained[0].next()
+            return six.next(self.chained[0])
         else:
             try:
-                return self.chained[0].next()
+                return six.next(self.chained[0])
             except StopIteration:
                 self.chained.pop(0)
                 return self.next()
@@ -261,7 +261,7 @@ class _wrap_app_iter_app(object):
 
     def next(self):
         try:
-            return self.app_iter.next()
+            return six.next(self.app_iter)
         except StopIteration:
             if self.ok_callback:
                 self.ok_callback()
@@ -278,7 +278,7 @@ class _wrap_app_iter_app(object):
             app_iter = iter(new_app_iterable)
             if hasattr(new_app_iterable, 'close'):
                 self.close = new_app_iterable.close
-            self.next = app_iter.next
+            self.next = lambda: six.next(app_iter)
             return self.next()
     __next__ = next
 
