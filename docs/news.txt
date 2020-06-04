@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.4.1
+-----
+
+* Fix next in iterators in wsgilib.py.
+
 3.4.0
 -----
 
