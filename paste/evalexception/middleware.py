@@ -456,8 +456,7 @@ class EvalHTMLFormatter(formatter.HTMLFormatter):
 
 def make_table(items):
     if isinstance(items, dict):
-        items = items.items()
-        items.sort()
+        items = sorted(items.items())
     rows = []
     i = 0
     for name, value in items:
