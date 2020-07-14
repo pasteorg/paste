@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+3.4.2
+-----
+
+* Correct sorting of items() in EvalHTMLFormatter.
+
+Thanks to amitmarkel for the patch.
+
 3.4.1
 -----
 
