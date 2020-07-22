@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+3.4.3
+-----
+
+* Patch auth ticket to be python3 compatible.
+
+Thanks to TilmanSchaefer for the patch.
+
 3.4.2
 -----
 
