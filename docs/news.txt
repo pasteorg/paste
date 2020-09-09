@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+3.4.4
+-----
+
+* Update setup.py to work with setuptools 50.1.0+
+
+Thanks to hrnciar for the patch.
+
 3.4.3
 -----
 
