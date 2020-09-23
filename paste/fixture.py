@@ -25,14 +25,7 @@ import subprocess
 from six.moves import cStringIO as StringIO
 from six.moves.urllib.parse import urlencode
 from six.moves.urllib import parse as urlparse
-try:
-    # Python 3
-    from http.cookies import BaseCookie
-    from urllib.parse import splittype, splithost
-except ImportError:
-    # Python 2
-    from Cookie import BaseCookie
-    from urllib import splittype, splithost
+from six.moves.http_cookies import BaseCookie
 
 from paste import wsgilib
 from paste import lint
@@ -629,8 +622,6 @@ class TestResponse(object):
             "You can only follow redirect responses (not %s)"
             % self.full_status)
         location = self.header('location')
-        type, rest = splittype(location)
-        host, path = splithost(rest)
         # @@: We should test that it's not a remote redirect
         return self.test_app.get(location, **kw)
 
