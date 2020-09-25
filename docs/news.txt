@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+3.4.6
+-----
+
+* Explicit pkg_resource dependency to easy packaging.
+
+Thanks to mgorny.
+
 3.4.5
 -----
 
