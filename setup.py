@@ -52,7 +52,10 @@ setup(name="Paste",
           exclude_directories=finddata.standard_exclude_directories + ('tests',)),
       namespace_packages=['paste'],
       zip_safe=False,
-      install_requires=['six>=1.4.0'],
+      install_requires=[
+        'setuptools',  # pkg_resources
+        'six>=1.4.0',
+        ],
       extras_require={
         'subprocess': [],
         'hotshot': [],
