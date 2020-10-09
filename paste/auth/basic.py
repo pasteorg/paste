@@ -21,6 +21,8 @@ serving on...
 
 .. [1] http://www.w3.org/Protocols/HTTP/1.0/draft-ietf-http-spec.html#BasicAA
 """
+from base64 import b64decode
+import six
 from paste.httpexceptions import HTTPUnauthorized
 from paste.httpheaders import *
 
@@ -44,7 +46,7 @@ class AuthBasicAuthenticator(object):
         (authmeth, auth) = authorization.split(' ', 1)
         if 'basic' != authmeth.lower():
             return self.build_authentication()
-        auth = auth.strip().decode('base64')
+        auth = six.ensure_text(b64decode(six.ensure_binary(auth.strip())))
         username, password = auth.split(':', 1)
         if self.authfunc(environ, username, password):
             return username
