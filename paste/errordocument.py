@@ -87,8 +87,6 @@ class StatusKeeper(object):
             return self.app(environ, keep_status_start_response)
         except RecursionLoop as e:
             line = 'Recursion error getting error page: %s\n' % e
-            if six.PY3:
-                line = line.encode('utf8')
             environ['wsgi.errors'].write(line)
             keep_status_start_response('500 Server Error', [('Content-type', 'text/plain')], sys.exc_info())
             body = ('Error: %s.  (Error page could not be fetched)'

@@ -57,5 +57,4 @@ if sys.platform != 'win32' and not sys.platform.startswith('java'):
         res = app.get('', expect_errors=True)
         assert res.status == 500
         assert 'error' in res
-        assert b'some data' in res.errors
-
+        assert 'some data' in res.errors
