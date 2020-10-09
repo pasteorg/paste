@@ -221,7 +221,7 @@ class CatchingIter(object):
         if self.closed:
             raise StopIteration
         try:
-            return self.app_iterator.next()
+            return next(self.app_iterator)
         except StopIteration:
             self.closed = True
             close_response = self._close()
