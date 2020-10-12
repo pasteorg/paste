@@ -3,6 +3,14 @@ News
 
 .. contents::
 
+3.5.0
+-----
+
+* Python 3 fixes to auth and wsgi.errors handling; notably making
+  wsgi.errors text.
+
+Thanks to brondsem.
+
 3.4.6
 -----
 
