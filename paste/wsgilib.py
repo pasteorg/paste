@@ -291,7 +291,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     if raise_on_wsgi_error:
         errors = ErrorRaiser()
     else:
-        errors = six.BytesIO()
+        errors = six.StringIO()
     basic_environ = {
         # mandatory CGI variables
         'REQUEST_METHOD': 'GET',     # always mandatory
@@ -604,4 +604,3 @@ for _name in __all__:
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-

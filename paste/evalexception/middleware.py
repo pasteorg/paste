@@ -333,8 +333,6 @@ class EvalException(object):
                                headers,
                                exc_info)
             msg = 'Debug at: %s\n' % view_uri
-            if six.PY3:
-                msg = msg.encode('utf8')
             environ['wsgi.errors'].write(msg)
 
             exc_data = collector.collect_exception(*exc_info)

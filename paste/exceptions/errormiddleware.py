@@ -221,7 +221,7 @@ class CatchingIter(object):
         if self.closed:
             raise StopIteration
         try:
-            return self.app_iterator.next()
+            return next(self.app_iterator)
         except StopIteration:
             self.closed = True
             close_response = self._close()
@@ -386,8 +386,6 @@ def handle_exception(exc_info, error_stream, html=True,
     else:
         line = ('Error - %s: %s\n'
                 % (exc_data.exception_type, exc_data.exception_value))
-        if six.PY3:
-            line = line.encode('utf8')
         error_stream.write(line)
     if html:
         if debug_mode and simple_html_error:

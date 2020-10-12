@@ -253,7 +253,7 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
                 read_set.remove(proc.stderr)
             if trans_nl:
                 data = proc._translate_newlines(data)
-            stderr.write(data)
+            stderr.write(six.ensure_text(data))
 
     try:
         proc.wait()
