@@ -27,7 +27,7 @@ paramwriter
     called like ``paramwriter(thread_name, text)`` for every write.
 
 The thread name is the value returned by
-``threading.currentThread().getName()``, a string (typically something
+``threading.current_thread().name``, a string (typically something
 like Thread-N).
 
 You can also submit file-like objects for specific threads, which will
@@ -89,8 +89,8 @@ class PrintCatcher(filemixin.FileMixin):
         self._paramwriter = paramwriter
         self._catchers = {}
 
-    def write(self, v, currentThread=threading.currentThread):
-        name = currentThread().getName()
+    def write(self, v, currentThread=threading.current_thread):
+        name = current_thread().name
         catchers = self._catchers
         if not catchers.has_key(name):
             self._defaultfunc(name, v)
@@ -100,7 +100,7 @@ class PrintCatcher(filemixin.FileMixin):
 
     def seek(self, *args):
         # Weird, but Google App Engine is seeking on stdout
-        name = threading.currentThread().getName()
+        name = threading.current_thread().name
         catchers = self._catchers
         if not name in catchers:
             self._default.seek(*args)
@@ -108,7 +108,7 @@ class PrintCatcher(filemixin.FileMixin):
             catchers[name].seek(*args)
 
     def read(self, *args):
-        name = threading.currentThread().getName()
+        name = threading.current_thread().name
         catchers = self._catchers
         if not name in catchers:
             self._default.read(*args)
@@ -131,15 +131,15 @@ class PrintCatcher(filemixin.FileMixin):
             % name)
 
     def register(self, catcher, name=None,
-                 currentThread=threading.currentThread):
+                 currentThread=threading.current_thread):
         if name is None:
-            name = currentThread().getName()
+            name = currentThread().name
         self._catchers[name] = catcher
 
     def deregister(self, name=None,
-                   currentThread=threading.currentThread):
+                   currentThread=threading.current_thread):
         if name is None:
-            name = currentThread().getName()
+            name = currentThread().name
         assert self._catchers.has_key(name), (
             "There is no PrintCatcher catcher for the thread %r" % name)
         del self._catchers[name]
@@ -189,8 +189,8 @@ class StdinCatcher(filemixin.FileMixin):
         self._paramwriter = paramwriter
         self._catchers = {}
 
-    def read(self, size=None, currentThread=threading.currentThread):
-        name = currentThread().getName()
+    def read(self, size=None, currentThread=threading.current_thread):
+        name = currentThread().name
         catchers = self._catchers
         if not catchers.has_key(name):
             return self._defaultfunc(name, size)
@@ -213,15 +213,15 @@ class StdinCatcher(filemixin.FileMixin):
             % name)
 
     def register(self, catcher, name=None,
-                 currentThread=threading.currentThread):
+                 currentThread=threading.current_thread):
         if name is None:
-            name = currentThread().getName()
+            name = currentThread().name
         self._catchers[name] = catcher
 
     def deregister(self, catcher, name=None,
-                   currentThread=threading.currentThread):
+                   currentThread=threading.current_thread):
         if name is None:
-            name = currentThread().getName()
+            name = currentThread().name
         assert self._catchers.has_key(name), (
             "There is no StdinCatcher catcher for the thread %r" % name)
         del self._catchers[name]
