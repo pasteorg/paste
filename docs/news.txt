@@ -3,6 +3,14 @@ News
 
 .. contents::
 
+3.5.1
+-----
+
+* Replace deprecated threading.currentThread, getName and setDaemon
+  with threading.current_thread, name and daemon.
+
+Thanks to hugovk.
+
 3.5.0
 -----
 
