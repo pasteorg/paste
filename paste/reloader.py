@@ -59,7 +59,7 @@ def install(poll_interval=1):
     """
     mon = Monitor(poll_interval=poll_interval)
     t = threading.Thread(target=mon.periodic_reload)
-    t.setDaemon(True)
+    t.daemon = True
     t.start()
 
 class Monitor(object):

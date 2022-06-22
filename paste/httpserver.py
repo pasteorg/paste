@@ -764,7 +764,7 @@ class ThreadPool(object):
         worker = threading.Thread(target=self.worker_thread_callback,
                                   args=args, kwargs=kwargs,
                                   name=("worker %d" % index))
-        worker.setDaemon(self.daemon)
+        worker.daemon = self.daemon
         worker.start()
 
     def kill_hung_threads(self):
@@ -865,7 +865,7 @@ class ThreadPool(object):
                        ids="\n  ".join(map(str, found))),
                 subject="Process restart (too many zombie threads)")
             self.shutdown(10)
-            print('Shutting down', threading.currentThread())
+            print('Shutting down', threading.current_thread())
             raise ServerExit(3)
 
     def worker_thread_callback(self, message=None):
@@ -873,7 +873,7 @@ class ThreadPool(object):
         Worker thread should call this method to get and process queued
         callables.
         """
-        thread_obj = threading.currentThread()
+        thread_obj = threading.current_thread()
         thread_id = thread_obj.thread_id = _thread.get_ident()
         self.workers.append(thread_obj)
         self.idle_workers.append(thread_id)
