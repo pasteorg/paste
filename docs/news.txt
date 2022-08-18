@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+3.5.2
+-----
+
+* Additional fixes to next in iterators.
+
+Thanks to cjwatson.
+
 3.5.1
 -----
 
