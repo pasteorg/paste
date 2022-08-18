@@ -209,7 +209,7 @@ class _wrap_app_iter(object):
 
     def next(self):
         try:
-            return self.app_iter.next()
+            return six.next(self.app_iter)
         except StopIteration:
             if self.ok_callback:
                 self.ok_callback()
