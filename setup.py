@@ -46,6 +46,11 @@ setup(name="Paste",
       author="Chris Dent",
       author_email="chris.dent@gmail.com",
       url="https://pythonpaste.readthedocs.io/",
+      project_urls={
+        "Source": "https://github.com/cdent/paste",
+        "Bug Tracker": "https://github.com/cdent/paste/issues",
+        "Documentation": "https://pythonpaste.readthedocs.io"
+      },
       license="MIT",
       packages=find_packages(exclude=['ez_setup', 'examples', 'packages', 'tests*']),
       package_data=finddata.find_package_data(
