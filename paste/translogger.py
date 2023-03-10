@@ -90,7 +90,7 @@ class TransLogger(object):
             'REQUEST_METHOD': method,
             'REQUEST_URI': req_uri,
             'HTTP_VERSION': environ.get('SERVER_PROTOCOL'),
-            'time': time.strftime('%d/%b/%Y:%H:%M:%S ', start) + offset,
+            'time': time.strftime('%d/%m/%Y:%H:%M:%S ', start) + offset,
             'status': status.split(None, 1)[0],
             'bytes': bytes,
             'HTTP_REFERER': environ.get('HTTP_REFERER', '-'),
