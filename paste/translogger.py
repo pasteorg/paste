@@ -17,11 +17,16 @@ class TransLogger(object):
 
     If ``setup_console_handler`` is true, then messages for the named
     logger will be sent to the console.
+
+    Customize log-time, use a custom strftime format (within **kwargs):
+    time_format="%d/%Y:%H:%M "
     """
 
     format = ('%(REMOTE_ADDR)s - %(REMOTE_USER)s [%(time)s] '
               '"%(REQUEST_METHOD)s %(REQUEST_URI)s %(HTTP_VERSION)s" '
               '%(status)s %(bytes)s "%(HTTP_REFERER)s" "%(HTTP_USER_AGENT)s"')
+
+    time_format = '%d/%m/%Y:%H:%M:%S'
 
     def __init__(self, application,
                  logger=None,
@@ -29,7 +34,8 @@ class TransLogger(object):
                  logging_level=logging.INFO,
                  logger_name='wsgi',
                  setup_console_handler=True,
-                 set_logger_level=logging.DEBUG):
+                 set_logger_level=logging.DEBUG,
+                 **kwargs):
         if format is not None:
             self.format = format
         self.application = application
@@ -48,6 +54,10 @@ class TransLogger(object):
                 self.logger.setLevel(set_logger_level)
         else:
             self.logger = logger
+        self.time_format = TransLogger.time_format
+        # Handle any additional keyword arguments (**kwargs)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def __call__(self, environ, start_response):
         start = time.localtime()
@@ -84,13 +94,23 @@ class TransLogger(object):
             remote_addr = environ['HTTP_X_FORWARDED_FOR']
         elif environ.get('REMOTE_ADDR'):
             remote_addr = environ['REMOTE_ADDR']
+
+        formatted_time = time.strftime(self.time_format, start) + offset
+        if "time_format" in vars(self):
+            try:
+                formatted_time = time.strftime(self.time_format, start) + offset
+
+            except ValueError as v:
+                self.logger.log(logging.WARN, v)
+                pass
+
         d = {
             'REMOTE_ADDR': remote_addr,
             'REMOTE_USER': environ.get('REMOTE_USER') or '-',
             'REQUEST_METHOD': method,
             'REQUEST_URI': req_uri,
             'HTTP_VERSION': environ.get('SERVER_PROTOCOL'),
-            'time': time.strftime('%d/%m/%Y:%H:%M:%S ', start) + offset,
+            'time': formatted_time,
             'status': status.split(None, 1)[0],
             'bytes': bytes,
             'HTTP_REFERER': environ.get('HTTP_REFERER', '-'),
