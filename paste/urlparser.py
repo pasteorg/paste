@@ -7,7 +7,12 @@ WSGI applications that parse the URL and dispatch to on-disk resources
 import os
 import six
 import sys
-import imp
+
+if six.PY2:
+    import imp
+else:
+    import importlib.util as imputil
+
 import mimetypes
 try:
     import pkg_resources
@@ -376,7 +381,6 @@ def load_module_from_name(environ, filename, module_name, errors):
             return None
         f.write('#\n')
         f.close()
-    fp = None
     if module_name in sys.modules:
         return sys.modules[module_name]
     if '.' in module_name:
@@ -386,14 +390,25 @@ def load_module_from_name(environ, filename, module_name, errors):
                                        parent_name, errors)
     else:
         base_name = module_name
-    fp = None
-    try:
-        fp, pathname, stuff = imp.find_module(
-            base_name, [os.path.dirname(filename)])
-        module = imp.load_module(module_name, fp, pathname, stuff)
-    finally:
-        if fp is not None:
-            fp.close()
+    module = None
+
+    if six.PY2:
+        fp = None
+        try:
+            fp, pathname, stuff = imp.find_module(
+                base_name, [os.path.dirname(filename)])
+            module = imp.load_module(module_name, fp, pathname, stuff)
+        finally:
+            if fp is not None:
+                fp.close()
+    else:
+        # imp is deprecated and will be removed in Python 3.12
+        spec = imputil.spec_from_file_location(base_name, filename)
+        if spec is not None:
+            module = imputil.module_from_spec(spec)
+            sys.modules[base_name] = module
+            spec.loader.exec_module(module)
+
     return module
 
 def make_py(parser, environ, filename):
