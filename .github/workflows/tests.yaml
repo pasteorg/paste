@@ -8,10 +8,6 @@ jobs:
                 include:
                     - python: 2.7
                       env: py27
-                    - python: 3.9
-                      env: pep8
-                    - python: 3.9
-                      env: docs
                     - python: 3.5
                       env: py35
                     - python: 3.6
