@@ -3,6 +3,12 @@ News
 
 .. contents::
 
+3.5.3
+-----
+
+* Use importlib instead of imp with Python 3.
+
+
 3.5.2
 -----
 
