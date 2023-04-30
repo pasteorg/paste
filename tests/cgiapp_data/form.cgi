@@ -3,12 +3,12 @@
 from __future__ import print_function
 
 import cgi
-import six
+import sys
 
 print('Content-type: text/plain')
 print('')
 
-if six.PY3:
+if sys.version_info.major >= 3:
     # Python 3: cgi.FieldStorage keeps some field names as unicode and some as
     # the repr() of byte strings, duh.
 
