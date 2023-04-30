@@ -1,0 +1,40 @@
+name: tests
+on: [push, workflow_dispatch]
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                include:
+                    - python: 2.7
+                      env: py27
+                    - python: 3.9
+                      env: pep8
+                    - python: 3.9
+                      env: docs
+                    - python: 3.5
+                      env: py35
+                    - python: 3.6
+                      env: py36
+                    - python: 3.7
+                      env: py37
+                    - python: 3.8
+                      env: py38
+                    - python: 3.9
+                      env: py39
+                    - python: "3.10"
+                      env: py310
+                    - python: "3.11"
+                      env: py311
+                    - python: pypy-3.8
+                      env: pypy3
+        name: ${{ matrix.env }} on Python ${{ matrix.python }}
+        steps:
+        - uses: actions/checkout@v2
+        - uses: actions/setup-python@v2
+          with:
+              python-version: ${{ matrix.python }}
+        - run: pip install tox
+        - run: tox
+          env:
+            TOXENV: ${{ matrix.env }}
