@@ -1,7 +1,7 @@
 from paste.auth import grantip
 from paste.fixture import *
 
-def test_make_app():
+def _make_app():
     def application(environ, start_response):
         start_response('200 OK', [('content-type', 'text/plain')])
         lines = [
@@ -23,7 +23,7 @@ def test_make_app():
     return app
 
 def test_req():
-    app = test_make_app()
+    app = _make_app()
     def doit(remote_addr):
         res = app.get('/', extra_environ={'REMOTE_ADDR': remote_addr})
         return res.body

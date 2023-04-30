@@ -2,13 +2,20 @@
 
 from __future__ import print_function
 
+import sys
+
+# Quiet warnings in this CGI so that it does not upset tests.
+if not sys.warnoptions:
+    import warnings
+    warnings.simplefilter("ignore")
+
+# TODO: cgi is deprecated and will go away in Python 3.13.
 import cgi
-import six
 
 print('Content-type: text/plain')
 print('')
 
-if six.PY3:
+if sys.version_info.major >= 3:
     # Python 3: cgi.FieldStorage keeps some field names as unicode and some as
     # the repr() of byte strings, duh.
 
