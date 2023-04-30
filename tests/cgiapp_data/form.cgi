@@ -2,8 +2,15 @@
 
 from __future__ import print_function
 
-import cgi
 import sys
+
+# Quiet warnings in this CGI so that it does not upset tests.
+if not sys.warnoptions:
+    import warnings
+    warnings.simplefilter("ignore")
+
+# TODO: cgi is deprecated and will go away in Python 3.13.
+import cgi
 
 print('Content-type: text/plain')
 print('')
