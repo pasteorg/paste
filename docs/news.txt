@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.6.0
+-----
+
+* Provide kwarg for timestamp format in Translogger.
+
 3.5.3
 -----
 
