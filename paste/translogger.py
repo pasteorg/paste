@@ -17,7 +17,13 @@ class TransLogger(object):
 
     If ``setup_console_handler`` is true, then messages for the named
     logger will be sent to the console.
+
+    To adjust the format of the timestamp in the log, provide a strftime
+    format string to the ``time_format`` keyword argument. Otherwise
+    ``default_time_format`` will be used.
     """
+
+    default_time_format = '%d/%b/%Y:%H:%M:%S '
 
     format = ('%(REMOTE_ADDR)s - %(REMOTE_USER)s [%(time)s] '
               '"%(REQUEST_METHOD)s %(REQUEST_URI)s %(HTTP_VERSION)s" '
@@ -29,9 +35,11 @@ class TransLogger(object):
                  logging_level=logging.INFO,
                  logger_name='wsgi',
                  setup_console_handler=True,
-                 set_logger_level=logging.DEBUG):
+                 set_logger_level=logging.DEBUG,
+                 time_format=None):
         if format is not None:
             self.format = format
+        self.time_format = time_format or self.default_time_format
         self.application = application
         self.logging_level = logging_level
         self.logger_name = logger_name
@@ -90,7 +98,7 @@ class TransLogger(object):
             'REQUEST_METHOD': method,
             'REQUEST_URI': req_uri,
             'HTTP_VERSION': environ.get('SERVER_PROTOCOL'),
-            'time': time.strftime('%d/%b/%Y:%H:%M:%S ', start) + offset,
+            'time': time.strftime(self.time_format, start) + offset,
             'status': status.split(None, 1)[0],
             'bytes': bytes,
             'HTTP_REFERER': environ.get('HTTP_REFERER', '-'),
