@@ -1,26 +1,23 @@
 name: tests
-on: [push, workflow_dispatch]
+on:
+- push
+- workflow_dispatch
+- pull_request
 jobs:
     build:
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-latest
         strategy:
             matrix:
                 include:
-                    - python: 3.5
-                      env: py35
-                    - python: 3.6
-                      env: py36
-                    - python: 3.7
-                      env: py37
-                    - python: 3.8
+                    - python: "3.8"
                       env: py38
-                    - python: 3.9
+                    - python: "3.9"
                       env: py39
                     - python: "3.10"
                       env: py310
                     - python: "3.11"
                       env: py311
-                    - python: "3.12-dev"
+                    - python: "3.12"
                       env: py312
                     - python: pypy-3.8
                       env: pypy3
