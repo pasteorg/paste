@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.6.1
+-----
+
+* Tiny release to confirm release automation.
+
 3.6.0
 -----
 
