@@ -156,8 +156,6 @@ def parse_formvars(environ, include_get_vars=True, encoding=None, errors=None):
     if 'paste.parsed_formvars' in environ:
         parsed, check_source = environ['paste.parsed_formvars']
         if check_source == source:
-            if include_get_vars:
-                parsed.update(parse_querystring(environ))
             return parsed
     # @@: Shouldn't bother FieldStorage parsing during GET/HEAD and
     # fake_out_cgi requests

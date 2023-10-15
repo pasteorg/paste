@@ -22,6 +22,14 @@ def make_post(body):
         }
     return e
 
+def test_parse_formvars_nodup():
+    """GH85: Test that parse_formvars can be called twice."""
+    e = {'QUERY_STRING': 'a=1&b=2&c=3&b=4', 'wsgi.input': ""}
+    d1 = parse_formvars(e)
+    assert d1.getall("a") == ["1"]
+    d2 = parse_formvars(e)
+    assert d2.getall("a") == ["1"]
+
 def test_parsevars():
     e = make_post(b'a=1&b=2&c=3&b=4')
     #cur_input = e['wsgi.input']
