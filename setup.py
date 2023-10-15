@@ -1,16 +1,11 @@
 # Procedure to release a new version:
 #
-# - run tests: run tox
 # - update version in setup.py (__version__)
-# - update tag_build in setup.cfg
-# - check that "python setup.py sdist" contains all files tracked by
-#   the SCM (Mercurial): update MANIFEST.in if needed
 # - update changelog: docs/news.txt
+# - commit and push to git
+# - make release
 #
-# - git commit
-# - git tag -s VERSION
-# - git push
-# - python setup.py sdist bdist_wheel upload --sign
+# The final step will release to pypi and to Github
 
 __version__ = '3.6.0'
 
