@@ -3,6 +3,13 @@ News
 
 .. contents::
 
+3.7.0
+-----
+
+* End Python 2 support.
+* Remove use of distutils.
+* Fix double query processing in parse_formvars.
+
 3.6.1
 -----
 

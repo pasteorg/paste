@@ -7,7 +7,7 @@
 #
 # The final step will release to pypi and to Github
 
-__version__ = '3.6.1'
+__version__ = '3.7.0'
 
 from setuptools import setup, find_packages
 import sys, os
@@ -20,6 +20,7 @@ with open("README.rst") as fp:
 
 setup(name="Paste",
       version=__version__,
+      python_requires=">=3",
       description="Tools for using a Web Server Gateway Interface stack",
       long_description=README,
       classifiers=[
@@ -28,6 +29,7 @@ setup(name="Paste",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only"
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Topic :: Software Development :: Libraries :: Python Modules",
