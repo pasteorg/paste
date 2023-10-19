@@ -5,10 +5,9 @@
 # that package is installed yet.
 
 from __future__ import print_function
-import os
 import sys
 from fnmatch import fnmatchcase
-from distutils.util import convert_path
+from pathlib import Path
 
 # Provided as an attribute, so you can append to these instead
 # of replicating them:
@@ -50,46 +49,45 @@ def find_package_data(
     """
 
     out = {}
-    stack = [(convert_path(where), '', package, only_in_packages)]
+    stack = [(Path(where), '', package, only_in_packages)]
     while stack:
         where, prefix, package, only_in_packages = stack.pop(0)
-        for name in os.listdir(where):
-            fn = os.path.join(where, name)
-            if os.path.isdir(fn):
+        for name in where.iterdir():
+            fn = where.joinpath(name)
+            if fn.is_dir():
                 bad_name = False
                 for pattern in exclude_directories:
-                    if (fnmatchcase(name, pattern)
-                        or fn.lower() == pattern.lower()):
+                    if (fnmatchcase(name.as_posix(), pattern)
+                        or fn.as_posix().lower() == pattern.lower()):
                         bad_name = True
                         if show_ignored:
                             print("Directory %s ignored by pattern %s"
-                                  % (fn, pattern), file=sys.stderr)
+                                  % (fn.as_posix(), pattern), file=sys.stderr)
                         break
                 if bad_name:
                     continue
-                if (os.path.isfile(os.path.join(fn, '__init__.py'))
-                    and not prefix):
+                if fn.joinpath('__init__.py').is_file() and not prefix:
                     if not package:
-                        new_package = name
+                        new_package = name.as_posix()
                     else:
-                        new_package = package + '.' + name
+                        new_package = package + '.' + name.as_posix()
                     stack.append((fn, '', new_package, False))
                 else:
-                    stack.append((fn, prefix + name + '/', package, only_in_packages))
+                    stack.append((fn, prefix + name.as_posix() + '/', package, only_in_packages))
             elif package or not only_in_packages:
                 # is a file
                 bad_name = False
                 for pattern in exclude:
-                    if (fnmatchcase(name, pattern)
-                        or fn.lower() == pattern.lower()):
+                    if (fnmatchcase(name.as_posix(), pattern)
+                        or fn.as_posix().lower() == pattern.lower()):
                         bad_name = True
                         if show_ignored:
                             print("File %s ignored by pattern %s"
-                                  % (fn, pattern), file=sys.stderr)
+                                  % (fn.as_posix(), pattern), file=sys.stderr)
                         break
                 if bad_name:
                     continue
-                out.setdefault(package, []).append(prefix+name)
+                out.setdefault(package, []).append(prefix+name.as_posix())
     return out
 
 if __name__ == '__main__':
