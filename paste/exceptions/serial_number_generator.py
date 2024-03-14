@@ -61,7 +61,7 @@ def hash_identifier(s, length, pad=True, hasher=md5, prefix='',
         raise ValueError(
             "md5 cannot create hashes longer than 26 characters in "
             "length (you gave %s)" % length)
-    if isinstance(s, int):
+    if isinstance(s, str):
         s = s.encode('utf-8')
     elif not isinstance(s, bytes):
         s = str(s)
