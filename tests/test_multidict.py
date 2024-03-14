@@ -6,7 +6,6 @@ import gc
 import io
 
 import pytest
-import six
 
 from paste.util.multidict import MultiDict, UnicodeMultiDict
 
@@ -63,15 +62,15 @@ def _test_unicode_dict(decode_param_names=False):
     d.errors = 'ignore'
 
     if decode_param_names:
-        key_str = six.text_type
+        key_str = str
         k = lambda key: key
         d.decode_keys = True
     else:
-        key_str = six.binary_type
+        key_str = bytes
         k = lambda key: key.encode()
 
     def assert_unicode(obj):
-        assert isinstance(obj, six.text_type)
+        assert isinstance(obj, str)
 
     def assert_key_str(obj):
         assert isinstance(obj, key_str)
@@ -79,7 +78,7 @@ def _test_unicode_dict(decode_param_names=False):
     def assert_unicode_item(obj):
         key, value = obj
         assert isinstance(key, key_str)
-        assert isinstance(value, six.text_type)
+        assert isinstance(value, str)
 
     assert d.items() == [(k('a'), u'a test')]
     map(assert_key_str, d.keys())
@@ -106,9 +105,9 @@ def _test_unicode_dict(decode_param_names=False):
     assert d.items() == [(k('a'), u'a test'), (k('c'), u'3 test')]
     list(map(assert_unicode_item, d.items()))
     assert d.pop('xxx', u'5 test') == u'5 test'
-    assert isinstance(d.pop('xxx', u'5 test'), six.text_type)
+    assert isinstance(d.pop('xxx', u'5 test'), str)
     assert d.getone(k('a')) == u'a test'
-    assert isinstance(d.getone(k('a')), six.text_type)
+    assert isinstance(d.getone(k('a')), str)
     assert d.popitem() == (k('c'), u'3 test')
     d[k('c')] = b'3 test'
     assert_unicode_item(d.popitem())
@@ -122,16 +121,16 @@ def _test_unicode_dict(decode_param_names=False):
     assert isinstance(items[1][0], key_str)
     assert isinstance(items[1][1], list)
 
-    assert isinstance(d.setdefault(k('y'), b'y test'), six.text_type)
-    assert isinstance(d[k('y')], six.text_type)
+    assert isinstance(d.setdefault(k('y'), b'y test'), str)
+    assert isinstance(d[k('y')], str)
 
     assert d.mixed() == {k('a'): u'a test', k('y'): u'y test', k('z'): item}
     assert d.dict_of_lists() == {k('a'): [u'a test'], k('y'): [u'y test'],
                                  k('z'): [item]}
     del d[k('z')]
-    list(map(assert_unicode_item, six.iteritems(d.mixed())))
+    list(map(assert_unicode_item, d.mixed().items()))
     list(map(assert_unicode_item, [(key, value[0]) for \
-                                   key, value in six.iteritems(d.dict_of_lists())]))
+                                   key, value in d.dict_of_lists().items()]))
 
     assert k('a') in d
     dcopy = d.copy()
@@ -155,9 +154,9 @@ def _test_unicode_dict(decode_param_names=False):
     ufs = d[k('f')]
     assert isinstance(ufs, cgi.FieldStorage)
     assert ufs.name == fs.name
-    assert isinstance(ufs.name, str if six.PY3 else key_str)
+    assert isinstance(ufs.name, str)
     assert ufs.filename == fs.filename
-    assert isinstance(ufs.filename, six.text_type)
+    assert isinstance(ufs.filename, str)
     assert isinstance(ufs.value, bytes)
     assert ufs.value == b'hello'
     ufs = None

@@ -8,9 +8,24 @@ Regression Test Suite
 """
 
 import pytest
-import six
 
-from paste.httpexceptions import *
+from paste.httpexceptions import (
+    get_exception,
+    HTTPBadRequest,
+    HTTPClientError,
+    HTTPError,
+    HTTPException,
+    HTTPExceptionHandler,
+    HTTPFound,
+    HTTPInternalServerError,
+    HTTPMovedPermanently,
+    HTTPNotFound,
+    HTTPNotImplemented,
+    HTTPRedirection,
+    HTTPServerError,
+    HTTPTemporaryRedirect,
+    HTTPUseProxy,
+)
 from paste.response import header_value
 
 
@@ -71,10 +86,7 @@ def test_redapp():
     result = list(app({'HTTP_ACCEPT': 'text/html'},saveit))
     assert b'<a href="/bing/foo">' in result[0]
     assert "302 Found" == saved[0][0]
-    if six.PY3:
-        assert "text/html; charset=utf8" == header_value(saved[0][1], 'content-type')
-    else:
-        assert "text/html" == header_value(saved[0][1], 'content-type')
+    assert "text/html; charset=utf8" == header_value(saved[0][1], 'content-type')
     assert "/bing/foo" == header_value(saved[0][1],'location')
     result = list(app({'HTTP_ACCEPT': 'text/plain'},saveit))
     assert "text/plain; charset=utf8" == header_value(saved[1][1],'content-type')

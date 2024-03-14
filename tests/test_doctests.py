@@ -2,7 +2,6 @@ import doctest
 import os
 
 import pytest
-import six
 
 from paste.util.import_string import simple_import
 
@@ -30,8 +29,7 @@ modules = [
     ]
 
 options = doctest.ELLIPSIS | doctest.REPORT_ONLY_FIRST_FAILURE
-if six.PY3:
-    options |= doctest.IGNORE_EXCEPTION_DETAIL
+options |= doctest.IGNORE_EXCEPTION_DETAIL
 
 
 @pytest.mark.parametrize('filename', filenames)

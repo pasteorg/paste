@@ -7,11 +7,10 @@ Error handler middleware
 import sys
 import traceback
 import cgi
-from six.moves import cStringIO as StringIO
+from io import StringIO
 from paste.exceptions import formatter, collector, reporter
 from paste import wsgilib
 from paste import request
-import six
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
 
@@ -152,8 +151,7 @@ class ErrorMiddleware(object):
                                exc_info)
                 # @@: it would be nice to deal with bad content types here
                 response = self.exception_handler(exc_info, environ)
-                if six.PY3:
-                    response = response.encode('utf8')
+                response = response.encode('utf8')
                 return [response]
             finally:
                 # clean up locals...
@@ -245,8 +243,7 @@ class CatchingIter(object):
                                [('content-type', 'text/html')],
                                exc_info)
 
-            if six.PY3:
-                response = response.encode('utf8')
+            response = response.encode('utf8')
             return response
     __next__ = next
 

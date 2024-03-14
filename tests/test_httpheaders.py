@@ -1,5 +1,29 @@
-from paste.httpheaders import *
 import time
+
+from paste.httpheaders import (
+    normalize_headers,
+    ACCEPT,
+    ACCEPT_CHARSET,
+    AGE,
+    ALLOW,
+    CACHE_CONTROL,
+    CONTENT_DISPOSITION,
+    CONTENT_ENCODING,
+    CONTENT_LENGTH,
+    CONTENT_TYPE,
+    DATE,
+    EXPIRES,
+    ETAG,
+    FROM,
+    IF_MODIFIED_SINCE,
+    PRAGMA,
+    RANGE,
+    REFERER,
+    UPGRADE,
+    VIA,
+    VARY,
+    WWW_AUTHENTICATE,
+)
 
 def _test_generic(collection):
     assert 'bing' == VIA(collection)

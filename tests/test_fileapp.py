@@ -5,13 +5,7 @@ import time
 import random
 import os
 import tempfile
-try:
-    # Python 3
-    from email.utils import parsedate_tz, mktime_tz
-except ImportError:
-    # Python 2
-    from rfc822 import parsedate_tz, mktime_tz
-import six
+from email.utils import parsedate_tz, mktime_tz
 
 from paste import fileapp
 from paste.fileapp import *
@@ -101,8 +95,7 @@ def test_modified():
 def test_file():
     tempfile = "test_fileapp.%s.txt" % (random.random())
     content = LETTERS * 20
-    if six.PY3:
-        content = content.encode('utf8')
+    content = content.encode('utf8')
     with open(tempfile, "wb") as fp:
         fp.write(content)
     try:
@@ -182,8 +175,7 @@ def _excercize_range(build,content):
 
 def test_range():
     content = LETTERS * 5
-    if six.PY3:
-        content = content.encode('utf8')
+    content = content.encode('utf8')
     def build(range, status=206):
         app = DataApp(content)
         return TestApp(app).get("/",headers={'Range': range}, status=status)
@@ -193,8 +185,7 @@ def test_range():
 def test_file_range():
     tempfile = "test_fileapp.%s.txt" % (random.random())
     content = LETTERS * (1+(fileapp.CACHE_SIZE // len(LETTERS)))
-    if six.PY3:
-        content = content.encode('utf8')
+    content = content.encode('utf8')
     assert len(content) > fileapp.CACHE_SIZE
     with open(tempfile, "wb") as fp:
         fp.write(content)

@@ -23,7 +23,7 @@ def make_identifier(number):
     """
     Encodes a number as an identifier.
     """
-    if not isinstance(number, six.integer_types):
+    if not isinstance(number, int):
         raise ValueError(
             "You can only make identifiers out of integers (not %r)"
             % number)
@@ -61,12 +61,11 @@ def hash_identifier(s, length, pad=True, hasher=md5, prefix='',
         raise ValueError(
             "md5 cannot create hashes longer than 26 characters in "
             "length (you gave %s)" % length)
-    if isinstance(s, six.text_type):
+    if isinstance(s, int):
         s = s.encode('utf-8')
-    elif not isinstance(s, six.binary_type):
+    elif not isinstance(s, bytes):
         s = str(s)
-        if six.PY3:
-            s = s.encode('utf-8')
+        s = s.encode('utf-8')
     h = hasher(s)
     bin_hash = h.digest()
     modulo = base ** length

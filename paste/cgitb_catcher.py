@@ -10,8 +10,7 @@ for more.
 """
 
 import cgitb
-import six
-from six.moves import cStringIO as StringIO
+from io import StringIO
 import sys
 
 from paste.util import converters
@@ -32,7 +31,7 @@ class CgitbMiddleware(object):
             global_conf = {}
         if display is NoDefault:
             display = global_conf.get('debug')
-        if isinstance(display, six.string_types):
+        if isinstance(display, str):
             display = converters.asbool(display)
         self.display = display
         self.logdir = logdir
@@ -49,8 +48,7 @@ class CgitbMiddleware(object):
                            [('content-type', 'text/html')],
                            exc_info)
             response = self.exception_handler(exc_info, environ)
-            if six.PY3:
-                response = response.encode('utf8')
+            response = response.encode('utf8')
             return [response]
 
     def catching_iter(self, app_iter, environ):
@@ -74,8 +72,7 @@ class CgitbMiddleware(object):
                     response += (
                         '<hr noshade>Error in .close():<br>%s'
                         % close_response)
-            if six.PY3:
-                response = response.encode('utf8')
+            response = response.encode('utf8')
             yield response
 
     def exception_handler(self, exc_info, environ):

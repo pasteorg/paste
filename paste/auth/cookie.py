@@ -75,8 +75,7 @@ _all_chars = ''.join([chr(x) for x in range(0, 255)])
 def new_secret():
     """ returns a 64 byte secret """
     secret = ''.join(random.sample(_all_chars, 64))
-    if six.PY3:
-        secret = secret.encode('utf8')
+    secret = secret.encode('utf8')
     return secret
 
 class AuthCookieSigner(object):
@@ -127,7 +126,7 @@ class AuthCookieSigner(object):
     """
     def __init__(self, secret = None, timeout = None, maxlen = None):
         self.timeout = timeout or 30
-        if isinstance(timeout, six.string_types):
+        if isinstance(timeout, str):
             raise ValueError(
                 "Timeout must be a number (minutes), not a string (%r)"
                 % timeout)
@@ -141,20 +140,13 @@ class AuthCookieSigner(object):
         cookie is handled server-side in the auth() function.
         """
         timestamp = make_time(time.time() + 60*self.timeout)
-        if six.PY3:
-            content = content.encode('utf8')
-            timestamp = timestamp.encode('utf8')
+        content = content.encode('utf8')
+        timestamp = timestamp.encode('utf8')
 
-        if six.PY3:
-            cookie = base64.encodebytes(
-                hmac.new(self.secret, content, sha1).digest() +
-                timestamp +
-                content)
-        else:
-            cookie = base64.encodestring(
-                hmac.new(self.secret, content, sha1).digest() +
-                timestamp +
-                content)
+        cookie = base64.encodebytes(
+            hmac.new(self.secret, content, sha1).digest() +
+            timestamp +
+            content)
         cookie = cookie.replace(b"/", b"_").replace(b"=", b"~")
         cookie = cookie.replace(b'\n', b'').replace(b'\r', b'')
         if len(cookie) > self.maxlen:
@@ -312,8 +304,7 @@ class AuthCookieHandler(object):
             if content:
                 content = ";".join(content)
                 content = self.signer.sign(content)
-                if six.PY3:
-                    content = content.decode('utf8')
+                content = content.decode('utf8')
                 cookie = '%s=%s; Path=/;' % (self.cookie_name, content)
                 if 'https' == environ['wsgi.url_scheme']:
                     cookie += ' secure;'
@@ -386,7 +377,7 @@ def make_auth_cookie(
             which is a typical browser maximum)
 
     """
-    if isinstance(scanlist, six.string_types):
+    if isinstance(scanlist, str):
         scanlist = scanlist.split()
     if secret is None and global_conf.get('secret'):
         secret = global_conf['secret']

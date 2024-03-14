@@ -11,7 +11,7 @@ where using raw_interactive won't do.
 
 """
 import time
-from paste.httpserver import *
+from paste.httpserver import WSGIServer
 
 class WSGIRegressionServer(WSGIServer):
     """
@@ -67,7 +67,7 @@ def serve(application, host=None, port=None, handler=None):
     return server
 
 if __name__ == '__main__':
-    from six.moves.urllib.request import urlopen
+    from urllib.request import urlopen
     from paste.wsgilib import dump_environ
     server = serve(dump_environ)
     baseuri = ("http://%s:%s" % server.server_address)

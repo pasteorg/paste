@@ -22,9 +22,16 @@ serving on...
 .. [1] http://www.w3.org/Protocols/HTTP/1.0/draft-ietf-http-spec.html#BasicAA
 """
 from base64 import b64decode
+
 import six
+
 from paste.httpexceptions import HTTPUnauthorized
-from paste.httpheaders import *
+from paste.httpheaders import (
+    AUTHORIZATION,
+    AUTH_TYPE,
+    REMOTE_USER,
+    WWW_AUTHENTICATE,
+)
 
 class AuthBasicAuthenticator(object):
     """

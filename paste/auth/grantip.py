@@ -3,10 +3,9 @@
 """
 Grant roles and logins based on IP address.
 """
-import six
 from paste.util import ip4
 
-class GrantIPMiddleware(object):
+class GrantIPMiddleware:
 
     """
     On each request, ``ip_map`` is checked against ``REMOTE_ADDR``
@@ -35,7 +34,7 @@ class GrantIPMiddleware(object):
         self.clobber_username = clobber_username
 
     def _convert_user_role(self, username, roles):
-        if roles and isinstance(roles, six.string_types):
+        if roles and isinstance(roles, str):
             roles = roles.split(',')
         return (username, roles)
 

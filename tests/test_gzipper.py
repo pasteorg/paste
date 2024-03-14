@@ -1,7 +1,7 @@
 from paste.fixture import TestApp
 from paste.gzipper import middleware
 import gzip
-import six
+import io
 
 def simple_app(environ, start_response):
     start_response('200 OK',
@@ -17,7 +17,7 @@ def test_gzip():
         '/', extra_environ=dict(HTTP_ACCEPT_ENCODING='gzip'))
     assert int(res.header('content-length')) == len(res.body)
     assert res.body != b'this is a test'
-    actual = gzip.GzipFile(fileobj=six.BytesIO(res.body)).read()
+    actual = gzip.GzipFile(fileobj=io.BytesIO(res.body)).read()
     assert actual == b'this is a test'
 
 def test_gzip_head():

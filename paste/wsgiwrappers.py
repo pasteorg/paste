@@ -8,13 +8,7 @@ to deal with an incoming request and sending a response.
 import re
 import warnings
 from pprint import pformat
-try:
-    # Python 3
-    from http.cookies import SimpleCookie
-except ImportError:
-    # Python 2
-    from Cookie import SimpleCookie
-import six
+from http.cookies import SimpleCookie
 
 from paste.request import EnvironHeaders, get_cookie_dict, \
     parse_dict_querystring, parse_formvars
@@ -411,7 +405,7 @@ class WSGIResponse(object):
         self.cookies[key]['max-age'] = 0
 
     def _set_content(self, content):
-        if not isinstance(content, (six.binary_type, six.text_type)):
+        if not isinstance(content, (bytes, str)):
             self._iter = content
             if isinstance(content, list):
                 self._is_str_iter = True

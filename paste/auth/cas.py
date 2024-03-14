@@ -18,7 +18,7 @@ passed to the system so that it can be used as middleware at any stage
 of processing.  It has the secondary goal of allowing for other
 authentication methods to be used concurrently.
 """
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 from paste.request import construct_url
 from paste.httpexceptions import HTTPSeeOther, HTTPForbidden
 

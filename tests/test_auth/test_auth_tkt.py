@@ -1,13 +1,7 @@
 import hashlib
-import six
-if six.PY3:
-    import base64
+import base64
+from http.cookies import SimpleCookie
 from paste.auth.auth_tkt import AuthTicket
-try:
-    from http.cookies import SimpleCookie
-except ImportError:
-    # Python 2
-    from Cookie import SimpleCookie
 
 
 def test_auth_ticket_digest_and_cookie_value():
@@ -108,11 +102,8 @@ def test_auth_ticket_cookie():
     for test_args, test_kwargs, expected_values in test_parameters:
         token = AuthTicket(*test_args, **test_kwargs)
         expected_cookie = SimpleCookie()
-        if six.PY3:
-            # import pdb; pdb.set_trace()
-            expected_cookie_value = base64.b64encode(expected_values['cookie_value'])
-        else:
-            expected_cookie_value = expected_values['cookie_value'].encode('base64')
+        # import pdb; pdb.set_trace()
+        expected_cookie_value = base64.b64encode(expected_values['cookie_value'])
 
         expected_cookie[expected_values['name']] = expected_cookie_value
         expected_cookie[expected_values['name']]['path'] = expected_values['path']

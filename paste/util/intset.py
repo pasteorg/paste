@@ -6,7 +6,6 @@ Integer set class.
 Copyright (C) 2006, Heiko Wundram.
 Released under the MIT license.
 """
-import six
 
 # Version information
 # -------------------
@@ -20,7 +19,7 @@ __date__ = "2006-01-20"
 # Utility classes
 # ---------------
 
-class _Infinity(object):
+class _Infinity:
     """Internal type used to represent infinity values."""
 
     __slots__ = ["_neg"]
@@ -63,7 +62,7 @@ class _Infinity(object):
     def __repr__(self):
         return "None"
 
-_VALID_TYPES = six.integer_types + (_Infinity,)
+_VALID_TYPES = (int, _Infinity)
 
 
 
@@ -121,19 +120,19 @@ class IntSet(object):
         # Check keyword arguments.
         if kwargs:
             raise ValueError("Invalid keyword argument.")
-        if not ( isinstance(self._min, six.integer_types) or self._min is _MININF ):
+        if not ( isinstance(self._min, int) or self._min is _MININF ):
             raise TypeError("Invalid type of min argument.")
-        if not ( isinstance(self._max, six.integer_types) or self._max is _MAXINF ):
+        if not ( isinstance(self._max, int) or self._max is _MAXINF ):
             raise TypeError("Invalid type of max argument.")
         if ( self._min is not _MININF and self._max is not _MAXINF and
              self._min > self._max ):
             raise ValueError("Minimum is not smaller than maximum.")
-        if isinstance(self._max, six.integer_types):
+        if isinstance(self._max, int):
             self._max += 1
 
         # Process arguments.
         for arg in args:
-            if isinstance(arg, six.integer_types):
+            if isinstance(arg, int):
                 start, stop = arg, arg+1
             elif isinstance(arg,tuple):
                 if len(arg) != 2:
@@ -147,14 +146,14 @@ class IntSet(object):
                     stop = self._max
 
                 # Check arguments.
-                if not ( isinstance(start, six.integer_types) or start is _MININF ):
+                if not ( isinstance(start, int) or start is _MININF ):
                     raise TypeError("Invalid type of tuple start.")
-                if not ( isinstance(stop, six.integer_types) or stop is _MAXINF ):
+                if not ( isinstance(stop, int) or stop is _MAXINF ):
                     raise TypeError("Invalid type of tuple stop.")
                 if ( start is not _MININF and stop is not _MAXINF and
                      start > stop ):
                     continue
-                if isinstance(stop, six.integer_types):
+                if isinstance(stop, int):
                     stop += 1
             else:
                 raise TypeError("Invalid argument.")
@@ -215,7 +214,7 @@ class IntSet(object):
     def __coerce__(self,other):
         if isinstance(other,IntSet):
             return self, other
-        elif isinstance(other, six.integer_types + (tuple,)):
+        elif isinstance(other, (int, tuple,)):
             try:
                 return self, self.__class__(other)
             except TypeError:
@@ -458,7 +457,7 @@ class IntSet(object):
             elif r[1] is _MAXINF:
                 ubranges.append([r[0],1])
             else:
-                for val in xrange(r[0],r[1]):
+                for val in range(r[0],r[1]):
                     yield val
         if ubranges:
             while True:
@@ -475,10 +474,10 @@ class IntSet(object):
 
         rv = []
         for start, stop in self._ranges:
-            if ( isinstance(start, six.integer_types) and isinstance(stop, six.integer_types)
+            if ( isinstance(start, int) and isinstance(stop, int)
                  and stop-start == 1 ):
                 rv.append("%r" % start)
-            elif isinstance(stop, six.integer_types):
+            elif isinstance(stop, int):
                 rv.append("(%r,%r)" % (start,stop-1))
             else:
                 rv.append("(%r,%r)" % (start,stop))

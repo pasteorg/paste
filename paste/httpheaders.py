@@ -135,16 +135,9 @@ dashes to give CamelCase style names.
 
 """
 import mimetypes
-import six
 from time import time as now
-try:
-    # Python 3
-    from email.utils import formatdate, parsedate_tz, mktime_tz
-    from urllib.request import AbstractDigestAuthHandler, parse_keqv_list, parse_http_list
-except ImportError:
-    # Python 2
-    from rfc822 import formatdate, parsedate_tz, mktime_tz
-    from urllib2 import AbstractDigestAuthHandler, parse_keqv_list, parse_http_list
+from email.utils import formatdate, parsedate_tz, mktime_tz
+from urllib.request import AbstractDigestAuthHandler, parse_keqv_list, parse_http_list
 
 from .httpexceptions import HTTPBadRequest
 
@@ -171,7 +164,7 @@ REQUEST_METHOD = EnvironVariable("REQUEST_METHOD")
 SCRIPT_NAME    = EnvironVariable("SCRIPT_NAME")
 PATH_INFO      = EnvironVariable("PATH_INFO")
 
-for _name, _obj in six.iteritems(dict(globals())):
+for _name, _obj in dict(globals()).items():
     if isinstance(_obj, EnvironVariable):
         __all__.append(_name)
 
@@ -737,7 +730,7 @@ class _CacheControl(_MultiValueHeader):
             result.append('max-age=%d' % max_age)
         if s_maxage is not None:
             result.append('s-maxage=%d' % s_maxage)
-        for (k, v) in six.iteritems(extensions):
+        for (k, v) in extensions.items():
             if k not in self.extensions:
                 raise AssertionError("unexpected extension used: '%s'" % k)
             result.append('%s="%s"' % (k.replace("_", "-"), v))
@@ -1016,24 +1009,15 @@ class _Authorization(_SingleValueHeader):
         (token, challenge) = challenge.split(' ', 1)
         chal = parse_keqv_list(parse_http_list(challenge))
         class FakeRequest(object):
-            if six.PY3:
-                @property
-                def full_url(self):
-                    return path
+            @property
+            def full_url(self):
+                return path
 
-                selector = full_url
+            selector = full_url
 
-                @property
-                def data(self):
-                    return None
-            else:
-                def get_full_url(self):
-                    return path
-
-                get_selector = get_full_url
-
-                def has_data(self):
-                    return False
+            @property
+            def data(self):
+                return None
 
             def get_method(self):
                 return method or "GET"
@@ -1111,6 +1095,6 @@ for head in _headers.values():
     __all__.append(headname)
 
 __pudge_all__ = __all__[:]
-for _name, _obj in six.iteritems(dict(globals())):
+for _name, _obj in dict(globals()).items():
     if isinstance(_obj, type) and issubclass(_obj, HTTPHeader):
         __pudge_all__.append(_name)

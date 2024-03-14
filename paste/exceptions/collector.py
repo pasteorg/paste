@@ -23,7 +23,7 @@ supplements
 import sys
 import traceback
 import time
-from six.moves import cStringIO as StringIO
+from io import StringIO
 import linecache
 from paste.exceptions import serial_number_generator
 import warnings

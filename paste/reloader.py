@@ -40,7 +40,6 @@ Then every time the reloader polls files it will call
 ``watch_config_files`` and check all the filenames it returns.
 """
 
-from __future__ import print_function
 import os
 import sys
 import time

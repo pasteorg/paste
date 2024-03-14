@@ -7,7 +7,7 @@ Application that runs a CGI script.
 import os
 import sys
 import subprocess
-from six.moves.urllib.parse import quote
+from urllib.parse import quote
 try:
     import select
 except ImportError:
@@ -24,7 +24,7 @@ class CGIError(Exception):
     act like a proper CGI script.
     """
 
-class CGIApplication(object):
+class CGIApplication:
 
     """
     This object acts as a proxy to a CGI application.  You pass in the
@@ -148,9 +148,8 @@ class CGIWriter(object):
                 name, value = line1.split(b':', 1)
                 value = value.lstrip()
                 name = name.strip()
-                if six.PY3:
-                    name = name.decode('utf8')
-                    value = value.decode('utf8')
+                name = name.decode('utf8')
+                value = value.decode('utf8')
                 if name.lower() == 'status':
                     if ' ' not in value:
                         # WSGI requires this space, sometimes CGI scripts don't set it:

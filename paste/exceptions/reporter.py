@@ -66,7 +66,7 @@ class EmailReporter(Reporter):
             raise ValueError("You must set to_addresses")
         if not self.from_address:
             raise ValueError("You must set from_address")
-        if isinstance(self.to_addresses, (str, unicode)):
+        if isinstance(self.to_addresses, str):
             self.to_addresses = [self.to_addresses]
 
     def assemble_email(self, exc_data):

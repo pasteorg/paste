@@ -43,19 +43,12 @@ try:
 except ImportError:
     # mimic hashlib (will work for md5, fail for secure hashes)
     import md5 as hashlib
-try:
-    from http.cookies import SimpleCookie
-except ImportError:
-    # Python 2
-    from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
+from urllib.parse import quote as url_quote
+from urllib.parse import unquote as url_unquote
+
 from paste import request
 
-try:
-    from urllib import quote as url_quote # Python 2.X
-    from urllib import unquote as url_unquote
-except ImportError:
-    from urllib.parse import quote as url_quote  # Python 3+
-    from urllib.parse import unquote as url_unquote
 
 DEFAULT_DIGEST = hashlib.md5
 
@@ -103,7 +96,7 @@ class AuthTicket(object):
         self.secret = secret
         self.userid = userid
         self.ip = ip
-        if not isinstance(tokens, six.string_types):
+        if not isinstance(tokens, str):
             tokens = ','.join(tokens)
         self.tokens = tokens
         self.user_data = user_data
@@ -113,7 +106,7 @@ class AuthTicket(object):
             self.time = time
         self.cookie_name = cookie_name
         self.secure = secure
-        if isinstance(digest_algo, six.binary_type):
+        if isinstance(digest_algo, bytes):
             # correct specification of digest from hashlib or fail
             self.digest_algo = getattr(hashlib, digest_algo)
         else:
@@ -133,11 +126,8 @@ class AuthTicket(object):
 
     def cookie(self):
         c = SimpleCookie()
-        if six.PY3:
-            import base64
-            cookie_value = base64.b64encode(self.cookie_value())
-        else:
-            cookie_value = self.cookie_value().encode('base64').strip().replace('\n', '')
+        import base64
+        cookie_value = base64.b64encode(self.cookie_value())
         c[self.cookie_name] = cookie_value
         c[self.cookie_name]['path'] = '/'
         if self.secure:
@@ -164,7 +154,7 @@ def parse_ticket(secret, ticket, ip, digest_algo=DEFAULT_DIGEST):
     If the ticket cannot be parsed, ``BadTicket`` will be raised with
     an explanation.
     """
-    if isinstance(digest_algo, six.binary_type):
+    if isinstance(digest_algo, bytes):
         # correct specification of digest from hashlib or fail
         digest_algo = getattr(hashlib, digest_algo)
     digest_hexa_size = digest_algo().digest_size * 2
@@ -225,7 +215,7 @@ def encode_ip_timestamp(ip, timestamp):
 
 
 def maybe_encode(s, encoding='utf8'):
-    if isinstance(s, six.text_type):
+    if isinstance(s, str):
         s = s.encode(encoding)
     return s
 
@@ -359,7 +349,7 @@ class AuthTKTMiddleware(object):
         return self.app(environ, cookie_setting_start_response)
 
     def set_user_cookie(self, environ, userid, tokens, user_data):
-        if not isinstance(tokens, six.string_types):
+        if not isinstance(tokens, str):
             tokens = ','.join(tokens)
         if self.include_ip:
             remote_addr = environ['REMOTE_ADDR']

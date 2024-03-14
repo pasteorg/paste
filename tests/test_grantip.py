@@ -9,8 +9,7 @@ def _make_app():
             ':',
             str(environ.get('REMOTE_USER_TOKENS')),
             ]
-        if six.PY3:
-            lines = [line.encode('utf8') for line in lines]
+        lines = [line.encode('utf8') for line in lines]
         return lines
     ip_map = {
         '127.0.0.1': (None, 'system'),

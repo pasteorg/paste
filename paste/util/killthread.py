@@ -1,7 +1,6 @@
 """
 Kill a thread, from http://sebulba.wikispaces.com/recipe+thread2
 """
-import six
 try:
     import ctypes
 except ImportError:
@@ -16,7 +15,7 @@ def async_raise(tid, exctype):
 
     tid is the value given by thread.get_ident() (an integer).
     Raise SystemExit to kill a thread."""
-    if not isinstance(exctype, (six.class_types, type)):
+    if not isinstance(exctype, type):
         raise TypeError("Only types can be raised (not instances)")
     if not isinstance(tid, int):
         raise TypeError("tid must be an integer")

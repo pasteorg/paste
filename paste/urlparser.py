@@ -5,13 +5,8 @@ WSGI applications that parse the URL and dispatch to on-disk resources
 """
 
 import os
-import six
 import sys
-
-if six.PY2:
-    import imp
-else:
-    import importlib.util as imputil
+import importlib.util as imputil
 
 import mimetypes
 try:
@@ -139,7 +134,7 @@ class URLParser(object):
                     "'constructor .ext = import_expr'; you gave %r "
                     "(=%r)" % (name, value))
             ext = name[len('constructor '):].strip()
-            if isinstance(value, (str, unicode)):
+            if isinstance(value, str):
                 value = import_string.eval_import(value)
             self.constructors[ext] = value
 
@@ -392,22 +387,12 @@ def load_module_from_name(environ, filename, module_name, errors):
         base_name = module_name
     module = None
 
-    if six.PY2:
-        fp = None
-        try:
-            fp, pathname, stuff = imp.find_module(
-                base_name, [os.path.dirname(filename)])
-            module = imp.load_module(module_name, fp, pathname, stuff)
-        finally:
-            if fp is not None:
-                fp.close()
-    else:
-        # imp is deprecated and will be removed in Python 3.12
-        spec = imputil.spec_from_file_location(base_name, filename)
-        if spec is not None:
-            module = imputil.module_from_spec(spec)
-            sys.modules[base_name] = module
-            spec.loader.exec_module(module)
+    # imp is deprecated and will be removed in Python 3.12
+    spec = imputil.spec_from_file_location(base_name, filename)
+    if spec is not None:
+        module = imputil.module_from_spec(spec)
+        sys.modules[base_name] = module
+        spec.loader.exec_module(module)
 
     return module
 
@@ -541,7 +526,7 @@ class PkgResourcesParser(StaticURLParser):
     def __init__(self, egg_or_spec, resource_name, manager=None, root_resource=None):
         if pkg_resources is None:
             raise NotImplementedError("This class requires pkg_resources.")
-        if isinstance(egg_or_spec, (six.binary_type, six.text_type)):
+        if isinstance(egg_or_spec, (bytes, str)):
             self.egg = pkg_resources.get_distribution(egg_or_spec)
         else:
             self.egg = egg_or_spec

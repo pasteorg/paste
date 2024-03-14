@@ -1,14 +1,12 @@
-from paste.urlmap import *
-from paste.fixture import *
-import six
+from paste.urlmap import URLMap
+from paste.fixture import TestApp
 
 def make_app(response_text):
     def app(environ, start_response):
         headers = [('Content-type', 'text/html')]
         start_response('200 OK', headers)
         body = response_text % environ
-        if six.PY3:
-            body = body.encode('ascii')
+        body = body.encode('ascii')
         return [body]
     return app
 

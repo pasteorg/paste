@@ -25,13 +25,11 @@ to see the full debuggable traceback.  Also, this URL is printed to
 ``wsgi.errors``, so you can open it up in another browser window.
 """
 
-from __future__ import print_function
-
+import html
 import sys
 import os
 import traceback
-import six
-from six.moves import cStringIO as StringIO
+from io import cStringIO as StringIO
 import pprint
 import itertools
 import time
@@ -44,7 +42,6 @@ from paste import registry
 from paste import request
 from paste import response
 from paste.evalexception import evalcontext
-from paste.util import html
 
 limit = 200
 
@@ -163,7 +160,7 @@ def get_debug_count(environ):
     if 'paste.evalexception.debug_count' in environ:
         return environ['paste.evalexception.debug_count']
     else:
-        environ['paste.evalexception.debug_count'] = next = six.next(debug_counter)
+        environ['paste.evalexception.debug_count'] = next = next(debug_counter)
         return next
 
 class EvalException(object):
@@ -418,8 +415,7 @@ class DebugInfo(object):
             'repost_button': repost_button or '',
             'head_html': head_html,
             'body': html}
-        if six.PY3:
-            page = page.encode('utf8')
+        page = page.encode('utf8')
         return [page]
 
     def eval_javascript(self):
