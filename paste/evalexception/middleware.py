@@ -29,7 +29,7 @@ import html
 import sys
 import os
 import traceback
-from io import cStringIO as StringIO
+from io import StringIO
 import pprint
 import itertools
 import time

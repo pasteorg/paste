@@ -5,7 +5,7 @@ Middleware that tests the validity of all generated HTML using the
 `WDG HTML Validator <http://www.htmlhelp.com/tools/validator/>`_
 """
 
-from cStringIO import StringIO
+from io import StringIO
 import subprocess
 from paste.response import header_value
 import re
