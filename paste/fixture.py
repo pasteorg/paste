@@ -10,6 +10,7 @@ effects of command-line scripts.
 """
 
 import sys
+import io
 import random
 import mimetypes
 import time
@@ -19,7 +20,6 @@ import smtplib
 import shlex
 import re
 import subprocess
-from io import StringIO
 from urllib.parse import urlencode
 from urllib import parse as urlparse
 from six.moves.http_cookies import BaseCookie
@@ -471,7 +471,7 @@ class TestApp(object):
 class CaptureStdout(object):
 
     def __init__(self, actual):
-        self.captured = StringIO()
+        self.captured = io.StringIO()
         self.actual = actual
 
     def write(self, s):
