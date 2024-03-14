@@ -160,8 +160,8 @@ def get_debug_count(environ):
     if 'paste.evalexception.debug_count' in environ:
         return environ['paste.evalexception.debug_count']
     else:
-        environ['paste.evalexception.debug_count'] = next = next(debug_counter)
-        return next
+        environ['paste.evalexception.debug_count'] = _next = next(debug_counter)
+        return _next
 
 class EvalException(object):
 
