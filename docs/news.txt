@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.8.0
+-----
+
+* Remove remainder of Python 2 code. Thanks a-detiste.
+
 3.7.0
 -----
 
