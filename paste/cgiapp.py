@@ -40,7 +40,7 @@ class CGIApplication:
                  include_os_environ=True,
                  query_string=None):
         if global_conf:
-            raise NotImplemented(
+            raise NotImplementedError(
                 "global_conf is no longer supported for CGIApplication "
                 "(use make_cgi_application); please pass None instead")
         self.script_filename = script
@@ -158,7 +158,7 @@ class CGIWriter(object):
                 else:
                     self.headers.append((name, value))
 
-class StdinReader(object):
+class StdinReader:
 
     def __init__(self, stdin, content_length):
         self.stdin = stdin
