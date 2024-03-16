@@ -45,6 +45,9 @@ from paste.evalexception import evalcontext
 
 limit = 200
 
+def cmp(a, b):
+    return (a > b) - (a < b)
+
 def html_quote(v):
     """
     Escape HTML characters, plus translate None to ''
