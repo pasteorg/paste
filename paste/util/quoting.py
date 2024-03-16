@@ -6,8 +6,6 @@ import html.entities
 import re
 from urllib.parse import quote, unquote
 
-import six
-
 __all__ = ['html_quote', 'html_unquote', 'url_quote', 'url_unquote',
            'strip_html']
 
@@ -32,7 +30,7 @@ _unquote_re = re.compile(r'&([a-zA-Z]+);')
 def _entity_subber(match, name2c=html.entities.name2codepoint):
     code = name2c.get(match.group(1))
     if code:
-        return six.unichr(code)
+        return chr(code)
     else:
         return match.group(0)
 
