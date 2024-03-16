@@ -1,13 +1,12 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
-import re
-from six.moves import html_entities
-from urllib.parse import quote, unquote
-import six
-
 import html
+import html.entities
+import re
+from urllib.parse import quote, unquote
 
+import six
 
 __all__ = ['html_quote', 'html_unquote', 'url_quote', 'url_unquote',
            'strip_html']
@@ -30,7 +29,7 @@ def html_quote(v, encoding=None):
         return html.escape(str(v), 1)
 
 _unquote_re = re.compile(r'&([a-zA-Z]+);')
-def _entity_subber(match, name2c=html_entities.name2codepoint):
+def _entity_subber(match, name2c=html.entities.name2codepoint):
     code = name2c.get(match.group(1))
     if code:
         return six.unichr(code)

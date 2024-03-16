@@ -22,7 +22,7 @@ import re
 import subprocess
 from urllib.parse import urlencode
 from urllib import parse as urlparse
-from six.moves.http_cookies import BaseCookie
+from http.cookies import BaseCookie
 import six
 
 from paste import wsgilib

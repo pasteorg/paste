@@ -25,10 +25,10 @@ import posixpath
 import time
 import os
 from itertools import count
-from six.moves import _thread
-from six.moves import queue
-from six.moves.BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from six.moves.socketserver import ThreadingMixIn
+import _thread
+import queue
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
 from urllib.parse import unquote, urlsplit
 from paste.util import converters
 import logging

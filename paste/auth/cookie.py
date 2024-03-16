@@ -41,7 +41,8 @@ corresponding to a database session id) is stored in the cookie.
 
 """
 
-import hmac, base64, random, six, time, warnings
+import hmac, base64, random, time, warnings
+from functools import reduce
 try:
     from hashlib import sha1
 except ImportError:
@@ -62,7 +63,7 @@ _encode = [('\\', '\\x5c'), ('"', '\\x22'),
 _decode = [(v, k) for (k, v) in _encode]
 _decode.reverse()
 def encode(s, sublist = _encode):
-    return six.moves.reduce((lambda a, b: a.replace(b[0], b[1])), sublist, str(s))
+    return reduce((lambda a, b: a.replace(b[0], b[1])), sublist, str(s))
 decode = lambda s: encode(s, _decode)
 
 class CookieTooLarge(RuntimeError):
