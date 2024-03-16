@@ -382,7 +382,7 @@ class ExceptionCollector(object):
             return str(obj)
         except UnicodeEncodeError:
             try:
-                return unicode(obj).encode(FALLBACK_ENCODING, 'replace')
+                return str(obj).encode(FALLBACK_ENCODING, 'replace')
             except UnicodeEncodeError:
                 # This is when something is really messed up, but this can
                 # happen when the __str__ of an object has to handle unicode
