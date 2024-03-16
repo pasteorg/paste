@@ -30,14 +30,20 @@ to use sha would be a good thing.
 .. [1] http://www.faqs.org/rfcs/rfc2617.html
 """
 from paste.httpexceptions import HTTPUnauthorized
-from paste.httpheaders import *
+from paste.httpheaders import (
+    AUTHORIZATION,
+    AUTH_TYPE,
+    PATH_INFO,
+    REMOTE_USER,
+    REQUEST_METHOD,
+    SCRIPT_NAME,
+)
 try:
     from hashlib import md5
 except ImportError:
     from md5 import md5
 import time, random
-from six.moves.urllib.parse import quote as url_quote
-import six
+from urllib.parse import quote as url_quote
 
 def _split_auth_string(auth_string):
     """ split a digest auth string into individual key=value strings """
@@ -69,8 +75,7 @@ def _auth_to_kv_pairs(auth_string):
 def digest_password(realm, username, password):
     """ construct the appropriate hashcode needed for HTTP digest """
     content = "%s:%s:%s" % (username, realm, password)
-    if six.PY3:
-        content = content.encode('utf8')
+    content = content.encode('utf8')
     return md5(content).hexdigest()
 
 class AuthDigestAuthenticator(object):
@@ -83,13 +88,11 @@ class AuthDigestAuthenticator(object):
     def build_authentication(self, stale = ''):
         """ builds the authentication error """
         content = "%s:%s" % (time.time(), random.random())
-        if six.PY3:
-            content = content.encode('utf-8')
+        content = content.encode('utf-8')
         nonce  = md5(content).hexdigest()
 
         content = "%s:%s" % (time.time(), random.random())
-        if six.PY3:
-            content = content.encode('utf-8')
+        content = content.encode('utf-8')
         opaque = md5(content).hexdigest()
 
         self.nonce[nonce] = None
@@ -107,15 +110,13 @@ class AuthDigestAuthenticator(object):
         if not ha1:
             return self.build_authentication()
         content = '%s:%s' % (method, path)
-        if six.PY3:
-            content = content.encode('utf8')
+        content = content.encode('utf8')
         ha2 = md5(content).hexdigest()
         if qop:
             chk = "%s:%s:%s:%s:%s:%s" % (ha1, nonce, nc, cnonce, qop, ha2)
         else:
             chk = "%s:%s:%s" % (ha1, nonce, ha2)
-        if six.PY3:
-            chk = chk.encode('utf8')
+        chk = chk.encode('utf8')
         if response != md5(chk).hexdigest():
             if nonce in self.nonce:
                 del self.nonce[nonce]

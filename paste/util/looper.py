@@ -20,10 +20,8 @@ looper you can get a better sense of the context.  Use like::
 
 __all__ = ['looper']
 
-import six
 
-
-class looper(object):
+class looper:
     """
     Helper for looping (particularly in templates)
 
@@ -44,7 +42,7 @@ class looper(object):
         return '<%s for %r>' % (
             self.__class__.__name__, self.seq)
 
-class looper_iter(object):
+class looper_iter:
 
     def __init__(self, seq):
         self.seq = list(seq)
@@ -141,7 +139,7 @@ class loop_pos(object):
     def _compare_group(self, item, other, getter):
         if getter is None:
             return item != other
-        elif (isinstance(getter, (six.binary_type, six.text_type))
+        elif (isinstance(getter, (bytes, str))
               and getter.startswith('.')):
             getter = getter[1:]
             if getter.endswith('()'):

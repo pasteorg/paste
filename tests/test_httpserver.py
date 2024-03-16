@@ -2,10 +2,7 @@ import email
 import io
 import socket
 
-import six
-
 from paste.httpserver import LimitedLengthFile, WSGIHandler, serve
-from six.moves import StringIO
 
 
 class MockServer(object):
@@ -14,7 +11,7 @@ class MockServer(object):
 
 class MockSocket(object):
     def makefile(self, mode, bufsize):
-        return StringIO()
+        return io.StringIO()
 
 
 def test_environ():
@@ -59,10 +56,6 @@ def test_limited_length_file():
 
 def test_limited_length_file_tell_on_socket():
     backing_read, backing_write = socket.socketpair()
-    if six.PY2:
-        # On Python 2, socketpair() returns an internal socket type rather than
-        # the public one.
-        backing_read = socket.socket(_sock=backing_read)
     f = LimitedLengthFile(backing_read.makefile('rb'), 10)
     backing_write.send(b'0123456789')
     backing_write.close()

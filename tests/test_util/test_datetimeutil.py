@@ -4,7 +4,12 @@
 # Some of this code was funded by: http://prometheusresearch.com
 from time import localtime
 from datetime import date
-from paste.util.datetimeutil import *
+from paste.util.datetimeutil import (
+    normalize_date,
+    normalize_time,
+    normalize_timedelta,
+    parse_date,
+)
 
 def test_timedelta():
     assert('' == normalize_timedelta(""))

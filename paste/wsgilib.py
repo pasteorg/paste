@@ -5,21 +5,20 @@
 A module of many disparate routines.
 """
 
-from __future__ import print_function
-
 # functions which moved to paste.request and paste.response
 # Deprecated around 15 Dec 2005
+import io
+import sys
+import warnings
+from traceback import print_exception
+from io import StringIO
+from urllib.parse import unquote, urlsplit
+
 from paste.request import get_cookies, parse_querystring, parse_formvars
 from paste.request import construct_url, path_info_split, path_info_pop
 from paste.response import HeaderDict, has_header, header_value, remove_header
 from paste.response import error_body_response, error_response, error_response_app
 
-from traceback import print_exception
-import six
-import sys
-from six.moves import cStringIO as StringIO
-from six.moves.urllib.parse import unquote, urlsplit
-import warnings
 
 __all__ = ['add_close', 'add_start_close', 'capture_output', 'catch_errors',
            'catch_errors_app', 'chained_app_iters', 'construct_url',
@@ -28,7 +27,7 @@ __all__ = ['add_close', 'add_start_close', 'capture_output', 'catch_errors',
            'interactive', 'intercept_output', 'path_info_pop',
            'path_info_split', 'raw_interactive', 'send_file']
 
-class add_close(object):
+class add_close:
     """
     An an iterable that iterates over app_iter, then calls
     close_func.
@@ -119,10 +118,10 @@ class chained_app_iters(object):
 
     def next(self):
         if len(self.chained) == 1:
-            return six.next(self.chained[0])
+            return next(self.chained[0])
         else:
             try:
-                return six.next(self.chained[0])
+                return next(self.chained[0])
             except StopIteration:
                 self.chained.pop(0)
                 return self.next()
@@ -138,7 +137,7 @@ class chained_app_iters(object):
             except:
                 got_exc = sys.exc_info()
         if got_exc:
-            six.reraise(got_exc[0], got_exc[1], got_exc[2])
+            raise got_exc
 
     def __del__(self):
         if not self._closed:
@@ -164,7 +163,7 @@ class encode_unicode_app_iter(object):
 
     def next(self):
         content = next(self.app_iter)
-        if isinstance(content, six.text_type):
+        if isinstance(content, str):
             content = content.encode(self.encoding, self.errors)
         return content
     __next__ = next
@@ -209,7 +208,7 @@ class _wrap_app_iter(object):
 
     def next(self):
         try:
-            return six.next(self.app_iter)
+            return next(self.app_iter)
         except StopIteration:
             if self.ok_callback:
                 self.ok_callback()
@@ -261,7 +260,7 @@ class _wrap_app_iter_app(object):
 
     def next(self):
         try:
-            return six.next(self.app_iter)
+            return next(self.app_iter)
         except StopIteration:
             if self.ok_callback:
                 self.ok_callback()
@@ -278,7 +277,7 @@ class _wrap_app_iter_app(object):
             app_iter = iter(new_app_iterable)
             if hasattr(new_app_iterable, 'close'):
                 self.close = new_app_iterable.close
-            self.next = lambda: six.next(app_iter)
+            self.next = lambda: next(app_iter)
             return self.next()
     __next__ = next
 
@@ -291,7 +290,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     if raise_on_wsgi_error:
         errors = ErrorRaiser()
     else:
-        errors = six.StringIO()
+        errors = io.StringIO()
     basic_environ = {
         # mandatory CGI variables
         'REQUEST_METHOD': 'GET',     # always mandatory
@@ -303,7 +302,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
         # mandatory wsgi variables
         'wsgi.version': (1, 0),
         'wsgi.url_scheme': 'http',
-        'wsgi.input': six.BytesIO(),
+        'wsgi.input': io.BytesIO(),
         'wsgi.errors': errors,
         'wsgi.multithread': False,
         'wsgi.multiprocess': False,
@@ -325,7 +324,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
         basic_environ['HTTP_HOST'] = basic_environ['SERVER_NAME']
     istream = basic_environ['wsgi.input']
     if isinstance(istream, bytes):
-        basic_environ['wsgi.input'] = six.BytesIO(istream)
+        basic_environ['wsgi.input'] = io.BytesIO(istream)
         basic_environ['CONTENT_LENGTH'] = len(istream)
     data = {}
     output = []
@@ -336,7 +335,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
             try:
                 if headers_sent:
                     # Re-raise original exception only if headers sent
-                    six.reraise(exc_info[0], exc_info[1], exc_info[2])
+                    raise exc_info
             finally:
                 # avoid dangling circular reference
                 exc_info = None
@@ -352,7 +351,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     try:
         try:
             for s in app_iter:
-                if not isinstance(s, six.binary_type):
+                if not isinstance(s, bytes):
                     raise ValueError(
                         "The app_iter response can only contain bytes (not "
                         "unicode); got: %r" % s)
@@ -425,8 +424,7 @@ def dump_environ(environ, start_response):
         output.append(environ['wsgi.input'].read(int(content_length)))
         output.append("\n")
     output = "".join(output)
-    if six.PY3:
-        output = output.encode('utf8')
+    output = output.encode('utf8')
     headers = [('Content-Type', 'text/plain'),
                ('Content-Length', str(len(output)))]
     start_response("200 OK", headers)

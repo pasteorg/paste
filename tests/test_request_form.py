@@ -1,4 +1,4 @@
-import six
+import io
 
 from paste.request import *
 from paste.util.multidict import MultiDict
@@ -18,7 +18,7 @@ def make_post(body):
         'CONTENT_TYPE': 'application/x-www-form-urlencoded',
         'CONTENT_LENGTH': str(len(body)),
         'REQUEST_METHOD': 'POST',
-        'wsgi.input': six.BytesIO(body),
+        'wsgi.input': io.BytesIO(body),
         }
     return e
 

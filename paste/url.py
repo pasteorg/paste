@@ -4,10 +4,9 @@
 """
 This module implements a class for handling URLs.
 """
-from six.moves.urllib.parse import parse_qsl, quote, unquote, urlencode
+import html
+from urllib.parse import parse_qsl, quote, unquote, urlencode
 from paste import request
-import six
-from paste.util import html
 
 # Imported lazily from FormEncode:
 variabledecode = None
@@ -39,13 +38,8 @@ def js_repr(v):
              for key, value in v])
     elif isinstance(v, str):
         return repr(v)
-    elif isinstance(v, unicode):
-        # @@: how do you do Unicode literals in Javascript?
-        return repr(v.encode('UTF-8'))
     elif isinstance(v, (float, int)):
         return repr(v)
-    elif isinstance(v, long):
-        return repr(v).lstrip('L')
     elif hasattr(v, '__js_repr__'):
         return v.__js_repr__()
     else:
@@ -53,7 +47,7 @@ def js_repr(v):
             "I don't know how to turn %r into a Javascript representation"
             % v)
 
-class URLResource(object):
+class URLResource:
 
     """
     This is an abstract superclass for different kinds of URLs
@@ -184,10 +178,7 @@ class URLResource(object):
                             params=u.original_params)
         return u
 
-    if six.PY3:
-        __truediv__ = addpath
-    else:
-        __div__ = addpath
+    __truediv__ = addpath
 
     def become(self, OtherClass):
         return OtherClass(self.url, vars=self.vars,

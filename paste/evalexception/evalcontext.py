@@ -1,15 +1,14 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
-from six.moves import cStringIO as StringIO
+from io import StringIO
 import traceback
 import threading
 import pdb
-import six
 import sys
 
 exec_lock = threading.Lock()
 
-class EvalContext(object):
+class EvalContext:
 
     """
     Class that represents a interactive interface.  It has its own
@@ -35,7 +34,7 @@ class EvalContext(object):
             sys.stdout = out
             try:
                 code = compile(s, '<web>', "single", 0, 1)
-                six.exec_(code, self.globs, self.namespace)
+                exec(code, self.globs, self.namespace)
                 debugger.set_continue()
             except KeyboardInterrupt:
                 raise

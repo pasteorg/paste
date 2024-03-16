@@ -2,7 +2,6 @@
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
 import pytest
-import six
 
 from paste.config import CONFIG, ConfigMiddleware
 from paste.fixture import TestApp
@@ -20,8 +19,7 @@ def app_with_config(environ, start_response):
     start_response('200 OK', [('Content-type','text/plain')])
     lines = ['Variable is: %s\n' % CONFIG[test_key],
             'Variable is (in environ): %s' % environ['paste.config'][test_key]]
-    if six.PY3:
-        lines = [line.encode('utf8') for line in lines]
+    lines = [line.encode('utf8') for line in lines]
     return lines
 
 class NestingAppWithConfig(object):
@@ -34,8 +32,7 @@ class NestingAppWithConfig(object):
         supplement = ['Nesting variable is: %s' % CONFIG[test_key],
                       'Nesting variable is (in environ): %s' % \
                           environ['paste.config'][test_key]]
-        if six.PY3:
-            supplement = [line.encode('utf8') for line in supplement]
+        supplement = [line.encode('utf8') for line in supplement]
         response.extend(supplement)
         return response
 

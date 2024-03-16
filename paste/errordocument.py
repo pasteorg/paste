@@ -11,11 +11,10 @@ URL where the content can be displayed to the user as an error document.
 
 import warnings
 import sys
-from six.moves.urllib import parse as urlparse
+from urllib import parse as urlparse
 from paste.recursive import ForwardRequestException, RecursiveMiddleware, RecursionLoop
 from paste.util import converters
 from paste.response import replace_header
-import six
 
 def forward(app, codes):
     """
@@ -91,8 +90,7 @@ class StatusKeeper(object):
             keep_status_start_response('500 Server Error', [('Content-type', 'text/plain')], sys.exc_info())
             body = ('Error: %s.  (Error page could not be fetched)'
                     % self.status)
-            if six.PY3:
-                body = body.encode('utf8')
+            body = body.encode('utf8')
             return [body]
 
 

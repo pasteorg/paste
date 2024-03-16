@@ -23,17 +23,11 @@ session for each request, with no caching.  Also, sessions aren't
 expired.
 """
 
-try:
-    # Python 3
-    from http.cookies import SimpleCookie
-except ImportError:
-    # Python 2
-    from Cookie import SimpleCookie
+from http.cookies import SimpleCookie
 import time
 import random
 import os
 import datetime
-import six
 import threading
 import tempfile
 
@@ -48,7 +42,7 @@ except ImportError:
 from paste import wsgilib
 from paste import request
 
-class SessionMiddleware(object):
+class SessionMiddleware:
 
     def __init__(self, application, global_conf=None, **factory_kw):
         self.application = application
@@ -149,8 +143,7 @@ class SessionFactory(object):
         if for_object is not None:
             r.append(id(for_object))
         content = str(r)
-        if six.PY3:
-            content = content.encode('utf8')
+        content = content.encode('utf8')
         md5_hash = md5(content)
         try:
             return md5_hash.hexdigest()
@@ -188,7 +181,7 @@ class FileSession(object):
                  chmod=None,
                  expiration=2880, # in minutes: 48 hours
                  ):
-        if chmod and isinstance(chmod, (six.binary_type, six.text_type)):
+        if chmod and isinstance(chmod, (bytes, str)):
             chmod = int(chmod, 8)
         self.chmod = chmod
         if not sid:

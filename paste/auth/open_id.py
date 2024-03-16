@@ -58,7 +58,6 @@ __all__ = ['AuthOpenIDHandler']
 import cgi
 import urlparse
 import re
-import six
 
 import paste.request
 from paste import httpexceptions
@@ -77,7 +76,7 @@ from openid.store import filestore
 from openid.consumer import consumer
 from openid.oidutil import appendArgs
 
-class AuthOpenIDHandler(object):
+class AuthOpenIDHandler:
     """
     This middleware implements OpenID Consumer behavior to authenticate a
     URL against an OpenID Server.
@@ -399,7 +398,7 @@ def make_open_id_middleware(
     from paste.deploy.converters import asbool
     from paste.util import import_string
     catch_401 = asbool(catch_401)
-    if url_to_username and isinstance(url_to_username, six.string_types):
+    if url_to_username and isinstance(url_to_username, str):
         url_to_username = import_string.eval_import(url_to_username)
     apply_auth_tkt = asbool(apply_auth_tkt)
     new_app = AuthOpenIDHandler(

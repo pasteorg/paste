@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 import sys
 
 # Quiet warnings in this CGI so that it does not upset tests.

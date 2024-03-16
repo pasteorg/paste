@@ -17,13 +17,11 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 # @@: add support for chunked encoding, this is not a 1.1 server
 #     till this is completed.
 
-from __future__ import print_function
 import atexit
 import traceback
 import io
 import socket, sys, threading
 import posixpath
-import six
 import time
 import os
 from itertools import count
@@ -31,7 +29,7 @@ from six.moves import _thread
 from six.moves import queue
 from six.moves.BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from six.moves.socketserver import ThreadingMixIn
-from six.moves.urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urlsplit
 from paste.util import converters
 import logging
 try:
@@ -171,7 +169,7 @@ class WSGIHandlerMixin:
         if exc_info:
             try:
                 if self.wsgi_headers_sent:
-                    six.reraise(exc_info[0], exc_info[1], exc_info[2])
+                    raise exc_info
                 else:
                     # In this case, we're going to assume that the
                     # higher-level code is currently handling the
@@ -602,7 +600,7 @@ class ThreadPool(object):
         self.daemon = daemon
         if logger is None:
             logger = logging.getLogger('paste.httpserver.ThreadPool')
-        if isinstance(logger, six.string_types):
+        if isinstance(logger, str):
             logger = logging.getLogger(logger)
         self.logger = logger
         self.error_email = error_email
@@ -760,7 +758,7 @@ class ThreadPool(object):
         return thread_id in threading._active
 
     def add_worker_thread(self, *args, **kwargs):
-        index = six.next(self._worker_count)
+        index = next(self._worker_count)
         worker = threading.Thread(target=self.worker_thread_callback,
                                   args=args, kwargs=kwargs,
                                   name=("worker %d" % index))
@@ -803,7 +801,7 @@ class ThreadPool(object):
                     import pprint
                     info_desc = pprint.pformat(info)
                 except:
-                    out = six.StringIO()
+                    out = io.StringIO()
                     traceback.print_exc(file=out)
                     info_desc = 'Error:\n%s' % out.getvalue()
                 self.notify_problem(
@@ -917,8 +915,6 @@ class ThreadPool(object):
                         del self.worker_tracker[thread_id]
                     except KeyError:
                         pass
-                    if six.PY2:
-                        sys.exc_clear()
                 self.idle_workers.append(thread_id)
         finally:
             try:

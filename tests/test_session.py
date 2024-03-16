@@ -1,6 +1,5 @@
 from paste.session import SessionMiddleware
 from paste.fixture import TestApp
-import six
 
 info = []
 
@@ -14,8 +13,7 @@ def wsgi_app(environ, start_response):
             sess = environ['paste.session.factory']()
         if 'info' in sess:
             body = str(sess['info'])
-            if six.PY3:
-                body = body.encode('utf8')
+            body = body.encode('utf8')
             return [body]
         else:
             return [b'no-info']

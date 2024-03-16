@@ -12,9 +12,8 @@ import hotshot
 import hotshot.stats
 import threading
 import cgi
-import six
 import time
-from cStringIO import StringIO
+from io import StringIO
 from paste import response
 
 __all__ = ['ProfileMiddleware', 'profile_decorator']
@@ -201,7 +200,7 @@ class DecoratedProfile(object):
             f.close()
         if exc_info:
             # We captured an exception earlier, now we re-raise it
-            six.reraise(exc_info[0], exc_info[1], exc_info[2])
+            raise exc_info
         return result
 
     def format_function(self, func, *args, **kw):

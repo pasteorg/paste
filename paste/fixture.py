@@ -9,9 +9,8 @@ for testing WSGI applications, and the `TestFileEnvironment
 effects of command-line scripts.
 """
 
-from __future__ import print_function
-
 import sys
+import io
 import random
 import mimetypes
 import time
@@ -20,12 +19,11 @@ import shutil
 import smtplib
 import shlex
 import re
-import six
 import subprocess
-from six.moves import cStringIO as StringIO
-from six.moves.urllib.parse import urlencode
-from six.moves.urllib import parse as urlparse
+from urllib.parse import urlencode
+from urllib import parse as urlparse
 from six.moves.http_cookies import BaseCookie
+import six
 
 from paste import wsgilib
 from paste import lint
@@ -122,7 +120,7 @@ class TestApp(object):
         ``post_request_hook`` is a function, similar to
         ``pre_request_hook``, to be called after requests are made.
         """
-        if isinstance(app, (six.binary_type, six.text_type)):
+        if isinstance(app, (bytes, str)):
             from paste.deploy import loadapp
             # @@: Should pick up relative_to from calling module's
             # __file__
@@ -185,7 +183,7 @@ class TestApp(object):
             extra_environ = {}
         __tracebackhide__ = True  # Hide from pytest:
         if params:
-            if not isinstance(params, (six.binary_type, six.text_type)):
+            if not isinstance(params, (bytes, str)):
                 params = urlencode(params, doseq=True)
             if '?' in url:
                 url += '&'
@@ -219,7 +217,7 @@ class TestApp(object):
         if hasattr(params, 'items'):
             # Some other multi-dict like format
             params = urlencode(params.items())
-        if six.PY3 and isinstance(params, six.text_type):
+        if isinstance(params, str):
             params = params.encode('utf8')
         if upload_files:
             params = urlparse.parse_qsl(params, keep_blank_values=True)
@@ -235,7 +233,7 @@ class TestApp(object):
             environ['QUERY_STRING'] = ''
         environ['CONTENT_LENGTH'] = str(len(params))
         environ['REQUEST_METHOD'] = method
-        environ['wsgi.input'] = six.BytesIO(params)
+        environ['wsgi.input'] = io.BytesIO(params)
         self._set_headers(headers, environ)
         environ.update(extra_environ)
         req = TestRequest(url, environ, expect_errors)
@@ -330,8 +328,7 @@ class TestApp(object):
         """
         boundary = '----------a_BoUnDaRy%s$' % random.random()
         content_type = 'multipart/form-data; boundary=%s' % boundary
-        if six.PY3:
-            boundary = boundary.encode('ascii')
+        boundary = boundary.encode('ascii')
 
         lines = []
         for key, value in params:
@@ -452,8 +449,7 @@ class TestApp(object):
             if res.status >= 200 and res.status < 400:
                 return
             body = res.body
-            if six.PY3:
-                body = body.decode('utf8', 'xmlcharrefreplace')
+            body = body.decode('utf8', 'xmlcharrefreplace')
             raise AppError(
                 "Bad response: %s (not 200 OK or 3xx redirect for %s)\n%s"
                 % (res.full_status, res.request.url,
@@ -475,7 +471,7 @@ class TestApp(object):
 class CaptureStdout(object):
 
     def __init__(self, actual):
-        self.captured = StringIO()
+        self.captured = io.StringIO()
         self.actual = actual
 
     def write(self, s):
@@ -556,8 +552,7 @@ class TestResponse(object):
         form_texts = []
         started = None
         body = self.body
-        if not six.PY2:
-            body = body.decode('utf8', 'xmlcharrefreplace')
+        body = body.decode('utf8', 'xmlcharrefreplace')
         for match in self._tag_re.finditer(body):
             end = match.group(1) == '/'
             tag = match.group(2).lower()
@@ -813,9 +808,9 @@ class TestResponse(object):
         of the response.  Whitespace is normalized when searching
         for a string.
         """
-        if not isinstance(s, (six.binary_type, six.text_type)):
+        if not isinstance(s, (bytes, str)):
             s = str(s)
-        if isinstance(s, six.text_type):
+        if isinstance(s, str):
             ## FIXME: we don't know that this response uses utf8:
             s = s.encode('utf8')
         return (self.body.find(s) != -1
@@ -833,7 +828,7 @@ class TestResponse(object):
         if 'no' in kw:
             no = kw['no']
             del kw['no']
-            if isinstance(no, (six.binary_type, six.text_type)):
+            if isinstance(no, (bytes, str)):
                 no = [no]
         else:
             no = []
@@ -855,16 +850,14 @@ class TestResponse(object):
 
     def __repr__(self):
         body = self.body
-        if six.PY3:
-            body = body.decode('utf8', 'xmlcharrefreplace')
+        body = body.decode('utf8', 'xmlcharrefreplace')
         body = body[:20]
         return '<Response %s %r>' % (self.full_status, body)
 
     def __str__(self):
         simple_body = b'\n'.join([l for l in self.body.splitlines()
                                  if l.strip()])
-        if six.PY3:
-            simple_body = simple_body.decode('utf8', 'xmlcharrefreplace')
+        simple_body = simple_body.decode('utf8', 'xmlcharrefreplace')
         return 'Response: %s\n%s\n%s' % (
             self.status,
             '\n'.join(['%s: %s' % (n, v) for n, v in self.headers]),
@@ -1713,7 +1706,7 @@ def _space_prefix(pref, full, sep=None, indent=None, include_sep=True):
 def _make_pattern(pat):
     if pat is None:
         return None
-    if isinstance(pat, (six.binary_type, six.text_type)):
+    if isinstance(pat, (bytes, str)):
         pat = re.compile(pat)
     if hasattr(pat, 'search'):
         return pat.search
@@ -1740,7 +1733,7 @@ def setup_module(module=None):
     if module is None:
         # The module we were called from must be the module...
         module = sys._getframe().f_back.f_globals['__name__']
-    if isinstance(module, (six.binary_type, six.text_type)):
+    if isinstance(module, (bytes, str)):
         module = sys.modules[module]
     if hasattr(module, 'reset_state'):
         module.reset_state()

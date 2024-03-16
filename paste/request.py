@@ -18,20 +18,10 @@ environment to solve common requirements.
 
 """
 import cgi
-from six.moves.urllib import parse as urlparse
-from six.moves.urllib.parse import quote, parse_qsl
-try:
-    # Python 3
-    from http.cookies import SimpleCookie, CookieError
-except ImportError:
-    # Python 2
-    from Cookie import SimpleCookie, CookieError
-
-try:
-    from UserDict import DictMixin
-except ImportError:
-    from collections.abc import MutableMapping as DictMixin
-import six
+from collections.abc import MutableMapping as DictMixin
+from urllib import parse as urlparse
+from urllib.parse import quote, parse_qsl
+from http.cookies import SimpleCookie, CookieError
 
 from paste.util.multidict import MultiDict
 
@@ -174,11 +164,10 @@ def parse_formvars(environ, include_get_vars=True, encoding=None, errors=None):
         environ['QUERY_STRING'] = ''
         inp = environ['wsgi.input']
         kwparms = {}
-        if six.PY3:
-            if encoding:
-                kwparms['encoding'] = encoding
-            if errors:
-                kwparms['errors'] = errors
+        if encoding:
+            kwparms['encoding'] = encoding
+        if errors:
+            kwparms['errors'] = errors
         fs = cgi.FieldStorage(fp=inp,
                               environ=environ,
                               keep_blank_values=True,

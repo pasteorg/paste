@@ -74,7 +74,6 @@ References:
 
 """
 
-import six
 from paste.wsgilib import catch_errors_app
 from paste.response import has_header, header_value, replace_header
 from paste.request import resolve_relative_url
@@ -178,9 +177,9 @@ class HTTPException(Exception):
         assert isinstance(headers, (type(None), list)), (
             "headers must be None or a list: %r"
             % headers)
-        assert isinstance(detail, (type(None), six.binary_type, six.text_type)), (
+        assert isinstance(detail, (type(None), bytes, str)), (
             "detail must be None or a string: %r" % detail)
-        assert isinstance(comment, (type(None), six.binary_type, six.text_type)), (
+        assert isinstance(comment, (type(None), bytes, str)), (
             "comment must be None or a string: %r" % comment)
         self.headers = headers or tuple()
         for req in self.required_headers:
@@ -206,10 +205,6 @@ class HTTPException(Exception):
             if self.headers:
                 for (k, v) in self.headers:
                     args[k.lower()] = escfunc(v)
-        if six.PY2:
-            for key, value in args.items():
-                if isinstance(value, six.text_type):
-                    args[key] = value.encode('utf8', 'xmlcharrefreplace')
         return template % args
 
     def plain(self, environ):
@@ -238,7 +233,7 @@ class HTTPException(Exception):
         else:
             replace_header(headers, 'content-type', 'text/plain')
             content = self.plain(environ)
-        if isinstance(content, six.text_type):
+        if isinstance(content, str):
             content = content.encode('utf8')
             cur_content_type = (
                 header_value(headers, 'content-type')
@@ -594,8 +589,8 @@ class HTTPVersionNotSupported(HTTPServerError):
 __all__ = ['HTTPException', 'HTTPRedirection', 'HTTPError' ]
 
 _exceptions = {}
-for name, value in six.iteritems(dict(globals())):
-    if (isinstance(value, (type, six.class_types)) and
+for name, value in dict(globals()).items():
+    if (isinstance(value, type) and
         issubclass(value, HTTPException) and
         value.code):
         _exceptions[value.code] = value

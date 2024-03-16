@@ -6,7 +6,7 @@ import sys
 import cgi
 import time
 import traceback
-from cStringIO import StringIO
+from io import StringIO
 from thread import get_ident
 from paste import httpexceptions
 from paste.request import construct_url, parse_formvars
