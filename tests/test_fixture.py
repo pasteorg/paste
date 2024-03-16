@@ -1,5 +1,3 @@
-import cgi
-
 from paste.debug.debugapp import SimpleApplication, SlowConsumer
 from paste.fixture import TestApp
 from paste.wsgiwrappers import WSGIRequest
