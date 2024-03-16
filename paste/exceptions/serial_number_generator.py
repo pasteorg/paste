@@ -13,7 +13,8 @@ try:
 except ImportError:
     from md5 import md5
 
-import six
+import operator
+byte2int = operator.itemgetter(0)
 
 good_characters = "23456789abcdefghjkmnpqrtuvwxyz"
 
@@ -71,7 +72,7 @@ def hash_identifier(s, length, pad=True, hasher=md5, prefix='',
     modulo = base ** length
     number = 0
     for c in list(bin_hash):
-        number = (number * 256 + six.byte2int([c])) % modulo
+        number = (number * 256 + byte2int([c])) % modulo
     ident = make_identifier(number)
     if pad:
         ident = good_characters[0]*(length-len(ident)) + ident

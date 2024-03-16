@@ -12,11 +12,16 @@ try:
     import select
 except ImportError:
     select = None
-import six
 
 from paste.util import converters
 
 __all__ = ['CGIError', 'CGIApplication']
+
+def ensure_text(s, encoding='utf-8', errors='strict'):
+    if type(s) is str:
+        return s
+    else:
+        return s.decode(encoding, errors)
 
 class CGIError(Exception):
     """
@@ -252,7 +257,7 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
                 read_set.remove(proc.stderr)
             if trans_nl:
                 data = proc._translate_newlines(data)
-            stderr.write(six.ensure_text(data))
+            stderr.write(ensure_text(data))
 
     try:
         proc.wait()
