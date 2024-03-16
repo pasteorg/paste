@@ -1,4 +1,4 @@
-from paste.fixture import *
+from paste.fixture import TestApp
 from paste.exceptions.errormiddleware import ErrorMiddleware
 from paste import lint
 from paste.util.quoting import strip_html

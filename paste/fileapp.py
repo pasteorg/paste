@@ -10,8 +10,29 @@ if-modified-since request header.
 """
 
 import os, time, mimetypes, zipfile, tarfile
-from paste.httpexceptions import *
-from paste.httpheaders import *
+from paste.httpexceptions import (
+    HTTPBadRequest,
+    HTTPForbidden,
+    HTTPMethodNotAllowed,
+    HTTPNotFound,
+    HTTPRequestRangeNotSatisfiable,
+)
+from paste.httpheaders import (
+    get_header,
+    list_headers,
+    ACCEPT_RANGES,
+    CACHE_CONTROL,
+    CONTENT_DISPOSITION,
+    CONTENT_LENGTH,
+    CONTENT_RANGE,
+    CONTENT_TYPE,
+    ETAG,
+    EXPIRES,
+    IF_MODIFIED_SINCE,
+    IF_NONE_MATCH,
+    LAST_MODIFIED,
+    RANGE,
+)
 
 CACHE_SIZE = 4096
 BLOCK_SIZE = 4096 * 16

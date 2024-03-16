@@ -1,6 +1,6 @@
 import sys
 import os
-from paste.exceptions.reporter import *
+from paste.exceptions.reporter import LogReporter
 from paste.exceptions import collector
 
 def setup_file(fn, content=None):

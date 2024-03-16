@@ -1,6 +1,6 @@
 import io
 
-from paste.request import *
+from paste.request import parse_formvars, parse_querystring
 from paste.util.multidict import MultiDict
 
 def test_parse_querystring():

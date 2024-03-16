@@ -4,7 +4,7 @@ import sys
 import pytest
 
 from paste.cgiapp import CGIApplication, CGIError
-from paste.fixture import *
+from paste.fixture import TestApp
 
 data_dir = os.path.join(os.path.dirname(__file__), 'cgiapp_data')
 

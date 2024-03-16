@@ -1,5 +1,5 @@
 from paste.auth import grantip
-from paste.fixture import *
+from paste.fixture import TestApp
 
 def _make_app():
     def application(environ, start_response):

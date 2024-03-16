@@ -4,9 +4,13 @@
 
 import pytest
 
-from paste.fixture import *
-from paste.registry import *
-from paste.registry import Registry
+from paste.fixture import TestApp
+from paste.registry import (
+    Registry,
+    RegistryManager,
+    StackedObjectProxy,
+    restorer,
+)
 from paste.evalexception.middleware import EvalException
 
 regobj = StackedObjectProxy()

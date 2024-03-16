@@ -1,5 +1,5 @@
 from paste.errordocument import forward
-from paste.fixture import *
+from paste.fixture import TestApp
 from paste.recursive import RecursiveMiddleware
 
 def simple_app(environ, start_response):
