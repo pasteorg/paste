@@ -23,8 +23,6 @@ serving on...
 """
 from base64 import b64decode
 
-import six
-
 from paste.httpexceptions import HTTPUnauthorized
 from paste.httpheaders import (
     AUTHORIZATION,
@@ -53,7 +51,7 @@ class AuthBasicAuthenticator(object):
         (authmeth, auth) = authorization.split(' ', 1)
         if 'basic' != authmeth.lower():
             return self.build_authentication()
-        auth = six.ensure_text(b64decode(six.ensure_binary(auth.strip())))
+        auth = b64decode(auth.strip().encode('ascii')).decode('ascii')
         username, password = auth.split(':', 1)
         if self.authfunc(environ, username, password):
             return username

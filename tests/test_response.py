@@ -1,4 +1,4 @@
-from paste.response import *
+from paste.response import replace_header
 
 def test_replace_header():
     h = [('content-type', 'text/plain'),

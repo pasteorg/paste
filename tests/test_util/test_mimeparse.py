@@ -2,7 +2,15 @@
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
-from paste.util.mimeparse import *
+from paste.util.mimeparse import (
+    best_match,
+    desired_matches,
+    fitness_and_quality_parsed,
+    parse_media_range,
+    parse_mime_type,
+    quality,
+    quality_parsed,
+)
 
 def test_parse_mime_type():
     parse = parse_mime_type

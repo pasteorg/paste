@@ -22,12 +22,23 @@ import re
 import subprocess
 from urllib.parse import urlencode
 from urllib import parse as urlparse
-from six.moves.http_cookies import BaseCookie
-import six
+from http.cookies import BaseCookie
 
 from paste import wsgilib
 from paste import lint
 from paste.response import HeaderDict
+
+def ensure_binary(s):
+    if isinstance(s, bytes):
+        return s
+    else:
+        return s.encode('utf-8')
+
+def ensure_str(s, encoding='utf-8', errors='strict'):
+    if type(s) is str:
+        return s
+    else:
+        return s.decode(encoding, errors)
 
 def tempnam_no_warning(*args):
     """
@@ -333,18 +344,18 @@ class TestApp(object):
         lines = []
         for key, value in params:
             lines.append(b'--'+boundary)
-            line = b'Content-Disposition: form-data; name="%s"' % six.ensure_binary(key)
+            line = b'Content-Disposition: form-data; name="%s"' % ensure_binary(key)
             lines.append(line)
             lines.append(b'')
-            line = six.ensure_binary(value)
+            line = ensure_binary(value)
             lines.append(line)
         for file_info in files:
             key, filename, value = self._get_file_info(file_info)
             lines.append(b'--'+boundary)
             line = (b'Content-Disposition: form-data; name="%s"; filename="%s"'
-                         % (six.ensure_binary(key), six.ensure_binary(filename)))
+                         % (ensure_binary(key), ensure_binary(filename)))
             lines.append(line)
-            fcontent = mimetypes.guess_type(six.ensure_str(filename, 'ascii', 'ignore'))[0]
+            fcontent = mimetypes.guess_type(ensure_str(filename, 'ascii', 'ignore'))[0]
             line = (b'Content-Type: %s'
                     % (fcontent.encode('ascii') if fcontent else b'application/octet-stream'))
             lines.append(line)

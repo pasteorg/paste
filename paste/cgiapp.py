@@ -12,11 +12,16 @@ try:
     import select
 except ImportError:
     select = None
-import six
 
 from paste.util import converters
 
 __all__ = ['CGIError', 'CGIApplication']
+
+def ensure_text(s, encoding='utf-8', errors='strict'):
+    if type(s) is str:
+        return s
+    else:
+        return s.decode(encoding, errors)
 
 class CGIError(Exception):
     """
@@ -40,7 +45,7 @@ class CGIApplication:
                  include_os_environ=True,
                  query_string=None):
         if global_conf:
-            raise NotImplemented(
+            raise NotImplementedError(
                 "global_conf is no longer supported for CGIApplication "
                 "(use make_cgi_application); please pass None instead")
         self.script_filename = script
@@ -158,7 +163,7 @@ class CGIWriter(object):
                 else:
                     self.headers.append((name, value))
 
-class StdinReader(object):
+class StdinReader:
 
     def __init__(self, stdin, content_length):
         self.stdin = stdin
@@ -252,7 +257,7 @@ def proc_communicate(proc, stdin=None, stdout=None, stderr=None):
                 read_set.remove(proc.stderr)
             if trans_nl:
                 data = proc._translate_newlines(data)
-            stderr.write(six.ensure_text(data))
+            stderr.write(ensure_text(data))
 
     try:
         proc.wait()

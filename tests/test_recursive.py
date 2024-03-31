@@ -1,5 +1,5 @@
 from .test_errordocument import simple_app
-from paste.fixture import *
+from paste.fixture import TestApp
 from paste.recursive import RecursiveMiddleware, ForwardRequestException
 
 def error_docs_app(environ, start_response):

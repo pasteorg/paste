@@ -56,7 +56,6 @@ setup(name="Paste",
       zip_safe=False,
       install_requires=[
         'setuptools',  # pkg_resources
-        'six>=1.4.0',
         ],
       extras_require={
         'subprocess': [],

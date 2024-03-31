@@ -36,7 +36,6 @@ it's primary benefit is compatibility with mod_auth_tkt, which in turn
 makes it possible to use the same authentication process with
 non-Python code run under Apache.
 """
-import six
 import time as time_mod
 try:
     import hashlib
@@ -202,15 +201,17 @@ def calculate_digest(ip, timestamp, secret, userid, tokens, user_data,
     digest = digest_algo(digest0 + secret).hexdigest()
     return maybe_encode(digest)
 
+def int2byte(i):
+    return bytes((i,))
 
 def encode_ip_timestamp(ip, timestamp):
-    ip_chars = b''.join(map(six.int2byte, map(int, ip.split('.'))))
+    ip_chars = b''.join(map(int2byte, map(int, ip.split('.'))))
     t = int(timestamp)
     ts = ((t & 0xff000000) >> 24,
           (t & 0xff0000) >> 16,
           (t & 0xff00) >> 8,
           t & 0xff)
-    ts_chars = b''.join(map(six.int2byte, ts))
+    ts_chars = b''.join(map(int2byte, ts))
     return (ip_chars + ts_chars)
 
 

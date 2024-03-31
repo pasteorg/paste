@@ -19,6 +19,7 @@ of processing.  It has the secondary goal of allowing for other
 authentication methods to be used concurrently.
 """
 from urllib.parse import urlencode
+from urllib.request import urlopen
 from paste.request import construct_url
 from paste.httpexceptions import HTTPSeeOther, HTTPForbidden
 
@@ -94,6 +95,6 @@ if '__main__' == __name__:
     authority = "https://secure.its.yale.edu/cas/servlet/"
     from paste.wsgilib import dump_environ
     from paste.httpserver import serve
-    from paste.httpexceptions import *
+    from paste.httpexceptions import HTTPExceptionHandler
     serve(HTTPExceptionHandler(
              AuthCASHandler(dump_environ, authority)))

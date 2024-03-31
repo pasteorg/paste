@@ -90,7 +90,7 @@ class PrintCatcher(filemixin.FileMixin):
         self._catchers = {}
 
     def write(self, v, currentThread=threading.current_thread):
-        name = current_thread().name
+        name = currentThread().name
         catchers = self._catchers
         if not catchers.has_key(name):
             self._defaultfunc(name, v)

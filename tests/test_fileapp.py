@@ -8,8 +8,8 @@ import tempfile
 from email.utils import parsedate_tz, mktime_tz
 
 from paste import fileapp
-from paste.fileapp import *
-from paste.fixture import *
+from paste.fileapp import DataApp
+from paste.fixture import TestApp
 
 # NOTE(haypo): don't use string.letters because the order of lower and upper
 # case letters changes when locale.setlocale() is called for the first time

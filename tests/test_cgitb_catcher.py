@@ -1,4 +1,4 @@
-from paste.fixture import *
+from paste.fixture import TestApp
 from paste.cgitb_catcher import CgitbMiddleware
 from paste import lint
 from .test_exceptions.test_error_middleware import clear_middleware

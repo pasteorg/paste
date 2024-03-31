@@ -31,7 +31,6 @@ If there are syntax errors ``TemplateError`` will be raised.
 """
 
 import re
-import six
 import sys
 from html import escape
 from urllib.parse import quote
@@ -43,6 +42,17 @@ __all__ = ['TemplateError', 'Template', 'sub', 'HTMLTemplate',
 token_re = re.compile(r'\{\{|\}\}')
 in_re = re.compile(r'\s+in\s+')
 var_re = re.compile(r'^[a-z_][a-z0-9_]*$', re.I)
+
+def reraise(tp, value, tb=None):
+    try:
+        if value is None:
+            value = tp()
+        if value.__traceback__ is not tb:
+            raise value.with_traceback(tb)
+        raise value
+    finally:
+        value = None
+        tb = None
 
 class TemplateError(Exception):
     """Exception raised while parsing a template
@@ -208,7 +218,7 @@ class Template(object):
             else:
                 arg0 = str(e)
             e.args = (self._add_line_info(arg0, pos),)
-            six.reraise(exc_info[0], e, exc_info[2])
+            reraise(exc_info[0], e, exc_info[2])
 
     def _exec(self, code, ns, pos):
         __traceback_hide__ = True
@@ -218,7 +228,7 @@ class Template(object):
             exc_info = sys.exc_info()
             e = exc_info[1]
             e.args = (self._add_line_info(e.args[0], pos),)
-            six.reraise(exc_info[0], e, exc_info[2])
+            reraise(exc_info[0], e, exc_info[2])
 
     def _repr(self, value, pos):
         __traceback_hide__ = True
@@ -230,7 +240,7 @@ class Template(object):
             exc_info = sys.exc_info()
             e = exc_info[1]
             e.args = (self._add_line_info(e.args[0], pos),)
-            six.reraise(exc_info[0], e, exc_info[2])
+            reraise(exc_info[0], e, exc_info[2])
         else:
             if self._unicode and isinstance(value, bytes):
                 if not self.decode_encoding:

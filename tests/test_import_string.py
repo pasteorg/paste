@@ -1,4 +1,4 @@
-from paste.util.import_string import *
+from paste.util.import_string import eval_import, simple_import
 import sys
 import os
 

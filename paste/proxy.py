@@ -29,7 +29,7 @@ TODO:
 
 """
 
-from six.moves import http_client as httplib
+import http.client as httplib
 from urllib import parse as urlparse
 from urllib.parse import quote
 

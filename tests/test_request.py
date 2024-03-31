@@ -1,8 +1,8 @@
 # (c) 2005 Ben Bangert
 # This module is part of the Python Paste Project and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
-from paste.fixture import *
-from paste.request import *
+from paste.fixture import TestApp
+from paste.request import get_cookie_dict
 from paste.wsgiwrappers import WSGIRequest
 
 def simpleapp(environ, start_response):

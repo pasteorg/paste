@@ -1,6 +1,7 @@
 import os
-from paste.urlparser import *
-from paste.fixture import *
+
+from paste.urlparser import PkgResourcesParser, StaticURLParser, URLParser
+from paste.fixture import TestApp
 from pkg_resources import get_distribution
 
 def relative_path(name):

@@ -1,6 +1,6 @@
-from paste.fixture import *
+from paste.fixture import TestApp
 try:
-    from paste.debug.profile import *
+    from paste.debug.profile import ProfileMiddleware, profile_decorator
     disable = False
 except ImportError:
     disable = True
