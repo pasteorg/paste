@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.9.0
+-----
+
+* Remove dead format_environ code in watchthread.py app.
+
 3.8.0
 -----
 
