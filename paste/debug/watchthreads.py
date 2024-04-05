@@ -274,29 +274,6 @@ def traceback_thread(thread_id):
 
 hide_keys = ['paste.httpserver.thread_pool']
 
-def format_environ(environ):
-    if environ is None:
-        return environ_template.substitute(
-            key='---',
-            value='No environment registered for this thread yet')
-    environ_rows = []
-    for key, value in sorted(environ.items()):
-        if key in hide_keys:
-            continue
-        try:
-            if key.upper() != key:
-                value = repr(value)
-            environ_rows.append(
-                environ_template.substitute(
-                key=cgi.escape(str(key)),
-                value=cgi.escape(str(value))))
-        except Exception as e:
-            environ_rows.append(
-                environ_template.substitute(
-                key=cgi.escape(str(key)),
-                value='Error in <code>repr()</code>: %s' % e))
-    return ''.join(environ_rows)
-
 def format_time(time_length):
     if time_length >= 60*60:
         # More than an hour
