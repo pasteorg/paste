@@ -19,7 +19,7 @@ necessary.
 
 from io import StringIO
 import re
-import cgi
+import html
 from paste.util import threadedprint
 from paste import wsgilib
 from paste import response
@@ -132,7 +132,7 @@ class PrintDebugMiddleware(object):
     def add_log(self, html, log):
         if not log:
             return html
-        text = cgi.escape(log)
+        text = html.escape(log)
         text = text.replace('\n', '<br>')
         text = text.replace('  ', '&nbsp; ')
         match = self._explicit_re.search(html)

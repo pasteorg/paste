@@ -9,7 +9,7 @@ from io import StringIO
 import subprocess
 from paste.response import header_value
 import re
-import cgi
+import html
 
 __all__ = ['WDGValidateMiddleware']
 
@@ -95,7 +95,7 @@ class WDGValidateMiddleware(object):
     def add_error(self, html_page, html_errors):
         add_text = ('<pre style="background-color: #ffd; color: #600; '
                     'border: 1px solid #000;">%s</pre>'
-                    % cgi.escape(html_errors))
+                    % html.escape(html_errors))
         match = self._end_body_regex.search(html_page)
         if match:
             return [html_page[:match.start()]

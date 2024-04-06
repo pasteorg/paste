@@ -6,7 +6,7 @@ Error handler middleware
 """
 import sys
 import traceback
-import cgi
+import html
 from io import StringIO
 from paste.exceptions import formatter, collector, reporter
 from paste import wsgilib
@@ -428,7 +428,7 @@ def send_report(rep, exc_data, html=True):
 
             <pre>%s</pre>
             </p>""" % (
-                cgi.escape(str(rep)), output.getvalue())
+                html.escape(str(rep)), output.getvalue())
         else:
             return (
                 "Additionally an error occurred while sending the "

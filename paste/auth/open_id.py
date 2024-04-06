@@ -55,7 +55,7 @@ login.
 
 __all__ = ['AuthOpenIDHandler']
 
-import cgi
+import html
 import urlparse
 import re
 
@@ -63,7 +63,7 @@ import paste.request
 from paste import httpexceptions
 
 def quoteattr(s):
-    qs = cgi.escape(s, 1)
+    qs = html.escape(s)
     return '"%s"' % (qs,)
 
 # You may need to manually add the openid package into your
@@ -200,7 +200,7 @@ class AuthOpenIDHandler:
             else:
                 fmt = 'Could not find OpenID information in <q>%s</q>'
 
-            message = fmt % (cgi.escape(openid_url),)
+            message = fmt % (html.escape(openid_url),)
             return self.render(request, message, css_class='error', form_contents=openid_url)
         elif status == consumer.SUCCESS:
             # The URL was a valid identity URL. Now we construct a URL
@@ -245,7 +245,7 @@ class AuthOpenIDHandler:
             # message to help the user figure out what happened.
             openid_url = info
             fmt = "Verification of %s failed."
-            message = fmt % (cgi.escape(openid_url),)
+            message = fmt % (html.escape(openid_url),)
         elif status == consumer.SUCCESS:
             # Success means that the transaction completed without
             # error. If info is None, it means that the user cancelled
@@ -266,7 +266,7 @@ class AuthOpenIDHandler:
                     fmt = ("If you had supplied a login redirect path, you would have "
                            "been redirected there.  "
                            "You have successfully verified %s as your identity.")
-                    message = fmt % (cgi.escape(openid_url),)
+                    message = fmt % (html.escape(openid_url),)
                 else:
                     # @@: This stuff doesn't make sense to me; why not a remote redirect?
                     request['environ']['paste.auth.open_id'] = openid_url
