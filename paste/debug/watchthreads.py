@@ -3,7 +3,6 @@ Watches the key ``paste.httpserver.thread_pool`` to see how many
 threads there are and report on any wedged threads.
 """
 import sys
-import cgi
 import time
 import traceback
 from io import StringIO

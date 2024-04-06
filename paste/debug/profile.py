@@ -11,7 +11,7 @@ import os
 import hotshot
 import hotshot.stats
 import threading
-import cgi
+import html
 import time
 from io import StringIO
 from paste import response
@@ -78,7 +78,7 @@ class ProfileMiddleware(object):
             output_callers = capture_output(
                 stats.print_callers, self.limit)
             body += '<pre style="%s">%s\n%s</pre>' % (
-                self.style, cgi.escape(output), cgi.escape(output_callers))
+                self.style, html.escape(output), html.escape(output_callers))
             return [body]
         finally:
             self.lock.release()

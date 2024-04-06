@@ -14,7 +14,7 @@ import os
 import sys
 import shutil
 import re
-import cgi
+import html
 import rfc822
 from io import StringIO
 from paste.util import PySourceColor
@@ -214,7 +214,7 @@ def show_file(path, version, description=None, data=None):
         html = ('<div class="source-code">%s</div>'
                 % PySourceColor.str2html(data, PySourceColor.dark))
     else:
-        html = '<pre class="source-code">%s</pre>' % cgi.escape(data, 1)
+        html = '<pre class="source-code">%s</pre>' % html.escape(data)
     html = '<span class="source-filename">%s</span><br>%s' % (
         description or path, html)
     write_data(resource_filename('%s.%s.gen.html' % (path, version)),
