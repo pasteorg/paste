@@ -1,31 +1,35 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """
-WSGI applications that parse the URL and dispatch to on-disk resources
+WSGI applications that parses the URL and dispatches to on-disk resources
 """
 
 import os
 import sys
-import importlib.util as imputil
-
 import mimetypes
+import warnings
+import importlib.util as imputil
 try:
-    import pkg_resources
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=DeprecationWarning)
+        import pkg_resources
 except ImportError:
     pkg_resources = None
 from paste import request
 from paste import fileapp
 from paste.util import import_string
 from paste import httpexceptions
-from .httpheaders import ETAG
 from paste.util import converters
-
-class NoDefault(object):
-    pass
+from .httpheaders import ETAG
 
 __all__ = ['URLParser', 'StaticURLParser', 'PkgResourcesParser']
 
-class URLParser(object):
+
+class NoDefault:
+    pass
+
+
+class URLParser:
 
     """
     WSGI middleware
