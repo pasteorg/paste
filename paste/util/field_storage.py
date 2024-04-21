@@ -1,4 +1,4 @@
-"""FieldStorage class from the deprecated cgi library."""
+"""FieldStorage class from the deprecated standard library cgi module."""
 
 # Copyright © 2001-2023 Python Software Foundation; All Rights Reserved.
 
