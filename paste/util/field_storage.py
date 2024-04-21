@@ -1,5 +1,15 @@
 """FieldStorage class from the deprecated cgi library."""
 
+# Copyright © 2001-2023 Python Software Foundation; All Rights Reserved.
+
+# History of this code:
+# Michael McLay started the original cgi module. Steve Majewski changed
+# the interface to SvFormContentDict and FormContentDict. The multipart
+# parsing was inspired by code submitted by Andreas Paepcke. Guido van
+# Rossum rewrote, reformatted and documented the module and maintained it
+# until it was deprecated. Christoph Zwerschke copied this slightly
+# modified and stripped-down version of the code into paste.
+
 import locale
 import os
 import sys

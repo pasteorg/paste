@@ -1,3 +1,7 @@
+# Slightly modified tests from the original cgi test module.
+
+# Copyright © 2001-2023 Python Software Foundation; All Rights Reserved.
+
 import sys
 import tempfile
 from collections import namedtuple
