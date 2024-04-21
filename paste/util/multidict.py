@@ -1,9 +1,11 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
-import cgi
 import copy
 import sys
 from collections.abc import MutableMapping as DictMixin
+
+from .field_storage import FieldStorage
+
 
 class MultiDict(DictMixin):
 
@@ -256,7 +258,7 @@ class UnicodeMultiDict(DictMixin):
 
         ``FieldStorage`` objects are specially handled.
         """
-        if isinstance(value, cgi.FieldStorage):
+        if isinstance(value, FieldStorage):
             # decode FieldStorage's field name and filename
             decode_name = self.decode_keys and isinstance(value.name, bytes)
             if decode_name:

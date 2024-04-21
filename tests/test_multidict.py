@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # (c) 2007 Ian Bicking and Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
-import cgi
 import gc
 import io
 
 import pytest
 
+from paste.util.field_storage import FieldStorage
 from paste.util.multidict import MultiDict, UnicodeMultiDict
 
 def test_dict():
@@ -146,13 +146,13 @@ def _test_unicode_dict(decode_param_names=False):
     assert isinstance(item[0], tuple)
     assert isinstance(item[1], tuple)
 
-    fs = cgi.FieldStorage()
+    fs = FieldStorage()
     fs.name = 'thefile'
     fs.filename = 'hello.txt'
     fs.file = io.BytesIO(b'hello')
     d[k('f')] = fs
     ufs = d[k('f')]
-    assert isinstance(ufs, cgi.FieldStorage)
+    assert isinstance(ufs, FieldStorage)
     assert ufs.name == fs.name
     assert isinstance(ufs.name, str)
     assert ufs.filename == fs.filename
