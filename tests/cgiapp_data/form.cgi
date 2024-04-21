@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
-from paste.util.field_storage import FieldStorage
-
 print('Content-type: text/plain')
 print('')
 
+import sys
+from os.path import dirname
+
+base_dir = dirname(dirname(dirname(__file__)))
+sys.path.insert(0, base_dir)
+
+from paste.util.field_storage import FieldStorage
 
 class FormFieldStorage(FieldStorage):
 
@@ -41,10 +46,8 @@ class FormFieldStorage(FieldStorage):
         raise error
 
     def __contains__(self, key):
-        superobj = super(FieldStorage, self)
-
         for candidate in self._key_candidates(key):
-            if superobj.__contains__(candidate):
+            if super().__contains__(candidate):
                 return True
         return False
 
