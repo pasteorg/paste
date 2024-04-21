@@ -84,9 +84,7 @@ Debugging Filters
 * Catch (optionally email) errors with extended tracebacks (using
   Zope/ZPT conventions) in ``paste.exceptions``
 
-* Catch errors presenting a `cgitb
-  <http://docs.python.org/2/library/cgitb.html>`_-based
-  output, in ``paste.cgitb_catcher``.
+* Catch errors presenting traceback in ``paste.cgitb_catcher``.
 
 * Profile each request and append profiling information to the HTML,
   in ``paste.debug.profile``

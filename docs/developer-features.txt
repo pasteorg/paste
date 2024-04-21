@@ -111,9 +111,7 @@ Debugging Filters
   frame, including an interactive prompt that runs in the individual
   stack frames, in :mod:`paste.evalexception`.
 
-* Catch errors presenting a `cgitb
-  <http://python.org/doc/current/lib/module-cgitb.html>`_-based
-  output, in :mod:`paste.cgitb_catcher`.
+* Catch errors presenting traceback in ``paste.cgitb_catcher``.
 
 * Profile each request and append profiling information to the HTML,
   in :mod:`paste.debug.profile`
