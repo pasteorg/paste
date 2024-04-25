@@ -34,7 +34,7 @@ Example:
     app = RegistryManager(yourapp)
 
     #inside your wsgi app
-    class yourapp(object):
+    class yourapp:
         def __call__(self, environ, start_response):
             obj = someobject  # The request-local object you want to access
                               # via yourpackage.myglobal
@@ -94,9 +94,9 @@ import paste.util.threadinglocal as threadinglocal
 __all__ = ['StackedObjectProxy', 'RegistryManager', 'StackedObjectRestorer',
            'restorer']
 
-class NoDefault(object): pass
+class NoDefault: pass
 
-class StackedObjectProxy(object):
+class StackedObjectProxy:
     """Track an object instance internally using a stack
 
     The StackedObjectProxy proxies access to an object internally using a
@@ -277,7 +277,7 @@ class StackedObjectProxy(object):
         ('%s\n(StackedObjectRestorer restoration enabled)' % \
          _pop_object.__doc__)
 
-class Registry(object):
+class Registry:
     """Track objects and stacked object proxies for removal
 
     The Registry object is instantiated a single time for the request no
@@ -351,7 +351,7 @@ class Registry(object):
             stacked._pop_object(obj)
         self.reglist.pop()
 
-class RegistryManager(object):
+class RegistryManager:
     """Creates and maintains a Registry context
 
     RegistryManager creates a new registry context for the registration of
@@ -436,7 +436,7 @@ class RegistryManager(object):
             reg.cleanup()
 
 
-class StackedObjectRestorer(object):
+class StackedObjectRestorer:
     """Track StackedObjectProxies and their proxied objects for automatic
     restoration within EvalException's interactive debugger.
 

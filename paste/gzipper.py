@@ -16,10 +16,10 @@ import io
 from paste.response import header_value, remove_header
 from paste.httpheaders import CONTENT_LENGTH
 
-class GzipOutput(object):
+class GzipOutput:
     pass
 
-class middleware(object):
+class middleware:
 
     def __init__(self, application, compress_level=6):
         self.application = application
@@ -41,7 +41,7 @@ class middleware(object):
 
         return response.write()
 
-class GzipResponse(object):
+class GzipResponse:
 
     def __init__(self, start_response, compress_level):
         self.start_response = start_response

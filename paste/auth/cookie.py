@@ -79,7 +79,7 @@ def new_secret():
     secret = secret.encode('utf8')
     return secret
 
-class AuthCookieSigner(object):
+class AuthCookieSigner:
     """
     save/restore ``environ`` entries via digially signed cookie
 
@@ -195,7 +195,7 @@ class AuthCookieEnviron(list):
             return
         list.append(self, str(value))
 
-class AuthCookieHandler(object):
+class AuthCookieHandler:
     """
     the actual handler that should be put in your middleware stack
 

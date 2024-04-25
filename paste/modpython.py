@@ -57,7 +57,7 @@ except:
     pass
 from paste.deploy import loadapp
 
-class InputWrapper(object):
+class InputWrapper:
 
     def __init__(self, req):
         self.req = req
@@ -83,7 +83,7 @@ class InputWrapper(object):
             line = self.readline()
 
 
-class ErrorWrapper(object):
+class ErrorWrapper:
 
     def __init__(self, req):
         self.req = req
@@ -102,7 +102,7 @@ bad_value = ("You must provide a PythonOption '%s', either 'on' or 'off', "
              "when running a version of mod_python < 3.1")
 
 
-class Handler(object):
+class Handler:
 
     def __init__(self, req):
         self.started = False

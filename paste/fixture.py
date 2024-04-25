@@ -48,7 +48,7 @@ def tempnam_no_warning(*args):
     """
     return os.tempnam(*args)
 
-class NoDefault(object):
+class NoDefault:
     pass
 
 def sorted(l):
@@ -56,7 +56,7 @@ def sorted(l):
     l.sort()
     return l
 
-class Dummy_smtplib(object):
+class Dummy_smtplib:
 
     existing = None
 
@@ -97,7 +97,7 @@ class AppError(Exception):
     pass
 
 
-class TestApp(object):
+class TestApp:
 
     __test__ = False  # Ignore with pytest test collection.
 
@@ -479,7 +479,7 @@ class TestApp(object):
         return TestResponse(self, status, headers, body, errors,
                             total_time)
 
-class CaptureStdout(object):
+class CaptureStdout:
 
     def __init__(self, actual):
         self.captured = io.StringIO()
@@ -500,7 +500,7 @@ class CaptureStdout(object):
         return self.captured.getvalue()
 
 
-class TestResponse(object):
+class TestResponse:
 
     __test__ = False  # Ignore with pytest test collection.
 
@@ -888,7 +888,7 @@ class TestResponse(object):
         webbrowser.open_new(url)
 
 
-class TestRequest(object):
+class TestRequest:
 
     __test__ = False  # Ignore with pytest test collection.
 
@@ -925,7 +925,7 @@ class TestRequest(object):
         self.expect_errors = expect_errors
 
 
-class Form(object):
+class Form:
 
     """
     This object represents a form that has been found in a page.
@@ -1160,7 +1160,7 @@ def _parse_attrs(text):
         attrs[attr_name] = attr_body
     return attrs
 
-class Field(object):
+class Field:
 
     """
     Field object.
@@ -1329,7 +1329,7 @@ Field.classes['image'] = Submit
 ############################################################
 
 
-class TestFileEnvironment(object):
+class TestFileEnvironment:
 
     """
     This represents an environment in which files will be written, and
@@ -1521,7 +1521,7 @@ class TestFileEnvironment(object):
         f.close()
         return FoundFile(self.base_path, path)
 
-class ProcResult(object):
+class ProcResult:
 
     """
     Represents the results of running a command in
@@ -1600,7 +1600,7 @@ class ProcResult(object):
                     s.append(t)
         return '\n'.join(s)
 
-class FoundFile(object):
+class FoundFile:
 
     """
     Represents a single file found as the result of a command.
@@ -1660,7 +1660,7 @@ class FoundFile(object):
             self.__class__.__name__,
             self.base_path, self.path)
 
-class FoundDir(object):
+class FoundDir:
 
     """
     Represents a directory created by a command.

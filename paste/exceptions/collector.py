@@ -34,7 +34,7 @@ FALLBACK_ENCODING = 'UTF-8'
 
 __all__ = ['collect_exception', 'ExceptionCollector']
 
-class ExceptionCollector(object):
+class ExceptionCollector:
 
     """
     Produces a data structure that can be used by formatters to
@@ -390,7 +390,7 @@ class ExceptionCollector(object):
 
 limit = 200
 
-class Bunch(object):
+class Bunch:
 
     """
     A generic container

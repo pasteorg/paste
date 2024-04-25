@@ -170,7 +170,7 @@ for _name, _obj in dict(globals()).items():
 
 _headers = {}
 
-class HTTPHeader(object):
+class HTTPHeader:
     """
     an HTTP header
 
@@ -1008,7 +1008,7 @@ class _Authorization(_SingleValueHeader):
         auth.add_password(realm, path, username, password)
         (token, challenge) = challenge.split(' ', 1)
         chal = parse_keqv_list(parse_http_list(challenge))
-        class FakeRequest(object):
+        class FakeRequest:
             @property
             def full_url(self):
                 return path

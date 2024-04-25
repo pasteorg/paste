@@ -44,7 +44,7 @@ TEMPLATE = """\
 </html>
 """
 
-class AuthFormHandler(object):
+class AuthFormHandler:
     """
     HTML-based login middleware
 

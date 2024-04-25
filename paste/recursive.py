@@ -33,7 +33,7 @@ class RecursionLoop(AssertionError):
     # Subclasses AssertionError for legacy reasons
     """Raised when a recursion enters into a loop"""
 
-class CheckForRecursionMiddleware(object):
+class CheckForRecursionMiddleware:
     def __init__(self, app, env):
         self.app = app
         self.env = env
@@ -50,7 +50,7 @@ class CheckForRecursionMiddleware(object):
         old_path_info.append(self.env.get('PATH_INFO', ''))
         return self.app(environ, start_response)
 
-class RecursiveMiddleware(object):
+class RecursiveMiddleware:
 
     """
     A WSGI middleware that allows for recursive and forwarded calls.
@@ -205,7 +205,7 @@ class ForwardRequestException(Exception):
             self.path_info = url
 
         # Base middleware
-        class ForwardRequestExceptionMiddleware(object):
+        class ForwardRequestExceptionMiddleware:
             def __init__(self, app):
                 self.app = app
 
@@ -238,7 +238,7 @@ class ForwardRequestException(Exception):
         else:
             self.factory = factory
 
-class Recursive(object):
+class Recursive:
 
     def __init__(self, application, environ, start_response):
         self.application = application
@@ -333,7 +333,7 @@ class Includer(Recursive):
         response.close()
         return response
 
-class IncludedResponse(object):
+class IncludedResponse:
 
     def __init__(self):
         self.headers = None
@@ -381,7 +381,7 @@ class IncluderAppIter(Recursive):
         response.app_iter = app_iter
         return response
 
-class IncludedAppIterResponse(object):
+class IncludedAppIterResponse:
 
     def __init__(self):
         self.status = None

@@ -25,10 +25,10 @@ flup_session = flup.middleware.session
 # store type and parameters
 store_cache = {}
 
-class NoDefault(object):
+class NoDefault:
     pass
 
-class SessionMiddleware(object):
+class SessionMiddleware:
 
     session_classes = {
         'memory': (flup_session.MemorySessionStore,

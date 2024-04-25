@@ -76,7 +76,7 @@ class SessionMiddleware:
         return wsgilib.add_start_close(app_iter, start, close)
 
 
-class SessionFactory(object):
+class SessionFactory:
 
 
     def __init__(self, environ, cookie_name='_SID_',
@@ -175,7 +175,7 @@ last_cleanup = None
 cleaning_up = False
 cleanup_cycle = datetime.timedelta(seconds=15*60) #15 min
 
-class FileSession(object):
+class FileSession:
 
     def __init__(self, sid, create=False, session_file_path=tempfile.gettempdir(),
                  chmod=None,
@@ -279,7 +279,7 @@ class FileSession(object):
                     cleaning_up = False
                     raise
 
-class _NoDefault(object):
+class _NoDefault:
     def __repr__(self):
         return '<dynamic default>'
 NoDefault = _NoDefault()

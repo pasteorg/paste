@@ -14,7 +14,7 @@ from paste.util import PySourceColor
 def html_quote(s):
     return html.escape(str(s), True)
 
-class AbstractFormatter(object):
+class AbstractFormatter:
 
     general_data_order = ['object', 'source_url']
 

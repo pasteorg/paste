@@ -421,7 +421,7 @@ def make_py(parser, environ, filename):
 
 URLParser.register_constructor('.py', make_py)
 
-class StaticURLParser(object):
+class StaticURLParser:
     """
     Like ``URLParser`` but only serves static files.
 

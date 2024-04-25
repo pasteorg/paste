@@ -60,7 +60,7 @@ def forward(app, codes):
         )
     )
 
-class StatusKeeper(object):
+class StatusKeeper:
     def __init__(self, app, status, url, headers):
         self.app = app
         self.status = status
@@ -94,7 +94,7 @@ class StatusKeeper(object):
             return [body]
 
 
-class StatusBasedForward(object):
+class StatusBasedForward:
     """
     Middleware that lets you test a response against a custom mapper object to
     programatically determine whether to internally forward to another URL and
@@ -254,7 +254,7 @@ def custom_forward(app, mapper, global_conf=None, **kw):
         global_conf = {}
     return _StatusBasedRedirect(app, mapper, global_conf, **kw)
 
-class _StatusBasedRedirect(object):
+class _StatusBasedRedirect:
     """
     Deprectated; use StatusBasedForward instead.
     """

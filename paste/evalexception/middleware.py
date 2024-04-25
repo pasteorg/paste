@@ -166,7 +166,7 @@ def get_debug_count(environ):
         environ['paste.evalexception.debug_count'] = _next = next(debug_counter)
         return _next
 
-class EvalException(object):
+class EvalException:
 
     def __init__(self, application, global_conf=None,
                  xmlhttp_key=None):
@@ -365,7 +365,7 @@ class EvalException(object):
             debug_mode=True,
             simple_html_error=simple_html_error)
 
-class DebugInfo(object):
+class DebugInfo:
 
     def __init__(self, counter, exc_info, exc_data, base_path,
                  environ, view_uri):

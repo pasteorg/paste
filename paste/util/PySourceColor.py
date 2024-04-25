@@ -1212,7 +1212,7 @@ class InputError(PySourceColorError):
 
 ########################################################## Python code parser
 
-class Parser(object):
+class Parser:
 
     """MoinMoin python parser heavily chopped :)"""
 

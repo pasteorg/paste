@@ -4,7 +4,7 @@ import sys
 import os
 import difflib
 
-class Mock(object):
+class Mock:
     def __init__(self, **kw):
         for name, value in kw.items():
             setattr(self, name, value)

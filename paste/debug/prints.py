@@ -29,7 +29,7 @@ _threadedprint_installed = False
 
 __all__ = ['PrintDebugMiddleware']
 
-class TeeFile(object):
+class TeeFile:
 
     def __init__(self, files):
         self.files = files
@@ -38,7 +38,7 @@ class TeeFile(object):
         for file in self.files:
             file.write(v)
 
-class PrintDebugMiddleware(object):
+class PrintDebugMiddleware:
 
     """
     This middleware captures all the printed statements, and inlines

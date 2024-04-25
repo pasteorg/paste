@@ -64,7 +64,7 @@ Python Style Guide.  Some things to take particular note of:
 
 * Docstrings are good.  They should look like::
 
-    class AClass(object):
+    class AClass:
         """
         doc string...
         """

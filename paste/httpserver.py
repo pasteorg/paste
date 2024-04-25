@@ -54,7 +54,7 @@ def _get_headers(headers, k):
         return headers.getheaders(k)  # Python 2 - mimetools.Message
 
 
-class ContinueHook(object):
+class ContinueHook:
     """
     When a client request includes a 'Expect: 100-continue' header, then
     it is the responsibility of the server to send 100 Continue when it
@@ -346,7 +346,7 @@ except ImportError:
                 self.socket.listen(request_queue_size)
 else:
 
-    class _ConnFixer(object):
+    class _ConnFixer:
         """ wraps a socket connection so it implements makefile """
         def __init__(self, conn):
             self.__conn = conn
@@ -466,7 +466,7 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
         """
         return ''
 
-class LimitedLengthFile(object):
+class LimitedLengthFile:
     def __init__(self, file, length):
         self.file = file
         self.length = length
@@ -528,7 +528,7 @@ class LimitedLengthFile(object):
                 pass
         return self._consumed
 
-class ThreadPool(object):
+class ThreadPool:
     """
     Generic thread pool with a queue of callables to consume.
 
@@ -1044,7 +1044,7 @@ class ThreadPool(object):
         server.quit()
         print('email sent to', error_emails, message)
 
-class ThreadPoolMixIn(object):
+class ThreadPoolMixIn:
     """
     Mix-in class to process requests from a thread pool
     """

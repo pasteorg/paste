@@ -40,7 +40,7 @@ ENVIRON_RECEIVED  = 'paste.bytes_received'
 REQUEST_STARTED   = 'paste.request_started'
 REQUEST_FINISHED  = 'paste.request_finished'
 
-class _ProgressFile(object):
+class _ProgressFile:
     """
     This is the input-file wrapper used to record the number of
     ``paste.bytes_received`` for the given request.
@@ -77,7 +77,7 @@ class _ProgressFile(object):
         self._ProgressFile_environ[ENVIRON_RECEIVED] += len(chunk)
         return chunk
 
-class UploadProgressMonitor(object):
+class UploadProgressMonitor:
     """
     monitors and reports on the status of uploads in progress
 
@@ -154,7 +154,7 @@ class UploadProgressMonitor(object):
     def uploads(self):
         return self.monitor
 
-class UploadProgressReporter(object):
+class UploadProgressReporter:
     """
     reports on the progress of uploads for a given user
 

@@ -14,12 +14,12 @@ from paste import request
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
 
-class _NoDefault(object):
+class _NoDefault:
     def __repr__(self):
         return '<NoDefault>'
 NoDefault = _NoDefault()
 
-class ErrorMiddleware(object):
+class ErrorMiddleware:
 
     """
     Error handling middleware
@@ -185,7 +185,7 @@ class ErrorMiddleware(object):
             error_message=self.error_message,
             simple_html_error=simple_html_error)
 
-class ResponseStartChecker(object):
+class ResponseStartChecker:
     def __init__(self, start_response):
         self.start_response = start_response
         self.response_started = False
@@ -194,7 +194,7 @@ class ResponseStartChecker(object):
         self.response_started = True
         self.start_response(*args)
 
-class CatchingIter(object):
+class CatchingIter:
 
     """
     A wrapper around the application iterator that will catch
@@ -266,7 +266,7 @@ class CatchingIter(object):
             return close_response
 
 
-class Supplement(object):
+class Supplement:
 
     """
     This is a supplement used to display standard WSGI information in

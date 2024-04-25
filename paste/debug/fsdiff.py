@@ -25,7 +25,7 @@ import re
 __all__ = ['Diff', 'Snapshot', 'File', 'Dir', 'report_expected_diffs',
            'show_diff']
 
-class Diff(object):
+class Diff:
 
     """
     Represents the difference between two snapshots
@@ -201,7 +201,7 @@ class Snapshot(IterableUserDict):
                               ignore_paths=self.ignore_paths,
                               ignore_hidden=self.ignore_hidden)
 
-class File(object):
+class File:
 
     """
     Represents a single file found as the result of a command.

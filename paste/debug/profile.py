@@ -18,7 +18,7 @@ from paste import response
 
 __all__ = ['ProfileMiddleware', 'profile_decorator']
 
-class ProfileMiddleware(object):
+class ProfileMiddleware:
 
     """
     Middleware that profiles all requests.
@@ -139,7 +139,7 @@ def profile_decorator(**options):
         return replacement
     return decorator
 
-class DecoratedProfile(object):
+class DecoratedProfile:
 
     lock = threading.Lock()
 

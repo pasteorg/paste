@@ -76,7 +76,7 @@ class _TemplateContinue(Exception):
 class _TemplateBreak(Exception):
     pass
 
-class Template(object):
+class Template:
 
     default_namespace = {
         'start_braces': '{{',
@@ -309,7 +309,7 @@ class bunch(dict):
 ## HTML Templating
 ############################################################
 
-class html(object):
+class html:
     def __init__(self, value):
         self.value = value
     def __str__(self):
