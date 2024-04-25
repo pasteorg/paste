@@ -924,7 +924,7 @@ def str2css(sourcestring, colors=None, title='',
               linenumbers=0, form=None):
     """Converts a code string to colorized CSS/HTML. Returns CSS/HTML string
 
-       If form != None then this will return (stylesheet_str, code_str)
+       If form is not None then this will return (stylesheet_str, code_str)
        colors=null,mono,lite,dark,dark2,idle,or pythonwin
     """
     if markup.lower() not in ['css' ,'xhtml']:
@@ -936,7 +936,7 @@ def str2css(sourcestring, colors=None, title='',
                    linenumbers=linenumbers)
     parse.format(form)
     stringIO.seek(0)
-    if form != None:
+    if form is not None:
         return parse._sendCSSStyle(external=1), stringIO.read()
     else:
         return None, stringIO.read()
@@ -969,7 +969,7 @@ def str2file(sourcestring, outfile, colors=None, title='',
     f.writelines(html)
     f.close()
     #write css
-    if css != None and dosheet:
+    if css is not None and dosheet:
         dir = os.path.dirname(outfile)
         outcss = os.path.join(dir,'pystyle.css')
         f = open(outcss,'wt')
@@ -1014,9 +1014,9 @@ def convert(source, outdir=None, colors=None,
     # Then we need to colorize them with path2file
     else:
         fileList = walkdir(source)
-        if fileList != None:
+        if fileList is not None:
             # make sure outdir is a dir
-            if outdir != None:
+            if outdir is not None:
                 if os.path.splitext(outdir)[1] != '':
                     outdir = os.path.split(outdir)[0]
             for item in fileList:
@@ -1032,7 +1032,7 @@ def path2file(sourcePath, out=None, colors=None, show=0,
                 header=None, footer=None, linenumbers=0, count=1):
     """ Converts python source to html file"""
     # If no outdir is given we use the sourcePath
-    if out == None:#this is a guess
+    if out is None:#this is a guess
         htmlPath = sourcePath + '.html'
     else:
         # If we do give an out_dir, and it does
@@ -1107,7 +1107,7 @@ def pageconvert(path, out=None, colors=lite, markup='xhtml', linenumbers=0,
 
        that is written in a webpage enclosed in tags.
     """
-    if out == None:
+    if out is None:
         out = os.path.dirname(path)
     infile = open(path, 'r').read()
     css,page  = tagreplace(sourcestr=infile,colors=colors,
@@ -1219,7 +1219,7 @@ class Parser:
     def __init__(self, raw, colors=None, title='', out=sys.stdout,
                    markup='html', header=None, footer=None, linenumbers=0):
         """Store the source text & set some flags"""
-        if colors == None:
+        if colors is None:
             colors = defaultColors
         self.raw = raw.expandtabs().rstrip()
         self.title = os.path.basename(title)
@@ -1611,7 +1611,7 @@ class Parser:
         getattr(self, '_do%sStart'%(self.markup))()
 
     def _doPageHeader(self):
-        if self.header != None:
+        if self.header is not None:
             if self.header.find('#$#') != -1 or \
                 self.header.find('#$#') != -1 or \
                 self.header.find('#%#') != -1:
@@ -1622,7 +1622,7 @@ class Parser:
                 getattr(self, '_do%sHeader'%(self.markup))()
 
     def _doPageFooter(self):
-        if self.footer != None:
+        if self.footer is not None:
             if self.footer.find('#$#') != -1 or \
                 self.footer.find('#@#') != -1 or \
                 self.footer.find('#%#') != -1:
@@ -1859,7 +1859,7 @@ content="text/html;charset=iso-8859-1">\n')
             if seperate_sides==0 and border:
                     style.append('border: %s %s;'%(border,size))
             else:
-                if border == None:
+                if border is None:
                    border = 'solid'
                 if 'v' in tags:# bottom border
                     style.append('border-bottom:%s %s;'%(border,size))

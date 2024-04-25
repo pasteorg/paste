@@ -54,7 +54,7 @@ def _split_auth_string(auth_string):
                 prev = "%s,%s" % (prev, item)
                 continue
         except AttributeError:
-            if prev == None:
+            if prev is None:
                 prev = item
                 continue
             else:

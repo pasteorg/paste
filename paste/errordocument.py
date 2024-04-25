@@ -182,7 +182,7 @@ class StatusBasedForward:
                 self.global_conf,
                 **self.params
             )
-            if not (new_url == None or isinstance(new_url, str)):
+            if not (new_url is None or isinstance(new_url, str)):
                 raise TypeError(
                     'Expected the url to internally '
                     'redirect to in the StatusBasedForward mapper'
@@ -311,7 +311,7 @@ class _StatusBasedRedirect:
                     self.global_conf,
                     self.kw
                 )
-                if not (new_url == None or isinstance(new_url, str)):
+                if not (new_url is None or isinstance(new_url, str)):
                     raise TypeError(
                         'Expected the url to internally '
                         'redirect to in the _StatusBasedRedirect error_mapper'
