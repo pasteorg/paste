@@ -167,7 +167,7 @@ class DecoratedProfile:
             start_time = time.time()
             try:
                 result = prof.runcall(func, *args, **kw)
-            except:
+            except Exception:
                 exc_info = sys.exc_info()
             end_time = time.time()
         finally:

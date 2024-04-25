@@ -313,7 +313,7 @@ class WSGIHandlerMixin:
         except socket.error as exce:
             self.wsgi_connection_drop(exce, environ)
             return
-        except:
+        except Exception:
             if not self.wsgi_headers_sent:
                 error_msg = "Internal Server Error\n"
                 self.wsgi_curr_headers = (
@@ -800,7 +800,7 @@ class ThreadPool:
                 try:
                     import pprint
                     info_desc = pprint.pformat(info)
-                except:
+                except Exception:
                     out = io.StringIO()
                     traceback.print_exc(file=out)
                     info_desc = 'Error:\n%s' % out.getvalue()
@@ -899,7 +899,7 @@ class ThreadPool:
                 try:
                     try:
                         runnable()
-                    except:
+                    except Exception:
                         # We are later going to call sys.exc_clear(),
                         # removing all remnants of any exception, so
                         # we should log it now.  But ideally no
@@ -1018,7 +1018,7 @@ class ThreadPool:
             ]
         try:
             system = ' '.join(os.uname())
-        except:
+        except Exception:
             system = '(unknown)'
         body = (
             "An error has occurred in the paste.httpserver.ThreadPool\n"

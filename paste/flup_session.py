@@ -86,7 +86,7 @@ class SessionMiddleware:
             e.headers = dict(headers)
             service.close()
             raise
-        except:
+        except Exception:
             service.close()
             raise
 

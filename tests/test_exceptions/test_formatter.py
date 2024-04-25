@@ -63,14 +63,14 @@ def test_excersize():
     for f in formats:
         try:
             raise_error()
-        except:
+        except Exception:
             format(f)
 
 def test_content():
     for f in formats:
         try:
             raise_error()
-        except:
+        except Exception:
             result = format(f)
             print(result)
             assert 'test_object' in result
@@ -88,7 +88,7 @@ def test_trim():
     for f in formats:
         try:
             raise_error()
-        except:
+        except Exception:
             result = format(f, trim_source_paths=[(current, '.')])
             assert current not in result
             assert ('%stest_formatter.py' % os.sep) in result, ValueError(repr(result))
@@ -99,7 +99,7 @@ def test_hide():
     for f in formats:
         try:
             hide(True, raise_error)
-        except:
+        except Exception:
             result = format(f)
             print(result)
             assert 'in hide_inner' not in result
@@ -128,7 +128,7 @@ def test_hide_supppressed():
                     pass_through,
                     'b',
                     raise_error)
-            except:
+            except Exception:
                 results.append(format(f))
             else:
                 assert 0
@@ -149,7 +149,7 @@ def test_hide_after():
 
                 hide, 'reset',
                 raise_error)
-        except:
+        except Exception:
             result = format(f)
             assert 'AABB' in result
             assert 'CCDD' not in result
@@ -164,7 +164,7 @@ def test_hide_before():
                 'AABB',
                 hide, 'before',
                 raise_error)
-        except:
+        except Exception:
             result = format(f)
             print(result)
             assert 'AABB' not in result

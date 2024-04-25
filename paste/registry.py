@@ -394,7 +394,7 @@ class RegistryManager:
                     restorer.save_registry_state(environ)
             reg.cleanup()
             raise
-        except:
+        except Exception:
             # Save state for EvalException if it's present
             if environ.get('paste.evalexception'):
                 restorer.save_registry_state(environ)
@@ -425,7 +425,7 @@ class RegistryManager:
                     restorer.save_registry_state(environ)
             reg.cleanup()
             raise
-        except:
+        except Exception:
             # Save state for EvalException if it's present
             if environ.get('paste.evalexception'):
                 restorer.save_registry_state(environ)

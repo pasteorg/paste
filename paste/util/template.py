@@ -210,7 +210,7 @@ class Template:
         try:
             value = eval(code, ns)
             return value
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             e = exc_info[1]
             if getattr(e, 'args'):
@@ -224,7 +224,7 @@ class Template:
         __traceback_hide__ = True
         try:
             exec(code, ns)
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             e = exc_info[1]
             e.args = (self._add_line_info(e.args[0], pos),)
@@ -236,7 +236,7 @@ class Template:
             if value is None:
                 return ''
             value = str(value)
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             e = exc_info[1]
             e.args = (self._add_line_info(e.args[0], pos),)

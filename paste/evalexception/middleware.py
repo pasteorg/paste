@@ -84,7 +84,7 @@ def simplecatcher(application):
     def simplecatcher_app(environ, start_response):
         try:
             return application(environ, start_response)
-        except:
+        except Exception:
             out = StringIO()
             traceback.print_exc(file=out)
             start_response('500 Server Error',
@@ -301,7 +301,7 @@ class EvalException:
         def detect_start_response(status, headers, exc_info=None):
             try:
                 return start_response(status, headers, exc_info)
-            except:
+            except Exception:
                 raise
             else:
                 started.append(True)
@@ -314,7 +314,7 @@ class EvalException:
             finally:
                 if hasattr(app_iter, 'close'):
                     app_iter.close()
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             for expected in environ.get('paste.expected_exceptions', []):
                 if isinstance(exc_info[1], expected):

@@ -24,7 +24,7 @@ def test_logger():
         show_hidden_frames=False)
     try:
         int('a')
-    except:
+    except Exception:
         exc_data = collector.collect_exception(*sys.exc_info())
     else:
         assert 0
@@ -38,7 +38,7 @@ def test_logger():
 
     try:
         1 / 0
-    except:
+    except Exception:
         exc_data = collector.collect_exception(*sys.exc_info())
     else:
         assert 0

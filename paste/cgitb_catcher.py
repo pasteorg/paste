@@ -62,7 +62,7 @@ class CgitbMiddleware:
             if not error_on_close and hasattr(app_iter, 'close'):
                 try:
                     app_iter.close()
-                except:
+                except Exception:
                     close_response = self.exception_handler(
                         sys.exc_info(), environ)
                     response += (

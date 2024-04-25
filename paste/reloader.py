@@ -92,7 +92,7 @@ class Monitor:
         for file_callback in self.file_callbacks:
             try:
                 filenames.extend(file_callback())
-            except:
+            except Exception:
                 print("Error calling paste.reloader callback %r:" % file_callback,
                       file=sys.stderr)
                 traceback.print_exc()

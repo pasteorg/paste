@@ -235,7 +235,7 @@ class ExceptionCollector:
         if revision is not None:
             try:
                 revision = str(revision).strip()
-            except:
+            except Exception:
                 revision = '???'
         return revision
 
@@ -299,7 +299,7 @@ class ExceptionCollector:
                 if data['supplement'].extra:
                     for key, value in data['supplement'].extra.items():
                         extra_data.setdefault(key, []).append(value)
-            except:
+            except Exception:
                 if DEBUG_EXCEPTION_FORMATTER:
                     out = StringIO()
                     traceback.print_exc(file=out)
@@ -311,7 +311,7 @@ class ExceptionCollector:
             tbi = locals.get('__traceback_info__', None)
             if tbi is not None:
                 data['traceback_info'] = str(tbi)
-        except:
+        except Exception:
             pass
 
         marker = []
@@ -321,7 +321,7 @@ class ExceptionCollector:
                 tbh = locals.get(name, globals.get(name, marker))
                 if tbh is not marker:
                     data[name[2:-2]] = tbh
-            except:
+            except Exception:
                 pass
 
         return data
@@ -373,7 +373,7 @@ class ExceptionCollector:
                 new_result = decorator(result)
                 if new_result is not None:
                     result = new_result
-            except:
+            except Exception:
                 pass
         return result
 
@@ -517,7 +517,7 @@ def collect_exception(t, v, tb, limit=None):
 
       try:
           blah blah
-      except:
+      except Exception:
           exc_data = collect_exception(*sys.exc_info())
     """
     return col.collectException(t, v, tb, limit=limit)

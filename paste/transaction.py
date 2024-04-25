@@ -96,7 +96,7 @@ def BasicTransactionHandler(application, factory):
             else:
                 try:
                     conn.rollback()
-                except:
+                except Exception:
                     # TODO: check if rollback has already happened
                     return
             conn.close()

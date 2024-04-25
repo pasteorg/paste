@@ -134,7 +134,7 @@ class chained_app_iters:
             try:
                 if hasattr(app_iter, 'close'):
                     app_iter.close()
-            except:
+            except Exception:
                 got_exc = sys.exc_info()
         if got_exc:
             raise got_exc
@@ -182,7 +182,7 @@ def catch_errors(application, environ, start_response, error_callback,
     """
     try:
         app_iter = application(environ, start_response)
-    except:
+    except Exception:
         error_callback(sys.exc_info())
         raise
     if type(app_iter) in (list, tuple):
@@ -213,7 +213,7 @@ class _wrap_app_iter:
             if self.ok_callback:
                 self.ok_callback()
             raise
-        except:
+        except Exception:
             self.error_callback(sys.exc_info())
             raise
     __next__ = next
@@ -269,7 +269,7 @@ class _wrap_app_iter_app:
             if hasattr(self.app_iterable, 'close'):
                 try:
                     self.app_iterable.close()
-                except:
+                except Exception:
                     # @@: Print to wsgi.errors?
                     pass
             new_app_iterable = self.error_callback_app(
@@ -586,7 +586,7 @@ def _warn_deprecated(new_func):
         return new_func(*args, **kw)
     try:
         replacement.func_name = new_func.func_name
-    except:
+    except Exception:
         pass
     return replacement
 

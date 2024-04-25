@@ -322,15 +322,15 @@ class _StatusBasedRedirect:
                 code_message.append([code, message])
                 return start_response(status, headers, exc_info)
             app_iter = self.application(environ, change_response)
-        except:
+        except Exception:
             try:
                 import sys
                 error = str(sys.exc_info()[1])
-            except:
+            except Exception:
                 error = ''
             try:
                 code, message = code_message[0]
-            except:
+            except Exception:
                 code, message = ['', '']
             environ['wsgi.errors'].write(
                 'Error occurred in _StatusBasedRedirect '

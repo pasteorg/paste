@@ -156,7 +156,7 @@ class AuthDigestAuthenticator:
             if qop:
                 assert 'auth' == qop
                 assert nonce and nc
-        except:
+        except Exception:
             return self.build_authentication()
         ha1 = self.authfunc(environ, realm, username)
         return self.compute(ha1, username, response, method, authpath,

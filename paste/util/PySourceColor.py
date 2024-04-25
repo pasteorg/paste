@@ -732,7 +732,7 @@ def cli():
         if o in ["-c", "--color"]:
             try:
                 colorscheme = globals().get(a.lower())
-            except:
+            except Exception:
                 traceback.print_exc()
                 Usage()
     if test:
@@ -765,7 +765,7 @@ def cli():
                         str2file(sys.stdin.read(), outfile=output, show=show,
                                 markup=markup, header=header, footer=footer,
                                 linenumbers=linenumbers, form=form)
-            except:
+            except Exception:
                 traceback.print_exc()
                 Usage()
     else:
@@ -1119,7 +1119,7 @@ def pageconvert(path, out=None, colors=lite, markup='xhtml', linenumbers=0,
         if not os.path.exists(newpath):
             try:
                 os.makedirs(os.path.dirname(newpath))
-            except:
+            except Exception:
                 pass#traceback.print_exc()
                 #Usage()
         y = open(newpath, 'w')
@@ -1134,7 +1134,7 @@ def pageconvert(path, out=None, colors=lite, markup='xhtml', linenumbers=0,
         if show:
             try:
                 os.startfile(newpath)
-            except:
+            except Exception:
                 traceback.print_exc()
         return newpath
     else:
@@ -1166,7 +1166,7 @@ def showpage(path):
     try:
         import webbrowser
         webbrowser.open_new(os.path.abspath(path))
-    except:
+    except Exception:
         traceback.print_exc()
 
 def _printinfo(message, quiet):
@@ -1602,7 +1602,7 @@ class Parser:
             _file = open(filepath,'r')
             content = _file.read()
             _file.close()
-        except:
+        except Exception:
             traceback.print_exc()
             content = ''
         return content

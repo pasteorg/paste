@@ -272,7 +272,7 @@ class FileSession:
                     last_cleanup = now
                     t = threading.Thread(target=self._clean_up)
                     t.start()
-                except:
+                except Exception:
                     # Normally _clean_up should set cleaning_up
                     # to false, but if something goes wrong starting
                     # it...
