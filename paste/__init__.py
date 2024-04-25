@@ -1,8 +1,13 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+
+import warnings
+
 try:
-    import pkg_resources
-    pkg_resources.declare_namespace(__name__)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=DeprecationWarning)
+        import pkg_resources
+        pkg_resources.declare_namespace(__name__)
 except (AttributeError, ImportError):
     # don't prevent use of paste if pkg_resources isn't installed
     from pkgutil import extend_path
