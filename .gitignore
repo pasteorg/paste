@@ -1,5 +1,15 @@
+*.log
 *.pyc
-.tox
+
 .coverage
+.idea
+.pytest_cache
+.tox
+.venv
+.vscode
+
 *.egg-info
+
+build
+dist
 docs/_build/

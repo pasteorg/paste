@@ -1,6 +1,7 @@
-from .test_errordocument import simple_app
+import pytest
 from paste.fixture import TestApp
 from paste.recursive import RecursiveMiddleware, ForwardRequestException
+from .test_errordocument import simple_app
 
 def error_docs_app(environ, start_response):
     if environ['PATH_INFO'] == '/not_found':
@@ -102,4 +103,6 @@ def test_ForwardRequestException():
             if environ['PATH_INFO'] != '/not_found':
                 return self.app(environ, start_response)
             raise ForwardRequestException(path_info=self.url)
-    forward(TestForwardRequestExceptionMiddleware(error_docs_app))
+
+    with pytest.warns(DeprecationWarning):
+        forward(TestForwardRequestExceptionMiddleware(error_docs_app))
