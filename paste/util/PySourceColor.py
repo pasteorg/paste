@@ -1143,23 +1143,11 @@ def pageconvert(path, out=None, colors=lite, markup='xhtml', linenumbers=0,
 ##################################################################### helpers
 
 def walkdir(dir):
-    """Return a list of .py and .pyw files from a given directory.
-
-       This function can be written as a generator Python 2.3, or a genexp
-       in Python 2.4. But 2.2 and 2.1 would be left out....
-    """
+    """Return a list of .py and .pyw files from a given directory."""
     # Get a list of files that match *.py*
-    GLOB_PATTERN = os.path.join(dir, "*.[p][y]*")
-    pathlist = glob.glob(GLOB_PATTERN)
+    pathlist = glob.glob(os.path.join(dir, "*.[p][y]*"))
     # Now filter out all but py and pyw
-    filterlist = [x for x in pathlist
-                        if x.endswith('.py')
-                        or x.endswith('.pyw')]
-    if filterlist != []:
-        # if we have a list send it
-        return filterlist
-    else:
-        return None
+    return [x for x in pathlist if x.endswith(('.py', '.pyw'))] or None
 
 def showpage(path):
     """Helper function to open webpages"""
