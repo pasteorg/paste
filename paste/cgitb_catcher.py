@@ -4,21 +4,21 @@
 """
 WSGI middleware
 
-Captures any exceptions and prints a pretty report.  See the `cgitb
-documentation <http://python.org/doc/current/lib/module-cgitb.html>`_
-for more.
+Captures any exceptions and prints a pretty report.
 """
 
-import cgitb
 from io import StringIO
 import sys
 
 from paste.util import converters
+from paste.util.cgitb_hook import Hook
 
-class NoDefault(object):
-    pass
 
-class CgitbMiddleware(object):
+class NoDefault:
+    ...
+
+
+class CgitbMiddleware:
 
     def __init__(self, app,
                  global_conf=None,
@@ -42,7 +42,7 @@ class CgitbMiddleware(object):
         try:
             app_iter = self.app(environ, start_response)
             return self.catching_iter(app_iter, environ)
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             start_response('500 Internal Server Error',
                            [('content-type', 'text/html')],
@@ -61,7 +61,7 @@ class CgitbMiddleware(object):
             if hasattr(app_iter, 'close'):
                 error_on_close = True
                 app_iter.close()
-        except:
+        except Exception:
             response = self.exception_handler(sys.exc_info(), environ)
             if not error_on_close and hasattr(app_iter, 'close'):
                 try:
@@ -77,13 +77,15 @@ class CgitbMiddleware(object):
 
     def exception_handler(self, exc_info, environ):
         dummy_file = StringIO()
-        hook = cgitb.Hook(file=dummy_file,
-                          display=self.display,
-                          logdir=self.logdir,
-                          context=self.context,
-                          format=self.format)
+        hook = Hook(
+            file=dummy_file,
+            display=self.display,
+            logdir=self.logdir,
+            context=self.context,
+            format=self.format)
         hook(*exc_info)
         return dummy_file.getvalue()
+
 
 def make_cgitb_middleware(app, global_conf,
                           display=NoDefault,
@@ -91,8 +93,8 @@ def make_cgitb_middleware(app, global_conf,
                           context=5,
                           format='html'):
     """
-    Wraps the application in the ``cgitb`` (standard library)
-    error catcher.
+    Wraps the application in an error catcher based on the
+    former ``cgitb`` module in the standard library.
 
       display:
         If true (or debug is set in the global configuration)
