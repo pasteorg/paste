@@ -17,12 +17,12 @@ environment to solve common requirements.
    * resolve_relative_url(url, environ)
 
 """
-import cgi
 from collections.abc import MutableMapping as DictMixin
 from urllib import parse as urlparse
 from urllib.parse import quote, parse_qsl
 from http.cookies import SimpleCookie, CookieError
 
+from paste.util.field_storage import FieldStorage
 from paste.util.multidict import MultiDict
 
 __all__ = ['get_cookies', 'get_cookie_dict', 'parse_querystring',
@@ -151,16 +151,16 @@ def parse_formvars(environ, include_get_vars=True, encoding=None, errors=None):
     # fake_out_cgi requests
     formvars = MultiDict()
     ct = environ.get('CONTENT_TYPE', '').partition(';')[0].lower()
-    use_cgi = ct in ('', 'application/x-www-form-urlencoded',
-                                'multipart/form-data')
-    # FieldStorage assumes a default CONTENT_LENGTH of -1, but a
-    # default of 0 is better:
+    use_cgi = ct in (
+        '', 'application/x-www-form-urlencoded', 'multipart/form-data')
+    # FieldStorage assumes a default CONTENT_LENGTH of -1,
+    # but a default of 0 is better:
     if not environ.get('CONTENT_LENGTH'):
         environ['CONTENT_LENGTH'] = '0'
     if use_cgi:
-        # Prevent FieldStorage from parsing QUERY_STRING during GET/HEAD
-        # requests
-        old_query_string = environ.get('QUERY_STRING','')
+        # Prevent FieldStorage from parsing QUERY_STRING
+        # during GET/HEAD # requests
+        old_query_string = environ.get('QUERY_STRING', '')
         environ['QUERY_STRING'] = ''
         inp = environ['wsgi.input']
         kwparms = {}
@@ -168,10 +168,9 @@ def parse_formvars(environ, include_get_vars=True, encoding=None, errors=None):
             kwparms['encoding'] = encoding
         if errors:
             kwparms['errors'] = errors
-        fs = cgi.FieldStorage(fp=inp,
-                              environ=environ,
-                              keep_blank_values=True,
-                              **kwparms)
+        fs = FieldStorage(
+            fp=inp, environ=environ, keep_blank_values=True,
+            **kwparms)
         environ['QUERY_STRING'] = old_query_string
         if isinstance(fs.value, list):
             for name in fs.keys():
@@ -384,20 +383,6 @@ class EnvironHeaders(DictMixin):
     def __contains__(self, item):
         return self._trans_name(item) in self.environ
 
-def _cgi_FieldStorage__repr__patch(self):
-    """ monkey patch for FieldStorage.__repr__
-
-    Unbelievely, the default __repr__ on FieldStorage reads
-    the entire file content instead of being sane about it.
-    This is a simple replacement that doesn't do that
-    """
-    if self.file:
-        return "FieldStorage(%r, %r)" % (
-                self.name, self.filename)
-    return "FieldStorage(%r, %r, %r)" % (
-             self.name, self.filename, self.value)
-
-cgi.FieldStorage.__repr__ = _cgi_FieldStorage__repr__patch
 
 if __name__ == '__main__':
     import doctest

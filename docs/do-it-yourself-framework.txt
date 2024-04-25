@@ -128,8 +128,7 @@ fields::
                     'name="name"><input type="submit"></form>']
 
 The ``parse_formvars`` function just takes the WSGI environment and
-calls the `cgi <http://python.org/doc/current/lib/module-cgi.html>`_
-module (the ``FieldStorage`` class) and turns that into a MultiDict.
+turns that into a MultiDict which may contain ``FieldStorage`` instances.
 
 Now For a Framework
 ===================

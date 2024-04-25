@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # (c) 2007 Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
-import cgi
 import io
 from paste.fixture import TestApp
 from paste.wsgiwrappers import WSGIRequest, WSGIResponse
+from paste.util.field_storage import FieldStorage
 
 class AssertApp(object):
     def __init__(self, assertfunc):
@@ -76,7 +76,7 @@ def test_wsgirequest_charset_fileupload():
         assert len(request.POST) == 1
         assert isinstance(request.POST.keys()[0], str)
         fs = request.POST['thefile']
-        assert isinstance(fs, cgi.FieldStorage)
+        assert isinstance(fs, FieldStorage)
         assert isinstance(fs.filename, str)
         assert fs.filename == '寿司.txt'
         assert fs.value == b'Sushi'
@@ -85,7 +85,7 @@ def test_wsgirequest_charset_fileupload():
         assert len(request.POST) == 1
         assert isinstance(request.POST.keys()[0], str)
         fs = request.POST['thefile']
-        assert isinstance(fs, cgi.FieldStorage)
+        assert isinstance(fs, FieldStorage)
         assert isinstance(fs.filename, str)
         assert fs.filename == u'寿司.txt'
         assert fs.value == b'Sushi'
