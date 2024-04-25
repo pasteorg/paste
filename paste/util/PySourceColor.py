@@ -614,7 +614,7 @@ def Usage():
              saves it as pystyle.css in the same directory.
              html markup will silently ignore this flag.
      -H, --header
-         Opional-> add a page header to the top of the output
+         Optional-> add a page header to the top of the output
          -H
              Builtin header (name,date,hrule)
          --header
@@ -623,7 +623,7 @@ def Usage():
              and must handle its own font colors.
              ex. --header c:/tmp/header.txt
      -F, --footer
-         Opional-> add a page footer to the bottom of the output
+         Optional-> add a page footer to the bottom of the output
          -F
              Builtin footer (hrule,name,date)
          --footer
@@ -666,7 +666,7 @@ def Usage():
       python PySourceColor.py -i- -o c:/pydoc.py.html -s < c:/Python22/my.py
  _____________________________________________________________________________
  """
-    print(doc % (__version__))
+    print(doc % (__version__,))
     sys.exit(1)
 
 ###################################################### Command line interface
@@ -783,7 +783,6 @@ def cli():
                         footer=footer, linenumbers=linenumbers, form=form)
         else:
             raise PathError('File does not exists!')
-            Usage()
 
 ######################################################### Simple markup tests
 
@@ -893,7 +892,7 @@ def str2stdout(sourcestring, colors=None, title='', markup='html',
            header=header, footer=footer,
            linenumbers=linenumbers).format(form)
 
-def path2stdout(sourcepath, title='', colors=None, markup='html',
+def path2stdout(sourcepath, colors=None, markup='html',
                    header=None, footer=None,
                    linenumbers=0, form=None):
     """Converts code(file) to colorized HTML. Writes to stdout.
@@ -963,7 +962,7 @@ def str2file(sourcestring, outfile, colors=None, title='',
 
        makes no attempt at correcting bad pathnames
     """
-    css , html = str2markup(sourcestring, colors=colors, title='',
+    css , html = str2markup(sourcestring, colors=colors, title=title,
                     markup=markup, header=header, footer=footer,
                     linenumbers=linenumbers, form=form)
     # write html
@@ -1097,7 +1096,8 @@ def tagreplace(sourcestr, colors=lite, markup='xhtml',
                end = sourcestr[dataend+len(tagend):]
                sourcestr =  ''.join([start,data,end])
         else:
-            raise InputError('Tag mismatch!\nCheck %s,%s tags'%tagstart,tagend)
+            raise InputError(
+                'Tag mismatch!\nCheck %s,%s tags'%(tagstart,tagend))
     if not dosheet:
         css = None
     return css, sourcestr
@@ -1267,9 +1267,7 @@ class Parser:
         lines = self.raw.splitlines(0)
         for l in lines:
              # span and div escape for customizing and embedding raw text
-             if (l.startswith('#$#')
-                  or l.startswith('#%#')
-                  or l.startswith('#@#')):
+             if l.startswith(('#$#', '#%#', '#@#')):
                 newlines.append(l)
              else:
                 # kludge for line spans in css,xhtml
@@ -1282,7 +1280,8 @@ class Parser:
         # Gather lines
         while 1:
             pos = self.raw.find('\n', pos) + 1
-            if not pos: break
+            if not pos:
+                break
             self.lines.append(pos)
         self.lines.append(len(self.raw))
 
@@ -1341,7 +1340,7 @@ class Parser:
         if newpos > oldpos:
             if self.raw[oldpos:newpos].isspace():
                 # consume a single space after linestarts and linenumbers
-                # had to have them so tokenizer could seperate them.
+                # had to have them so tokenizer could separate them.
                 # multiline strings are handled by do_Text functions
                 if self.lasttext != self.LINESTART \
                         and self.lasttext != self.LINENUMHOLDER:
@@ -1351,7 +1350,7 @@ class Parser:
             else:
                 slash = self.raw[oldpos:newpos].find('\\')+oldpos
                 self.out.write(self.raw[oldpos:slash])
-                getattr(self, '_send%sText'%(self.markup))(OPERATOR, '\\')
+                getattr(self, '_send%sText'%(self.markup,))(OPERATOR, '\\')
                 self.linenum+=1
                 # kludge for line spans in css,xhtml
                 if self.markup in ['XHTML','CSS']:
@@ -1364,7 +1363,7 @@ class Parser:
             return
 
         # Look for operators
-        if token.LPAR <= toktype and toktype <= token.OP:
+        if token.LPAR <= toktype <= token.OP:
             # Trap decorators py2.4 >
             if toktext == '@':
                 toktype = DECORATOR
@@ -1379,7 +1378,7 @@ class Parser:
                     # Find the end for arguments
                     elif toktext == ':':
                         self.argFlag = 0
-                ## Seperate the diffrent operator types
+                ## Separate the different operator types
                 # Brackets
                 if self.doBrackets and toktext in ['[',']','(',')','{','}']:
                     toktype = BRACKETS
@@ -1432,33 +1431,33 @@ class Parser:
         elif toktype == token.STRING:
             text = toktext.lower()
             # TRIPLE DOUBLE QUOTE's
-            if (text[:3] == '"""'):
+            if text[:3] == '"""':
                 toktype = TRIPLEDOUBLEQUOTE
-            elif (text[:4] == 'r"""'):
+            elif text[:4] == 'r"""':
                 toktype = TRIPLEDOUBLEQUOTE_R
-            elif (text[:4] == 'u"""' or
-                   text[:5] == 'ur"""'):
+            elif ('u"""' == text[:4] or
+                  text[:5] == 'ur"""'):
                 toktype = TRIPLEDOUBLEQUOTE_U
             # DOUBLE QUOTE's
-            elif (text[:1] == '"'):
+            elif text[:1] == '"':
                 toktype = DOUBLEQUOTE
-            elif (text[:2] == 'r"'):
+            elif text[:2] == 'r"':
                 toktype = DOUBLEQUOTE_R
             elif (text[:2] == 'u"' or
-                   text[:3] == 'ur"'):
+                  text[:3] == 'ur"'):
                 toktype = DOUBLEQUOTE_U
             # TRIPLE SINGLE QUOTE's
-            elif (text[:3] == "'''"):
+            elif text[:3] == "'''":
                  toktype = TRIPLESINGLEQUOTE
-            elif (text[:4] == "r'''"):
+            elif text[:4] == "r'''":
                 toktype = TRIPLESINGLEQUOTE_R
             elif (text[:4] == "u'''" or
-                   text[:5] == "ur'''"):
+                  text[:5] == "ur'''"):
                 toktype = TRIPLESINGLEQUOTE_U
             # SINGLE QUOTE's
-            elif (text[:1] == "'"):
+            elif text[:1] == "'":
                 toktype = SINGLEQUOTE
-            elif (text[:2] == "r'"):
+            elif text[:2] == "r'":
                 toktype = SINGLEQUOTE_R
             elif (text[:2] == "u'" or
                    text[:3] == "ur'"):
@@ -1568,7 +1567,7 @@ class Parser:
             toktext = escape(toktext)
 
         # Send text for any markup
-        getattr(self, '_send%sText'%(self.markup))(toktype, toktext)
+        getattr(self, '_send%sText'%(self.markup,))(toktype, toktext)
         return
 
     ################################################################# Helpers
@@ -1602,14 +1601,13 @@ class Parser:
 
     def _doPageHeader(self):
         if self.header is not None:
-            if self.header.find('#$#') != -1 or \
-                self.header.find('#$#') != -1 or \
-                self.header.find('#%#') != -1:
+            if ('#$#' in self.header or '#@#' in self.header
+                    or '#%' in self.header):
                 self.out.write(self.header[3:])
             else:
                 if self.header != '':
                     self.header = self._getFile(self.header)
-                getattr(self, '_do%sHeader'%(self.markup))()
+                getattr(self, '_do%sHeader'%(self.markup,))()
 
     def _doPageFooter(self):
         if self.footer is not None:
@@ -1620,7 +1618,7 @@ class Parser:
             else:
                 if self.footer != '':
                     self.footer = self._getFile(self.footer)
-                getattr(self, '_do%sFooter'%(self.markup))()
+                getattr(self, '_do%sFooter'%(self.markup,))()
 
     def _doPageEnd(self):
         getattr(self, '_do%sEnd'%(self.markup))()
@@ -1670,7 +1668,7 @@ class Parser:
         # Start of html page
         self.out.write('<!DOCTYPE html PUBLIC \
 "-//W3C//DTD HTML 4.01//EN">\n')
-        self.out.write('<html><head><title>%s</title>\n'%(self.title))
+        self.out.write('<html><head><title>%s</title>\n'%(self.title,))
         self.out.write(self._getDocumentCreatedBy())
         self.out.write('<meta http-equiv="Content-Type" \
 content="text/html;charset=iso-8859-1">\n')
@@ -1727,8 +1725,7 @@ content="text/html;charset=iso-8859-1">\n')
                 splittext = toktext.split(self.LINENUMHOLDER)
             else:
                 splittext = toktext.split(self.LINENUMHOLDER+' ')
-            store = []
-            store.append(splittext.pop(0))
+            store = [splittext.pop(0)]
             lstarttag, lendtag, lcolor = self._getHTMLStyles(LINENUMBER, toktext)
             count = len(splittext)
             for item in splittext:
@@ -1869,7 +1866,7 @@ content="text/html;charset=iso-8859-1">\n')
         # text backcolor
         if backcolor:
             style.append('background-color:%s;'%backcolor)
-        return (self._getMarkupClass(key),' '.join(style))
+        return self._getMarkupClass(key), ' '.join(style)
 
     def _sendCSSStyle(self, external=0):
         """ create external and internal style sheets"""
@@ -1899,7 +1896,7 @@ content="text/html;charset=iso-8859-1">\n')
     def _doCSSStart(self):
         # Start of css/html 4.01 page
         self.out.write('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">\n')
-        self.out.write('<html><head><title>%s</title>\n'%(self.title))
+        self.out.write('<html><head><title>%s</title>\n'%(self.title,))
         self.out.write(self._getDocumentCreatedBy())
         self.out.write('<meta http-equiv="Content-Type" \
 content="text/html;charset=iso-8859-1">\n')
@@ -1938,7 +1935,7 @@ href="pystyle.css" type="text/css">')
             # <linestart> <lnumstart> lnum <lnumend> text <lineend>
             #################################################
             newmarkup = MARKUPDICT.get(LINENUMBER, MARKUPDICT[NAME])
-            lstartspan = '<span class="%s">'%(newmarkup)
+            lstartspan = '<span class="%s">'%(newmarkup,)
             if toktype == LINENUMBER:
                 splittext = toktext.split(self.LINENUMHOLDER)
             else:
@@ -1976,7 +1973,7 @@ href="pystyle.css" type="text/css">')
                 #handle line numbers if present
                 if self.dolinenums:
                     item = item.replace('</span>',
-                           '</span><span class="%s">'%(markupclass))
+                           '</span><span class="%s">'%(markupclass,))
                 else:
                     item = '<span class="%s">%s'%(markupclass,item)
                 # add endings for line and string tokens
@@ -1989,12 +1986,12 @@ href="pystyle.css" type="text/css">')
         # Send text
         if toktype != LINENUMBER:
             if toktype == TEXT and self.textFlag == 'DIV':
-                startspan = '<div class="%s">'%(markupclass)
+                startspan = '<div class="%s">'%(markupclass,)
                 endspan = '</div>'
             elif toktype == TEXT and self.textFlag == 'RAW':
                 startspan,endspan = ('','')
             else:
-                startspan = '<span class="%s">'%(markupclass)
+                startspan = '<span class="%s">'%(markupclass,)
                 endspan = '</span>'
             self.out.write(''.join([startspan, toktext, endspan]))
         else:
@@ -2036,7 +2033,7 @@ href="pystyle.css" type="text/css">')
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"\n \
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n \
 <html xmlns="http://www.w3.org/1999/xhtml">\n')
-        self.out.write('<head><title>%s</title>\n'%(self.title))
+        self.out.write('<head><title>%s</title>\n'%(self.title,))
         self.out.write(self._getDocumentCreatedBy())
         self.out.write('<meta http-equiv="Content-Type" \
 content="text/html;charset=iso-8859-1"/>\n')
