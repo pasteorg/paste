@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-15 -*-
 """IP4 address range set implementation.
 
 Implements an IPv4-range type.

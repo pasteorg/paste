@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-15 -*-
 """Immutable integer set type.
 
 Integer set class.
