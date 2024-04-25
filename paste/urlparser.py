@@ -19,14 +19,10 @@ from paste import request
 from paste import fileapp
 from paste.util import import_string
 from paste import httpexceptions
-from paste.util import converters
+from paste.util import converters, NO_DEFAULT
 from .httpheaders import ETAG
 
 __all__ = ['URLParser', 'StaticURLParser', 'PkgResourcesParser']
-
-
-class NoDefault:
-    pass
 
 
 class URLParser:
@@ -84,15 +80,15 @@ class URLParser:
     parsers_by_directory = {}
 
     # This is lazily initialized
-    init_module = NoDefault
+    init_module = NO_DEFAULT
 
     global_constructors = {}
 
     def __init__(self, global_conf,
                  directory, base_python_name,
-                 index_names=NoDefault,
-                 hide_extensions=NoDefault,
-                 ignore_extensions=NoDefault,
+                 index_names=NO_DEFAULT,
+                 hide_extensions=NO_DEFAULT,
+                 ignore_extensions=NO_DEFAULT,
                  constructors=None,
                  **constructor_conf):
         """
@@ -115,15 +111,15 @@ class URLParser:
         self.base_python_name = base_python_name
         # This logic here should be deprecated since it is in
         # make_url_parser
-        if index_names is NoDefault:
+        if index_names is NO_DEFAULT:
             index_names = global_conf.get(
                 'index_names', ('index', 'Index', 'main', 'Main'))
         self.index_names = converters.aslist(index_names)
-        if hide_extensions is NoDefault:
+        if hide_extensions is NO_DEFAULT:
             hide_extensions = global_conf.get(
                 'hide_extensions', ('.pyc', '.bak', '.py~', '.pyo'))
         self.hide_extensions = converters.aslist(hide_extensions)
-        if ignore_extensions is NoDefault:
+        if ignore_extensions is NO_DEFAULT:
             ignore_extensions = global_conf.get(
                 'ignore_extensions', ())
         self.ignore_extensions = converters.aslist(ignore_extensions)
@@ -144,7 +140,7 @@ class URLParser:
 
     def __call__(self, environ, start_response):
         environ['paste.urlparser.base_python_name'] = self.base_python_name
-        if self.init_module is NoDefault:
+        if self.init_module is NO_DEFAULT:
             self.init_module = self.find_init_module(environ)
         path_info = environ.get('PATH_INFO', '')
         if not path_info:

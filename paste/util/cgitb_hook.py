@@ -29,7 +29,7 @@ Content-Type: text/html
 </table> </table> </table> </table> </table> </font> </font> </font>'''
 
 
-__UNDEF__ = []  # a special sentinel object
+__UNDEF__ = object()  # a special sentinel object
 
 
 def small(text):

@@ -20,13 +20,13 @@ import smtplib
 import shlex
 import re
 import subprocess
-from urllib.parse import urlencode
 from urllib import parse as urlparse
+from urllib.parse import urlencode
 from http.cookies import BaseCookie
 
-from paste import wsgilib
-from paste import lint
+from paste import lint, wsgilib
 from paste.response import HeaderDict
+from paste.util import NO_DEFAULT
 
 def ensure_binary(s):
     if isinstance(s, bytes):
@@ -47,9 +47,6 @@ def tempnam_no_warning(*args):
     security warning.
     """
     return os.tempnam(*args)
-
-class NoDefault:
-    pass
 
 def sorted(l):
     l = list(l)
@@ -586,7 +583,7 @@ class TestResponse:
             if form.id:
                 forms[form.id] = form
 
-    def header(self, name, default=NoDefault):
+    def header(self, name, default=NO_DEFAULT):
         """
         Returns the named header; an error if there is not exactly one
         matching header (unless you give a default -- always an error
@@ -600,7 +597,7 @@ class TestResponse:
                     % (name, found, value))
                 found = value
         if found is None:
-            if default is NoDefault:
+            if default is NO_DEFAULT:
                 raise KeyError(
                     "No header found: %r (from %s)"
                     % (name, ', '.join([n for n, v in self.headers])))
@@ -1089,13 +1086,13 @@ class Form:
             field = fields[index]
             field.value = value
 
-    def get(self, name, index=None, default=NoDefault):
+    def get(self, name, index=None, default=NO_DEFAULT):
         """
         Get the named/indexed field object, or ``default`` if no field
         is found.
         """
         fields = self.fields.get(name)
-        if fields is None and default is not NoDefault:
+        if fields is None and default is not NO_DEFAULT:
             return default
         if index is None:
             return self[name]

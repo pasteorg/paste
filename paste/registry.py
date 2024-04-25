@@ -87,14 +87,13 @@ cases, and requires incredibly large amounts of proxy object access before
 one should consider the proxy object to be causing slow-downs. This section
 is provided solely in the extremely rare case that it is an issue so that a
 quick way to work around it is documented.
-
 """
+
+from paste.util import NO_DEFAULT
 import paste.util.threadinglocal as threadinglocal
 
 __all__ = ['StackedObjectProxy', 'RegistryManager', 'StackedObjectRestorer',
            'restorer']
-
-class NoDefault: pass
 
 class StackedObjectProxy:
     """Track an object instance internally using a stack
@@ -108,7 +107,7 @@ class StackedObjectProxy:
     objects can be removed with _pop_object.
 
     """
-    def __init__(self, default=NoDefault, name="Default"):
+    def __init__(self, default=NO_DEFAULT, name="Default"):
         """Create a new StackedObjectProxy
 
         If a default is given, its used in every thread if no other object
@@ -117,7 +116,7 @@ class StackedObjectProxy:
         """
         self.__dict__['____name__'] = name
         self.__dict__['____local__'] = threadinglocal.local()
-        if default is not NoDefault:
+        if default is not NO_DEFAULT:
             self.__dict__['____default_object__'] = default
 
     def __dir__(self):
@@ -190,8 +189,8 @@ class StackedObjectProxy:
         if objects:
             return objects[-1]
         else:
-            obj = self.__dict__.get('____default_object__', NoDefault)
-            if obj is not NoDefault:
+            obj = self.__dict__.get('____default_object__', NO_DEFAULT)
+            if obj is not NO_DEFAULT:
                 return obj
             else:
                 raise TypeError(

@@ -39,8 +39,8 @@ try:
     from hashlib import md5
 except ImportError:
     from md5 import md5
-from paste import wsgilib
-from paste import request
+from paste import request, wsgilib
+from paste.util import NO_DEFAULT
 
 class SessionMiddleware:
 
@@ -279,18 +279,14 @@ class FileSession:
                     cleaning_up = False
                     raise
 
-class _NoDefault:
-    def __repr__(self):
-        return '<dynamic default>'
-NoDefault = _NoDefault()
 
 def make_session_middleware(
     app, global_conf,
-    session_expiration=NoDefault,
-    expiration=NoDefault,
-    cookie_name=NoDefault,
-    session_file_path=NoDefault,
-    chmod=NoDefault):
+    session_expiration=NO_DEFAULT,
+    expiration=NO_DEFAULT,
+    cookie_name=NO_DEFAULT,
+    session_file_path=NO_DEFAULT,
+    chmod=NO_DEFAULT):
     """
     Adds a middleware that handles sessions for your applications.
     The session is a peristent dictionary.  To get this dictionary
@@ -321,17 +317,17 @@ def make_session_middleware(
     Each of these also takes from the global configuration.  cookie_name
     and chmod take from session_cookie_name and session_chmod
     """
-    if session_expiration is NoDefault:
+    if session_expiration is NO_DEFAULT:
         session_expiration = global_conf.get('session_expiration', 60*12)
     session_expiration = int(session_expiration)
-    if expiration is NoDefault:
+    if expiration is NO_DEFAULT:
         expiration = global_conf.get('expiration', 60*48)
     expiration = int(expiration)
-    if cookie_name is NoDefault:
+    if cookie_name is NO_DEFAULT:
         cookie_name = global_conf.get('session_cookie_name', '_SID_')
-    if session_file_path is NoDefault:
+    if session_file_path is NO_DEFAULT:
         session_file_path = global_conf.get('session_file_path', '/tmp')
-    if chmod is NoDefault:
+    if chmod is NO_DEFAULT:
         chmod = global_conf.get('session_chmod', None)
     return SessionMiddleware(
         app, session_expiration=session_expiration,
