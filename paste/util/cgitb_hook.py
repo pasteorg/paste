@@ -1,4 +1,4 @@
-"""Hook class from the deprecated cgitb library."""
+"""Hook class from the deprecated cgitb module of the standard library."""
 
 # Copyright © 2001-2023 Python Software Foundation; All Rights Reserved.
 
