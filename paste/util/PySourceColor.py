@@ -1298,13 +1298,13 @@ class Parser:
         ## function for each token till done.
         # Parse the source and write out the results.
         try:
-            tokenize.tokenize(text.readline, self)
-        except tokenize.TokenError as ex:
-            msg = ex[0]
-            line = ex[1][0]
+            for token in tokenize.generate_tokens(text.readline):
+                self(*token)
+        except tokenize.TokenError as error:
+            msg = error.args[0]
+            line = error.args[1][0]
             self.out.write("<h3>ERROR: %s</h3>%s\n"%
                             (msg, self.raw[self.lines[line]:]))
-            #traceback.print_exc()
 
         # Markup end
         if self.addEnds:
