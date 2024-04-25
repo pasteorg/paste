@@ -19,7 +19,7 @@ jobs:
                       env: py311
                     - python: "3.12"
                       env: py312
-                    - python: pypy-3.8
+                    - python: pypy-3.10
                       env: pypy3
         name: ${{ matrix.env }} on Python ${{ matrix.python }}
         steps:
