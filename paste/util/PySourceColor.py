@@ -186,6 +186,8 @@ submitted by Jürgen Hermann to ASPN. Now based on the voices in my head.
 M.E.Farmer 2004, 2005
 Python license
 '''
+
+import io
 import os
 import sys
 import time
@@ -195,7 +197,7 @@ import keyword
 import token
 import tokenize
 import traceback
-from io import StringIO
+
 # Do not edit
 NAME = token.NAME
 NUMBER = token.NUMBER
@@ -912,7 +914,7 @@ def str2html(sourcestring, colors=None, title='',
        form='code',or'snip' (for "<pre>yourcode</pre>" only)
        colors=null,mono,lite,dark,dark2,idle,or pythonwin
     """
-    stringIO = StringIO.StringIO()
+    stringIO = io.StringIO()
     Parser(sourcestring, colors=colors, title=title, out=stringIO,
            markup=markup, header=header, footer=footer,
            linenumbers=linenumbers).format(form)
@@ -929,7 +931,7 @@ def str2css(sourcestring, colors=None, title='',
     """
     if markup.lower() not in ['css' ,'xhtml']:
         markup = 'css'
-    stringIO = StringIO.StringIO()
+    stringIO = io.StringIO()
     parse = Parser(sourcestring, colors=colors, title=title,
                    out=stringIO, markup=markup,
                    header=header, footer=footer,
@@ -986,7 +988,7 @@ def path2html(sourcepath, colors=None, markup='html',
        form='code',or'snip' (for "<pre>yourcode</pre>" only)
        colors=null,mono,lite,dark,dark2,idle,or pythonwin
     """
-    stringIO = StringIO.StringIO()
+    stringIO = io.StringIO()
     sourcestring = open(sourcepath).read()
     Parser(sourcestring, colors, title=sourcepath, out=stringIO,
            markup=markup, header=header, footer=footer,
@@ -1286,7 +1288,7 @@ class Parser:
 
         # Wrap text in a filelike object
         self.pos = 0
-        text = StringIO.StringIO(self.raw)
+        text = io.StringIO(self.raw)
 
         # Markup start
         if self.addEnds:
