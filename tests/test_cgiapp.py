@@ -8,9 +8,10 @@ from paste.fixture import TestApp
 
 data_dir = os.path.join(os.path.dirname(__file__), 'cgiapp_data')
 
-# these CGI scripts can't work on Windows or Jython
-if sys.platform == 'win32' or sys.platform.startswith('java'):
-    sys.exit(0)
+pytestmark = pytest.mark.skipif(
+    sys.platform == 'win32' or sys.platform.startswith('java'),
+    reason="CGI scripts can't work on Windows or Jython")
+
 
 # Ensure the CGI scripts are called with the same python interpreter.
 # Put a symlink to the interpreter executable into the path...
