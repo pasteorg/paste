@@ -16,19 +16,18 @@ cookies, and there's no way to delete a session except to clear its
 data.
 """
 
-from paste import httpexceptions
-from paste import wsgilib
+from paste import httpexceptions, wsgilib
+from paste.util import NO_DEFAULT
+
 import flup.middleware.session
+
 flup_session = flup.middleware.session
 
 # This is a dictionary of existing stores, keyed by a tuple of
 # store type and parameters
 store_cache = {}
 
-class NoDefault(object):
-    pass
-
-class SessionMiddleware(object):
+class SessionMiddleware:
 
     session_classes = {
         'memory': (flup_session.MemorySessionStore,
@@ -45,12 +44,12 @@ class SessionMiddleware(object):
 
     def __init__(self, app,
                  global_conf=None,
-                 session_type=NoDefault,
-                 cookie_name=NoDefault,
+                 session_type=NO_DEFAULT,
+                 cookie_name=NO_DEFAULT,
                  **store_config
                  ):
         self.application = app
-        if session_type is NoDefault:
+        if session_type is NO_DEFAULT:
             session_type = global_conf.get('session_type', 'disk')
         self.session_type = session_type
         try:
@@ -65,7 +64,7 @@ class SessionMiddleware(object):
             value = coercer(store_config.get(config_name, default))
             kw[kw_name] = value
         self.store = self.store_class(**kw)
-        if cookie_name is NoDefault:
+        if cookie_name is NO_DEFAULT:
             cookie_name = global_conf.get('session_cookie', '_SID_')
         self.cookie_name = cookie_name
 
@@ -87,15 +86,15 @@ class SessionMiddleware(object):
             e.headers = dict(headers)
             service.close()
             raise
-        except:
+        except Exception:
             service.close()
             raise
 
         return wsgilib.add_close(app_iter, service.close)
 
 def make_session_middleware(app, global_conf,
-                            session_type=NoDefault,
-                            cookie_name=NoDefault,
+                            session_type=NO_DEFAULT,
+                            cookie_name=NO_DEFAULT,
                             **store_config):
     """
     Wraps the application in a session-managing middleware.

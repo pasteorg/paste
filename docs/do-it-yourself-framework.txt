@@ -150,7 +150,7 @@ have to start with some root object, of course, which we'll pass in...
 
 ::
 
-    class ObjectPublisher(object):
+    class ObjectPublisher:
 
         def __init__(self, root):
             self.root = root
@@ -222,7 +222,7 @@ class into a module ``objectpub``::
 
     from objectpub import ObjectPublisher
 
-    class Root(object):
+    class Root:
 
         # The "index" method:
         def __call__(self):
@@ -260,12 +260,12 @@ request is a little slim.
     # insensitive keys:
     from paste.response import HeaderDict
 
-    class Request(object):
+    class Request:
         def __init__(self, environ):
             self.environ = environ
             self.fields = parse_formvars(environ)
 
-    class Response(object):
+    class Response:
         def __init__(self):
             self.headers = HeaderDict(
                 {'content-type': 'text/html'})
@@ -286,7 +286,7 @@ we'll attach the request and response objects here.
 So, let's remind ourselves of what the ``__call__`` function looked
 like::
 
-    class ObjectPublisher(object):
+    class ObjectPublisher:
         ...
 
         def __call__(self, environ, start_response):
@@ -301,7 +301,7 @@ Lets's update that::
     import threading
     webinfo = threading.local()
 
-    class ObjectPublisher(object):
+    class ObjectPublisher:
         ...
 
         def __call__(self, environ, start_response):
@@ -361,7 +361,7 @@ response).
 To give an example of a really really simple middleware, here's one
 that capitalizes the response::
 
-    class Capitalizer(object):
+    class Capitalizer:
 
         # We generally pass in the application to be wrapped to
         # the middleware constructor:
@@ -391,7 +391,7 @@ is a somewhat more thorough implementation of this.
 
        from webob import Request
 
-       class Capitalizer(object):
+       class Capitalizer:
            def __init__(self, app):
                self.app = app
            def __call__(self, environ, start_response):
@@ -402,7 +402,7 @@ is a somewhat more thorough implementation of this.
 
 So here's some code that does something useful, authentication::
 
-    class AuthMiddleware(object):
+    class AuthMiddleware:
 
         def __init__(self, wrap_app):
             self.wrap_app = wrap_app
@@ -450,7 +450,7 @@ So here's some code that does something useful, authentication::
 
        from webob import Request, Response
 
-       class AuthMiddleware(object):
+       class AuthMiddleware:
            def __init__(self, app):
                self.app = app
            def __call__(self, environ, start_response):

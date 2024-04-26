@@ -54,7 +54,7 @@ def _split_auth_string(auth_string):
                 prev = "%s,%s" % (prev, item)
                 continue
         except AttributeError:
-            if prev == None:
+            if prev is None:
                 prev = item
                 continue
             else:
@@ -78,7 +78,7 @@ def digest_password(realm, username, password):
     content = content.encode('utf8')
     return md5(content).hexdigest()
 
-class AuthDigestAuthenticator(object):
+class AuthDigestAuthenticator:
     """ implementation of RFC 2617 - HTTP Digest Authentication """
     def __init__(self, realm, authfunc):
         self.nonce    = {} # list to prevent replay attacks
@@ -156,7 +156,7 @@ class AuthDigestAuthenticator(object):
             if qop:
                 assert 'auth' == qop
                 assert nonce and nc
-        except:
+        except Exception:
             return self.build_authentication()
         ha1 = self.authfunc(environ, realm, username)
         return self.compute(ha1, username, response, method, authpath,
@@ -164,7 +164,7 @@ class AuthDigestAuthenticator(object):
 
     __call__ = authenticate
 
-class AuthDigestHandler(object):
+class AuthDigestHandler:
     """
     middleware for HTTP Digest authentication (RFC 2617)
 

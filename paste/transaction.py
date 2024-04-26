@@ -16,7 +16,7 @@ two-phase commit goodness that I don't need.
 from paste.httpexceptions import HTTPException
 from wsgilib import catch_errors
 
-class TransactionManagerMiddleware(object):
+class TransactionManagerMiddleware:
 
     def __init__(self, application):
         self.application = application
@@ -29,7 +29,7 @@ class TransactionManagerMiddleware(object):
                             error_callback=manager.error,
                             ok_callback=manager.finish)
 
-class Manager(object):
+class Manager:
 
     def __init__(self):
         self.aborted = False
@@ -50,7 +50,7 @@ class Manager(object):
                 trans.commit()
 
 
-class ConnectionFactory(object):
+class ConnectionFactory:
     """
     Provides a callable interface for connecting to ADBAPI databases in
     a WSGI style (using the environment).  More advanced connection
@@ -96,7 +96,7 @@ def BasicTransactionHandler(application, factory):
             else:
                 try:
                     conn.rollback()
-                except:
+                except Exception:
                     # TODO: check if rollback has already happened
                     return
             conn.close()

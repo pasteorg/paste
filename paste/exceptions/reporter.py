@@ -11,7 +11,7 @@ except ImportError:
     sslerror = None
 from paste.exceptions import formatter
 
-class Reporter(object):
+class Reporter:
 
     def __init__(self, **conf):
         for name, value in conf.items():

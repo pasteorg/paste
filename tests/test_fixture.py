@@ -14,7 +14,7 @@ def test_fixture():
     res = app.delete('/')
     assert (res.request.environ['REQUEST_METHOD'] ==
             'DELETE')
-    class FakeDict(object):
+    class FakeDict:
         def items(self):
             return [('a', '10'), ('a', '20')]
     res = app.post('/params', params=FakeDict())
@@ -47,7 +47,7 @@ def test_fixture_form_end():
     TestApp(response).get('/')
 
 def test_params_and_upload_files():
-    class PostApp(object):
+    class PostApp:
         def __call__(self, environ, start_response):
             start_response("204 No content", [])
             self.request = WSGIRequest(environ)

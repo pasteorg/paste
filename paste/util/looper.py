@@ -59,7 +59,7 @@ class looper_iter:
         return result
     __next__ = next
 
-class loop_pos(object):
+class loop_pos:
 
     def __init__(self, seq, pos):
         self.seq = seq

@@ -76,7 +76,7 @@ class _TemplateContinue(Exception):
 class _TemplateBreak(Exception):
     pass
 
-class Template(object):
+class Template:
 
     default_namespace = {
         'start_braces': '{{',
@@ -210,7 +210,7 @@ class Template(object):
         try:
             value = eval(code, ns)
             return value
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             e = exc_info[1]
             if getattr(e, 'args'):
@@ -224,7 +224,7 @@ class Template(object):
         __traceback_hide__ = True
         try:
             exec(code, ns)
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             e = exc_info[1]
             e.args = (self._add_line_info(e.args[0], pos),)
@@ -236,7 +236,7 @@ class Template(object):
             if value is None:
                 return ''
             value = str(value)
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             e = exc_info[1]
             e.args = (self._add_line_info(e.args[0], pos),)
@@ -309,7 +309,7 @@ class bunch(dict):
 ## HTML Templating
 ############################################################
 
-class html(object):
+class html:
     def __init__(self, value):
         self.value = value
     def __str__(self):

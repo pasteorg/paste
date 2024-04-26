@@ -168,7 +168,7 @@ page_template = HTMLTemplate('''
 </html>
 ''', name='watchthreads.page_template')
 
-class WatchThreads(object):
+class WatchThreads:
 
     """
     Application that watches the threads in ``paste.httpserver``,

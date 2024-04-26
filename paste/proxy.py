@@ -49,7 +49,7 @@ filtered_headers = (
     'upgrade',
 )
 
-class Proxy(object):
+class Proxy:
 
     def __init__(self, address, allowed_request_methods=(),
                  suppress_http_headers=()):
@@ -154,7 +154,7 @@ def make_proxy(global_conf, address, allowed_request_methods="",
         suppress_http_headers=suppress_http_headers)
 
 
-class TransparentProxy(object):
+class TransparentProxy:
 
     """
     A proxy that sends the request just as it was given, including

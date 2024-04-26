@@ -20,13 +20,13 @@ import smtplib
 import shlex
 import re
 import subprocess
-from urllib.parse import urlencode
 from urllib import parse as urlparse
+from urllib.parse import urlencode
 from http.cookies import BaseCookie
 
-from paste import wsgilib
-from paste import lint
+from paste import lint, wsgilib
 from paste.response import HeaderDict
+from paste.util import NO_DEFAULT
 
 def ensure_binary(s):
     if isinstance(s, bytes):
@@ -48,15 +48,12 @@ def tempnam_no_warning(*args):
     """
     return os.tempnam(*args)
 
-class NoDefault(object):
-    pass
-
 def sorted(l):
     l = list(l)
     l.sort()
     return l
 
-class Dummy_smtplib(object):
+class Dummy_smtplib:
 
     existing = None
 
@@ -97,7 +94,7 @@ class AppError(Exception):
     pass
 
 
-class TestApp(object):
+class TestApp:
 
     __test__ = False  # Ignore with pytest test collection.
 
@@ -479,7 +476,7 @@ class TestApp(object):
         return TestResponse(self, status, headers, body, errors,
                             total_time)
 
-class CaptureStdout(object):
+class CaptureStdout:
 
     def __init__(self, actual):
         self.captured = io.StringIO()
@@ -500,7 +497,7 @@ class CaptureStdout(object):
         return self.captured.getvalue()
 
 
-class TestResponse(object):
+class TestResponse:
 
     __test__ = False  # Ignore with pytest test collection.
 
@@ -586,7 +583,7 @@ class TestResponse(object):
             if form.id:
                 forms[form.id] = form
 
-    def header(self, name, default=NoDefault):
+    def header(self, name, default=NO_DEFAULT):
         """
         Returns the named header; an error if there is not exactly one
         matching header (unless you give a default -- always an error
@@ -600,7 +597,7 @@ class TestResponse(object):
                     % (name, found, value))
                 found = value
         if found is None:
-            if default is NoDefault:
+            if default is NO_DEFAULT:
                 raise KeyError(
                     "No header found: %r (from %s)"
                     % (name, ', '.join([n for n, v in self.headers])))
@@ -888,7 +885,7 @@ class TestResponse(object):
         webbrowser.open_new(url)
 
 
-class TestRequest(object):
+class TestRequest:
 
     __test__ = False  # Ignore with pytest test collection.
 
@@ -925,7 +922,7 @@ class TestRequest(object):
         self.expect_errors = expect_errors
 
 
-class Form(object):
+class Form:
 
     """
     This object represents a form that has been found in a page.
@@ -1089,13 +1086,13 @@ class Form(object):
             field = fields[index]
             field.value = value
 
-    def get(self, name, index=None, default=NoDefault):
+    def get(self, name, index=None, default=NO_DEFAULT):
         """
         Get the named/indexed field object, or ``default`` if no field
         is found.
         """
         fields = self.fields.get(name)
-        if fields is None and default is not NoDefault:
+        if fields is None and default is not NO_DEFAULT:
             return default
         if index is None:
             return self[name]
@@ -1160,7 +1157,7 @@ def _parse_attrs(text):
         attrs[attr_name] = attr_body
     return attrs
 
-class Field(object):
+class Field:
 
     """
     Field object.
@@ -1329,7 +1326,7 @@ Field.classes['image'] = Submit
 ############################################################
 
 
-class TestFileEnvironment(object):
+class TestFileEnvironment:
 
     """
     This represents an environment in which files will be written, and
@@ -1521,7 +1518,7 @@ class TestFileEnvironment(object):
         f.close()
         return FoundFile(self.base_path, path)
 
-class ProcResult(object):
+class ProcResult:
 
     """
     Represents the results of running a command in
@@ -1600,7 +1597,7 @@ class ProcResult(object):
                     s.append(t)
         return '\n'.join(s)
 
-class FoundFile(object):
+class FoundFile:
 
     """
     Represents a single file found as the result of a command.
@@ -1660,7 +1657,7 @@ class FoundFile(object):
             self.__class__.__name__,
             self.base_path, self.path)
 
-class FoundDir(object):
+class FoundDir:
 
     """
     Represents a directory created by a command.

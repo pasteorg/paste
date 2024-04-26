@@ -39,7 +39,7 @@ def simpleapp_withregistry_default(environ, start_response):
     return [body]
 
 
-class RegistryUsingApp(object):
+class RegistryUsingApp:
     def __init__(self, var, value, raise_exc=False):
         self.var = var
         self.value = value
@@ -57,7 +57,7 @@ class RegistryUsingApp(object):
         body = body.encode('utf8')
         return [body]
 
-class RegistryUsingIteratorApp(object):
+class RegistryUsingIteratorApp:
     def __init__(self, var, value):
         self.var = var
         self.value = value
@@ -72,7 +72,7 @@ class RegistryUsingIteratorApp(object):
         body = body.encode('utf8')
         return iter([body])
 
-class RegistryMiddleMan(object):
+class RegistryMiddleMan:
     def __init__(self, app, var, value, depth):
         self.app = app
         self.var = var

@@ -39,7 +39,7 @@ BLOCK_SIZE = 4096 * 16
 
 __all__ = ['DataApp', 'FileApp', 'DirectoryApp', 'ArchiveStore']
 
-class DataApp(object):
+class DataApp:
     """
     Returns an application that will send content in a single chunk,
     this application has support for setting cache-control and for
@@ -258,7 +258,7 @@ class FileApp(DataApp):
         else:
             return _FileIter(file, size=content_length)
 
-class _FileIter(object):
+class _FileIter:
 
     def __init__(self, file, block_size=None, size=None):
         self.file = file
@@ -284,7 +284,7 @@ class _FileIter(object):
         self.file.close()
 
 
-class DirectoryApp(object):
+class DirectoryApp:
     """
     Returns an application that dispatches requests to corresponding FileApps based on PATH_INFO.
     FileApp instances are cached. This app makes sure not to serve any files that are not in a subdirectory.
@@ -315,7 +315,7 @@ class DirectoryApp(object):
         return app(environ, start_response)
 
 
-class ArchiveStore(object):
+class ArchiveStore:
     """
     Returns an application that serves up a DataApp for items requested
     in a given zip or tar archive.

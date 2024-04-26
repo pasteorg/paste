@@ -213,7 +213,7 @@ class URLMap(DictMixin):
         return self.not_found_application(environ, start_response)
 
 
-class PathProxyURLMap(object):
+class PathProxyURLMap:
 
     """
     This is a wrapper for URLMap that catches any strings that

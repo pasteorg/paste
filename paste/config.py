@@ -2,7 +2,10 @@
 # Written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 """Paste Configuration Middleware and Objects"""
+
+from paste.util import NO_DEFAULT
 from paste.registry import RegistryManager, StackedObjectProxy
+
 
 __all__ = ['DispatchingConfig', 'CONFIG', 'ConfigMiddleware']
 
@@ -79,7 +82,7 @@ class DispatchingConfig(StackedObjectProxy):
 
 CONFIG = DispatchingConfig()
 
-no_config = object()
+
 class ConfigMiddleware(RegistryManager):
     """
     A WSGI middleware that adds a ``paste.config`` key (by default)
@@ -96,7 +99,7 @@ class ConfigMiddleware(RegistryManager):
         of the configuration `config`.
         """
         def register_config(environ, start_response):
-            popped_config = environ.get(environ_key, no_config)
+            popped_config = environ.get(environ_key, NO_DEFAULT)
             current_config = environ[environ_key] = config.copy()
             environ['paste.registry'].register(dispatching_config,
                                                current_config)
@@ -104,7 +107,7 @@ class ConfigMiddleware(RegistryManager):
             try:
                 app_iter = application(environ, start_response)
             finally:
-                if popped_config is no_config:
+                if popped_config is NO_DEFAULT:
                     environ.pop(environ_key, None)
                 else:
                     environ[environ_key] = popped_config

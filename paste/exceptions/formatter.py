@@ -14,7 +14,7 @@ from paste.util import PySourceColor
 def html_quote(s):
     return html.escape(str(s), True)
 
-class AbstractFormatter(object):
+class AbstractFormatter:
 
     general_data_order = ['object', 'source_url']
 
@@ -481,7 +481,7 @@ def str2html(src, strip=False, indent_subsequent=0,
         return _str2html(src, strip=strip,
                          indent_subsequent=indent_subsequent,
                          highlight_inner=highlight_inner)
-    except:
+    except Exception:
         return html_quote(src)
 
 def _str2html(src, strip=False, indent_subsequent=0,
@@ -495,7 +495,7 @@ def _str2html(src, strip=False, indent_subsequent=0,
         src = pre_re.sub('', src)
         src = re.sub(r'^[\n\r]{0,1}', '', src)
         src = re.sub(r'[\n\r]{0,1}$', '', src)
-    except:
+    except Exception:
         src = html_quote(orig_src)
     lines = src.splitlines()
     if len(lines) == 1:

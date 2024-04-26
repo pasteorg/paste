@@ -25,7 +25,7 @@ lGtPZecIGJWW6oL2hpbWRZEkChe8eg5Wb7xx/MBZBFjxeZPEss+mRQ3Uhc8WQv684seSRO7i3nb4
 """
 
 
-class PonyMiddleware(object):
+class PonyMiddleware:
 
     def __init__(self, application):
         self.application = application

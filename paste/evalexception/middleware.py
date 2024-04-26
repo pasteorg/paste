@@ -84,7 +84,7 @@ def simplecatcher(application):
     def simplecatcher_app(environ, start_response):
         try:
             return application(environ, start_response)
-        except:
+        except Exception:
             out = StringIO()
             traceback.print_exc(file=out)
             start_response('500 Server Error',
@@ -166,7 +166,7 @@ def get_debug_count(environ):
         environ['paste.evalexception.debug_count'] = _next = next(debug_counter)
         return _next
 
-class EvalException(object):
+class EvalException:
 
     def __init__(self, application, global_conf=None,
                  xmlhttp_key=None):
@@ -301,7 +301,7 @@ class EvalException(object):
         def detect_start_response(status, headers, exc_info=None):
             try:
                 return start_response(status, headers, exc_info)
-            except:
+            except Exception:
                 raise
             else:
                 started.append(True)
@@ -314,7 +314,7 @@ class EvalException(object):
             finally:
                 if hasattr(app_iter, 'close'):
                     app_iter.close()
-        except:
+        except Exception:
             exc_info = sys.exc_info()
             for expected in environ.get('paste.expected_exceptions', []):
                 if isinstance(exc_info[1], expected):
@@ -365,7 +365,7 @@ class EvalException(object):
             debug_mode=True,
             simple_html_error=simple_html_error)
 
-class DebugInfo(object):
+class DebugInfo:
 
     def __init__(self, counter, exc_info, exc_data, base_path,
                  environ, view_uri):

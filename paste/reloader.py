@@ -61,7 +61,7 @@ def install(poll_interval=1):
     t.daemon = True
     t.start()
 
-class Monitor(object):
+class Monitor:
 
     instances = []
     global_extra_files = []
@@ -92,7 +92,7 @@ class Monitor(object):
         for file_callback in self.file_callbacks:
             try:
                 filenames.extend(file_callback())
-            except:
+            except Exception:
                 print("Error calling paste.reloader callback %r:" % file_callback,
                       file=sys.stderr)
                 traceback.print_exc()

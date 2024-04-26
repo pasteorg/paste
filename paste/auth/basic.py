@@ -31,7 +31,7 @@ from paste.httpheaders import (
     WWW_AUTHENTICATE,
 )
 
-class AuthBasicAuthenticator(object):
+class AuthBasicAuthenticator:
     """
     implements ``Basic`` authentication details
     """
@@ -59,7 +59,7 @@ class AuthBasicAuthenticator(object):
 
     __call__ = authenticate
 
-class AuthBasicHandler(object):
+class AuthBasicHandler:
     """
     HTTP/1.0 ``Basic`` authentication middleware
 

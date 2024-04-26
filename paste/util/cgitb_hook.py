@@ -1,4 +1,4 @@
-"""Hook class from the deprecated cgitb library."""
+"""Hook class from the deprecated cgitb module of the standard library."""
 
 # Copyright © 2001-2023 Python Software Foundation; All Rights Reserved.
 
@@ -29,7 +29,7 @@ Content-Type: text/html
 </table> </table> </table> </table> </table> </font> </font> </font>'''
 
 
-__UNDEF__ = []  # a special sentinel object
+__UNDEF__ = object()  # a special sentinel object
 
 
 def small(text):

@@ -18,7 +18,7 @@ from paste import response
 
 __all__ = ['ProfileMiddleware', 'profile_decorator']
 
-class ProfileMiddleware(object):
+class ProfileMiddleware:
 
     """
     Middleware that profiles all requests.
@@ -139,7 +139,7 @@ def profile_decorator(**options):
         return replacement
     return decorator
 
-class DecoratedProfile(object):
+class DecoratedProfile:
 
     lock = threading.Lock()
 
@@ -167,7 +167,7 @@ class DecoratedProfile(object):
             start_time = time.time()
             try:
                 result = prof.runcall(func, *args, **kw)
-            except:
+            except Exception:
                 exc_info = sys.exc_info()
             end_time = time.time()
         finally:

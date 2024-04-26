@@ -116,7 +116,7 @@ class CGIApplication:
             start_response(writer.status, writer.headers)
         return []
 
-class CGIWriter(object):
+class CGIWriter:
 
     def __init__(self, environ, start_response):
         self.environ = environ

@@ -5,11 +5,11 @@ import socket
 from paste.httpserver import LimitedLengthFile, WSGIHandler, serve
 
 
-class MockServer(object):
+class MockServer:
     server_address = ('127.0.0.1', 80)
 
 
-class MockSocket(object):
+class MockSocket:
     def makefile(self, mode, bufsize):
         return io.StringIO()
 

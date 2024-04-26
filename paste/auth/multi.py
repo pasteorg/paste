@@ -32,7 +32,7 @@ serving on...
 
 """
 
-class MultiHandler(object):
+class MultiHandler:
     """
     Multiple Authentication Handler
 

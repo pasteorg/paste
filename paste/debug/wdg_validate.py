@@ -13,7 +13,7 @@ import html
 
 __all__ = ['WDGValidateMiddleware']
 
-class WDGValidateMiddleware(object):
+class WDGValidateMiddleware:
 
     """
     Middleware that checks HTML and appends messages about the validity of

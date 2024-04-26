@@ -69,7 +69,7 @@ request and responsibility for the response off to another object
 (another actor, really).  In the process we can actually retain some
 control -- we can capture and transform the response, and we can
 modify the request -- but that's not what the typical URL resolver will
-do.  
+do.
 
 Motivations
 ===========
@@ -80,7 +80,7 @@ Typically when a framework first supports WSGI or is integrated into
 Paste, it is "monolithic" with respect to URLs.  That is, you define
 (in Paste, or maybe in Apache) a "root" URL, and everything under that
 goes into the framework.  What the framework does internally, Paste
-does not know -- it probably finds internal objects to dispatch to, 
+does not know -- it probably finds internal objects to dispatch to,
 but the framework is opaque to Paste.  Not just to Paste, but to
 any code that isn't in that framework.
 
@@ -171,7 +171,7 @@ in turn may delegate to yet another application.
 
 Here's a very simple implementation of URLParser::
 
-    class URLParser(object):
+    class URLParser:
         def __init__(self, dir):
             self.dir = dir
         def __call__(self, environ, start_response):
@@ -217,7 +217,7 @@ handle it.  This "application" might be a URLParser or similar system
 
 ::
 
-    class GrabDate(object):
+    class GrabDate:
         def __init__(self, subapp):
             self.subapp = subapp
         def __call__(self, environ, start_response):
@@ -249,12 +249,12 @@ well -- it usually just means use ``getattr`` with the popped
 segments.  But we'll implement a rough approximation of `Quixote's
 <http://www.mems-exchange.org/software/quixote/>`_ URL parsing::
 
-    class ObjectApp(object):
+    class ObjectApp:
         def __init__(self, obj):
             self.obj = obj
         def __call__(self, environ, start_response):
             next = wsgilib.path_info_pop(environ)
-            if next is None: 
+            if next is None:
                 # This is the object, lets serve it...
                 return self.publish(obj, environ, start_response)
             next = next or '_q_index' # the default index method
@@ -288,7 +288,7 @@ Things to note:
   (when ``next`` is ``None``).  This means ``_q_traverse`` has to
   consume extra segments of the path.  In this version ``_q_traverse``
   is only given the next piece of the path; Quixote gives it the
-  entire path (as a list of segments).  
+  entire path (as a list of segments).
 
 * ``publish`` is really a small and lame way to turn a Quixote object
   into a WSGI application.  For any serious framework you'd want to do
@@ -298,7 +298,7 @@ Things to note:
   <http://www.python.org/peps/pep-0246.html>`_ to convert objects into
   applications.  This would include removing the explicit creation of
   new ``ObjectApp`` instances, which could also be a kind of fall-back
-  adaptation. 
+  adaptation.
 
 Anyway, this example is less complete, but maybe it will get you
 thinking.

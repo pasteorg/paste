@@ -1,7 +1,7 @@
 # (c) 2005 Ian Bicking and contributors; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
-class classinstancemethod(object):
+class classinstancemethod:
     """
     Acts like a class method when called from a class, like an
     instance method when called by an instance.  The method should
@@ -16,7 +16,7 @@ class classinstancemethod(object):
     def __get__(self, obj, type=None):
         return _methodwrapper(self.func, obj=obj, type=type)
 
-class _methodwrapper(object):
+class _methodwrapper:
 
     def __init__(self, func, obj, type):
         self.func = func

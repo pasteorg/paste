@@ -34,7 +34,7 @@ Example:
     app = RegistryManager(yourapp)
 
     #inside your wsgi app
-    class yourapp(object):
+    class yourapp:
         def __call__(self, environ, start_response):
             obj = someobject  # The request-local object you want to access
                               # via yourpackage.myglobal
@@ -87,16 +87,15 @@ cases, and requires incredibly large amounts of proxy object access before
 one should consider the proxy object to be causing slow-downs. This section
 is provided solely in the extremely rare case that it is an issue so that a
 quick way to work around it is documented.
-
 """
+
+from paste.util import NO_DEFAULT
 import paste.util.threadinglocal as threadinglocal
 
 __all__ = ['StackedObjectProxy', 'RegistryManager', 'StackedObjectRestorer',
            'restorer']
 
-class NoDefault(object): pass
-
-class StackedObjectProxy(object):
+class StackedObjectProxy:
     """Track an object instance internally using a stack
 
     The StackedObjectProxy proxies access to an object internally using a
@@ -108,7 +107,7 @@ class StackedObjectProxy(object):
     objects can be removed with _pop_object.
 
     """
-    def __init__(self, default=NoDefault, name="Default"):
+    def __init__(self, default=NO_DEFAULT, name="Default"):
         """Create a new StackedObjectProxy
 
         If a default is given, its used in every thread if no other object
@@ -117,7 +116,7 @@ class StackedObjectProxy(object):
         """
         self.__dict__['____name__'] = name
         self.__dict__['____local__'] = threadinglocal.local()
-        if default is not NoDefault:
+        if default is not NO_DEFAULT:
             self.__dict__['____default_object__'] = default
 
     def __dir__(self):
@@ -190,8 +189,8 @@ class StackedObjectProxy(object):
         if objects:
             return objects[-1]
         else:
-            obj = self.__dict__.get('____default_object__', NoDefault)
-            if obj is not NoDefault:
+            obj = self.__dict__.get('____default_object__', NO_DEFAULT)
+            if obj is not NO_DEFAULT:
                 return obj
             else:
                 raise TypeError(
@@ -277,7 +276,7 @@ class StackedObjectProxy(object):
         ('%s\n(StackedObjectRestorer restoration enabled)' % \
          _pop_object.__doc__)
 
-class Registry(object):
+class Registry:
     """Track objects and stacked object proxies for removal
 
     The Registry object is instantiated a single time for the request no
@@ -351,7 +350,7 @@ class Registry(object):
             stacked._pop_object(obj)
         self.reglist.pop()
 
-class RegistryManager(object):
+class RegistryManager:
     """Creates and maintains a Registry context
 
     RegistryManager creates a new registry context for the registration of
@@ -395,7 +394,7 @@ class RegistryManager(object):
                     restorer.save_registry_state(environ)
             reg.cleanup()
             raise
-        except:
+        except Exception:
             # Save state for EvalException if it's present
             if environ.get('paste.evalexception'):
                 restorer.save_registry_state(environ)
@@ -426,7 +425,7 @@ class RegistryManager(object):
                     restorer.save_registry_state(environ)
             reg.cleanup()
             raise
-        except:
+        except Exception:
             # Save state for EvalException if it's present
             if environ.get('paste.evalexception'):
                 restorer.save_registry_state(environ)
@@ -436,7 +435,7 @@ class RegistryManager(object):
             reg.cleanup()
 
 
-class StackedObjectRestorer(object):
+class StackedObjectRestorer:
     """Track StackedObjectProxies and their proxied objects for automatic
     restoration within EvalException's interactive debugger.
 

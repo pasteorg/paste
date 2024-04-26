@@ -62,7 +62,7 @@ class add_close:
                 "WSGI request. finalization function %s not called"
                   % self.close_func, file=sys.stderr)
 
-class add_start_close(object):
+class add_start_close:
     """
     An an iterable that iterates over app_iter, calls start_func
     before the first item is returned, then calls close_func at the
@@ -101,7 +101,7 @@ class add_start_close(object):
                 "WSGI request. finalization function %s not called"
                   % self.close_func, file=sys.stderr)
 
-class chained_app_iters(object):
+class chained_app_iters:
 
     """
     Chains several app_iters together, also delegating .close() to each
@@ -134,7 +134,7 @@ class chained_app_iters(object):
             try:
                 if hasattr(app_iter, 'close'):
                     app_iter.close()
-            except:
+            except Exception:
                 got_exc = sys.exc_info()
         if got_exc:
             raise got_exc
@@ -146,7 +146,7 @@ class chained_app_iters(object):
                 "WSGI request. finalization function %s not called"
                   % self.close_func, file=sys.stderr)
 
-class encode_unicode_app_iter(object):
+class encode_unicode_app_iter:
     """
     Encodes an app_iterable's unicode responses as strings
     """
@@ -182,7 +182,7 @@ def catch_errors(application, environ, start_response, error_callback,
     """
     try:
         app_iter = application(environ, start_response)
-    except:
+    except Exception:
         error_callback(sys.exc_info())
         raise
     if type(app_iter) in (list, tuple):
@@ -193,7 +193,7 @@ def catch_errors(application, environ, start_response, error_callback,
     else:
         return _wrap_app_iter(app_iter, error_callback, ok_callback)
 
-class _wrap_app_iter(object):
+class _wrap_app_iter:
 
     def __init__(self, app_iterable, error_callback, ok_callback):
         self.app_iterable = app_iterable
@@ -213,7 +213,7 @@ class _wrap_app_iter(object):
             if self.ok_callback:
                 self.ok_callback()
             raise
-        except:
+        except Exception:
             self.error_callback(sys.exc_info())
             raise
     __next__ = next
@@ -241,7 +241,7 @@ def catch_errors_app(application, environ, start_response, error_callback_app,
             environ, start_response, app_iter,
             error_callback_app, ok_callback, catch=catch)
 
-class _wrap_app_iter_app(object):
+class _wrap_app_iter_app:
 
     def __init__(self, environ, start_response, app_iterable,
                  error_callback_app, ok_callback, catch=Exception):
@@ -269,7 +269,7 @@ class _wrap_app_iter_app(object):
             if hasattr(self.app_iterable, 'close'):
                 try:
                     self.app_iterable.close()
-                except:
+                except Exception:
                     # @@: Print to wsgi.errors?
                     pass
             new_app_iterable = self.error_callback_app(
@@ -370,7 +370,7 @@ def raw_interactive(application, path='', raise_on_wsgi_error=False,
     return (data['status'], data['headers'], b''.join(output),
             errors.getvalue())
 
-class ErrorRaiser(object):
+class ErrorRaiser:
 
     def flush(self):
         pass
@@ -586,7 +586,7 @@ def _warn_deprecated(new_func):
         return new_func(*args, **kw)
     try:
         replacement.func_name = new_func.func_name
-    except:
+    except Exception:
         pass
     return replacement
 

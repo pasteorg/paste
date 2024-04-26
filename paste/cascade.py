@@ -40,7 +40,7 @@ def make_cascade(loader, global_conf, catch='404', **local_conf):
     apps = [app for name, app in apps]
     return Cascade(apps, catch=catch)
 
-class Cascade(object):
+class Cascade:
 
     """
     Passed a list of applications, ``Cascade`` will try each of them

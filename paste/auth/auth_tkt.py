@@ -52,7 +52,7 @@ from paste import request
 DEFAULT_DIGEST = hashlib.md5
 
 
-class AuthTicket(object):
+class AuthTicket:
 
     """
     This class represents an authentication token.  You must pass in
@@ -221,7 +221,7 @@ def maybe_encode(s, encoding='utf8'):
     return s
 
 
-class AuthTKTMiddleware(object):
+class AuthTKTMiddleware:
 
     """
     Middleware that checks for signed cookies that match what

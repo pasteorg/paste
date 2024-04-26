@@ -10,26 +10,22 @@ Captures any exceptions and prints a pretty report.
 from io import StringIO
 import sys
 
-from paste.util import converters
+from paste.util import converters, NO_DEFAULT
 from paste.util.cgitb_hook import Hook
-
-
-class NoDefault:
-    ...
 
 
 class CgitbMiddleware:
 
     def __init__(self, app,
                  global_conf=None,
-                 display=NoDefault,
+                 display=NO_DEFAULT,
                  logdir=None,
                  context=5,
                  format="html"):
         self.app = app
         if global_conf is None:
             global_conf = {}
-        if display is NoDefault:
+        if display is NO_DEFAULT:
             display = global_conf.get('debug')
         if isinstance(display, str):
             display = converters.asbool(display)
@@ -66,7 +62,7 @@ class CgitbMiddleware:
             if not error_on_close and hasattr(app_iter, 'close'):
                 try:
                     app_iter.close()
-                except:
+                except Exception:
                     close_response = self.exception_handler(
                         sys.exc_info(), environ)
                     response += (
@@ -88,7 +84,7 @@ class CgitbMiddleware:
 
 
 def make_cgitb_middleware(app, global_conf,
-                          display=NoDefault,
+                          display=NO_DEFAULT,
                           logdir=None,
                           context=5,
                           format='html'):
@@ -108,7 +104,7 @@ def make_cgitb_middleware(app, global_conf,
         source code
     """
     from paste.deploy.converters import asbool
-    if display is not NoDefault:
+    if display is not NO_DEFAULT:
         display = asbool(display)
     if 'debug' in global_conf:
         global_conf['debug'] = asbool(global_conf['debug'])

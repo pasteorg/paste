@@ -6,7 +6,7 @@ from paste.fixture import TestApp
 from paste.wsgiwrappers import WSGIRequest, WSGIResponse
 from paste.util.field_storage import FieldStorage
 
-class AssertApp(object):
+class AssertApp:
     def __init__(self, assertfunc):
         self.assertfunc = assertfunc
 

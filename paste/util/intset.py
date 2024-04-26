@@ -1,4 +1,3 @@
-# -*- coding: iso-8859-15 -*-
 """Immutable integer set type.
 
 Integer set class.
@@ -76,7 +75,7 @@ _MAXINF = _Infinity(False)
 # Integer set class
 # -----------------
 
-class IntSet(object):
+class IntSet:
     """Integer set class with efficient storage in a RLE format of ranges.
     Supports minus and plus infinity in the range."""
 

@@ -22,7 +22,7 @@ def app_with_config(environ, start_response):
     lines = [line.encode('utf8') for line in lines]
     return lines
 
-class NestingAppWithConfig(object):
+class NestingAppWithConfig:
     def __init__(self, app):
         self.app = app
 

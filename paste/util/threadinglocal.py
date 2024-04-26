@@ -9,7 +9,7 @@ try:
     import threading
 except ImportError:
     # No threads, so "thread local" means process-global
-    class local(object):
+    class local:
         pass
 else:
     try:
@@ -17,7 +17,7 @@ else:
     except AttributeError:
         # Added in 2.4, but now we'll have to define it ourselves
         import thread
-        class local(object):
+        class local:
 
             def __init__(self):
                 self.__dict__['__objs'] = {}

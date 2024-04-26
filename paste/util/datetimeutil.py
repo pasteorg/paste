@@ -63,7 +63,7 @@ __all__ = ['parse_timedelta', 'normalize_timedelta',
 def _number(val):
     try:
         return int(val)
-    except:
+    except Exception:
         return None
 
 #

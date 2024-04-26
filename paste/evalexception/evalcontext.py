@@ -38,7 +38,7 @@ class EvalContext:
                 debugger.set_continue()
             except KeyboardInterrupt:
                 raise
-            except:
+            except Exception:
                 traceback.print_exc(file=out)
                 debugger.set_continue()
         finally:

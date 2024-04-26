@@ -54,7 +54,7 @@ def _get_headers(headers, k):
         return headers.getheaders(k)  # Python 2 - mimetools.Message
 
 
-class ContinueHook(object):
+class ContinueHook:
     """
     When a client request includes a 'Expect: 100-continue' header, then
     it is the responsibility of the server to send 100 Continue when it
@@ -313,7 +313,7 @@ class WSGIHandlerMixin:
         except socket.error as exce:
             self.wsgi_connection_drop(exce, environ)
             return
-        except:
+        except Exception:
             if not self.wsgi_headers_sent:
                 error_msg = "Internal Server Error\n"
                 self.wsgi_curr_headers = (
@@ -346,7 +346,7 @@ except ImportError:
                 self.socket.listen(request_queue_size)
 else:
 
-    class _ConnFixer(object):
+    class _ConnFixer:
         """ wraps a socket connection so it implements makefile """
         def __init__(self, conn):
             self.__conn = conn
@@ -466,7 +466,7 @@ class WSGIHandler(WSGIHandlerMixin, BaseHTTPRequestHandler):
         """
         return ''
 
-class LimitedLengthFile(object):
+class LimitedLengthFile:
     def __init__(self, file, length):
         self.file = file
         self.length = length
@@ -528,7 +528,7 @@ class LimitedLengthFile(object):
                 pass
         return self._consumed
 
-class ThreadPool(object):
+class ThreadPool:
     """
     Generic thread pool with a queue of callables to consume.
 
@@ -800,7 +800,7 @@ class ThreadPool(object):
                 try:
                     import pprint
                     info_desc = pprint.pformat(info)
-                except:
+                except Exception:
                     out = io.StringIO()
                     traceback.print_exc(file=out)
                     info_desc = 'Error:\n%s' % out.getvalue()
@@ -899,7 +899,7 @@ class ThreadPool(object):
                 try:
                     try:
                         runnable()
-                    except:
+                    except Exception:
                         # We are later going to call sys.exc_clear(),
                         # removing all remnants of any exception, so
                         # we should log it now.  But ideally no
@@ -1018,7 +1018,7 @@ class ThreadPool(object):
             ]
         try:
             system = ' '.join(os.uname())
-        except:
+        except Exception:
             system = '(unknown)'
         body = (
             "An error has occurred in the paste.httpserver.ThreadPool\n"
@@ -1044,7 +1044,7 @@ class ThreadPool(object):
         server.quit()
         print('email sent to', error_emails, message)
 
-class ThreadPoolMixIn(object):
+class ThreadPoolMixIn:
     """
     Mix-in class to process requests from a thread pool
     """

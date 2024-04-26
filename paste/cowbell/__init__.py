@@ -6,7 +6,7 @@ from paste.response import header_value, remove_header
 
 SOUND = "http://www.c-eye.net/eyeon/WalkenWAVS/explorestudiospace.wav"
 
-class MoreCowbell(object):
+class MoreCowbell:
     def __init__(self, app):
         self.app = app
     def __call__(self, environ, start_response):
