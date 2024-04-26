@@ -351,7 +351,7 @@ else:
         def __init__(self, conn):
             self.__conn = conn
         def makefile(self, mode, bufsize):
-            return socket._fileobject(self.__conn, mode, bufsize)
+            return socket.SocketIO(self.__conn, mode)
         def __getattr__(self, attrib):
             return getattr(self.__conn, attrib)
 
