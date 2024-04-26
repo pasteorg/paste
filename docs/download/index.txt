@@ -16,12 +16,11 @@ are always located on the Cheese Shop pages (listed below).
 * `Wareweb <http://pypi.python.org/pypi/Wareweb>`_ (deprecated, use `Pylons
   <https://pypi.python.org/pypi/Pylons>`_ instead)
 
-All the packages are available in some repositories, many rooted in
-http://bitbucket.org/ianb/
+All the packages are available in some repositories:
 
-* https://github.com/cdent/paste
-* http://bitbucket.org/ianb/pastescript
-* http://bitbucket.org/ianb/pastedeploy
+* https://github.com/pasteorg/paste
+* https://github.com/pasteorg/pastescript
+* https://github.com/Pylons/pastedeploy/
 * https://github.com/Pylons/webob
 * ... and others
 

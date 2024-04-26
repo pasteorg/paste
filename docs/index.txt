@@ -2,7 +2,7 @@ Python Paste
 ============
 
 This is a new copy of the documentation for Paste. The project is now being
-maintained on limited life-support from https://github.com/cdent/paste
+maintained on limited life-support from https://github.com/pasteorg/paste
 **Please consider other options.**
 
 Many of the links you will find in these docs will be out of date. If you

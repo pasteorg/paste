@@ -14,7 +14,7 @@ interfaces.
 .. _PEP 333: http://www.python.org/dev/peps/pep-0333/
 
 * `Paste project at GitHub (source code, bug tracker)
-  <https://github.com/cdent/paste/>`_
+  <https://github.com/pasteorg/paste/>`_
 * `Paste on the Python Cheeseshop (PyPI)
   <https://pypi.python.org/pypi/Paste>`_
 * `Paste on Read the Docs
@@ -106,4 +106,4 @@ Other Tools
 * A class for generating and traversing URLs, and creating associated
   HTML code, in ``paste.url``
 
-The official development repo is at https://github.com/cdent/paste.
+The official development repo is at https://github.com/pasteorg/paste.
