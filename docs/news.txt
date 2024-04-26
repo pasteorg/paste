@@ -209,7 +209,7 @@ Thanks to benjaminp for many recent contributions.
 
 * Remove use of future for sake of html.escape and use own. Using
   future was causing installation loops. See:
-  https://github.com/cdent/paste/issues/6
+  https://github.com/pasteorg/paste/issues/6
 
 3.0.0
 -----

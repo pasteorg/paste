@@ -44,8 +44,8 @@ setup(name="Paste",
       author_email="chris.dent@gmail.com",
       url="https://pythonpaste.readthedocs.io/",
       project_urls={
-        "Source": "https://github.com/cdent/paste",
-        "Bug Tracker": "https://github.com/cdent/paste/issues",
+        "Source": "https://github.com/pasteorg/paste",
+        "Bug Tracker": "https://github.com/pasteorg/paste/issues",
         "Documentation": "https://pythonpaste.readthedocs.io"
       },
       license="MIT",
