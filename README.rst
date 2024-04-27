@@ -6,6 +6,14 @@ consider using other options.*
 **As of release 3.7.0 Paste no longer supports Python 2. If you are
 required to continue using Python 2 please pin an earlier version of Paste.**
 
+**With version 3.10.0 Paste development moves to the pasteorg GitHub
+organization and will be going deeper into maintenance mode unless
+more active maintainers step forward to take over. "Deeper" in this
+case means that releases will be much less frequent and patches
+will only be accepted for security issues or major problems. Current
+consumers of Paste should prepare to migrate away to more modern
+solutions.**
+
 Paste provides several pieces of "middleware" (or filters) that can be nested
 to build web applications.  Each piece of middleware uses the WSGI (`PEP 333`_)
 interface, and should be compatible with other middleware based on those

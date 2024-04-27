@@ -5,6 +5,14 @@ This is a new copy of the documentation for Paste. The project is now being
 maintained on limited life-support from https://github.com/pasteorg/paste
 **Please consider other options.**
 
+**With version 3.10.0 Paste development moves to the pasteorg GitHub
+organization and will be going deeper into maintenance mode unless
+more active maintainers step forward to take over. "Deeper" in this
+case means that releases will be much less frequent and patches
+will only be accepted for security issues or major problems. Current
+consumers of Paste should prepare to migrate away to more modern
+solutions.**
+
 Many of the links you will find in these docs will be out of date. If you
 know of a better destination for a link please submit an issue or pull
 request at the GitHub repository above.

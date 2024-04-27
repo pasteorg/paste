@@ -3,6 +3,21 @@ News
 
 .. contents::
 
+3.10.0
+------
+
+* Move development to https://github.com/pasteorg/paste
+* Vendor cgi.FieldStorage and cgitb.Hook
+* More cleaning of Python 2 style code.
+
+With version 3.10.0 Paste development moves to the pasteorg GitHub
+organization and will be going deeper into maintenance mode unless
+more active maintainers step forward to take over. "Deeper" in this
+case means that releases will be much less frequent and patches
+will only be accepted for security issues or major problems. Current
+consumers of Paste should prepare to migrate away to more modern
+solutions.
+
 3.9.0
 -----
 
