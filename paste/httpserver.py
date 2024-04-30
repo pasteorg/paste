@@ -20,7 +20,9 @@ if pyOpenSSL is installed, it also provides SSL capabilities.
 import atexit
 import traceback
 import io
-import socket, sys, threading
+import socket
+import sys
+import threading
 import posixpath
 import time
 import os
@@ -407,7 +409,8 @@ else:
             return (conn, info)
 
     def _auto_ssl_context():
-        import OpenSSL, random
+        import OpenSSL
+        import random
         pkey = OpenSSL.crypto.PKey()
         pkey.generate_key(OpenSSL.crypto.TYPE_RSA, 768)
 

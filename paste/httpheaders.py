@@ -409,7 +409,7 @@ class HTTPHeader:
                 return ()
             return (value,)
         for item in args:
-            assert not type(item) in (dict, list)
+            assert type(item) not in (dict, list)
         return args
 
     def __call__(self, *args, **kwargs):

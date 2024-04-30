@@ -228,7 +228,7 @@ class EvalException:
         exception reports
         """
         start_response('200 OK', [('Content-type', 'text/x-json')])
-        data = [];
+        data = []
         items = self.debug_infos.values()
         items.sort(lambda a, b: cmp(a.created, b.created))
         data = [item.json() for item in items]

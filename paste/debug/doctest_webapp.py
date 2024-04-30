@@ -14,7 +14,6 @@ import os
 import sys
 import shutil
 import re
-import html
 import rfc822
 from io import StringIO
 from paste.util import PySourceColor
@@ -417,7 +416,7 @@ if __name__ == '__main__':
     if sys.argv[1:] and sys.argv[1] == 'doctest':
         doctest.testmod()
         sys.exit()
-    if not paste_parent in sys.path:
+    if paste_parent not in sys.path:
         sys.path.append(paste_parent)
     for fn in sys.argv[1:]:
         fn = os.path.abspath(fn)

@@ -264,7 +264,7 @@ def traceback_thread(thread_id):
         # Only 2.5 has support for this, with this special function
         return None
     frames = sys._current_frames()
-    if not thread_id in frames:
+    if thread_id not in frames:
         return None
     frame = frames[thread_id]
     out = StringIO()

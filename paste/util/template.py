@@ -682,7 +682,10 @@ strings.
 """
 
 def fill_command(args=None):
-    import sys, optparse, pkg_resources, os
+    import sys
+    import optparse
+    import pkg_resources
+    import os
     if args is None:
         args = sys.argv[1:]
     dist = pkg_resources.get_distribution('Paste')

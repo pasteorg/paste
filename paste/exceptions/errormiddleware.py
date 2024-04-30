@@ -6,10 +6,8 @@ Error handler middleware
 """
 import sys
 import traceback
-import html
 from io import StringIO
 from paste.exceptions import formatter, collector, reporter
-from paste import wsgilib
 from paste import request
 
 __all__ = ['ErrorMiddleware', 'handle_exception']

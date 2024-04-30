@@ -19,7 +19,6 @@ necessary.
 
 from io import StringIO
 import re
-import html
 from paste.util import threadedprint
 from paste import wsgilib
 from paste import response

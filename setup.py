@@ -10,7 +10,8 @@
 __version__ = '3.10.0'
 
 from setuptools import setup, find_packages
-import sys, os
+import sys
+import os
 sys.path.append(os.path.join(os.path.dirname(__file__),
                                 'paste', 'util'))
 import finddata

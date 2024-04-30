@@ -41,7 +41,11 @@ corresponding to a database session id) is stored in the cookie.
 
 """
 
-import hmac, base64, random, time, warnings
+import hmac
+import base64
+import random
+import time
+import warnings
 from functools import reduce
 try:
     from hashlib import sha1

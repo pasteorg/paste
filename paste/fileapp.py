@@ -9,7 +9,11 @@ files.  At this time it has cache helpers and understands the
 if-modified-since request header.
 """
 
-import os, time, mimetypes, zipfile, tarfile
+import os
+import time
+import mimetypes
+import zipfile
+import tarfile
 from paste.httpexceptions import (
     HTTPBadRequest,
     HTTPForbidden,

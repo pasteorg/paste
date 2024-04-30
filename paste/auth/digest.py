@@ -42,7 +42,8 @@ try:
     from hashlib import md5
 except ImportError:
     from md5 import md5
-import time, random
+import time
+import random
 from urllib.parse import quote as url_quote
 
 def _split_auth_string(auth_string):

@@ -844,7 +844,7 @@ class TestResponse:
             raise TypeError(
                 "The only keyword argument allowed is 'no'")
         for s in strings:
-            if not s in self:
+            if s not in self:
                 print("Actual response (no %r):" % s, file=sys.stderr)
                 print(self, file=sys.stderr)
                 raise IndexError(
