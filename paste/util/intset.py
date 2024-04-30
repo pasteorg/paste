@@ -456,8 +456,7 @@ class IntSet:
             elif r[1] is _MAXINF:
                 ubranges.append([r[0],1])
             else:
-                for val in range(r[0],r[1]):
-                    yield val
+                yield from range(r[0],r[1])
         if ubranges:
             while True:
                 for ubrange in ubranges:
@@ -477,14 +476,14 @@ class IntSet:
                  and stop-start == 1 ):
                 rv.append("%r" % start)
             elif isinstance(stop, int):
-                rv.append("(%r,%r)" % (start,stop-1))
+                rv.append("({!r},{!r})".format(start,stop-1))
             else:
-                rv.append("(%r,%r)" % (start,stop))
+                rv.append("({!r},{!r})".format(start,stop))
         if self._min is not _MININF:
             rv.append("min=%r" % self._min)
         if self._max is not _MAXINF:
             rv.append("max=%r" % self._max)
-        return "%s(%s)" % (self.__class__.__name__,",".join(rv))
+        return "{}({})".format(self.__class__.__name__,",".join(rv))
 
 if __name__ == "__main__":
     # Little test script demonstrating functionality.

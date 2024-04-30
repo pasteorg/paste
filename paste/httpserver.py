@@ -80,7 +80,7 @@ class ContinueHook:
                 setattr(self, attr, getattr(self, '_ContinueFile_' + attr))
 
     def _ContinueFile_send(self):
-        self._ContinueFile_write("HTTP/1.1 100 Continue\r\n\r\n".encode('utf-8'))
+        self._ContinueFile_write(b"HTTP/1.1 100 Continue\r\n\r\n")
         rfile = self._ContinueFile_rfile
         for attr in ('read', 'readline', 'readlines'):
             if hasattr(rfile, attr):
@@ -192,7 +192,7 @@ class WSGIHandlerMixin:
         argument can be used to override any settings.
         """
 
-        dummy_url = 'http://dummy%s' % (self.path,)
+        dummy_url = 'http://dummy{}'.format(self.path)
         (scheme, netloc, path, query, fragment) = urlsplit(dummy_url)
         path = unquote(path)
         endslash = path.endswith('/')
@@ -310,7 +310,7 @@ class WSGIHandlerMixin:
                 if hasattr(result,'close'):
                     result.close()
                 result = None
-        except socket.error as exce:
+        except OSError as exce:
             self.wsgi_connection_drop(exce, environ)
             return
         except Exception:
@@ -1076,7 +1076,7 @@ class ThreadPoolMixIn:
         if sys.exc_info()[0] is ServerExit:
             # This is actually a request to stop the server
             raise
-        return super(ThreadPoolMixIn, self).handle_error(request, client_address)
+        return super().handle_error(request, client_address)
 
     def process_request_in_thread(self, request, client_address):
         """
@@ -1352,7 +1352,7 @@ def serve(application, host=None, port=None, handler=None, ssl_pem=None,
             print('serving on 0.0.0.0:%s view at %s://127.0.0.1:%s'
                   % (port, protocol, port))
         else:
-            print("serving on %s://%s:%s" % (protocol, host, port))
+            print("serving on {}://{}:{}".format(protocol, host, port))
         try:
             server.serve_forever()
         except KeyboardInterrupt:

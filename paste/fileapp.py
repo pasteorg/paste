@@ -125,7 +125,7 @@ class DataApp:
         return self.get(environ, start_response)
 
     def calculate_etag(self):
-        return '"%s-%s"' % (self.last_modified, self.content_length)
+        return '"{}-{}"'.format(self.last_modified, self.content_length)
 
     def get(self, environ, start_response):
         headers = self.headers[:]
@@ -237,7 +237,7 @@ class FileApp(DataApp):
                 return exc(environ, start_response)
             try:
                 file = open(self.filename, 'rb')
-            except (IOError, OSError) as e:
+            except OSError as e:
                 exc = HTTPForbidden(
                     'You are not permitted to view this file (%s)' % e)
                 return exc.wsgi_application(

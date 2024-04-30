@@ -333,7 +333,7 @@ class URLParser:
         return load_module(environ, filename)
 
     def __repr__(self):
-        return '<%s directory=%r; module=%s at %s>' % (
+        return '<{} directory={!r}; module={} at {}>'.format(
             self.__class__.__name__,
             self.directory,
             self.base_python_name,
@@ -369,7 +369,7 @@ def load_module_from_name(environ, filename, module_name, errors):
     if not os.path.exists(init_filename):
         try:
             f = open(init_filename, 'w')
-        except (OSError, IOError) as e:
+        except OSError as e:
             errors.write(
                 'Cannot write __init__.py file into directory %s (%s)\n'
                 % (os.path.dirname(filename), e))
@@ -507,7 +507,7 @@ class StaticURLParser:
         return exc.wsgi_application(environ, start_response)
 
     def __repr__(self):
-        return '<%s %r>' % (self.__class__.__name__, self.directory)
+        return '<{} {!r}>'.format(self.__class__.__name__, self.directory)
 
 def make_static(global_conf, document_root, cache_max_age=None):
     """
@@ -539,7 +539,7 @@ class PkgResourcesParser(StaticURLParser):
         self.root_resource = os.path.normpath(root_resource)
 
     def __repr__(self):
-        return '<%s for %s:%r>' % (
+        return '<{} for {}:{!r}>'.format(
             self.__class__.__name__,
             self.egg.project_name,
             self.resource_name)
@@ -575,7 +575,7 @@ class PkgResourcesParser(StaticURLParser):
         # @@: I don't know what to do with the encoding.
         try:
             file = self.egg.get_resource_stream(self.manager, resource)
-        except (IOError, OSError) as e:
+        except OSError as e:
             exc = httpexceptions.HTTPForbidden(
                 'You are not permitted to view this file (%s)' % e)
             return exc.wsgi_application(environ, start_response)

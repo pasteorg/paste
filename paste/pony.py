@@ -42,7 +42,7 @@ class PonyMiddleware:
                 url += '?horn'
                 link = 'add horn!'
             msg = data.decode('base64').decode('zlib')
-            msg = '<pre>%s\n<a href="%s">%s</a></pre>' % (
+            msg = '<pre>{}\n<a href="{}">{}</a></pre>'.format(
                 msg, url, link)
             start_response('200 OK', [('content-type', 'text/html')])
             return [msg]

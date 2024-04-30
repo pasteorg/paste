@@ -280,7 +280,7 @@ class WSGIRequest:
              pf(self.path_info))
         msg += '\nlanguages=%s,' % pf(self.languages)
         if self.charset:
-            msg += ' charset=%s, errors=%s,' % (pf(self.charset),
+            msg += ' charset={}, errors={},'.format(pf(self.charset),
                                                 pf(self.errors))
         msg += '\nGET=%s,' % pf(self.GET)
         msg += '\nPOST=%s,' % pf(self.POST)
@@ -313,7 +313,7 @@ class WSGIResponse:
             mimetype = defaults.get('content_type', 'text/html')
             charset = defaults.get('charset')
             if charset:
-                mimetype = '%s; charset=%s' % (mimetype, charset)
+                mimetype = '{}; charset={}'.format(mimetype, charset)
         self.headers.update(defaults.get('headers', {}))
         self.headers['Content-Type'] = mimetype
         self.errors = defaults.get('errors', 'strict')
@@ -328,7 +328,7 @@ class WSGIResponse:
             content = ''.join(self.get_content())
         else:
             content = str(self.content)
-        return '\n'.join(['%s: %s' % (key, value)
+        return '\n'.join(['{}: {}'.format(key, value)
             for key, value in self.headers.headeritems()]) \
             + '\n\n' + content
 
@@ -349,7 +349,7 @@ class WSGIResponse:
 
         """
         status_text = STATUS_CODE_TEXT[self.status_code]
-        status = '%s %s' % (self.status_code, status_text)
+        status = '{} {}'.format(self.status_code, status_text)
         response_headers = self.headers.headeritems()
         for c in self.cookies.values():
             response_headers.append(('Set-Cookie', c.output(header='')))
@@ -437,7 +437,7 @@ class WSGIResponse:
         (status, headers, iterable)
         """
         status_text = STATUS_CODE_TEXT[self.status_code]
-        status = '%s %s' % (self.status_code, status_text)
+        status = '{} {}'.format(self.status_code, status_text)
         response_headers = self.headers.headeritems()
         for c in self.cookies.values():
             response_headers.append(('Set-Cookie', c.output(header='')))
@@ -447,7 +447,7 @@ class WSGIResponse:
     # See http://docs.python.org/lib/bltin-file-objects.html
     def write(self, content):
         if not self._is_str_iter:
-            raise IOError("This %s instance's content is not writable: (content "
+            raise OSError("This %s instance's content is not writable: (content "
                 'is an iterator)' % self.__class__.__name__)
         self.content.append(content)
 
@@ -456,7 +456,7 @@ class WSGIResponse:
 
     def tell(self):
         if not self._is_str_iter:
-            raise IOError('This %s instance cannot tell its position: (content '
+            raise OSError('This %s instance cannot tell its position: (content '
                 'is an iterator)' % self.__class__.__name__)
         return sum([len(chunk) for chunk in self._iter])
 

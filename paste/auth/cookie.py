@@ -301,12 +301,12 @@ class AuthCookieHandler:
                             "The value of the environmental variable %r "
                             "is not a str (only str is allowed; got %r)"
                             % (k, v))
-                    content.append("%s=%s" % (encode(k), encode(v)))
+                    content.append("{}={}".format(encode(k), encode(v)))
             if content:
                 content = ";".join(content)
                 content = self.signer.sign(content)
                 content = content.decode('utf8')
-                cookie = '%s=%s; Path=/;' % (self.cookie_name, content)
+                cookie = '{}={}; Path=/;'.format(self.cookie_name, content)
                 if 'https' == environ['wsgi.url_scheme']:
                     cookie += ' secure;'
                 response_headers.append(('Set-Cookie', cookie))

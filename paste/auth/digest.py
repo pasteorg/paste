@@ -51,7 +51,7 @@ def _split_auth_string(auth_string):
     for item in auth_string.split(","):
         try:
             if prev.count('"') == 1:
-                prev = "%s,%s" % (prev, item)
+                prev = "{},{}".format(prev, item)
                 continue
         except AttributeError:
             if prev is None:
@@ -74,7 +74,7 @@ def _auth_to_kv_pairs(auth_string):
 
 def digest_password(realm, username, password):
     """ construct the appropriate hashcode needed for HTTP digest """
-    content = "%s:%s:%s" % (username, realm, password)
+    content = "{}:{}:{}".format(username, realm, password)
     content = content.encode('utf8')
     return md5(content).hexdigest()
 
@@ -87,11 +87,11 @@ class AuthDigestAuthenticator:
 
     def build_authentication(self, stale = ''):
         """ builds the authentication error """
-        content = "%s:%s" % (time.time(), random.random())
+        content = "{}:{}".format(time.time(), random.random())
         content = content.encode('utf-8')
         nonce  = md5(content).hexdigest()
 
-        content = "%s:%s" % (time.time(), random.random())
+        content = "{}:{}".format(time.time(), random.random())
         content = content.encode('utf-8')
         opaque = md5(content).hexdigest()
 
@@ -100,7 +100,7 @@ class AuthDigestAuthenticator:
                  'nonce': nonce, 'opaque': opaque }
         if stale:
             parts['stale'] = 'true'
-        head = ", ".join(['%s="%s"' % (k, v) for (k, v) in parts.items()])
+        head = ", ".join(['{}="{}"'.format(k, v) for (k, v) in parts.items()])
         head = [("WWW-Authenticate", 'Digest %s' % head)]
         return HTTPUnauthorized(headers=head)
 
@@ -109,13 +109,13 @@ class AuthDigestAuthenticator:
         """ computes the authentication, raises error if unsuccessful """
         if not ha1:
             return self.build_authentication()
-        content = '%s:%s' % (method, path)
+        content = '{}:{}'.format(method, path)
         content = content.encode('utf8')
         ha2 = md5(content).hexdigest()
         if qop:
-            chk = "%s:%s:%s:%s:%s:%s" % (ha1, nonce, nc, cnonce, qop, ha2)
+            chk = "{}:{}:{}:{}:{}:{}".format(ha1, nonce, nc, cnonce, qop, ha2)
         else:
-            chk = "%s:%s:%s" % (ha1, nonce, ha2)
+            chk = "{}:{}:{}".format(ha1, nonce, ha2)
         chk = chk.encode('utf8')
         if response != md5(chk).hexdigest():
             if nonce in self.nonce:

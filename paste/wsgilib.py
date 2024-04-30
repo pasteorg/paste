@@ -401,7 +401,7 @@ def interactive(*args, **kw):
         full.write('\n----------end errors\n')
     full.write(status + '\n')
     for name, value in headers:
-        full.write('%s: %s\n' % (name, value))
+        full.write('{}: {}\n'.format(name, value))
     full.write('\n')
     full.write(content)
     return full.getvalue()
@@ -417,7 +417,7 @@ def dump_environ(environ, start_response):
     keys.sort()
     for k in keys:
         v = str(environ[k]).replace("\n","\n    ")
-        output.append("%s: %s\n" % (k, v))
+        output.append("{}: {}\n".format(k, v))
     output.append("\n")
     content_length = environ.get("CONTENT_LENGTH", '')
     if content_length:

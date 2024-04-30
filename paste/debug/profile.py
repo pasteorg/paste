@@ -77,7 +77,7 @@ class ProfileMiddleware:
             output = capture_output(stats.print_stats, self.limit)
             output_callers = capture_output(
                 stats.print_callers, self.limit)
-            body += '<pre style="%s">%s\n%s</pre>' % (
+            body += '<pre style="{}">{}\n{}</pre>'.format(
                 self.style, html.escape(output), html.escape(output_callers))
             return [body]
         finally:
@@ -206,8 +206,8 @@ class DecoratedProfile:
     def format_function(self, func, *args, **kw):
         args = map(repr, args)
         args.extend(
-            ['%s=%r' % (k, v) for k, v in kw.items()])
-        return '%s(%s)' % (func.__name__, ', '.join(args))
+            ['{}={!r}'.format(k, v) for k, v in kw.items()])
+        return '{}({})'.format(func.__name__, ', '.join(args))
 
 
 def make_profile_middleware(

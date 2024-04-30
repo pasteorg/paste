@@ -121,6 +121,6 @@ def test_address_family_v6():
         assert (af == socket.AF_INET6)
         assert (addr[0] == '::1')
         assert (str(p) == port)
-    except (socket.error, OSError) as err:
+    except OSError as err:
         # v6 support not available in this OS, pass the test
         assert True

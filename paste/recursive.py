@@ -275,7 +275,7 @@ class Recursive:
         raise NotImplementedError
 
     def __repr__(self):
-        return '<%s.%s from %s>' % (
+        return '<{}.{} from {}>'.format(
             self.__class__.__module__,
             self.__class__.__name__,
             self.original_environ.get('SCRIPT_NAME') or '/')

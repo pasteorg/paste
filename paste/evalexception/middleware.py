@@ -403,7 +403,7 @@ class DebugInfo:
             if id(frame) == tbid:
                 return frame
         else:
-            raise ValueError("No frame by id %s found from %r" % (tbid, self.frames))
+            raise ValueError("No frame by id {} found from {!r}".format(tbid, self.frames))
 
     def wsgi_application(self, environ, start_response):
         start_response('200 OK', [('content-type', 'text/html')])
@@ -437,7 +437,7 @@ class DebugInfo:
 class EvalHTMLFormatter(formatter.HTMLFormatter):
 
     def __init__(self, base_path, counter, **kw):
-        super(EvalHTMLFormatter, self).__init__(**kw)
+        super().__init__(**kw)
         self.base_path = base_path
         self.counter = counter
 
@@ -514,16 +514,16 @@ def format_eval_html(exc_data, base_path, counter):
         full_traceback_html = ''
 
     return """
-    %s
-    %s
+    {}
+    {}
     <br>
     <script type="text/javascript">
     show_button('text_version', 'text version')
     </script>
     <div id="text_version" class="hidden-data">
-    <textarea style="width: 100%%" rows=10 cols=60>%s</textarea>
+    <textarea style="width: 100%" rows=10 cols=60>{}</textarea>
     </div>
-    """ % (short_er, full_traceback_html, html.escape(text_er))
+    """.format(short_er, full_traceback_html, html.escape(text_er))
 
 def make_repost_button(environ):
     url = request.construct_url(environ)

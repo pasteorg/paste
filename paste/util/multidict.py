@@ -69,7 +69,7 @@ class MultiDict(DictMixin):
         if not v:
             raise KeyError('Key not found: %r' % key)
         if len(v) > 1:
-            raise KeyError('Multiple values match %r: %r' % (key, v))
+            raise KeyError('Multiple values match {!r}: {!r}'.format(key, v))
         return v[0]
 
     def mixed(self):
@@ -172,7 +172,7 @@ class MultiDict(DictMixin):
 
     def __repr__(self):
         items = ', '.join(['(%r, %r)' % v for v in self._items])
-        return '%s([%s])' % (self.__class__.__name__, items)
+        return '{}([{}])'.format(self.__class__.__name__, items)
 
     def __len__(self):
         return len(self._items)
@@ -361,7 +361,7 @@ class UnicodeMultiDict(DictMixin):
 
     def __repr__(self):
         items = ', '.join(['(%r, %r)' % v for v in self.items()])
-        return '%s([%s])' % (self.__class__.__name__, items)
+        return '{}([{}])'.format(self.__class__.__name__, items)
 
     def __len__(self):
         return self.multi.__len__()

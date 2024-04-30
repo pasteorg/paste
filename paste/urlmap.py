@@ -185,7 +185,7 @@ class URLMap(DictMixin):
                 break
         else:
             raise KeyError(
-                "No application with the url %r" % (url,))
+                "No application with the url {!r}".format(url))
 
     def keys(self):
         return [app_url for app_url, app in self.applications]

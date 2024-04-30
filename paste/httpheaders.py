@@ -363,7 +363,7 @@ class HTTPHeader:
 
     def __repr__(self):
         ref = self.reference and (' (%s)' % self.reference) or ''
-        return '<%s %s%s>' % (self.__class__.__name__, self.name, ref)
+        return '<{} {}{}>'.format(self.__class__.__name__, self.name, ref)
 
     def values(self, *args, **kwargs):
         """
@@ -733,7 +733,7 @@ class _CacheControl(_MultiValueHeader):
         for (k, v) in extensions.items():
             if k not in self.extensions:
                 raise AssertionError("unexpected extension used: '%s'" % k)
-            result.append('%s="%s"' % (k.replace("_", "-"), v))
+            result.append('{}="{}"'.format(k.replace("_", "-"), v))
         return (result, expires)
 
     def compose(self, **kwargs):
@@ -774,7 +774,7 @@ class _ContentType(_SingleValueHeader):
                 return (self.UNKNOWN,)
         if not minor:
             minor = "*"
-        result = "%s/%s" % (major, minor)
+        result = "{}/{}".format(major, minor)
         if charset:
             result += "; charset=%s" % charset
         return (result,)
@@ -998,7 +998,7 @@ class _Authorization(_SingleValueHeader):
         assert username and password
         if basic or not challenge:
             assert not digest
-            userpass = "%s:%s" % (username.strip(), password.strip())
+            userpass = "{}:{}".format(username.strip(), password.strip())
             return "Basic %s" % userpass.encode('base64').strip()
         assert challenge and not basic
         path = path or "/"

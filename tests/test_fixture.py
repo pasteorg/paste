@@ -73,7 +73,7 @@ def test_params_and_upload_files():
 
 def test_unicode_path():
     app = TestApp(SimpleApplication())
-    app.get(u"/?")
-    app.post(u"/?")
-    app.put(u"/?")
-    app.delete(u"/?")
+    app.get("/?")
+    app.post("/?")
+    app.put("/?")
+    app.delete("/?")

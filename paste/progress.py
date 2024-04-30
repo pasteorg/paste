@@ -208,7 +208,7 @@ class UploadProgressReporter:
             parts = []
             for k, v in map.items():
                 v = str(v).replace("\\", "\\\\").replace('"', '\\"')
-                parts.append('%s: "%s"' % (k, v))
+                parts.append('{}: "{}"'.format(k, v))
             body.append("{ %s }" % ", ".join(parts))
         body = "[ %s ]" % ", ".join(body)
         start_response("200 OK", [('Content-Type', 'text/plain'),

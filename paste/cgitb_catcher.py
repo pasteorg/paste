@@ -52,8 +52,7 @@ class CgitbMiddleware:
             return
         error_on_close = False
         try:
-            for v in app_iter:
-                yield v
+            yield from app_iter
             if hasattr(app_iter, 'close'):
                 error_on_close = True
                 app_iter.close()

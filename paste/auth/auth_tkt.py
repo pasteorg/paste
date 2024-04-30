@@ -377,14 +377,14 @@ class AuthTKTMiddleware:
 
         cookies = []
         if self.no_domain_cookie:
-            cookies.append(('Set-Cookie', '%s=%s; Path=/%s' % (
+            cookies.append(('Set-Cookie', '{}={}; Path=/{}'.format(
                 self.cookie_name, ticket.cookie_value(), cookie_options)))
         if self.current_domain_cookie:
-            cookies.append(('Set-Cookie', '%s=%s; Path=/; Domain=%s%s' % (
+            cookies.append(('Set-Cookie', '{}={}; Path=/; Domain={}{}'.format(
                 self.cookie_name, ticket.cookie_value(), cur_domain,
                 cookie_options)))
         if self.wildcard_cookie:
-            cookies.append(('Set-Cookie', '%s=%s; Path=/; Domain=%s%s' % (
+            cookies.append(('Set-Cookie', '{}={}; Path=/; Domain={}{}'.format(
                 self.cookie_name, ticket.cookie_value(), wild_domain,
                 cookie_options)))
 
@@ -395,7 +395,7 @@ class AuthTKTMiddleware:
         wild_domain = '.' + cur_domain
         expires = 'Sat, 01-Jan-2000 12:00:00 GMT'
         cookies = [
-            ('Set-Cookie', '%s=""; Expires="%s"; Path=/' % (self.cookie_name, expires)),
+            ('Set-Cookie', '{}=""; Expires="{}"; Path=/'.format(self.cookie_name, expires)),
             ('Set-Cookie', '%s=""; Expires="%s"; Path=/; Domain=%s' %
              (self.cookie_name, expires, cur_domain)),
             ('Set-Cookie', '%s=""; Expires="%s"; Path=/; Domain=%s' %

@@ -98,7 +98,7 @@ class RegistryMiddleMan:
                 app_iter.close()
             app_response.extend(response)
         line = ('\nAppended by middleware!\nAppendValue at \
-                depth %s is %s' % (self.depth, str(regobj)))
+                depth {} is {}'.format(self.depth, str(regobj)))
         line = line.encode('utf8')
         app_response.append(line)
         return app_response

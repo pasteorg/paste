@@ -41,7 +41,7 @@ class SlowConsumer:
             remaining = int(total)
             while remaining > 0:
                 if self.progress:
-                    print("%s of %s remaining" % (remaining, total))
+                    print("{} of {} remaining".format(remaining, total))
                 if remaining > 4096:
                     chunk = environ['wsgi.input'].read(4096)
                 else:

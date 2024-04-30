@@ -75,7 +75,7 @@ class Proxy:
             ConnClass = httplib.HTTPSConnection
         else:
             raise ValueError(
-                "Unknown scheme for %r: %r" % (self.address, self.scheme))
+                "Unknown scheme for {!r}: {!r}".format(self.address, self.scheme))
         conn = ConnClass(self.host)
         headers = {}
         for key, value in environ.items():
@@ -119,7 +119,7 @@ class Proxy:
         res = conn.getresponse()
         headers_out = parse_headers(res.msg)
 
-        status = '%s %s' % (res.status, res.reason)
+        status = '{} {}'.format(res.status, res.reason)
         start_response(status, headers_out)
         # @@: Default?
         length = res.getheader('content-length')
@@ -176,7 +176,7 @@ class TransparentProxy:
         self.force_scheme = force_scheme
 
     def __repr__(self):
-        return '<%s %s force_host=%r force_scheme=%r>' % (
+        return '<{} {} force_host={!r} force_scheme={!r}>'.format(
             self.__class__.__name__,
             hex(id(self)),
             self.force_host, self.force_scheme)
@@ -235,7 +235,7 @@ class TransparentProxy:
         res = conn.getresponse()
         headers_out = parse_headers(res.msg)
 
-        status = '%s %s' % (res.status, res.reason)
+        status = '{} {}'.format(res.status, res.reason)
         start_response(status, headers_out)
         # @@: Default?
         length = res.getheader('content-length')

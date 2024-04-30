@@ -64,7 +64,7 @@ from paste import httpexceptions
 
 def quoteattr(s):
     qs = html.escape(s)
-    return '"%s"' % (qs,)
+    return '"{}"'.format(qs)
 
 # You may need to manually add the openid package into your
 # python path if you don't have it installed with your system python.
@@ -314,7 +314,7 @@ class AuthOpenIDHandler:
 
         self.page_header(request, title)
         if message:
-            request['body'].append("<div class='%s'>" % (css_class,))
+            request['body'].append("<div class='{}'>".format(css_class))
             request['body'].append(message)
             request['body'].append("</div>")
         self.page_footer(request, form_contents)
@@ -324,45 +324,45 @@ class AuthOpenIDHandler:
         """Render the page header"""
         request['body'].append('''\
 <html>
-  <head><title>%s</title></head>
+  <head><title>{}</title></head>
   <style type="text/css">
-      * {
+      * {{
         font-family: verdana,sans-serif;
-      }
-      body {
+      }}
+      body {{
         width: 50em;
         margin: 1em;
-      }
-      div {
+      }}
+      div {{
         padding: .5em;
-      }
-      table {
+      }}
+      table {{
         margin: none;
         padding: none;
-      }
-      .alert {
+      }}
+      .alert {{
         border: 1px solid #e7dc2b;
         background: #fff888;
-      }
-      .error {
+      }}
+      .error {{
         border: 1px solid #ff0000;
         background: #ffaaaa;
-      }
-      #verify-form {
+      }}
+      #verify-form {{
         border: 1px solid #777777;
         background: #dddddd;
         margin-top: 1em;
         padding-bottom: 0em;
-      }
+      }}
   </style>
   <body>
-    <h1>%s</h1>
+    <h1>{}</h1>
     <p>
       This example consumer uses the <a
       href="http://openid.schtuff.com/">Python OpenID</a> library. It
       just verifies that the URL that you enter is your identity URL.
     </p>
-''' % (title, title))
+'''.format(title, title))
 
     def page_footer(self, request, form_contents):
         """Render the page footer"""
@@ -371,15 +371,15 @@ class AuthOpenIDHandler:
 
         request['body'].append('''\
     <div id="verify-form">
-      <form method="get" action=%s>
+      <form method="get" action={}>
         Identity&nbsp;URL:
-        <input type="text" name="openid_url" value=%s />
+        <input type="text" name="openid_url" value={} />
         <input type="submit" value="Verify" />
       </form>
     </div>
   </body>
 </html>
-''' % (quoteattr(self.build_url(request, 'verify')), quoteattr(form_contents)))
+'''.format(quoteattr(self.build_url(request, 'verify')), quoteattr(form_contents)))
 
 
 middleware = AuthOpenIDHandler

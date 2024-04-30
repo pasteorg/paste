@@ -23,7 +23,7 @@ class DispatchingConfig(StackedObjectProxy):
     # resolved, and get rid of this delegation wrapper
 
     def __init__(self, name='DispatchingConfig'):
-        super(DispatchingConfig, self).__init__(name=name)
+        super().__init__(name=name)
         self.__dict__['_process_configs'] = []
 
     def push_thread_config(self, conf):
@@ -71,7 +71,7 @@ class DispatchingConfig(StackedObjectProxy):
 
     def _current_obj(self):
         try:
-            return super(DispatchingConfig, self)._current_obj()
+            return super()._current_obj()
         except TypeError:
             if self._process_configs:
                 return self._process_configs[-1]

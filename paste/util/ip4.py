@@ -62,7 +62,7 @@ class IP4Range(intset.IntSet):
 
         # Special case copy constructor.
         if len(args) == 1 and isinstance(args[0],IP4Range):
-            super(IP4Range,self).__init__(args[0])
+            super().__init__(args[0])
             return
 
         # Convert arguments to tuple syntax.
@@ -97,7 +97,7 @@ class IP4Range(intset.IntSet):
                 raise TypeError("Invalid argument.")
 
         # Initialize the integer set.
-        super(IP4Range,self).__init__(min=self._MINIP4,max=self._MAXIP4,*args)
+        super().__init__(min=self._MINIP4,max=self._MAXIP4,*args)
 
     # Parsing functions
     # -----------------
@@ -171,7 +171,7 @@ class IP4Range(intset.IntSet):
         """Returns an iterator which iterates over ips in this iprange. An
         IP is returned in string form (e.g. '1.2.3.4')."""
 
-        for v in super(IP4Range,self).__iter__():
+        for v in super().__iter__():
             yield self._int2ip(v)
 
     def iterranges(self):
@@ -183,7 +183,7 @@ class IP4Range(intset.IntSet):
             if r[1]-r[0] == 1:
                 yield self._int2ip(r[0])
             else:
-                yield '%s-%s' % (self._int2ip(r[0]),self._int2ip(r[1]-1))
+                yield '{}-{}'.format(self._int2ip(r[0]),self._int2ip(r[1]-1))
 
     def itermasks(self):
         """Returns an iterator which iterates over ip/mask pairs which build
@@ -191,8 +191,7 @@ class IP4Range(intset.IntSet):
         (e.g. '1.2.3.0/24')."""
 
         for r in self._ranges:
-            for v in self._itermasks(r):
-                yield v
+            yield from self._itermasks(r)
 
     def _itermasks(self,r):
         ranges = [r]
@@ -206,7 +205,7 @@ class IP4Range(intset.IntSet):
                     break
                 else:
                     curmask += 1
-            yield "%s/%s" % (self._int2ip(start),curmask)
+            yield "{}/{}".format(self._int2ip(start),curmask)
             if cur[0] < start:
                 ranges.append((cur[0],start))
             if cur[1] > start+curmasklen:
@@ -223,17 +222,17 @@ class IP4Range(intset.IntSet):
         rv = []
         for start, stop in self._ranges:
             if stop-start == 1:
-                rv.append("%r" % (self._int2ip(start),))
+                rv.append("{!r}".format(self._int2ip(start)))
             else:
-                rv.append("(%r,%r)" % (self._int2ip(start),
+                rv.append("({!r},{!r})".format(self._int2ip(start),
                                        self._int2ip(stop-1)))
-        return "%s(%s)" % (self.__class__.__name__,",".join(rv))
+        return "{}({})".format(self.__class__.__name__,",".join(rv))
 
 def _parseAddr(addr,lookup=True):
     if lookup and any(ch not in IP4Range._IPREMOVE for ch in addr):
         try:
             addr = socket.gethostbyname(addr)
-        except socket.error:
+        except OSError:
             raise ValueError("Invalid Hostname as argument.")
     naddr = 0
     for naddrpos, part in enumerate(addr.split(".")):

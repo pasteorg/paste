@@ -52,7 +52,7 @@ def test_badapp():
 
 def test_unicode():
     """ verify unicode output """
-    tstr = u"\0xCAFE"
+    tstr = "\0xCAFE"
     def badapp(environ, start_response):
         start_response("200 OK",[])
         raise HTTPBadRequest(tstr)

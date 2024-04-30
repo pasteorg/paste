@@ -184,7 +184,7 @@ class TextFormatter(AbstractFormatter):
     def format_sup_info(self, info):
         return [self.quote_long(info)]
     def format_source_line(self, filename, frame):
-        return 'File %r, line %s in %s' % (
+        return 'File {!r}, line {} in {}'.format(
             filename, frame.lineno or '?', frame.name or '?')
     def format_long_source(self, source, long_source):
         return self.format_source(source)
@@ -192,7 +192,7 @@ class TextFormatter(AbstractFormatter):
         return '  ' + self.quote(source_line.strip())
     def format_exception_info(self, etype, evalue):
         return self.emphasize(
-            '%s: %s' % (self.quote(etype), self.quote(evalue)))
+            '{}: {}'.format(self.quote(etype), self.quote(evalue)))
     def format_traceback_info(self, info):
         return info
 
@@ -210,9 +210,9 @@ class TextFormatter(AbstractFormatter):
         if isinstance(value, str):
             s = self.pretty_string_repr(value)
             if '\n' in s:
-                return '%s:\n%s' % (title, s)
+                return '{}:\n{}'.format(title, s)
             else:
-                return '%s: %s' % (title, s)
+                return '{}: {}'.format(title, s)
         elif isinstance(value, dict):
             lines = ['\n', title, '-'*len(title)]
             items = value.items()
@@ -223,15 +223,15 @@ class TextFormatter(AbstractFormatter):
                 except Exception as e:
                     v = 'Cannot display: %s' % e
                 v = truncate(v)
-                lines.append('  %s: %s' % (n, v))
+                lines.append('  {}: {}'.format(n, v))
             return '\n'.join(lines)
         elif (isinstance(value, (list, tuple))
               and self.long_item_list(value)):
             parts = [truncate(repr(v)) for v in value]
-            return '%s: [\n    %s]' % (
+            return '{}: [\n    {}]'.format(
                 title, ',\n    '.join(parts))
         else:
-            return '%s: %s' % (title, truncate(repr(value)))
+            return '{}: {}'.format(title, truncate(repr(value)))
 
 class HTMLFormatter(TextFormatter):
 
@@ -242,15 +242,15 @@ class HTMLFormatter(TextFormatter):
     def emphasize(self, s):
         return '<b>%s</b>' % s
     def format_sup_url(self, url):
-        return 'URL: <a href="%s">%s</a>' % (url, url)
+        return 'URL: <a href="{}">{}</a>'.format(url, url)
     def format_combine_lines(self, lines):
         return '<br>\n'.join(lines)
     def format_source_line(self, filename, frame):
         name = self.quote(frame.name or '?')
-        return 'Module <span class="module" title="%s">%s</span>:<b>%s</b> in <code>%s</code>' % (
+        return 'Module <span class="module" title="{}">{}</span>:<b>{}</b> in <code>{}</code>'.format(
             filename, frame.modname or '?', frame.lineno or '?',
             name)
-        return 'File %r, line %s in <tt>%s</tt>' % (
+        return 'File {!r}, line {} in <tt>{}</tt>'.format(
             filename, frame.lineno, name)
     def format_long_source(self, source, long_source):
         q_long_source = str2html(long_source, False, 4, True)
@@ -268,17 +268,17 @@ class HTMLFormatter(TextFormatter):
         if isinstance(value, str):
             s = self.pretty_string_repr(value)
             if '\n' in s:
-                return '%s:<br><pre>%s</pre>' % (title, self.quote(s))
+                return '{}:<br><pre>{}</pre>'.format(title, self.quote(s))
             else:
-                return '%s: <tt>%s</tt>' % (title, self.quote(s))
+                return '{}: <tt>{}</tt>'.format(title, self.quote(s))
         elif isinstance(value, dict):
             return self.zebra_table(title, value)
         elif (isinstance(value, (list, tuple))
               and self.long_item_list(value)):
-            return '%s: <tt>[<br>\n&nbsp; &nbsp; %s]</tt>' % (
+            return '{}: <tt>[<br>\n&nbsp; &nbsp; {}]</tt>'.format(
                 title, ',<br>&nbsp; &nbsp; '.join(map(self.quote, map(repr, value))))
         else:
-            return '%s: <tt>%s</tt>' % (title, self.quote(repr(value)))
+            return '{}: <tt>{}</tt>'.format(title, self.quote(repr(value)))
 
     def format_combine(self, data_by_importance, lines, exc_info):
         lines[:0] = [value for n, value in data_by_importance['important']]
@@ -447,22 +447,22 @@ def format_html(exc_data, include_hidden_frames=False, **ops):
     long_er = format_html(exc_data, show_hidden_frames=True, **ops)
     text_er = format_text(exc_data, show_hidden_frames=True, **ops)
     return """
-    %s
+    {}
     <br>
     <script type="text/javascript">
     show_button('full_traceback', 'full traceback')
     </script>
     <div id="full_traceback" class="hidden-data">
-    %s
+    {}
     </div>
     <br>
     <script type="text/javascript">
     show_button('text_version', 'text version')
     </script>
     <div id="text_version" class="hidden-data">
-    <textarea style="width: 100%%" rows=10 cols=60>%s</textarea>
+    <textarea style="width: 100%" rows=10 cols=60>{}</textarea>
     </div>
-    """ % (short_er, long_er, html.escape(text_er))
+    """.format(short_er, long_er, html.escape(text_er))
 
 def format_text(exc_data, **ops):
     return TextFormatter(**ops).format_collected_data(exc_data)

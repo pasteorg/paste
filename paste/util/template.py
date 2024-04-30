@@ -64,7 +64,7 @@ class TemplateError(Exception):
         self.name = name
 
     def __str__(self):
-        msg = '%s at line %s column %s' % (
+        msg = '{} at line {} column {}'.format(
             self.message, self.position[0], self.position[1])
         if self.name:
             msg += ' in %s' % self.name
@@ -106,7 +106,7 @@ class Template:
     from_filename = classmethod(from_filename)
 
     def __repr__(self):
-        return '<%s %s name=%r>' % (
+        return '<{} {} name={!r}>'.format(
             self.__class__.__name__,
             hex(id(self))[2:], self.name)
 
@@ -258,7 +258,7 @@ class Template:
 
 
     def _add_line_info(self, msg, pos):
-        msg = "%s at line %s column %s" % (
+        msg = "{} at line {} column {}".format(
             msg, pos[0], pos[1])
         if self.name:
             msg += " in file %s" % self.name
@@ -301,9 +301,9 @@ class bunch(dict):
         items = [
             (k, v) for k, v in self.items()]
         items.sort()
-        return '<%s %s>' % (
+        return '<{} {}>'.format(
             self.__class__.__name__,
-            ' '.join(['%s=%r' % (k, v) for k, v in items]))
+            ' '.join(['{}={!r}'.format(k, v) for k, v in items]))
 
 ############################################################
 ## HTML Templating
@@ -315,7 +315,7 @@ class html:
     def __str__(self):
         return self.value
     def __repr__(self):
-        return '<%s %r>' % (
+        return '<{} {!r}>'.format(
             self.__class__.__name__, self.value)
 
 def html_quote(value):
@@ -339,7 +339,7 @@ def attr(**kw):
             continue
         if name.endswith('_'):
             name = name[:-1]
-        parts.append('%s="%s"' % (html_quote(name), html_quote(value)))
+        parts.append('{}="{}"'.format(html_quote(name), html_quote(value)))
     return html(' '.join(parts))
 
 class HTMLTemplate(Template):
@@ -605,7 +605,7 @@ def parse_one_cond(tokens, name, context):
     elif first == 'else':
         part = ('else', pos, None, content)
     else:
-        assert 0, "Unexpected token %r at %s" % (first, pos)
+        assert 0, "Unexpected token {!r} at {}".format(first, pos)
     while 1:
         if not tokens:
             raise TemplateError(
