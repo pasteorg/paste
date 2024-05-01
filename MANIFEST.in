@@ -4,6 +4,7 @@ include docs/conf.py
 include docs/test_server.ini
 include regen-docs
 include tox.ini
+include LICENSE
 recursive-exclude docs/_build/_sources *
 recursive-include docs/_build *.html
 recursive-include tests *.txt *.py *.cgi *.html
