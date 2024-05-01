@@ -3,6 +3,11 @@ News
 
 .. contents::
 
+3.10.1
+------
+
+* Correct packaging and testing when not in a clean virtualenv.
+
 3.10.0
 ------
 
