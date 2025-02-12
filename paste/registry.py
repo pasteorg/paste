@@ -156,7 +156,7 @@ class StackedObjectProxy:
         try:
             return repr(self._current_obj())
         except (TypeError, AttributeError):
-            return '<%s.%s object at 0x%x>' % (self.__class__.__module__,
+            return '<{}.{} object at 0x{:x}>'.format(self.__class__.__module__,
                                                self.__class__.__name__,
                                                id(self))
 
@@ -407,8 +407,7 @@ class RegistryManager:
 
     def streaming_iter(self, reg, environ, start_response):
         try:
-            for item in self.application(environ, start_response):
-                yield item
+            yield from self.application(environ, start_response)
         except Exception as e:
             # Regardless of if the content is an iterable, generator, list
             # or tuple, we clean-up right now. If its an iterable/generator

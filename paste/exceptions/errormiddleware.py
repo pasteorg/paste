@@ -6,10 +6,8 @@ Error handler middleware
 """
 import sys
 import traceback
-import html
 from io import StringIO
 from paste.exceptions import formatter, collector, reporter
-from paste import wsgilib
 from paste import request
 
 __all__ = ['ErrorMiddleware', 'handle_exception']
@@ -424,10 +422,10 @@ def send_report(rep, exc_data, html=True):
         traceback.print_exc(file=output)
         if html:
             return """
-            <p>Additionally an error occurred while sending the %s report:
+            <p>Additionally an error occurred while sending the {} report:
 
-            <pre>%s</pre>
-            </p>""" % (
+            <pre>{}</pre>
+            </p>""".format(
                 html.escape(str(rep)), output.getvalue())
         else:
             return (
@@ -441,14 +439,14 @@ def error_template(head_html, exception, extra):
     <html>
     <head>
     <title>Server Error</title>
-    %s
+    {}
     </head>
     <body>
     <h1>Server Error</h1>
-    %s
-    %s
+    {}
+    {}
     </body>
-    </html>''' % (head_html, exception, extra)
+    </html>'''.format(head_html, exception, extra)
 
 def make_error_middleware(app, global_conf, **kw):
     return ErrorMiddleware(app, global_conf=global_conf, **kw)

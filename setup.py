@@ -10,7 +10,8 @@
 __version__ = '3.10.1'
 
 from setuptools import setup, find_packages
-import sys, os
+import sys
+import os
 sys.path.append(os.path.join(os.path.dirname(__file__),
                                 'paste', 'util'))
 import finddata
@@ -20,16 +21,18 @@ with open("README.rst") as fp:
 
 setup(name="Paste",
       version=__version__,
-      python_requires=">=3",
+      python_requires=">=3.8",
       description="Tools for using a Web Server Gateway Interface stack",
       long_description=README,
       classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Topic :: Software Development :: Libraries :: Python Modules",

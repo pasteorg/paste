@@ -14,7 +14,6 @@ import os
 import sys
 import shutil
 import re
-import html
 import rfc822
 from io import StringIO
 from paste.util import PySourceColor
@@ -49,7 +48,7 @@ def run_raw(command):
 
 def run_command(command, name, and_print=False):
     output = run_raw(command)
-    data = '$ %s\n%s' % (command, output)
+    data = '$ {}\n{}'.format(command, output)
     show_file('shell-command', name, description='shell transcript',
               data=data)
     if and_print and output:
@@ -215,9 +214,9 @@ def show_file(path, version, description=None, data=None):
                 % PySourceColor.str2html(data, PySourceColor.dark))
     else:
         html = '<pre class="source-code">%s</pre>' % html.escape(data)
-    html = '<span class="source-filename">%s</span><br>%s' % (
+    html = '<span class="source-filename">{}</span><br>{}'.format(
         description or path, html)
-    write_data(resource_filename('%s.%s.gen.html' % (path, version)),
+    write_data(resource_filename('{}.{}.gen.html'.format(path, version)),
                html)
 
 def call_source_highlight(input, format):
@@ -417,7 +416,7 @@ if __name__ == '__main__':
     if sys.argv[1:] and sys.argv[1] == 'doctest':
         doctest.testmod()
         sys.exit()
-    if not paste_parent in sys.path:
+    if paste_parent not in sys.path:
         sys.path.append(paste_parent)
     for fn in sys.argv[1:]:
         fn = os.path.abspath(fn)
@@ -429,4 +428,4 @@ if __name__ == '__main__':
             parser=LongFormDocTestParser())
         new = os.path.splitext(fn)[0] + '.html'
         assert new != fn
-        os.system('rst2html.py %s > %s' % (fn, new))
+        os.system('rst2html.py {} > {}'.format(fn, new))

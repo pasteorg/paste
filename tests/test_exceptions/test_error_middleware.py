@@ -45,7 +45,7 @@ def bad_app():
     return None
 
 def unicode_bad_app(environ, start_response):
-    raise ValueError(u"\u1000")
+    raise ValueError("\u1000")
 
 def start_response_app(environ, start_response):
     "raise error before start_response"

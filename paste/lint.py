@@ -416,7 +416,7 @@ def check_content_type(status, headers):
 
 def check_exc_info(exc_info):
     assert exc_info is None or type(exc_info) is type(()), (
-        "exc_info (%r) is not a tuple: %r" % (exc_info, type(exc_info)))
+        "exc_info ({!r}) is not a tuple: {!r}".format(exc_info, type(exc_info)))
     # More exc_info checks?
 
 def check_iterator(iterator):

@@ -74,7 +74,6 @@ References:
 
 """
 
-from paste.wsgilib import catch_errors_app
 from paste.response import has_header, header_value, replace_header
 from paste.request import resolve_relative_url
 from paste.util.quoting import strip_html, html_quote, no_quote, comment_quote
@@ -191,7 +190,7 @@ class HTTPException(Exception):
             self.detail = detail
         if comment is not None:
             self.comment = comment
-        Exception.__init__(self,"%s %s\n%s\n%s\n" % (
+        Exception.__init__(self,"{} {}\n{}\n{}\n".format(
             self.code, self.title, self.explanation, self.detail))
 
     def make_body(self, environ, template, escfunc, comment_escfunc=None):
@@ -210,7 +209,7 @@ class HTTPException(Exception):
     def plain(self, environ):
         """ text/plain representation of the exception """
         body = self.make_body(environ, strip_html(self.template), no_quote, comment_quote)
-        return ('%s %s\r\n%s\r\n' % (self.code, self.title, body))
+        return ('{} {}\r\n{}\r\n'.format(self.code, self.title, body))
 
     def html(self, environ):
         """ text/html representation of the exception """
@@ -255,7 +254,7 @@ class HTTPException(Exception):
         This exception as a WSGI application
         """
         headers, content = self.prepare_content(environ)
-        start_response('%s %s' % (self.code, self.title),
+        start_response('{} {}'.format(self.code, self.title),
                        headers,
                        exc_info)
         return [content]
@@ -263,7 +262,7 @@ class HTTPException(Exception):
     __call__ = wsgi_application
 
     def __repr__(self):
-        return '<%s %s; code=%s>' % (self.__class__.__name__,
+        return '<{} {}; code={}>'.format(self.__class__.__name__,
                                      self.title, self.code)
 
 class HTTPError(HTTPException):

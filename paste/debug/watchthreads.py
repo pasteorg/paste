@@ -264,7 +264,7 @@ def traceback_thread(thread_id):
         # Only 2.5 has support for this, with this special function
         return None
     frames = sys._current_frames()
-    if not thread_id in frames:
+    if thread_id not in frames:
         return None
     frame = frames[thread_id]
     out = StringIO()
@@ -315,7 +315,7 @@ def make_bad_app(global_conf, pause=0):
         else:
             count = 0
             while 1:
-                print("I'm alive %s (%s)" % (count, thread.get_ident()))
+                print("I'm alive {} ({})".format(count, thread.get_ident()))
                 time.sleep(10)
                 count += 1
         start_response('200 OK', [('content-type', 'text/plain')])

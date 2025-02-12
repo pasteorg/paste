@@ -31,11 +31,11 @@ def test_basic(key='key', val='bingles'):
     cookie = value.split(";")[0]
     (status,headers,content,errors) = \
             raw_interactive(app,{'HTTP_COOKIE': cookie})
-    expected = ("%s: %s" % (key,val.replace("\n","\n    ")))
+    expected = ("{}: {}".format(key,val.replace("\n","\n    ")))
     expected = expected.encode('utf8')
     assert expected in content
 
 def test_roundtrip():
-    roundtrip = str('').join(map(chr, range(256)))
+    roundtrip = ''.join(map(chr, range(256)))
     test_basic(roundtrip,roundtrip)
 

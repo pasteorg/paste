@@ -385,7 +385,7 @@ class FieldStorage:
         """Dictionary style keys() method."""
         if self.list is None:
             raise TypeError('not indexable')
-        return list(set(item.name for item in self.list))
+        return list({item.name for item in self.list})
 
     def __contains__(self, key):
         """Dictionary style __contains__ method."""

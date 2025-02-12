@@ -34,7 +34,7 @@ def js_repr(v):
         return '[%s]' % ', '.join(map(js_repr, v))
     elif isinstance(v, dict):
         return '{%s}' % ', '.join(
-            ['%s: %s' % (js_repr(key), js_repr(value))
+            ['{}: {}'.format(js_repr(key), js_repr(value))
              for key, value in v])
     elif isinstance(v, str):
         return repr(v)
@@ -202,15 +202,15 @@ class URLResource:
     href = property(href__get)
 
     def __repr__(self):
-        base = '<%s %s' % (self.__class__.__name__,
+        base = '<{} {}'.format(self.__class__.__name__,
                            self.href or "''")
         if self.attrs:
             base += ' attrs(%s)' % (
-                ' '.join(['%s="%s"' % (html_quote(n), html_quote(v))
+                ' '.join(['{}="{}"'.format(html_quote(n), html_quote(v))
                           for n, v in self.attrs.items()]))
         if self.original_params:
             base += ' params(%s)' % (
-                ', '.join(['%s=%r' % (n, v)
+                ', '.join(['{}={!r}'.format(n, v)
                            for n, v in self.attrs.items()]))
         return base + '>'
 
@@ -222,7 +222,7 @@ class URLResource:
         content = self._get_content()
         tag = '<%s' % self.params.get('tag')
         attrs = ' '.join([
-            '%s="%s"' % (html_quote(n), html_quote(v))
+            '{}="{}"'.format(html_quote(n), html_quote(v))
             for n, v in self._html_attrs()])
         if attrs:
             tag += ' ' + attrs
@@ -230,7 +230,7 @@ class URLResource:
         if content is None:
             return tag + ' />'
         else:
-            return '%s>%s</%s>' % (tag, content, self.params.get('tag'))
+            return '{}>{}</{}>'.format(tag, content, self.params.get('tag'))
 
     html = property(html__get)
 
@@ -395,7 +395,7 @@ class Button(URLResource):
         attrs = list(self.attrs.items())
         onclick = 'location.href=%s' % js_repr(self.href)
         if self.params.get('confirm'):
-            onclick = 'if (confirm(%s)) {%s}' % (
+            onclick = 'if (confirm({})) {{{}}}'.format(
                 js_repr(self.params['confirm']), onclick)
         onclick += '; return false'
         attrs.insert(0, ('onclick', onclick))
@@ -434,11 +434,11 @@ class JSPopup(URLResource):
                     v = '1'
                 else:
                     v = '0'
-            features.append('%s=%s' % (param, v))
+            features.append('{}={}'.format(param, v))
         for param in 'height left top width':
             if not p.get(param):
                 continue
-            features.append('%s=%s' % (param, p[param]))
+            features.append('{}={}'.format(param, p[param]))
         args = [self.href, p['target']]
         if features:
             args.append(','.join(features))

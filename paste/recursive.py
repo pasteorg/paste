@@ -201,7 +201,7 @@ class ForwardRequestException(Exception):
             self.path_info = path_info
 
         # If the url can be treated as a path_info do that
-        if url and not '?' in str(url):
+        if url and '?' not in str(url):
             self.path_info = url
 
         # Base middleware
@@ -275,7 +275,7 @@ class Recursive:
         raise NotImplementedError
 
     def __repr__(self):
-        return '<%s.%s from %s>' % (
+        return '<{}.{} from {}>'.format(
             self.__class__.__module__,
             self.__class__.__name__,
             self.original_environ.get('SCRIPT_NAME') or '/')

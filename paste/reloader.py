@@ -110,7 +110,7 @@ class Monitor:
                     mtime = stat.st_mtime
                 else:
                     mtime = 0
-            except (OSError, IOError):
+            except OSError:
                 continue
             if filename.endswith('.pyc') and os.path.exists(filename[:-1]):
                 mtime = max(os.stat(filename[:-1]).st_mtime, mtime)

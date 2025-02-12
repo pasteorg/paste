@@ -142,7 +142,7 @@ class Snapshot(IterableUserDict):
             result[path] = File(self.base_path, path)
 
     def __repr__(self):
-        return '<%s in %r from %r>' % (
+        return '<{} in {!r} from {!r}>'.format(
             self.__class__.__name__, self.base_path,
             self.calculated or '(no calculation done)')
 
@@ -257,7 +257,7 @@ class File:
             assert s in bytes
 
     def __repr__(self):
-        return '<%s %s:%s>' % (
+        return '<{} {}:{}>'.format(
             self.__class__.__name__,
             self.base_path, self.path)
 
@@ -278,7 +278,7 @@ class Dir(File):
         self.mtime = 'N/A'
 
     def __repr__(self):
-        return '<%s %s:%s>' % (
+        return '<{} {}:{}>'.format(
             self.__class__.__name__,
             self.base_path, self.path)
 
@@ -401,7 +401,7 @@ def show_diff(actual_content, expected_content):
     expected_lines = [l.strip() for l in expected_content.splitlines()
                       if l.strip()]
     if len(actual_lines) == len(expected_lines) == 1:
-        return '%r not %r' % (actual_lines[0], expected_lines[0])
+        return '{!r} not {!r}'.format(actual_lines[0], expected_lines[0])
     if not actual_lines:
         return 'Empty; should have:\n'+expected_content
     import difflib

@@ -269,7 +269,7 @@ class ExceptionCollector:
         if not hasattr(locals, 'keys'):
             # Something weird about this frame; it's not a real dict
             warnings.warn(
-                "Frame %s has an invalid locals(): %r" % (
+                "Frame {} has an invalid locals(): {!r}".format(
                 globals.get('__name__', 'unknown'), locals))
             locals = {}
         data = {}
@@ -402,7 +402,7 @@ class Bunch:
 
     def __repr__(self):
         name = '<%s ' % self.__class__.__name__
-        name += ' '.join(['%s=%r' % (name, str(value)[:30])
+        name += ' '.join(['{}={!r}'.format(name, str(value)[:30])
                           for name, value in self.__dict__.items()
                           if not name.startswith('_')])
         return name + '>'

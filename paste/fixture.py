@@ -464,7 +464,7 @@ class TestApp:
                    body))
         if status != res.status:
             raise AppError(
-                "Bad response: %s (not %s)" % (res.full_status, status))
+                "Bad response: {} (not {})".format(res.full_status, status))
 
     def _check_errors(self, res):
         if res.errors:
@@ -706,7 +706,7 @@ class TestResponse:
         href_pat = _make_pattern(href_pattern)
         html_pat = _make_pattern(html_pattern)
 
-        _tag_re = re.compile(r'<%s\s+(.*?)>(.*?)</%s>' % (tag, tag),
+        _tag_re = re.compile(r'<{}\s+(.*?)>(.*?)</{}>'.format(tag, tag),
                              re.I+re.S)
 
         def printlog(s):
@@ -844,7 +844,7 @@ class TestResponse:
             raise TypeError(
                 "The only keyword argument allowed is 'no'")
         for s in strings:
-            if not s in self:
+            if s not in self:
                 print("Actual response (no %r):" % s, file=sys.stderr)
                 print(self, file=sys.stderr)
                 raise IndexError(
@@ -860,15 +860,15 @@ class TestResponse:
         body = self.body
         body = body.decode('utf8', 'xmlcharrefreplace')
         body = body[:20]
-        return '<Response %s %r>' % (self.full_status, body)
+        return '<Response {} {!r}>'.format(self.full_status, body)
 
     def __str__(self):
         simple_body = b'\n'.join([l for l in self.body.splitlines()
                                  if l.strip()])
         simple_body = simple_body.decode('utf8', 'xmlcharrefreplace')
-        return 'Response: %s\n%s\n%s' % (
+        return 'Response: {}\n{}\n{}'.format(
             self.status,
-            '\n'.join(['%s: %s' % (n, v) for n, v in self.headers]),
+            '\n'.join(['{}: {}'.format(n, v) for n, v in self.headers]),
             simple_body)
 
     def showbrowser(self):
@@ -1204,7 +1204,7 @@ class Select(Field):
     """
 
     def __init__(self, *args, **attrs):
-        super(Select, self).__init__(*args, **attrs)
+        super().__init__(*args, **attrs)
         self.options = []
         self.multiple = attrs.get('multiple')
         assert not self.multiple, (
@@ -1255,7 +1255,7 @@ class Checkbox(Field):
     """
 
     def __init__(self, *args, **attrs):
-        super(Checkbox, self).__init__(*args, **attrs)
+        super().__init__(*args, **attrs)
         self.checked = 'checked' in attrs
 
     def value__set(self, value):
@@ -1653,7 +1653,7 @@ class FoundFile:
             assert s in bytes_
 
     def __repr__(self):
-        return '<%s %s:%s>' % (
+        return '<{} {}:{}>'.format(
             self.__class__.__name__,
             self.base_path, self.path)
 
@@ -1674,7 +1674,7 @@ class FoundDir:
         self.mtime = 'N/A'
 
     def __repr__(self):
-        return '<%s %s:%s>' % (
+        return '<{} {}:{}>'.format(
             self.__class__.__name__,
             self.base_path, self.path)
 

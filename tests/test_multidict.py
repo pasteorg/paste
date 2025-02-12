@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # (c) 2007 Ian Bicking and Philip Jenvey; written for Paste (http://pythonpaste.org)
 # Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 import gc
@@ -80,52 +79,52 @@ def _test_unicode_dict(decode_param_names=False):
         assert isinstance(key, key_str)
         assert isinstance(value, str)
 
-    assert d.items() == [(k('a'), u'a test')]
+    assert d.items() == [(k('a'), 'a test')]
     map(assert_key_str, d.keys())
     map(assert_unicode, d.values())
 
     d[b'b'] = b'2 test'
     d[b'c'] = b'3 test'
-    assert d.items() == [(k('a'), u'a test'), (k('b'), u'2 test'), (k('c'), u'3 test')]
+    assert d.items() == [(k('a'), 'a test'), (k('b'), '2 test'), (k('c'), '3 test')]
     list(map(assert_unicode_item, d.items()))
 
     d[k('b')] = b'4 test'
-    assert d.items() == [(k('a'), u'a test'), (k('c'), u'3 test'), (k('b'), u'4 test')], d.items()
+    assert d.items() == [(k('a'), 'a test'), (k('c'), '3 test'), (k('b'), '4 test')], d.items()
     list(map(assert_unicode_item, d.items()))
 
     d.add(k('b'), b'5 test')
     pytest.raises(KeyError, d.getone, k("b"))
-    assert d.getall(k('b')) == [u'4 test', u'5 test']
+    assert d.getall(k('b')) == ['4 test', '5 test']
     map(assert_unicode, d.getall('b'))
-    assert d.items() == [(k('a'), u'a test'), (k('c'), u'3 test'), (k('b'), u'4 test'),
-                         (k('b'), u'5 test')]
+    assert d.items() == [(k('a'), 'a test'), (k('c'), '3 test'), (k('b'), '4 test'),
+                         (k('b'), '5 test')]
     list(map(assert_unicode_item, d.items()))
 
     del d[k('b')]
-    assert d.items() == [(k('a'), u'a test'), (k('c'), u'3 test')]
+    assert d.items() == [(k('a'), 'a test'), (k('c'), '3 test')]
     list(map(assert_unicode_item, d.items()))
-    assert d.pop('xxx', u'5 test') == u'5 test'
-    assert isinstance(d.pop('xxx', u'5 test'), str)
-    assert d.getone(k('a')) == u'a test'
+    assert d.pop('xxx', '5 test') == '5 test'
+    assert isinstance(d.pop('xxx', '5 test'), str)
+    assert d.getone(k('a')) == 'a test'
     assert isinstance(d.getone(k('a')), str)
-    assert d.popitem() == (k('c'), u'3 test')
+    assert d.popitem() == (k('c'), '3 test')
     d[k('c')] = b'3 test'
     assert_unicode_item(d.popitem())
-    assert d.items() == [(k('a'), u'a test')]
+    assert d.items() == [(k('a'), 'a test')]
     list(map(assert_unicode_item, d.items()))
 
     item = []
     assert d.setdefault(k('z'), item) is item
     items = d.items()
-    assert items == [(k('a'), u'a test'), (k('z'), item)]
+    assert items == [(k('a'), 'a test'), (k('z'), item)]
     assert isinstance(items[1][0], key_str)
     assert isinstance(items[1][1], list)
 
     assert isinstance(d.setdefault(k('y'), b'y test'), str)
     assert isinstance(d[k('y')], str)
 
-    assert d.mixed() == {k('a'): u'a test', k('y'): u'y test', k('z'): item}
-    assert d.dict_of_lists() == {k('a'): [u'a test'], k('y'): [u'y test'],
+    assert d.mixed() == {k('a'): 'a test', k('y'): 'y test', k('z'): item}
+    assert d.dict_of_lists() == {k('a'): ['a test'], k('y'): ['y test'],
                                  k('z'): [item]}
     del d[k('z')]
     list(map(assert_unicode_item, d.mixed().items()))
@@ -140,7 +139,7 @@ def _test_unicode_dict(decode_param_names=False):
     assert dcopy != d
 
     d[(1, None)] = (None, 1)
-    assert d.items() == [(k('a'), u'a test'), (k('y'), u'y test'), (k('x'), u'x test'),
+    assert d.items() == [(k('a'), 'a test'), (k('y'), 'y test'), (k('x'), 'x test'),
                          ((1, None), (None, 1))]
     item = d.items()[-1]
     assert isinstance(item[0], tuple)

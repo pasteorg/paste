@@ -32,7 +32,7 @@ from scgi import scgi_server
 def debug(msg):
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S",
                               time.localtime(time.time()))
-    sys.stderr.write("[%s] %s\n" % (timestamp, msg))
+    sys.stderr.write("[{}] {}\n".format(timestamp, msg))
 
 class SWAP(scgi_server.SCGIHandler):
     """
@@ -131,7 +131,7 @@ class SWAP(scgi_server.SCGIHandler):
             input.close()
             output.close()
             conn.close()
-        except IOError as err:
+        except OSError as err:
             debug("IOError while closing connection ignored: %s" % err)
 
 

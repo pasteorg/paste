@@ -99,7 +99,7 @@ class Cascade:
                     while copy_len > 0:
                         chunk = environ['wsgi.input'].read(min(copy_len, 4096))
                         if not chunk:
-                            raise IOError("Request body truncated")
+                            raise OSError("Request body truncated")
                         f.write(chunk)
                         copy_len -= len(chunk)
                 f.seek(0)

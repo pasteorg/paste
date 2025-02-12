@@ -20,11 +20,11 @@ def test_fixture():
     res = app.post('/params', params=FakeDict())
 
     # test multiple cookies in one request
-    app.cookies['one'] = 'first';
-    app.cookies['two'] = 'second';
-    app.cookies['three'] = '';
+    app.cookies['one'] = 'first'
+    app.cookies['two'] = 'second'
+    app.cookies['three'] = ''
     res = app.get('/')
-    hc = res.request.environ['HTTP_COOKIE'].split('; ');
+    hc = res.request.environ['HTTP_COOKIE'].split('; ')
     assert ('one=first' in hc)
     assert ('two=second' in hc)
     assert ('three=' in hc)
@@ -73,7 +73,7 @@ def test_params_and_upload_files():
 
 def test_unicode_path():
     app = TestApp(SimpleApplication())
-    app.get(u"/?")
-    app.post(u"/?")
-    app.put(u"/?")
-    app.delete(u"/?")
+    app.get("/?")
+    app.post("/?")
+    app.put("/?")
+    app.delete("/?")

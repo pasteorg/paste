@@ -56,7 +56,7 @@ def simple_import(s):
             obj = getattr(module, parts[0])
         except AttributeError:
             raise ImportError(
-                "Cannot find %s in module %r (stopped importing modules with error %s)" % (parts[0], module, last_import_error))
+                "Cannot find {} in module {!r} (stopped importing modules with error {})".format(parts[0], module, last_import_error))
         parts = parts[1:]
     return obj
 

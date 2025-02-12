@@ -178,16 +178,16 @@ def error_body_response(error_code, message, __warn=True):
     return '''\
 <html>
   <head>
-    <title>%(error_code)s</title>
+    <title>{error_code}</title>
   </head>
   <body>
-  <h1>%(error_code)s</h1>
-  %(message)s
+  <h1>{error_code}</h1>
+  {message}
   </body>
-</html>''' % {
-        'error_code': error_code,
-        'message': message,
-        }
+</html>'''.format(
+        error_code=error_code,
+        message=message,
+        )
 
 
 def error_response(environ, error_code, message,

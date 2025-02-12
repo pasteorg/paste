@@ -102,7 +102,7 @@ class PrintCatcher(filemixin.FileMixin):
         # Weird, but Google App Engine is seeking on stdout
         name = threading.current_thread().name
         catchers = self._catchers
-        if not name in catchers:
+        if name not in catchers:
             self._default.seek(*args)
         else:
             catchers[name].seek(*args)
@@ -110,7 +110,7 @@ class PrintCatcher(filemixin.FileMixin):
     def read(self, *args):
         name = threading.current_thread().name
         catchers = self._catchers
-        if not name in catchers:
+        if name not in catchers:
             self._default.read(*args)
         else:
             catchers[name].read(*args)

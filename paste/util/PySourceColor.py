@@ -965,14 +965,14 @@ def str2file(sourcestring, outfile, colors=None, title='',
                     markup=markup, header=header, footer=footer,
                     linenumbers=linenumbers, form=form)
     # write html
-    f = open(outfile,'wt')
+    f = open(outfile,'w')
     f.writelines(html)
     f.close()
     #write css
     if css is not None and dosheet:
         dir = os.path.dirname(outfile)
         outcss = os.path.join(dir,'pystyle.css')
-        f = open(outcss,'wt')
+        f = open(outcss,'w')
         f.writelines(css)
         f.close()
     if show:
@@ -1052,7 +1052,7 @@ def path2file(sourcePath, out=None, colors=None, show=0,
     htmlPath = os.path.abspath(htmlPath)
     # Open the text and do the parsing.
     source = open(sourcePath).read()
-    parse = Parser(source, colors, sourcePath, open(htmlPath, 'wt'),
+    parse = Parser(source, colors, sourcePath, open(htmlPath, 'w'),
                    markup, header, footer, linenumbers)
     parse.format(form)
     _printinfo("  wrote %s" % htmlPath, quiet)
@@ -1061,7 +1061,7 @@ def path2file(sourcePath, out=None, colors=None, show=0,
     if form == 'external' and count == 1 and markup != 'html':
         cssSheet = parse._sendCSSStyle(external=1)
         cssPath = os.path.join(os.path.dirname(htmlPath),'pystyle.css')
-        css = open(cssPath, 'wt')
+        css = open(cssPath, 'w')
         css.write(cssSheet)
         css.close()
         _printinfo("    wrote %s" % cssPath, quiet)
@@ -1110,7 +1110,7 @@ def pageconvert(path, out=None, colors=lite, markup='xhtml', linenumbers=0,
     """
     if out is None:
         out = os.path.dirname(path)
-    infile = open(path, 'r').read()
+    infile = open(path).read()
     css,page  = tagreplace(sourcestr=infile,colors=colors,
                    markup=markup, linenumbers=linenumbers, dosheet=dosheet,
                    tagstart=tagstart, tagend=tagend, stylesheet=stylesheet)
@@ -1587,7 +1587,7 @@ class Parser:
 
     def _getFile(self, filepath):
         try:
-            _file = open(filepath,'r')
+            _file = open(filepath)
             content = _file.read()
             _file.close()
         except Exception:
