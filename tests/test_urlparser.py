@@ -1,9 +1,6 @@
 import os
 import warnings
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", category=DeprecationWarning)
-    from pkg_resources import get_distribution
+import importlib.metadata
 
 from paste.fixture import TestApp
 from paste.urlparser import PkgResourcesParser, StaticURLParser, URLParser
@@ -155,7 +152,7 @@ def test_egg_parser():
     # Find a readable file in the Paste pkg's root directory (or upwards the
     # directory tree). Ensure it's not accessible via the URLParser
     unreachable_test_file = None
-    search_path = pkg_root_path = get_distribution('Paste').location
+    search_path = pkg_root_path = str(importlib.metadata.distribution('Paste').locate_file(''))
     level = 0
     # We might not find any readable files in the pkg's root directory (this
     # is likely when Paste is installed as a .egg in site-packages). We

@@ -682,12 +682,12 @@ strings.
 """
 
 def fill_command(args=None):
-    import sys, optparse, pkg_resources, os
+    import sys, optparse, importlib.metadata, os
     if args is None:
         args = sys.argv[1:]
-    dist = pkg_resources.get_distribution('Paste')
+    version = importlib.metadata.version('Paste')
     parser = optparse.OptionParser(
-        version=str(dist),
+        version=version,
         usage=_fill_command_usage)
     parser.add_option(
         '-o', '--output',

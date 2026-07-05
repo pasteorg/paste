@@ -9,12 +9,7 @@ import sys
 import mimetypes
 import warnings
 import importlib.util as imputil
-try:
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=DeprecationWarning)
-        import pkg_resources
-except ImportError:
-    pkg_resources = None
+import importlib.metadata
 from paste import request
 from paste import fileapp
 from paste.util import import_string
@@ -521,19 +516,40 @@ def make_static(global_conf, document_root, cache_max_age=None):
     return StaticURLParser(
         document_root, cache_max_age=cache_max_age)
 
+class _DistributionResources:
+    """Minimal shim replacing pkg_resources distribution resource methods."""
+
+    def __init__(self, dist):
+        self._root = dist.locate_file('')
+        self.project_name = dist.metadata['Name']
+
+    def _path(self, resource_name):
+        return self._root / resource_name
+
+    def has_resource(self, resource_name):
+        p = self._path(resource_name)
+        return p.is_file() or p.is_dir()
+
+    def resource_isdir(self, resource_name):
+        return self._path(resource_name).is_dir()
+
+    def get_resource_stream(self, manager, resource_name):
+        return self._path(resource_name).open('rb')
+
+
 class PkgResourcesParser(StaticURLParser):
 
     def __init__(self, egg_or_spec, resource_name, manager=None, root_resource=None):
-        if pkg_resources is None:
-            raise NotImplementedError("This class requires pkg_resources.")
-        if isinstance(egg_or_spec, (bytes, str)):
-            self.egg = pkg_resources.get_distribution(egg_or_spec)
+        if isinstance(egg_or_spec, str):
+            dist = importlib.metadata.distribution(egg_or_spec)
+            self.egg = _DistributionResources(dist)
+        elif isinstance(egg_or_spec, bytes):
+            dist = importlib.metadata.distribution(egg_or_spec.decode())
+            self.egg = _DistributionResources(dist)
         else:
             self.egg = egg_or_spec
         self.resource_name = resource_name
-        if manager is None:
-            manager = pkg_resources.ResourceManager()
-        self.manager = manager
+        self.manager = manager  # kept for API compatibility; no longer used
         if root_resource is None:
             root_resource = resource_name
         self.root_resource = os.path.normpath(root_resource)
@@ -595,12 +611,10 @@ class PkgResourcesParser(StaticURLParser):
 def make_pkg_resources(global_conf, egg, resource_name=''):
     """
     A static file parser that loads data from an egg using
-    ``pkg_resources``.  Takes a configuration value ``egg``, which is
+    ``importlib.resources``.  Takes a configuration value ``egg``, which is
     an egg spec, and a base ``resource_name`` (default empty string)
     which is the path in the egg that this starts at.
     """
-    if pkg_resources is None:
-        raise NotImplementedError("This function requires pkg_resources.")
     return PkgResourcesParser(egg, resource_name)
 
 def make_url_parser(global_conf, directory, base_python_name,
