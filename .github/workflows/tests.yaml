@@ -9,18 +9,18 @@ jobs:
         strategy:
             matrix:
                 include:
-                    - python: "3.8"
-                      env: py38
-                    - python: "3.9"
-                      env: py39
-                    - python: "3.10"
-                      env: py310
                     - python: "3.11"
                       env: py311
-                    - python: "3.11"
-                      env: py311-namespace
                     - python: "3.12"
                       env: py312
+                    - python: "3.13"
+                      env: py313
+                    - python: "3.14"
+                      env: py314
+                    - python: "3.15"
+                      env: py315
+                    - python: "3.15"
+                      env: py315-namespace
                     - python: pypy-3.10
                       env: pypy3
         name: ${{ matrix.env }} on Python ${{ matrix.python }}
