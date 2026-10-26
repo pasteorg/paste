@@ -4,19 +4,10 @@ print('Content-type: text/plain')
 print('')
 
 import sys
-import warnings
 from os.path import dirname
 
 base_dir = dirname(dirname(dirname(__file__)))
 sys.path.insert(0, base_dir)
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", category=DeprecationWarning)
-    try:
-        import pkg_resources
-    except ImportError:
-        # Ignore
-        pass
 
 from paste.util.field_storage import FieldStorage
 
