@@ -3,7 +3,9 @@ Python Paste
 
 This is a new copy of the documentation for Paste. The project is now being
 maintained on limited life-support from https://github.com/pasteorg/paste
-**Please consider other options.**
+**Please consider other options.** The frameworks provided by the
+`Pallets Project <https://palletsprojects.com>`_ or
+`Beaker <https://beaker.readthedocs.io/>`_ may be good options.
 
 **With version 3.10.0 Paste development moves to the pasteorg GitHub
 organization and will be going deeper into maintenance mode unless
