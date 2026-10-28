@@ -28,6 +28,7 @@ import time
 import random
 import os
 import datetime
+import stat
 import threading
 import tempfile
 
@@ -171,26 +172,78 @@ class SessionFactory:
             self.session.close()
 
 
+def default_session_file_path():
+    """A private per-user directory under the temporary directory.
+
+    Created 0700 and checked before use. The default used to be the
+    temporary directory itself, where on a multi-user host any local
+    account can plant a file for an unauthenticated request to name in
+    its cookie.
+    """
+    posix = hasattr(os, 'getuid')
+    name = 'paste-sessions'
+    if posix:
+        name = '%s-%d' % (name, os.getuid())
+    path = os.path.join(tempfile.gettempdir(), name)
+    try:
+        os.mkdir(path, 0o700)
+    except FileExistsError:
+        pass
+    st = os.lstat(path)
+    bad = not stat.S_ISDIR(st.st_mode)
+    if posix and not bad:
+        # Only where these mean something. Elsewhere mkdir ignores the
+        # mode it is given and stat reports 0777 whatever the directory
+        # really allows, but the temporary directory is already
+        # per-user.
+        bad = bool(st.st_mode & 0o077) or st.st_uid != os.getuid()
+    if bad:
+        raise RuntimeError(
+            "%s is not a private directory owned by this user; pass "
+            "session_file_path explicitly" % path)
+    return path
+
+
+# O_NOFOLLOW is not available on every platform. Where it is missing,
+# Windows among them, the islink checks are the only thing stopping a
+# symlink being followed and they are a check before an open rather
+# than part of it. O_BINARY exists only on the platforms that need it,
+# where builtin open() was setting it and os.open does not.
+_O_EXTRA = getattr(os, 'O_NOFOLLOW', 0) | getattr(os, 'O_BINARY', 0)
+
 last_cleanup = None
 cleaning_up = False
 cleanup_cycle = datetime.timedelta(seconds=15*60) #15 min
 
 class FileSession:
 
-    def __init__(self, sid, create=False, session_file_path=tempfile.gettempdir(),
+    def __init__(self, sid, create=False, session_file_path=None,
                  chmod=None,
                  expiration=2880, # in minutes: 48 hours
                  ):
+        if session_file_path is None:
+            session_file_path = default_session_file_path()
         if chmod and isinstance(chmod, (bytes, str)):
             chmod = int(chmod, 8)
         self.chmod = chmod
         if not sid:
             # Invalid...
             raise KeyError
+        if (sid != os.path.basename(sid) or sid in ('.', '..')
+                or set(sid) & set('/\\:*?"<>|') or min(sid) < ' '):
+            # The sid arrives from the client, so it has to be a plain
+            # file name, not a path. The separators are listed rather
+            # than left to basename: ntpath leaves a colon alone, and
+            # on NTFS "name:stream" writes an alternate data stream of
+            # "name", which no directory listing shows. Treated like
+            # any other invalid sid.
+            raise KeyError
         self.session_file_path = session_file_path
         self.sid = sid
         if not create:
-            if not os.path.exists(self.filename()):
+            if not os.path.isfile(self.filename()) \
+                    or os.path.islink(self.filename()):
+                # Missing, a symlink, or not a regular file at all.
                 raise KeyError
         self._data = None
 
@@ -203,12 +256,14 @@ class FileSession:
     def data(self):
         if self._data is not None:
             return self._data
-        if os.path.exists(self.filename()):
-            f = open(self.filename(), 'rb')
-            self._data = cPickle.load(f)
-            f.close()
-        else:
+        try:
+            fd = os.open(self.filename(), os.O_RDONLY | _O_EXTRA)
+        except OSError:
+            # No session file, or one we will not follow.
             self._data = {}
+            return self._data
+        with os.fdopen(fd, 'rb') as f:
+            self._data = cPickle.load(f)
         return self._data
 
     def close(self):
@@ -218,10 +273,17 @@ class FileSession:
             if not self._data:
                 if exists:
                     os.unlink(filename)
+            elif os.path.islink(filename):
+                # os.open refuses this itself where O_NOFOLLOW exists.
+                raise OSError(
+                    "refusing to write a session through a symlink: %s"
+                    % filename)
             else:
-                f = open(filename, 'wb')
-                cPickle.dump(self._data, f)
-                f.close()
+                fd = os.open(filename,
+                             os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+                             | _O_EXTRA, 0o666)
+                with os.fdopen(fd, 'wb') as f:
+                    cPickle.dump(self._data, f)
                 if not exists and self.chmod:
                     os.chmod(filename, self.chmod)
 
@@ -308,7 +370,8 @@ def make_session_middleware(
           names to avoid session clashes.
 
       session_file_path:
-          Sessions are put in this location, default /tmp.
+          Sessions are put in this location. The default is a private
+          per-user directory under the system temporary directory.
 
       chmod:
           The octal chmod you want to apply to new sessions (e.g., 660
@@ -326,7 +389,7 @@ def make_session_middleware(
     if cookie_name is NO_DEFAULT:
         cookie_name = global_conf.get('session_cookie_name', '_SID_')
     if session_file_path is NO_DEFAULT:
-        session_file_path = global_conf.get('session_file_path', '/tmp')
+        session_file_path = global_conf.get('session_file_path', None)
     if chmod is NO_DEFAULT:
         chmod = global_conf.get('session_chmod', None)
     return SessionMiddleware(
