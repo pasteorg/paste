@@ -1,7 +1,8 @@
 
-*Paste is in maintenance mode and recently moved from bitbucket to github.
-Patches are accepted to keep it on life support, but for the most part, please
-consider using other options.*
+*Paste is deprecated and in maintenance mode. Please consider other
+options.* The frameworks provided by the
+`Pallets Project <https://palletsprojects.com>`_ or
+`Beaker <https://beaker.readthedocs.io/>`_ may be good options.
 
 **As of release 3.7.0 Paste no longer supports Python 2. If you are
 required to continue using Python 2 please pin an earlier version of Paste.**
