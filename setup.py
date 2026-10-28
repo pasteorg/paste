@@ -7,7 +7,7 @@
 #
 # The final step will release to pypi and to Github
 
-__version__ = '3.10.1'
+__version__ = '3.11.0'
 
 from setuptools import setup, find_packages
 import sys, os
